@@ -3,6 +3,7 @@
 A powerful API to create custom advancements for your minecraft server.
 
 **JavaDoc:** <https://frengor.com/javadocs/UltimateAdvancementAPI/build-server/>
+**Jenkins:** <https://jenkins.frengor.com/job/UltimateAdvancementAPI/>
 
 **Get it with maven:**
 ```xml
