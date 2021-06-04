@@ -7,6 +7,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementDisposeEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementDisposedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementRegistrationEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
@@ -382,13 +383,16 @@ public final class AdvancementTab {
             removePlayer(e.getKey(), e.getValue());
             it.remove();
         }
-        // Trigger AdvancementDisposeException
         PluginManager pluginManager = Bukkit.getPluginManager();
         for (Advancement a : advancements.values()) {
-            a.onDispose();
             try {
+                // Trigger AdvancementDisposeEvent
                 pluginManager.callEvent(new AdvancementDisposeEvent(a));
-            } catch (IllegalStateException e) {
+                // Dispose the advancement
+                a.onDispose();
+                // Trigger AdvancementDisposedEvent
+                pluginManager.callEvent(new AdvancementDisposedEvent(a.getKey()));
+            } catch (Throwable e) {
                 e.printStackTrace();
             }
         }
