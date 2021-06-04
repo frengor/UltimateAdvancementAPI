@@ -295,7 +295,6 @@ public abstract class Advancement {
     }
 
     public void onDispose() {
-        advancementTab.getEventManager().unregister(this);
     }
 
     public boolean isValid() {

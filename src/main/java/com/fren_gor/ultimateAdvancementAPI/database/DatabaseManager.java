@@ -127,7 +127,8 @@ public final class DatabaseManager {
     }
 
     public void unregister() {
-        eventManager.unregister(this);
+        if (eventManager.isEnabled())
+            eventManager.unregister(this);
         try {
             database.close();
         } catch (SQLException e) {
