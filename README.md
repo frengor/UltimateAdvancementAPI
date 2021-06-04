@@ -25,7 +25,7 @@ A powerful API to create custom advancements for your minecraft server.
 
 #### Test Plugin:
 
-Test plugin can be found in [tests](https://github.com/frengor/UltimateAdvancementAPI/tree/tests) branch.
+Test plugin can be found [here](https://github.com/frengor/UltimateAdvancementAPI-Tests).
 
 ## Credits
 
