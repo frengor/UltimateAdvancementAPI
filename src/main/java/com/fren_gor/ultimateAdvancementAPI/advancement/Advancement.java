@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -42,6 +43,8 @@ public abstract class Advancement {
     @Getter
     @NotNull
     protected final AdvancementDisplay display;
+    @Nullable
+    private final Method iVisibilityMethod;
 
     @Range(from = 0, to = Integer.MAX_VALUE)
     protected final int maxCriteria;
@@ -60,6 +63,11 @@ public abstract class Advancement {
         this.advancementTab = Objects.requireNonNull(advancementTab);
         this.display = Objects.requireNonNull(display);
         this.maxCriteria = maxCriteria;
+        if (this instanceof IVisibility) {
+            this.iVisibilityMethod = getIVisibilityMethod(getClass());
+        } else {
+            this.iVisibilityMethod = null;
+        }
     }
 
     @NotNull
@@ -235,8 +243,12 @@ public abstract class Advancement {
     }
 
     public boolean isVisible(@NotNull UUID uuid) {
-        if (this instanceof IVisibility) {
-            return ((IVisibility) this).isAdvancementVisible(uuid);
+        if (iVisibilityMethod != null) {
+            try {
+                return (boolean) iVisibilityMethod.invoke(this, this, uuid);
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
         }
         return true;
     }
@@ -309,15 +321,6 @@ public abstract class Advancement {
         advancementTab.getEventManager().register(this, eventClass, priority, consumer);
     }
 
-    /**
-     * Used by {@link IVisibility}.
-     *
-     * @return This advancement instance.
-     */
-    public final Advancement getAdvancement() {
-        return this;
-    }
-
     @Override
     public String toString() {
         return key.toString();
@@ -336,6 +339,26 @@ public abstract class Advancement {
     @Override
     public int hashCode() {
         return key.hashCode();
+    }
+
+    @Nullable
+    private Method getIVisibilityMethod(Class<? extends Advancement> clazz) {
+        for (Class<?> i : clazz.getInterfaces()) {
+            if (i != IVisibility.class && IVisibility.class.isAssignableFrom(i)) {
+                try {
+                    final Method m = i.getDeclaredMethod("isVisible", Advancement.class, UUID.class);
+                    if (m.isDefault()) {
+                        return m;
+                    }
+                } catch (NoSuchMethodException e) {
+                }
+            }
+        }
+        Class<?> sClazz = clazz.getSuperclass();
+        if (Advancement.class.isAssignableFrom(sClazz) && sClazz != Advancement.class) {
+            return getIVisibilityMethod((Class<? extends Advancement>) sClazz);
+        }
+        return null;
     }
 }
 

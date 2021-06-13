@@ -7,8 +7,6 @@ import java.util.UUID;
 
 public interface IVisibility {
 
-    boolean isAdvancementVisible(@NotNull UUID uuid);
-
-    Advancement getAdvancement();
+    boolean isVisible(@NotNull Advancement advancement, @NotNull UUID uuid);
 
 }

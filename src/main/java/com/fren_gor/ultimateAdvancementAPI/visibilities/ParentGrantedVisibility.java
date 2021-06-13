@@ -12,9 +12,9 @@ import java.util.UUID;
 public interface ParentGrantedVisibility extends IVisibility {
 
     @Override
-    default boolean isAdvancementVisible(@NotNull UUID uuid) {
+    default boolean isVisible(@NotNull Advancement advancement, @NotNull UUID uuid) {
+        Validate.notNull(advancement, "Advancement is null.");
         Validate.notNull(uuid, "UUID is null.");
-        Advancement advancement = getAdvancement();
         if (advancement.getTeamCriteria(uuid) > 0)
             return true;
 
