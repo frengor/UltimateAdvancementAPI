@@ -161,6 +161,9 @@
                 <targetPath>META-INF/.libs/</targetPath>
                 <filtering>false</filtering>
                 <directory>src/licenses/</directory>
+                <excludes>
+                    <exclude>README.md</exclude>
+                </excludes>
             </resource>
         </resources>
         <plugins>
