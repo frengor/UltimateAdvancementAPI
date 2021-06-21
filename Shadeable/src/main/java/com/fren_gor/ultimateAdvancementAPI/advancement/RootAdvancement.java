@@ -1,0 +1,67 @@
+package com.fren_gor.ultimateAdvancementAPI.advancement;
+
+import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
+import lombok.Getter;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.minecraft.server.v1_15_R1.AdvancementRewards;
+import net.minecraft.server.v1_15_R1.Criterion;
+import net.minecraft.server.v1_15_R1.MinecraftKey;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementCriteria;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementRequirements;
+
+public class RootAdvancement extends Advancement {
+
+    @Getter
+    @NotNull
+    private final String backgroundTexture;
+    private net.minecraft.server.v1_15_R1.Advancement mcAdvancement;
+
+    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull String backgroundTexture) {
+        this(advancementTab, key, display, backgroundTexture, 1);
+    }
+
+    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull String backgroundTexture, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
+        super(advancementTab, key, display, maxCriteria);
+        this.backgroundTexture = Objects.requireNonNull(backgroundTexture, "Background texture is null.");
+    }
+
+    @NotNull
+    public net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement() {
+        if (mcAdvancement != null) {
+            return mcAdvancement;
+        }
+        AdvancementRewards advRewards = new AdvancementRewards(0, new MinecraftKey[0], new MinecraftKey[0], null);
+
+        Map<String, Criterion> advCrit = getAdvancementCriteria(maxCriteria);
+        return mcAdvancement = new net.minecraft.server.v1_15_R1.Advancement(getMinecraftKey(), null, display.getMinecraftDisplay(this), advRewards, advCrit, getAdvancementRequirements(advCrit));
+    }
+
+    @Override
+    public @Nullable BaseComponent[] getAnnounceMessage(@NotNull Player player) {
+        return null;
+    }
+
+    @Override
+    public void giveReward(@NotNull Player player) {
+    }
+
+    @Override
+    public final boolean isVisible(@NotNull Player player) {
+        return true;
+    }
+
+    @Override
+    public final boolean isVisible(@NotNull UUID uuid) {
+        return true;
+    }
+}

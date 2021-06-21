@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.frengor</groupId>
+        <artifactId>ultimateadvancementapi-parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ultimateadvancementapi</artifactId>
+    <name>UltimateAdvancementAPI</name>
+    <url>${parent.url}</url>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- UltimateAdvancementAPI Shadeable -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-shadeable</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- CommandAPI -->
+        <dependency>
+            <groupId>dev.jorel</groupId>
+            <artifactId>commandapi-shade</artifactId>
+            <version>5.9</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <filtering>false</filtering>
+                <directory>..</directory>
+                <includes>
+                    <include>LICENSE</include>
+                    <include>LGPL</include>
+                    <include>NOTICE</include>
+                </includes>
+            </resource>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources/</directory>
+            </resource>
+            <resource>
+                <targetPath>META-INF/.libs/</targetPath>
+                <filtering>false</filtering>
+                <directory>src/licenses/</directory>
+                <excludes>
+                    <exclude>README.md</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

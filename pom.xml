@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.frengor</groupId>
-    <artifactId>ultimateadvancementapi</artifactId>
+    <artifactId>ultimateadvancementapi-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
-    <name>UltimateAdvancementAPI</name>
+    <name>UltimateAdvancementAPI-Parent</name>
     <description>A powerful API to create custom advancements for your minecraft server.</description>
     <url>https://github.com/frengor/UltimateAdvancementAPI</url>
     <inceptionYear>2021</inceptionYear>
@@ -31,6 +31,11 @@
             <url>https://www.gnu.org/licenses/lgpl-3.0.txt</url>
         </license>
     </licenses>
+
+    <modules>
+        <module>Shadeable</module>
+        <module>Plugin</module>
+    </modules>
 
     <properties>
         <!-- Project Properties -->
@@ -71,32 +76,8 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>19.0.0</version>
+            <version>20.1.0</version>
             <scope>provided</scope>
-        </dependency>
-
-        <!-- HikariCP -->
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>3.4.1</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <!-- Used by HikariCP -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.25</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <!-- CommandAPI -->
-        <dependency>
-            <groupId>dev.jorel</groupId>
-            <artifactId>commandapi-shade</artifactId>
-            <version>5.9</version>
-            <scope>compile</scope>
         </dependency>
 
         <!-- Spigot 1.15.2 -->
@@ -107,19 +88,11 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- EventManagerAPI -->
-        <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>eventmanagerapi</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.12</version>
+            <version>1.18.16</version>
             <scope>provided</scope>
         </dependency>
 
@@ -143,179 +116,158 @@
     <build>
         <finalName>${project.name}-${project.version}</finalName>
         <defaultGoal>clean install</defaultGoal>
-        <resources>
-            <resource>
-                <filtering>false</filtering>
-                <directory>.</directory>
-                <includes>
-                    <include>LICENSE</include>
-                    <include>LGPL</include>
-                    <include>NOTICE</include>
-                </includes>
-            </resource>
-            <resource>
-                <filtering>true</filtering>
-                <directory>src/main/resources/</directory>
-            </resource>
-            <resource>
-                <targetPath>META-INF/.libs/</targetPath>
-                <filtering>false</filtering>
-                <directory>src/licenses/</directory>
-                <excludes>
-                    <exclude>README.md</exclude>
-                </excludes>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <createDependencyReducedPom>false</createDependencyReducedPom>
-                    <minimizeJar>false</minimizeJar>
-                    <relocations>
-                        <relocation>
-                            <pattern>org.slf4j</pattern>
-                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.org.slf4j</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>com.zaxxer.hikari</pattern>
-                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.com.zaxxer.hikari</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>com.fren_gor.eventManagerAPI</pattern>
-                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.com.fren_gor.eventManagerAPI
-                            </shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>dev.jorel.commandapi</pattern>
-                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
-                        </relocation>
-                    </relocations>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok-maven-plugin</artifactId>
-                <version>1.18.12.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>delombok</goal>
-                        </goals>
-                        <configuration>
-                            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
-                            <outputDirectory>${project.build.directory}/delombok</outputDirectory>
-                            <addOutputDirectory>false</addOutputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <!-- Create javadocs to catch any warnings -->
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <attach>false</attach>
-                            <failOnWarnings>true</failOnWarnings>
-                        </configuration>
-                    </execution>
-                    <!-- Then again with delombok -->
-                    <execution>
-                        <id>delombok</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <doclint>none</doclint>
-                            <sourcepath>${project.build.directory}/delombok</sourcepath>
-                            <links>
-                                <link>https://frengor.com/javadocs/EventManagerAPI/build-server/</link>
-                                <link>https://javadoc.io/doc/org.jetbrains/annotations/19.0.0/</link>
-                            </links>
-                            <offlineLinks>
-                                <offlineLink>
-                                    <url>https://hub.spigotmc.org/javadocs/spigot/</url>
-                                    <location>https://www.frengor.com/spigot-package-list/</location>
-                                </offlineLink>
-                            </offlineLinks>
-                        </configuration>
-                    </execution>
-                </executions>
-                <configuration>
-                    <quiet>true</quiet>
-                    <tags>
-                        <tag>
-                            <name>apiNote</name>
-                            <placement>a</placement>
-                            <head>API Note:</head>
-                        </tag>
-                        <tag>
-                            <name>implSpec</name>
-                            <placement>a</placement>
-                            <head>Implementation Requirements:</head>
-                        </tag>
-                        <tag>
-                            <name>implNote</name>
-                            <placement>a</placement>
-                            <head>Implementation Note:</head>
-                        </tag>
-                        <tag>
-                            <name>param</name>
-                        </tag>
-                        <tag>
-                            <name>return</name>
-                        </tag>
-                        <tag>
-                            <name>throws</name>
-                        </tag>
-                        <tag>
-                            <name>since</name>
-                        </tag>
-                        <tag>
-                            <name>version</name>
-                        </tag>
-                        <tag>
-                            <name>serialData</name>
-                        </tag>
-                        <tag>
-                            <name>see</name>
-                        </tag>
-                    </tags>
-                </configuration>
-            </plugin>
-        </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.1.0</version>
+                    <configuration>
+                        <createDependencyReducedPom>false</createDependencyReducedPom>
+                        <minimizeJar>false</minimizeJar>
+                        <relocations>
+                            <relocation>
+                                <pattern>org.slf4j</pattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.org.slf4j</shadedPattern>
+                            </relocation>
+                            <relocation>
+                                <pattern>com.zaxxer.hikari</pattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.com.zaxxer.hikari</shadedPattern>
+                            </relocation>
+                            <relocation>
+                                <pattern>com.fren_gor.eventManagerAPI</pattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.com.fren_gor.eventManagerAPI</shadedPattern>
+                            </relocation>
+                            <relocation>
+                                <pattern>dev.jorel.commandapi</pattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
+                            </relocation>
+                        </relocations>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>shade</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.projectlombok</groupId>
+                    <artifactId>lombok-maven-plugin</artifactId>
+                    <version>1.18.12.0</version>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>delombok</goal>
+                            </goals>
+                            <configuration>
+                                <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                                <outputDirectory>${project.build.directory}/delombok</outputDirectory>
+                                <addOutputDirectory>false</addOutputDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.2.0</version>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.2.0</version>
+                    <executions>
+                        <!-- Create javadocs to catch any warnings -->
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                            <configuration>
+                                <attach>false</attach>
+                                <failOnWarnings>true</failOnWarnings>
+                            </configuration>
+                        </execution>
+                        <!-- Then again with delombok -->
+                        <execution>
+                            <id>delombok</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                            <configuration>
+                                <doclint>none</doclint>
+                                <sourcepath>${project.build.directory}/delombok</sourcepath>
+                                <links>
+                                    <link>https://frengor.com/javadocs/EventManagerAPI/build-server/</link>
+                                    <link>https://javadoc.io/doc/org.jetbrains/annotations/19.0.0/</link>
+                                </links>
+                                <offlineLinks>
+                                    <offlineLink>
+                                        <url>https://hub.spigotmc.org/javadocs/spigot/</url>
+                                        <location>https://www.frengor.com/spigot-package-list/</location>
+                                    </offlineLink>
+                                </offlineLinks>
+                            </configuration>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <quiet>true</quiet>
+                        <tags>
+                            <tag>
+                                <name>apiNote</name>
+                                <placement>a</placement>
+                                <head>API Note:</head>
+                            </tag>
+                            <tag>
+                                <name>implSpec</name>
+                                <placement>a</placement>
+                                <head>Implementation Requirements:</head>
+                            </tag>
+                            <tag>
+                                <name>implNote</name>
+                                <placement>a</placement>
+                                <head>Implementation Note:</head>
+                            </tag>
+                            <tag>
+                                <name>param</name>
+                            </tag>
+                            <tag>
+                                <name>return</name>
+                            </tag>
+                            <tag>
+                                <name>throws</name>
+                            </tag>
+                            <tag>
+                                <name>since</name>
+                            </tag>
+                            <tag>
+                                <name>version</name>
+                            </tag>
+                            <tag>
+                                <name>serialData</name>
+                            </tag>
+                            <tag>
+                                <name>see</name>
+                            </tag>
+                        </tags>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
 </project>
