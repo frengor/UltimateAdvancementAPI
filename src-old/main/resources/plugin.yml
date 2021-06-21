@@ -1,8 +1,0 @@
-main: com.fren_gor.ultimateAdvancementAPI.AdvancementMain
-name: ${project.name}
-version: ${project.version}
-description: ${project.description}
-author: [fren_gor, EscanorTargaryen]
-website: ${project.url}
-
-api-version: 1.15
