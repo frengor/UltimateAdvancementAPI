@@ -133,15 +133,18 @@
                             </relocation>
                             <relocation>
                                 <pattern>com.zaxxer.hikari</pattern>
-                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.com.zaxxer.hikari</shadedPattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.com.zaxxer.hikari
+                                </shadedPattern>
                             </relocation>
                             <relocation>
                                 <pattern>com.fren_gor.eventManagerAPI</pattern>
-                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.com.fren_gor.eventManagerAPI</shadedPattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.com.fren_gor.eventManagerAPI
+                                </shadedPattern>
                             </relocation>
                             <relocation>
                                 <pattern>dev.jorel.commandapi</pattern>
-                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi
+                                </shadedPattern>
                             </relocation>
                         </relocations>
                     </configuration>
@@ -160,7 +163,7 @@
                     <version>1.18.12.0</version>
                     <executions>
                         <execution>
-                            <phase>package</phase>
+                            <phase>generate-sources</phase>
                             <goals>
                                 <goal>delombok</goal>
                             </goals>
@@ -178,10 +181,42 @@
                     <version>3.2.0</version>
                     <executions>
                         <execution>
-                            <phase>package</phase>
+                            <phase>prepare-package</phase>
                             <goals>
                                 <goal>jar-no-fork</goal>
                             </goals>
+                            <configuration>
+                                <excludeResources>true</excludeResources>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>3.0.0</version>
+                    <executions>
+                        <execution>
+                            <id>update-sources</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>run</goal>
+                            </goals>
+                            <configuration>
+                                <target>
+                                    <copy todir="${project.build.directory}/delombok">
+                                        <fileset dir="${project.build.directory}/classes">
+                                            <include name="LGPL"/>
+                                            <include name="LICENSE"/>
+                                            <include name="NOTICE"/>
+                                        </fileset>
+                                    </copy>
+
+                                    <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar" update="true">
+                                        <zipfileset dir="${project.build.directory}/delombok/" />
+                                    </jar>
+                                </target>
+                            </configuration>
                         </execution>
                     </executions>
                 </plugin>
