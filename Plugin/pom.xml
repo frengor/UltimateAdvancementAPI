@@ -129,7 +129,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>update-sources</id>
+                        <id>update-sources-with-plugin-yml</id>
                         <phase>package</phase>
                         <goals>
                             <goal>run</goal>
