@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.util;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementFrameType;
+import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
@@ -46,10 +47,10 @@ public class AdvancementUtils {
 
     public static final MinecraftKey IMPOSSIBLE = new MinecraftKey("minecraft", "impossible");
     public static final MinecraftKey NOTIFICATION_KEY = new MinecraftKey("com.fren_gor", "notification"), ROOT_KEY = new MinecraftKey("com.fren_gor", "root");
+    public static final AdvancementRewards ADV_REWARDS = new AdvancementRewards(0, new MinecraftKey[0], new MinecraftKey[0], null);
     private static final ChatComponentText ADV_DESCRIPTION = new ChatComponentText("\n§7A notification.");
     private static final Map<String, Criterion> ADV_CRITERIA_MAP = Collections.singletonMap("criterion", new Criterion(() -> IMPOSSIBLE));
     private static final String[][] ADV_REQUIREMENTS = {{"criterion"}};
-    private static final AdvancementRewards ADV_REWARDS = new AdvancementRewards(0, new MinecraftKey[0], new MinecraftKey[0], null);
     private static final AdvancementProgress ADV_PROGRESS = new AdvancementProgress();
     private static final net.minecraft.server.v1_15_R1.Advancement ROOT;
     private static final Map<MinecraftKey, AdvancementProgress> PROGRESSIONS;
@@ -249,10 +250,16 @@ public class AdvancementUtils {
         Validate.isTrue(Bukkit.isPrimaryThread(), "Illegal async method call.");
     }
 
+    public static void runSync(@NotNull AdvancementMain main, @NotNull Runnable runnable) {
+        runSync(main.getOwningPlugin(), runnable);
+    }
+
     public static void runSync(@NotNull Plugin plugin, @NotNull Runnable runnable) {
-        Validate.notNull(plugin, "Plugin is null.");
-        Validate.notNull(runnable, "Runnable is null.");
-        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, runnable);
+        runSync(plugin, 1, runnable);
+    }
+
+    public static void runSync(@NotNull AdvancementMain main, long delay, @NotNull Runnable runnable) {
+        runSync(main.getOwningPlugin(), delay, runnable);
     }
 
     public static void runSync(@NotNull Plugin plugin, long delay, @NotNull Runnable runnable) {

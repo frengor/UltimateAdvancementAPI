@@ -36,6 +36,7 @@ import java.util.function.Function;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 
+@SuppressWarnings("unused")
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class UltimateAdvancementAPI {
 
@@ -198,7 +199,7 @@ public final class UltimateAdvancementAPI {
     }
 
     public void isUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @NotNull Consumer<ObjectResult<@NotNull Boolean>> action) {
-        isUnredeemed(advancement, AdvancementUtils.uuidFromPlayer(player), action);
+        isUnredeemed(advancement, uuidFromPlayer(player), action);
     }
 
     public void isUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @NotNull Consumer<ObjectResult<@NotNull Boolean>> action) {
@@ -222,11 +223,11 @@ public final class UltimateAdvancementAPI {
     }
 
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, boolean giveRewards) throws NotGrantedException {
-        setUnredeemed(advancement, AdvancementUtils.uuidFromPlayer(player), giveRewards);
+        setUnredeemed(advancement, uuidFromPlayer(player), giveRewards);
     }
 
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, boolean giveRewards, @Nullable Consumer<Result> action) throws NotGrantedException {
-        setUnredeemed(advancement, AdvancementUtils.uuidFromPlayer(player), giveRewards, action);
+        setUnredeemed(advancement, uuidFromPlayer(player), giveRewards, action);
     }
 
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid) throws NotGrantedException {
@@ -257,7 +258,7 @@ public final class UltimateAdvancementAPI {
     }
 
     public void unsetUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @Nullable Consumer<Result> action) {
-        unsetUnredeemed(advancement, AdvancementUtils.uuidFromPlayer(player), action);
+        unsetUnredeemed(advancement, uuidFromPlayer(player), action);
     }
 
     public void unsetUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid) {
@@ -279,7 +280,7 @@ public final class UltimateAdvancementAPI {
     }
 
     public void loadOfflinePlayer(@NotNull OfflinePlayer player) {
-        loadOfflinePlayer(AdvancementUtils.uuidFromPlayer(player));
+        loadOfflinePlayer(uuidFromPlayer(player));
     }
 
     public void loadOfflinePlayer(@NotNull UUID uuid) {
@@ -287,7 +288,7 @@ public final class UltimateAdvancementAPI {
     }
 
     public void loadOfflinePlayer(@NotNull OfflinePlayer player, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
-        loadOfflinePlayer(AdvancementUtils.uuidFromPlayer(player), action);
+        loadOfflinePlayer(uuidFromPlayer(player), action);
     }
 
     public void loadOfflinePlayer(@NotNull UUID uuid, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
@@ -295,7 +296,7 @@ public final class UltimateAdvancementAPI {
     }
 
     public void loadOfflinePlayer(@NotNull OfflinePlayer player, @NotNull CacheFreeingOption option, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
-        loadOfflinePlayer(AdvancementUtils.uuidFromPlayer(player), option, action);
+        loadOfflinePlayer(uuidFromPlayer(player), option, action);
     }
 
     public void loadOfflinePlayer(@NotNull UUID uuid, @NotNull CacheFreeingOption option, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
@@ -303,7 +304,7 @@ public final class UltimateAdvancementAPI {
     }
 
     public boolean isOfflinePlayerLoaded(@NotNull OfflinePlayer player) {
-        return isOfflinePlayerLoaded(AdvancementUtils.uuidFromPlayer(player));
+        return isOfflinePlayerLoaded(uuidFromPlayer(player));
     }
 
     @Contract(pure = true, value = "null -> false")
@@ -312,7 +313,7 @@ public final class UltimateAdvancementAPI {
     }
 
     public void unloadOfflinePlayer(@NotNull OfflinePlayer player) {
-        unloadOfflinePlayer(AdvancementUtils.uuidFromPlayer(player));
+        unloadOfflinePlayer(uuidFromPlayer(player));
     }
 
     public void unloadOfflinePlayer(@NotNull UUID uuid) {
@@ -320,16 +321,16 @@ public final class UltimateAdvancementAPI {
     }
 
     public void getStoredPlayerName(@NotNull OfflinePlayer player, @NotNull Consumer<ObjectResult<@Nullable String>> action) {
-        getStoredPlayerName(AdvancementUtils.uuidFromPlayer(player), action);
+        getStoredPlayerName(uuidFromPlayer(player), action);
     }
 
     public void getStoredPlayerName(@NotNull UUID uuid, @NotNull Consumer<ObjectResult<@Nullable String>> action) {
         Validate.notNull(action, "Consumer is null.");
-        main.getDatabaseManager().getStoredPlayerName(uuid).thenAccept(s -> AdvancementUtils.runSync(main, () -> action.accept(s)));
+        main.getDatabaseManager().getStoredPlayerName(uuid).thenAccept(s -> runSync(plugin, () -> action.accept(s)));
     }
 
     private <T extends Result> void callAfterLoad(@NotNull Player player, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
-        callAfterLoad(AdvancementUtils.uuidFromPlayer(player), internalAction, action);
+        callAfterLoad(uuidFromPlayer(player), internalAction, action);
     }
 
     private <T extends Result> void callAfterLoad(@NotNull UUID uuid, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
@@ -350,7 +351,7 @@ public final class UltimateAdvancementAPI {
             }
             c.thenAccept(b -> {
                 if (action != null) {
-                    AdvancementUtils.runSync(main, () -> {
+                    runSync(plugin, () -> {
                         try {
                             if (plugin.isEnabled())
                                 action.accept(b);
@@ -394,7 +395,7 @@ public final class UltimateAdvancementAPI {
                     }
                     c.thenAccept(b -> {
                         if (action != null) {
-                            AdvancementUtils.runSync(main, () -> {
+                            runSync(plugin, () -> {
                                 try {
                                     if (plugin.isEnabled())
                                         action.accept(b);
@@ -416,9 +417,9 @@ public final class UltimateAdvancementAPI {
 
     }
 
-    private static <T extends Result> void callSyncIfNotNull(@NotNull CompletableFuture<T> completableFuture, @Nullable Consumer<T> action) {
+    private <T extends Result> void callSyncIfNotNull(@NotNull CompletableFuture<T> completableFuture, @Nullable Consumer<T> action) {
         if (action != null) {
-            completableFuture.thenAccept(t -> AdvancementUtils.runSync(main, () -> action.accept(t)));
+            completableFuture.thenAccept(t -> runSync(plugin, () -> action.accept(t)));
         }
     }
 

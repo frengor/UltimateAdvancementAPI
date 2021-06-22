@@ -2,11 +2,9 @@ package com.fren_gor.ultimateAdvancementAPI;
 
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.commands.UltimateAdvancementAPICommand;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
-import dev.jorel.commandapi.CommandAPI;
 import lombok.Getter;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
@@ -14,7 +12,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,11 +27,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
-public class AdvancementMain extends JavaPlugin {
+public final class AdvancementMain {
+
+    private final static AtomicBoolean LOADED = new AtomicBoolean(false), ENABLED = new AtomicBoolean(false);
 
     @Getter
-    private static AdvancementMain instance;
+    private final Plugin owningPlugin;
     @Getter
     private EventManager eventManager;
     @Getter
@@ -42,40 +43,80 @@ public class AdvancementMain extends JavaPlugin {
     private final Map<String, AdvancementTab> tabs = new HashMap<>();
     private final Map<Plugin, List<AdvancementTab>> pluginMap = new HashMap<>();
 
-    @Override
-    public void onLoad() {
-        instance = this;
-        CommandAPI.onLoad(false);
-        UltimateAdvancementAPICommand.register();
+    public AdvancementMain(@NotNull Plugin owningPlugin) {
+        Validate.notNull(owningPlugin, "Plugin is null.");
+        this.owningPlugin = owningPlugin;
     }
 
-    @Override
-    public void onEnable() {
-        CommandAPI.onEnable(this);
-        eventManager = new EventManager(this);
+    public void load() {
+        if (!LOADED.compareAndSet(false, true)) {
+            throw new IllegalStateException("UltimateAdvancementAPI is getting loaded twice.");
+        }
+        // Keeping this method since there might be some code here in the future.
+    }
+
+    public void enable(File SQLiteDatabase) {
+        commonEnablePreDatabase();
+
+        try {
+            // Run it sync to avoid using a not initialized database
+            databaseManager = new DatabaseManager(this, SQLiteDatabase);
+        } catch (Exception e) {
+            failEnable(e);
+        }
+
+        commonEnablePostDatabase();
+    }
+
+    public void enable(String username, String password, String databaseName, String host, int port, int poolSize, long connectionTimeout) {
+        commonEnablePreDatabase();
+
+        try {
+            // Run it sync to avoid using a not initialized database
+            databaseManager = new DatabaseManager(this, username, password, databaseName, host, port, poolSize, connectionTimeout);
+        } catch (Exception e) {
+            failEnable(e);
+        }
+
+        commonEnablePostDatabase();
+    }
+
+    private void commonEnablePreDatabase() {
+        if (!isLoaded()) {
+            throw new IllegalStateException("UltimateAdvancementAPI is not loaded.");
+        }
+        if (!owningPlugin.isEnabled()) {
+            throw new IllegalStateException(owningPlugin.getName() + " is not enabled, cannot enable UltimateAdvancementAPI.");
+        }
+        if (!ENABLED.compareAndSet(false, true)) {
+            throw new IllegalStateException("UltimateAdvancementAPI is getting enabled twice.");
+        }
+
+        eventManager = new EventManager(owningPlugin);
 
         if (!getDataFolder().exists()) {
             getDataFolder().mkdirs();
         }
+    }
 
-        try {
-            // Run it sync to avoid using a not initialized database
-            databaseManager = new DatabaseManager(this, new File(getDataFolder(), "database.db"));
-            //databaseManager = new DatabaseManager(this, "root", "", "database", "127.0.0.1", 3306, 10, 6000);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-
+    private void commonEnablePostDatabase() {
         eventManager.register(this, PluginDisableEvent.class, EventPriority.HIGHEST, e -> unregisterAdvancementTabs(e.getPlugin()));
 
         UltimateAdvancementAPI.main = this;
-
     }
 
-    @Override
-    public void onDisable() {
+    @Contract("_ -> fail")
+    private void failEnable(Exception e) {
+        e.printStackTrace();
+        Bukkit.getPluginManager().disablePlugin(owningPlugin);
+        throw new RuntimeException("Exception setting up database.", e);
+    }
+
+    public void disable() {
+        checkInitialisation();
+        LOADED.set(false);
+        ENABLED.set(false);
+
         UltimateAdvancementAPI.main = null;
         // eventManager is disabled automatically since pl is disabling.
         pluginMap.clear();
@@ -98,6 +139,7 @@ public class AdvancementMain extends JavaPlugin {
     @NotNull
     @Contract("_, _ -> new")
     public AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace) throws DuplicatedException {
+        checkInitialisation();
         Validate.notNull(plugin, "Plugin is null.");
         Validate.notNull(namespace, "Namespace is null.");
         if (tabs.containsKey(namespace)) {
@@ -112,11 +154,13 @@ public class AdvancementMain extends JavaPlugin {
 
     @Nullable
     public AdvancementTab getAdvancementTab(@NotNull String namespace) {
+        checkInitialisation();
         Validate.notNull(namespace, "Namespace is null.");
         return tabs.get(namespace);
     }
 
     public boolean isAdvancementTabRegistered(@NotNull String namespace) {
+        checkInitialisation();
         Validate.notNull(namespace, "Namespace is null.");
         return tabs.containsKey(namespace);
     }
@@ -124,11 +168,13 @@ public class AdvancementMain extends JavaPlugin {
     @UnmodifiableView
     @NotNull
     public Collection<@NotNull AdvancementTab> getPluginAdvancementTabs(@NotNull Plugin plugin) {
+        checkInitialisation();
         Validate.notNull(plugin, "Plugin is null.");
         return Collections.unmodifiableCollection(pluginMap.getOrDefault(plugin, Collections.emptyList()));
     }
 
     public void unregisterAdvancementTab(@NotNull String namespace) {
+        checkInitialisation();
         Validate.notNull(namespace, "Namespace is null.");
         AdvancementTab tab = tabs.remove(namespace);
         if (tab != null)
@@ -136,6 +182,7 @@ public class AdvancementMain extends JavaPlugin {
     }
 
     public void unregisterAdvancementTabs(@NotNull Plugin plugin) {
+        checkInitialisation();
         Validate.notNull(plugin, "Plugin is null.");
         List<AdvancementTab> tabs = pluginMap.remove(plugin);
         if (tabs != null) {
@@ -146,6 +193,7 @@ public class AdvancementMain extends JavaPlugin {
 
     @Nullable
     public Advancement getAdvancement(@NotNull String namespacedKey) {
+        checkInitialisation();
         int colon = namespacedKey.indexOf(':');
         if (colon <= 0 || colon == namespacedKey.length() - 1) {
             throw new IllegalArgumentException("Malformed NamespacedKey '" + namespacedKey + "'");
@@ -155,6 +203,7 @@ public class AdvancementMain extends JavaPlugin {
 
     @Nullable
     public Advancement getAdvancement(@NotNull String namespace, @NotNull String key) {
+        checkInitialisation();
         Validate.notNull(namespace, "Namespace is null.");
         Validate.notNull(key, "Key is null.");
         return getAdvancement(new AdvancementKey(namespace, key));
@@ -162,6 +211,7 @@ public class AdvancementMain extends JavaPlugin {
 
     @Nullable
     public Advancement getAdvancement(@NotNull AdvancementKey namespacedKey) {
+        checkInitialisation();
         Validate.notNull(namespacedKey, "AdvancementKey is null.");
         AdvancementTab tab = tabs.get(namespacedKey.getNamespace());
         if (tab == null || !tab.isActive())
@@ -173,12 +223,14 @@ public class AdvancementMain extends JavaPlugin {
     @UnmodifiableView
     @Contract(pure = true)
     public Set<@NotNull String> getAdvancementTabNamespaces() {
+        checkInitialisation();
         return Collections.unmodifiableSet(tabs.keySet());
     }
 
     @NotNull
     @Contract(pure = true, value = "_ -> new")
     public List<@NotNull String> filterNamespaces(@Nullable String input) {
+        checkInitialisation();
         List<String> l = new LinkedList<>();
         if (input == null || input.isEmpty()) {
             for (Entry<String, AdvancementTab> e : tabs.entrySet()) {
@@ -212,15 +264,41 @@ public class AdvancementMain extends JavaPlugin {
     @UnmodifiableView
     @NotNull
     public Collection<@NotNull AdvancementTab> getTabs() {
+        checkInitialisation();
         return Collections.unmodifiableCollection(tabs.values());
     }
 
     public void updatePlayer(@NotNull Player player) {
+        checkInitialisation();
         Validate.notNull(player, "Player is null.");
         for (AdvancementTab tab : tabs.values()) {
             if (tab.isActive() && tab.isShownTo(player)) {
                 tab.updateEveryAdvancement(player);
             }
         }
+    }
+
+    private static void checkInitialisation() {
+        if (!isLoaded() || !isEnabled()) {
+            throw new IllegalStateException("UltimateAdvancementAPI is not enabled.");
+        }
+    }
+
+    // Duplicated methods from JavaPlugin
+
+    public @NotNull Logger getLogger() {
+        return owningPlugin.getLogger();
+    }
+
+    public File getDataFolder() {
+        return owningPlugin.getDataFolder();
+    }
+
+    public static boolean isLoaded() {
+        return LOADED.get();
+    }
+
+    public static boolean isEnabled() {
+        return ENABLED.get();
     }
 }

@@ -1,5 +1,5 @@
-main: com.fren_gor.ultimateAdvancementAPI.AdvancementMain
-name: ${project.name}
+main: com.fren_gor.ultimateAdvancementAPI.AdvancementPlugin
+name: UltimateAdvancementAPI
 version: ${project.version}
 description: ${project.description}
 author: [fren_gor, EscanorTargaryen]
