@@ -47,10 +47,10 @@ public class AdvancementUtils {
 
     public static final MinecraftKey IMPOSSIBLE = new MinecraftKey("minecraft", "impossible");
     public static final MinecraftKey NOTIFICATION_KEY = new MinecraftKey("com.fren_gor", "notification"), ROOT_KEY = new MinecraftKey("com.fren_gor", "root");
+    public static final AdvancementRewards ADV_REWARDS = new AdvancementRewards(0, new MinecraftKey[0], new MinecraftKey[0], null);
     private static final ChatComponentText ADV_DESCRIPTION = new ChatComponentText("\n§7A notification.");
     private static final Map<String, Criterion> ADV_CRITERIA_MAP = Collections.singletonMap("criterion", new Criterion(() -> IMPOSSIBLE));
     private static final String[][] ADV_REQUIREMENTS = {{"criterion"}};
-    private static final AdvancementRewards ADV_REWARDS = new AdvancementRewards(0, new MinecraftKey[0], new MinecraftKey[0], null);
     private static final AdvancementProgress ADV_PROGRESS = new AdvancementProgress();
     private static final net.minecraft.server.v1_15_R1.Advancement ROOT;
     private static final Map<MinecraftKey, AdvancementProgress> PROGRESSIONS;

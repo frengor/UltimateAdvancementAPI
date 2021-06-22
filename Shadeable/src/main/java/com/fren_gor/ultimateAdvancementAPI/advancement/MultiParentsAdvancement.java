@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
+import net.minecraft.server.v1_15_R1.Criterion;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -14,15 +15,23 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.ADV_REWARDS;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementCriteria;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementProgress;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementRequirements;
 
 public abstract class MultiParentsAdvancement extends BaseAdvancement {
 
+    // Every parent goes here. Ignoring the parent in BaseAdvancement
     private final Map<BaseAdvancement, FakeAdvancement> parents;
+    private final Map<String, Criterion> advCriteria = getAdvancementCriteria(maxCriteria);
+    private final String[][] advRequirements = getAdvancementRequirements(advCriteria);
+    private final net.minecraft.server.v1_15_R1.AdvancementDisplay mcDisplay;
 
     public MultiParentsAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull BaseAdvancement... parents) {
         this(advancementTab, key, display, 1, parents);
@@ -46,11 +55,10 @@ public abstract class MultiParentsAdvancement extends BaseAdvancement {
                 this.parents.clear();
                 throw new IllegalArgumentException("An advancement is null.");
             }
-            if (advancement != this.parent) {
-                FakeAdvancement adv = new FakeAdvancement(advancementTab, advancement, display.getX(), display.getY());
-                this.parents.put(advancement, adv);
-            }
+            FakeAdvancement adv = new FakeAdvancement(advancementTab, advancement, display.getX(), display.getY());
+            this.parents.put(advancement, adv);
         }
+        mcDisplay = display.getMinecraftDisplay(this);
     }
 
     private static BaseAdvancement validateAndGetFirst(Set<BaseAdvancement> advs) {
@@ -62,10 +70,19 @@ public abstract class MultiParentsAdvancement extends BaseAdvancement {
     @Override
     public void onUpdate(@NotNull UUID uuid, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull TeamProgression teamProgression, @NotNull Set<MinecraftKey> added) {
         if (isVisible(uuid)) {
-            for (FakeAdvancement fake : parents.values()) {
-                fake.onUpdate(uuid, advancementList, progresses, teamProgression, added);
+            BaseAdvancement tmp = null;
+            for (Entry<BaseAdvancement, FakeAdvancement> e : parents.entrySet()) {
+                if (e.getKey().isVisible(uuid)) {
+                    if (tmp == null)
+                        tmp = e.getKey();
+                    else
+                        e.getValue().onUpdate(uuid, advancementList, progresses, teamProgression, added);
+                }
             }
-            net.minecraft.server.v1_15_R1.Advancement mcAdv = getMinecraftAdvancement();
+            if (tmp == null) {
+                tmp = getParent();
+            }
+            net.minecraft.server.v1_15_R1.Advancement mcAdv = getMinecraftAdvancement(tmp);
             advancementList.add(mcAdv);
             MinecraftKey key = getMinecraftKey();
             added.add(key);
@@ -117,7 +134,7 @@ public abstract class MultiParentsAdvancement extends BaseAdvancement {
             return true;
         }
         for (BaseAdvancement advancement : parents.keySet()) {
-            if (isRootOrStarted(advancement, pro)) {
+            if (pro.getCriteria(advancement) > 0) {
                 return true;
             }
         }
@@ -192,11 +209,7 @@ public abstract class MultiParentsAdvancement extends BaseAdvancement {
         if (adv instanceof MultiParentsAdvancement && ((MultiParentsAdvancement) adv).isAnyParentStarted(uuid)) {
             return true;
         } else
-            return isRootOrStarted(adv.getParent(), pro);
-    }
-
-    private static boolean isRootOrStarted(@NotNull Advancement advancement, @NotNull TeamProgression pro) {
-        return advancement instanceof RootAdvancement || pro.getCriteria(advancement) > 0;
+            return pro.getCriteria(adv.getParent()) > 0;
     }
 
     @Override
@@ -211,5 +224,10 @@ public abstract class MultiParentsAdvancement extends BaseAdvancement {
     @NotNull
     public BaseAdvancement getParent() {
         return (BaseAdvancement) parent;
+    }
+
+    @NotNull
+    public net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement(@NotNull BaseAdvancement advancement) {
+        return new net.minecraft.server.v1_15_R1.Advancement(getMinecraftKey(), advancement.getMinecraftAdvancement(), mcDisplay, ADV_REWARDS, advCriteria, advRequirements);
     }
 }

@@ -3,7 +3,6 @@ package com.fren_gor.ultimateAdvancementAPI.visibilities;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.MultiParentsAdvancement;
-import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,14 +23,13 @@ public interface VanillaVisibility extends IVisibility {
 
             Advancement parent = ((BaseAdvancement) advancement).getParent();
 
-            if (parent instanceof RootAdvancement || parent.isGranted(uuid)) {
+            if (parent.isGranted(uuid)) {
                 return true;
             }
             if (parent instanceof MultiParentsAdvancement) {
                 return ((MultiParentsAdvancement) parent).isAnyParentGranted(uuid);
             } else if (parent instanceof BaseAdvancement) {
-                Advancement grandParent = ((BaseAdvancement) parent).getParent();
-                return grandParent instanceof RootAdvancement || grandParent.isGranted(uuid);
+                return ((BaseAdvancement) parent).getParent().isGranted(uuid);
             }
             return false;
         }
