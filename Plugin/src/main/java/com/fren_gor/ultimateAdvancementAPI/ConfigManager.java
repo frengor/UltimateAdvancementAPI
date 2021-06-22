@@ -75,9 +75,9 @@ public class ConfigManager {
         Validate.notNull(storageType, "Config has not been loaded.");
 
         if (storageType.equalsIgnoreCase("SQLite")) {
-            main.enable(new File(plugin.getDataFolder(), sqlLiteDbName));
+            main.enableSQLite(new File(plugin.getDataFolder(), sqlLiteDbName));
         } else if (storageType.equalsIgnoreCase("MySQL")) {
-            main.enable(username, password, databaseName, host, port, poolSize, connectionTimeout);
+            main.enableMySQL(username, password, databaseName, host, port, poolSize, connectionTimeout);
         } // else case already handled in loadVariables()
     }
 

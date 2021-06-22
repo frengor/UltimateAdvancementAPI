@@ -55,7 +55,7 @@ public final class AdvancementMain {
         // Keeping this method since there might be some code here in the future.
     }
 
-    public void enable(File SQLiteDatabase) {
+    public void enableSQLite(File SQLiteDatabase) {
         commonEnablePreDatabase();
 
         try {
@@ -68,7 +68,7 @@ public final class AdvancementMain {
         commonEnablePostDatabase();
     }
 
-    public void enable(String username, String password, String databaseName, String host, int port, int poolSize, long connectionTimeout) {
+    public void enableMySQL(String username, String password, String databaseName, String host, int port, int poolSize, long connectionTimeout) {
         commonEnablePreDatabase();
 
         try {
