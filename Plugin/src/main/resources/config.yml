@@ -1,0 +1,17 @@
+#Database settings
+# database type selector
+# true -> SqlLite
+# false -> MySql
+isSqlLite: true
+
+# Sql lite settings
+sqlDbName: "database.db"
+
+# MySql settings
+username: "root"
+password: ""
+databaseName: "database"
+host: "127.0.0.1"
+port: 3306
+poolSize: 10
+connectionTimeout: 6000
