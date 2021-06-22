@@ -9,8 +9,8 @@ public class AdvancementPlugin extends JavaPlugin {
 
     @Getter
     private static AdvancementPlugin instance;
+    @Getter
     private AdvancementMain main;
-    private ConfigManager configManager;
 
     @Override
     public void onLoad() {
@@ -19,12 +19,16 @@ public class AdvancementPlugin extends JavaPlugin {
         main.load();
         CommandAPI.onLoad(false);
         new UltimateAdvancementAPICommand(main).register();
-        configManager = new ConfigManager();
     }
 
     @Override
     public void onEnable() {
-        configManager.enableDB(main);
+        CommandAPI.onEnable(this);
+
+        ConfigManager configManager = new ConfigManager(this);
+        configManager.saveDefault(false);
+        configManager.loadVariables();
+        configManager.enable(main);
     }
 
     @Override

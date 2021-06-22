@@ -1,17 +1,28 @@
-#Database settings
-# database type selector
-# true -> SqlLite
-# false -> MySql
-isSqlLite: true
+# Database settings
+#
+# Set the storage used by the api.
+# Possible values:
+# - SQLite
+# - MySQL
+storage-type: SQLite
 
-# Sql lite settings
-sqlDbName: "database.db"
+# SQLite database file
+# Used when storage-type is "SQLite"
+sqlite:
+    file: "database.db"
 
-# MySql settings
-username: "root"
-password: ""
-databaseName: "database"
-host: "127.0.0.1"
-port: 3306
-poolSize: 10
-connectionTimeout: 6000
+# MySQL settings
+# Used when storage-type is "MySQL"
+mysql:
+  username: "root"
+  password: ""
+  databaseName: "advancements"
+  host: "127.0.0.1"
+  port: 3306
+  advanced-settings:
+    # Set these only if you know what you're doing
+    poolSize: 5
+    connectionTimeout: 6000
+
+# Do not touch!!!
+config-version: 1
