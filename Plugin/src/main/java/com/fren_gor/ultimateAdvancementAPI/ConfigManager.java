@@ -11,6 +11,8 @@ import java.io.IOException;
 
 public class ConfigManager {
 
+    // TODO Improve config system
+
     private final File configFile;
     private final AdvancementPlugin plugin;
     private final YamlConfiguration config = new YamlConfiguration();
