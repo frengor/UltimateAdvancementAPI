@@ -1,6 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
 import com.fren_gor.ultimateAdvancementAPI.commands.UltimateAdvancementAPICommand;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import dev.jorel.commandapi.CommandAPI;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -29,6 +30,15 @@ public class AdvancementPlugin extends JavaPlugin {
         configManager.saveDefault(false);
         configManager.loadVariables();
         configManager.enable(main);
+
+        if (configManager.getDisableVanillaAdvancements()) {
+            try {
+                AdvancementUtils.disableVanillaAdvancements();
+            } catch (Exception e) {
+                System.out.println("Couldn't disable vanilla advancements:");
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
+import lombok.Getter;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -17,6 +18,7 @@ public class ConfigManager {
     private final AdvancementPlugin plugin;
     private final YamlConfiguration config = new YamlConfiguration();
 
+    private boolean disableVanillaAdvancements;
     // db parameters
     private String storageType;
     private String sqlLiteDbName;
@@ -44,6 +46,8 @@ public class ConfigManager {
             return;
         }
 
+        disableVanillaAdvancements = config.getBoolean("disable-vanilla-advancements");
+
         storageType = config.getString("storage-type");
         if (storageType == null) {
             System.out.println("Could not find storage-type. Shutting down " + plugin.getName() + '.');
@@ -70,7 +74,9 @@ public class ConfigManager {
     }
 
     public void saveDefault(boolean replace) {
-        plugin.saveResource("config.yml", replace);
+        if (!configFile.exists() || replace) {
+            plugin.saveResource("config.yml", replace);
+        }
     }
 
     public void enable(AdvancementMain main) {
@@ -96,5 +102,9 @@ public class ConfigManager {
     private Long getOrDefault(@NotNull String path, @NotNull Long def) {
         Object obj = config.get(path);
         return obj instanceof Long ? (Long) obj : def;
+    }
+
+    public boolean getDisableVanillaAdvancements() {
+        return disableVanillaAdvancements;
     }
 }
