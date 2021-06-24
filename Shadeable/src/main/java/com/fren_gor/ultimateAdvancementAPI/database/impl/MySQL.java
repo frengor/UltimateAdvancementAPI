@@ -38,9 +38,9 @@ public class MySQL implements IDatabase {
 
     public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, int port, int poolSize, long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws SQLException {
         classLoader = new IsolatedClassLoader();
-        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.31").build()));
-        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-simple").version("1.7.31").build()));
-        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("com.zaxxer").artifactId("HikariCP").version("4.0.3").build()));
+        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.31").checksum("zahiqmloOsBy7ir9C5PQcM6rKR71uFfTGLJMFZWza4o=").build()));
+        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-simple").version("1.7.31").checksum("AHwNOZ4Tefv4YkfDCkLRDWGAlBRo9Ky+mu4Uu2Qqwdw=").build()));
+        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("com.zaxxer").artifactId("HikariCP").version("4.0.3").checksum("fAJK7/HBBjV210RTUT+d5kR9jmJNF/jifzCi6XaIxsk=").build()));
 
         try {
             Class<?> hikariConfig = classLoader.loadClass("com.zaxxer.hikari.HikariConfig");
