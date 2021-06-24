@@ -5,11 +5,15 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalKeyException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+import net.byteflux.libby.Library;
+import net.byteflux.libby.LibraryManager;
+import net.byteflux.libby.classloader.IsolatedClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,33 +25,52 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Logger;
 
 public class MySQL implements IDatabase {
 
     private final Logger logger;
-    private final HikariDataSource dataSource;
+    private final IsolatedClassLoader classLoader;
+    private final DataSource dataSource;
+    private final Method close;
 
-    public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, int port, int poolSize, long connectionTimeout, @NotNull Logger logger) throws SQLException {
+    public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, int port, int poolSize, long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws SQLException {
+        classLoader = new IsolatedClassLoader();
+        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.31").build()));
+        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-simple").version("1.7.31").build()));
+        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("com.zaxxer").artifactId("HikariCP").version("4.0.3").build()));
+
         try {
-            HikariConfig config = new HikariConfig();
+            Class<?> hikariConfig = classLoader.loadClass("com.zaxxer.hikari.HikariConfig");
+            Class<?> hikariDataSource = classLoader.loadClass("com.zaxxer.hikari.HikariDataSource");
 
-            config.setJdbcUrl("jdbc:mysql://" + host + ":" + port + '/' + databaseName);
-            config.setDriverClassName("com.mysql.jdbc.Driver");
-            config.setUsername(username);
-            config.setPassword(password);
-            config.setMinimumIdle(poolSize);
-            config.setMaximumPoolSize(poolSize);
-            config.setConnectionTimeout(connectionTimeout);
-            config.addDataSourceProperty("useSSL", false);
-            config.addDataSourceProperty("cachePrepStmts", "true");
-            config.addDataSourceProperty("prepStmtCacheSize", "250");
-            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+            close = hikariDataSource.getDeclaredMethod("close");
 
-            this.dataSource = new HikariDataSource(config);
+            Properties props = new Properties();
+            props.put("jdbcUrl", "jdbc:mysql://" + host + ":" + port + '/' + databaseName);
+            props.put("driverClassName", "com.mysql.jdbc.Driver");
+            props.put("username", username);
+            props.put("password", password);
+            props.put("minimumIdle", poolSize);
+            props.put("maximumPoolSize", poolSize);
+            props.put("connectionTimeout", connectionTimeout);
+            props.put("dataSource.useSSL", false);
+            props.put("dataSource.cachePrepStmts", true);
+            props.put("dataSource.prepStmtCacheSize", 250);
+            props.put("dataSource.prepStmtCacheSqlLimit", 2048);
+            props.put("dataSource.useServerPrepStmts", true);
+            props.put("dataSource.useLocalSessionState", true);
+            props.put("dataSource.rewriteBatchedStatements", true);
+            props.put("dataSource.cacheResultSetMetadata", true);
+            props.put("dataSource.cacheServerConfiguration", true);
+            props.put("dataSource.maintainTimeStats", false);
+
+            Object config = hikariConfig.getConstructor(Properties.class).newInstance(props);
+            this.dataSource = (DataSource) hikariDataSource.getConstructor(hikariConfig).newInstance(config);
             // Test connection
-            try (Connection conn = dataSource.getConnection()) {
+            try (Connection conn = openConnection()) {
             }
         } catch (Throwable e) {
             throw new SQLException("Couldn't set up database.", e);
@@ -73,7 +96,16 @@ public class MySQL implements IDatabase {
 
     @Override
     public void close() throws SQLException {
-        dataSource.close();
+        try {
+            close.invoke(dataSource);
+        } catch (ReflectiveOperationException e) {
+            throw new SQLException("Cannot close HikariDataSource.", e);
+        } finally {
+            try {
+                classLoader.close();
+            } catch (IOException ignored) {
+            }
+        }
     }
 
     @Override

@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import lombok.Getter;
+import net.byteflux.libby.BukkitLibraryManager;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -40,6 +41,8 @@ public final class AdvancementMain {
     private EventManager eventManager;
     @Getter
     private DatabaseManager databaseManager;
+    @Getter
+    private BukkitLibraryManager libbyManager;
     private final Map<String, AdvancementTab> tabs = new HashMap<>();
     private final Map<Plugin, List<AdvancementTab>> pluginMap = new HashMap<>();
 
@@ -91,6 +94,9 @@ public final class AdvancementMain {
         if (!ENABLED.compareAndSet(false, true)) {
             throw new IllegalStateException("UltimateAdvancementAPI is getting enabled twice.");
         }
+
+        libbyManager = new BukkitLibraryManager(owningPlugin);
+        libbyManager.addMavenCentral();
 
         eventManager = new EventManager(owningPlugin);
 

@@ -70,7 +70,8 @@ public final class DatabaseManager {
     public DatabaseManager(AdvancementMain main, String username, String password, String databaseName, String host, int port, int poolSize, long connectionTimeout) throws Exception {
         this.main = main;
         this.eventManager = main.getEventManager();
-        database = new MySQL(username, password, databaseName, host, port, poolSize, connectionTimeout, main.getLogger());
+
+        database = new MySQL(username, password, databaseName, host, port, poolSize, connectionTimeout, main.getLogger(), main.getLibbyManager());
         commonSetUp();
     }
 
