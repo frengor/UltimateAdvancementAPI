@@ -128,9 +128,9 @@ public final class UltimateAdvancementAPI {
         AdvancementUtils.displayToast(player, icon, title, frame);
     }
 
-    public void disableMinecraftAdvancements() throws RuntimeException {
+    public void disableVanillaAdvancements() throws RuntimeException {
         try {
-            AdvancementUtils.disableMinecraftAdvancements();
+            AdvancementUtils.disableVanillaAdvancements();
         } catch (Exception e) {
             throw new RuntimeException("Couldn't disable minecraft advancements.", e);
         }

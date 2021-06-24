@@ -217,7 +217,7 @@ public class AdvancementUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static void disableMinecraftAdvancements() throws Exception {
+    public static void disableVanillaAdvancements() throws Exception {
         Advancements registry = MinecraftServer.getServer().getAdvancementData().REGISTRY;
 
         if (registry.advancements.isEmpty()) {
