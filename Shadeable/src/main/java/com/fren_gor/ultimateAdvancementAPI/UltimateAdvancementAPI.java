@@ -6,14 +6,14 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ObjectResult;
 import com.fren_gor.ultimateAdvancementAPI.database.Result;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.APINotInstantiatedException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.NotGrantedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import com.fren_gor.ultimateAdvancementAPI.exceptions.APINotInstantiatedException;
-import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.apache.commons.lang.Validate;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -126,6 +126,14 @@ public final class UltimateAdvancementAPI {
 
     public void displayCustomToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame) {
         AdvancementUtils.displayToast(player, icon, title, frame);
+    }
+
+    public void disableMinecraftAdvancements() throws RuntimeException {
+        try {
+            AdvancementUtils.disableMinecraftAdvancements();
+        } catch (Exception e) {
+            throw new RuntimeException("Couldn't disable minecraft advancements.", e);
+        }
     }
 
     @NotNull
