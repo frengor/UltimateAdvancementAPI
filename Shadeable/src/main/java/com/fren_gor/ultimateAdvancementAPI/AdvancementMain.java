@@ -43,12 +43,21 @@ public final class AdvancementMain {
     private DatabaseManager databaseManager;
     @Getter
     private BukkitLibraryManager libbyManager;
+    private final String libFolder;
     private final Map<String, AdvancementTab> tabs = new HashMap<>();
     private final Map<Plugin, List<AdvancementTab>> pluginMap = new HashMap<>();
 
     public AdvancementMain(@NotNull Plugin owningPlugin) {
         Validate.notNull(owningPlugin, "Plugin is null.");
         this.owningPlugin = owningPlugin;
+        this.libFolder = ".libs";
+    }
+
+    public AdvancementMain(@NotNull Plugin owningPlugin, String libFolder) {
+        Validate.notNull(owningPlugin, "Plugin is null.");
+        Validate.notNull(libFolder, "Lib folder is null.");
+        this.owningPlugin = owningPlugin;
+        this.libFolder = libFolder;
     }
 
     public void load() {
@@ -95,7 +104,7 @@ public final class AdvancementMain {
             throw new IllegalStateException("UltimateAdvancementAPI is getting enabled twice.");
         }
 
-        libbyManager = new BukkitLibraryManager(owningPlugin);
+        libbyManager = new BukkitLibraryManager(owningPlugin, libFolder);
         libbyManager.addMavenCentral();
 
         eventManager = new EventManager(owningPlugin);
