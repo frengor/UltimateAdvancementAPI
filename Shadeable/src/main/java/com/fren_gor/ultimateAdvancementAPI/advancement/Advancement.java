@@ -30,6 +30,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementProgress;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateIncrement;
@@ -272,7 +273,8 @@ public abstract class Advancement {
 
         // Show Toast
         if (display.doesShowToast()) {
-            AdvancementUtils.displayToastDuringUpdate(player, this);
+            // TODO Find a better solution
+            runSync(advancementTab.getOwningPlugin(), () -> AdvancementUtils.displayToastDuringUpdate(player, this));
         }
 
         // Display handled by client (see AdvancementDisplay#showToast())

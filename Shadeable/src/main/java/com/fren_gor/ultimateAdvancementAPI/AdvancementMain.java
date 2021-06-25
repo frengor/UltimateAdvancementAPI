@@ -6,11 +6,14 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import lombok.Getter;
+import net.byteflux.libby.BukkitLibraryManager;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.PluginDisableEvent;
+import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +33,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
+
 public final class AdvancementMain {
 
     private final static AtomicBoolean LOADED = new AtomicBoolean(false), ENABLED = new AtomicBoolean(false);
@@ -40,12 +45,23 @@ public final class AdvancementMain {
     private EventManager eventManager;
     @Getter
     private DatabaseManager databaseManager;
+    @Getter
+    private BukkitLibraryManager libbyManager;
+    private final String libFolder;
     private final Map<String, AdvancementTab> tabs = new HashMap<>();
     private final Map<Plugin, List<AdvancementTab>> pluginMap = new HashMap<>();
 
     public AdvancementMain(@NotNull Plugin owningPlugin) {
         Validate.notNull(owningPlugin, "Plugin is null.");
         this.owningPlugin = owningPlugin;
+        this.libFolder = ".libs";
+    }
+
+    public AdvancementMain(@NotNull Plugin owningPlugin, String libFolder) {
+        Validate.notNull(owningPlugin, "Plugin is null.");
+        Validate.notNull(libFolder, "Lib folder is null.");
+        this.owningPlugin = owningPlugin;
+        this.libFolder = libFolder;
     }
 
     public void load() {
@@ -55,7 +71,7 @@ public final class AdvancementMain {
         // Keeping this method since there might be some code here in the future.
     }
 
-    public void enable(File SQLiteDatabase) {
+    public void enableSQLite(File SQLiteDatabase) {
         commonEnablePreDatabase();
 
         try {
@@ -68,7 +84,7 @@ public final class AdvancementMain {
         commonEnablePostDatabase();
     }
 
-    public void enable(String username, String password, String databaseName, String host, int port, int poolSize, long connectionTimeout) {
+    public void enableMySQL(String username, String password, String databaseName, String host, int port, int poolSize, long connectionTimeout) {
         commonEnablePreDatabase();
 
         try {
@@ -92,6 +108,9 @@ public final class AdvancementMain {
             throw new IllegalStateException("UltimateAdvancementAPI is getting enabled twice.");
         }
 
+        libbyManager = new BukkitLibraryManager(owningPlugin, libFolder);
+        libbyManager.addMavenCentral();
+
         eventManager = new EventManager(owningPlugin);
 
         if (!getDataFolder().exists()) {
@@ -101,6 +120,16 @@ public final class AdvancementMain {
 
     private void commonEnablePostDatabase() {
         eventManager.register(this, PluginDisableEvent.class, EventPriority.HIGHEST, e -> unregisterAdvancementTabs(e.getPlugin()));
+
+        // Resend advancements if /minecraft:reload is called
+        eventManager.register(this, ServerCommandEvent.class, e -> {
+            if (isMcReload(e.getCommand()))
+                runSync(this, 20, () -> Bukkit.getOnlinePlayers().forEach(this::updatePlayer));
+        });
+        eventManager.register(this, PlayerCommandPreprocessEvent.class, e -> {
+            if (isMcReload(e.getMessage()))
+                runSync(this, 20, () -> Bukkit.getOnlinePlayers().forEach(this::updatePlayer));
+        });
 
         UltimateAdvancementAPI.main = this;
     }
@@ -282,6 +311,10 @@ public final class AdvancementMain {
         if (!isLoaded() || !isEnabled()) {
             throw new IllegalStateException("UltimateAdvancementAPI is not enabled.");
         }
+    }
+
+    private static boolean isMcReload(@NotNull String command) {
+        return command.startsWith("/minecraft:reload") || command.startsWith("minecraft:reload");
     }
 
     // Duplicated methods from JavaPlugin

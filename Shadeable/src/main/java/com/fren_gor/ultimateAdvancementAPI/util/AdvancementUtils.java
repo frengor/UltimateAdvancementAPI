@@ -13,14 +13,17 @@ import com.google.common.collect.Sets;
 import lombok.experimental.UtilityClass;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
 import net.minecraft.server.v1_15_R1.AdvancementRewards;
+import net.minecraft.server.v1_15_R1.Advancements;
 import net.minecraft.server.v1_15_R1.Blocks;
 import net.minecraft.server.v1_15_R1.ChatComponentText;
 import net.minecraft.server.v1_15_R1.Criterion;
 import net.minecraft.server.v1_15_R1.CriterionProgress;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
+import net.minecraft.server.v1_15_R1.MinecraftServer;
 import net.minecraft.server.v1_15_R1.PacketPlayOutAdvancements;
 import net.minecraft.server.v1_15_R1.PlayerConnection;
 import org.apache.commons.lang.Validate;
@@ -36,14 +39,34 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 
 @UtilityClass
 public class AdvancementUtils {
+
+    private static final Field advancementRoots, advancementTasks;
+
+    static {
+        Field c = null, d = null;
+        try {
+            c = Advancements.class.getDeclaredField("c");
+            c.setAccessible(true);
+            d = Advancements.class.getDeclaredField("d");
+            d.setAccessible(true);
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+        advancementRoots = c;
+        advancementTasks = d;
+    }
 
     public static final MinecraftKey IMPOSSIBLE = new MinecraftKey("minecraft", "impossible");
     public static final MinecraftKey NOTIFICATION_KEY = new MinecraftKey("com.fren_gor", "notification"), ROOT_KEY = new MinecraftKey("com.fren_gor", "root");
@@ -193,6 +216,45 @@ public class AdvancementUtils {
         return advPrg;
     }
 
+    @SuppressWarnings("unchecked")
+    public static void disableVanillaAdvancements() throws Exception {
+        Advancements registry = MinecraftServer.getServer().getAdvancementData().REGISTRY;
+
+        if (registry.advancements.isEmpty()) {
+            return;
+        }
+
+        final Set<net.minecraft.server.v1_15_R1.Advancement> advRoots = (Set<net.minecraft.server.v1_15_R1.Advancement>) advancementRoots.get(registry);
+        final Set<net.minecraft.server.v1_15_R1.Advancement> advTasks = (Set<net.minecraft.server.v1_15_R1.Advancement>) advancementTasks.get(registry);
+
+        Set<MinecraftKey> removed = Sets.newHashSetWithExpectedSize(registry.advancements.size());
+
+        Iterator<Entry<MinecraftKey, net.minecraft.server.v1_15_R1.Advancement>> it = registry.advancements.entrySet().iterator();
+        while (it.hasNext()) {
+            Entry<MinecraftKey, net.minecraft.server.v1_15_R1.Advancement> e = it.next();
+
+            if (e.getKey().getNamespace().equals("minecraft")) {
+                // Unregister it
+                net.minecraft.server.v1_15_R1.Advancement adv = e.getValue();
+                if (adv.b() == null) {
+                    // If parent is null then the adv is root
+                    advRoots.remove(adv);
+                } else {
+                    advTasks.remove(adv);
+                }
+                it.remove();
+                removed.add(e.getKey());
+            }
+        }
+
+        // Remove advancements from players
+        PacketPlayOutAdvancements removePacket = new PacketPlayOutAdvancements(false, Collections.emptySet(), removed, Collections.emptyMap());
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            ((CraftPlayer) player).getHandle().playerConnection.sendPacket(removePacket);
+        }
+    }
+
     @NotNull
     public static BaseComponent[] fromStringList(@NotNull List<String> list) {
         return fromStringList(null, list);
@@ -203,14 +265,19 @@ public class AdvancementUtils {
         Validate.notNull(list);
         ComponentBuilder builder = new ComponentBuilder();
         if (title != null) {
-            builder.append(TextComponent.fromLegacyText(title));
-            builder.append("\n\n").reset();
+            builder.append(TextComponent.fromLegacyText(title), FormatRetention.NONE);
+            if (list.isEmpty()) {
+                return builder.create();
+            }
+            builder.append("\n\n", FormatRetention.NONE);
+        } else if (list.isEmpty()) {
+            return builder.create();
         }
         int i = 0;
         for (String s : list) {
-            builder.append(TextComponent.fromLegacyText(s));
+            builder.append(TextComponent.fromLegacyText(s), FormatRetention.NONE);
             if (++i < list.size()) // Don't append \n at the end
-                builder.append("\n").reset();
+                builder.append("\n", FormatRetention.NONE);
         }
         return builder.create();
     }

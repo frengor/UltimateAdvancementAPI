@@ -16,19 +16,10 @@
     <packaging>jar</packaging>
 
     <dependencies>
-        <!-- HikariCP -->
         <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>3.4.1</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <!-- Used by HikariCP -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.25</version>
+            <groupId>net.byteflux</groupId>
+            <artifactId>libby-bukkit</artifactId>
+            <version>1.1.1</version>
             <scope>compile</scope>
         </dependency>
 
