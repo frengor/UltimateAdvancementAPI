@@ -16,6 +16,7 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <!-- Libby -->
         <dependency>
             <groupId>net.byteflux</groupId>
             <artifactId>libby-bukkit</artifactId>

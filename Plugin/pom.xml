@@ -22,6 +22,32 @@
             <artifactId>ultimateadvancementapi-shadeable</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.byteflux</groupId>
+                    <artifactId>libby-bukkit</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.frengor</groupId>
+                    <artifactId>eventmanagerapi</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- For JavaDoc Generation -->
+        <dependency>
+            <groupId>net.byteflux</groupId>
+            <artifactId>libby-bukkit</artifactId>
+            <version>1.1.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- For JavaDoc Generation -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>eventmanagerapi</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- CommandAPI -->
@@ -58,6 +84,25 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <relocations>
+                        <!-- Uncomment if one of these libraries are used in the module -->
+                        <!--
+                        <relocation>
+                            <pattern>net.byteflux.libby</pattern>
+                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.fren_gor.eventManagerAPI</pattern>
+                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.events</shadedPattern>
+                        </relocation>
+                        -->
+                        <relocation>
+                            <pattern>dev.jorel.commandapi</pattern>
+                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
+                        </relocation>
+                    </relocations>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.projectlombok</groupId>
