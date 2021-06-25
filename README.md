@@ -1,4 +1,5 @@
 # UltimateAdvancementAPI
+[![Build Status](https://jenkins.frengor.com/job/UltimateAdvancementAPI/badge/icon)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
 
 A powerful API to create custom advancements for your minecraft server.
 
