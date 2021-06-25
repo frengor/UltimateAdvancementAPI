@@ -123,7 +123,7 @@
                                 </copy>
 
                                 <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar" update="true">
-                                    <zipfileset dir="${project.build.directory}/delombok/" />
+                                    <zipfileset dir="${project.build.directory}/delombok/"/>
                                 </jar>
                             </target>
                         </configuration>

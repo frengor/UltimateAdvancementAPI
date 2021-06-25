@@ -135,18 +135,15 @@
                         <relocations>
                             <relocation>
                                 <pattern>net.byteflux.libby</pattern>
-                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby
-                                </shadedPattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
                             </relocation>
                             <relocation>
                                 <pattern>com.fren_gor.eventManagerAPI</pattern>
-                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.com.fren_gor.eventManagerAPI
-                                </shadedPattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.com.fren_gor.eventManagerAPI</shadedPattern>
                             </relocation>
                             <relocation>
                                 <pattern>dev.jorel.commandapi</pattern>
-                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi
-                                </shadedPattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
                             </relocation>
                         </relocations>
                     </configuration>
@@ -214,8 +211,7 @@
                                         </fileset>
                                     </copy>
 
-                                    <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar"
-                                         update="true">
+                                    <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar" update="true">
                                         <zipfileset dir="${project.build.directory}/delombok/"/>
                                     </jar>
                                 </target>
