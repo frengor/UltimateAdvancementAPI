@@ -10,8 +10,8 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>ultimateadvancementapi-shadeable</artifactId>
-    <name>UltimateAdvancementAPI-Shadeable</name>
+    <artifactId>ultimateadvancementapi-common</artifactId>
+    <name>UltimateAdvancementAPI-Common</name>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
@@ -58,6 +58,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <relocations>
+                        <relocation>
+                            <pattern>net.byteflux.libby</pattern>
+                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.fren_gor.eventManagerAPI</pattern>
+                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.events</shadedPattern>
+                        </relocation>
+                    </relocations>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.projectlombok</groupId>

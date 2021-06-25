@@ -33,8 +33,9 @@
     </licenses>
 
     <modules>
-        <module>Shadeable</module>
+        <module>Common</module>
         <module>Plugin</module>
+        <module>Distribution</module>
     </modules>
 
     <properties>
@@ -132,16 +133,6 @@
                     <configuration>
                         <createDependencyReducedPom>false</createDependencyReducedPom>
                         <minimizeJar>false</minimizeJar>
-                        <relocations>
-                            <relocation>
-                                <pattern>net.byteflux.libby</pattern>
-                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
-                            </relocation>
-                            <relocation>
-                                <pattern>com.fren_gor.eventManagerAPI</pattern>
-                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.events</shadedPattern>
-                            </relocation>
-                        </relocations>
                     </configuration>
                     <executions>
                         <execution>

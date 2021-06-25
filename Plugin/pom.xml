@@ -10,8 +10,8 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>ultimateadvancementapi</artifactId>
-    <name>UltimateAdvancementAPI</name>
+    <artifactId>ultimateadvancementapi-plugin</artifactId>
+    <name>UltimateAdvancementAPI-Plugin</name>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
@@ -19,7 +19,7 @@
         <!-- UltimateAdvancementAPI Shadeable -->
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-shadeable</artifactId>
+            <artifactId>ultimateadvancementapi-common</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
             <exclusions>
@@ -44,13 +44,13 @@
 
         <!-- For JavaDoc Generation -->
         <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>eventmanagerapi</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
+             <groupId>com.frengor</groupId>
+             <artifactId>eventmanagerapi</artifactId>
+             <version>1.0-SNAPSHOT</version>
+             <scope>provided</scope>
+         </dependency>
 
-        <!-- CommandAPI -->
+         <!-- CommandAPI -->
         <dependency>
             <groupId>dev.jorel</groupId>
             <artifactId>commandapi-shade</artifactId>
@@ -86,8 +86,6 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <configuration>
                     <relocations>
-                        <!-- Uncomment if one of these libraries are used in the module -->
-                        <!--
                         <relocation>
                             <pattern>net.byteflux.libby</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
@@ -96,7 +94,6 @@
                             <pattern>com.fren_gor.eventManagerAPI</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.events</shadedPattern>
                         </relocation>
-                        -->
                         <relocation>
                             <pattern>dev.jorel.commandapi</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
@@ -125,7 +122,7 @@
                         </goals>
                         <configuration>
                             <classifier>sources</classifier>
-                            <includeArtifactIds>ultimateadvancementapi-shadeable</includeArtifactIds>
+                            <includeArtifactIds>ultimateadvancementapi-common</includeArtifactIds>
                             <outputDirectory>${project.build.directory}/dependency-sources</outputDirectory>
                         </configuration>
                     </execution>
@@ -163,6 +160,7 @@
                                         <include name="LGPL"/>
                                         <include name="LICENSE"/>
                                         <include name="NOTICE"/>
+                                        <include name="config.yml"/>
                                         <include name="plugin.yml"/>
                                     </fileset>
                                 </copy>

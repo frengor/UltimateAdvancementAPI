@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.frengor</groupId>
+        <artifactId>ultimateadvancementapi-distribution</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ultimateadvancementapi</artifactId>
+    <name>UltimateAdvancementAPI</name>
+    <url>${parent.url}</url>
+    <packaging>jar</packaging>
+
+    <properties>
+        <dependencyArtifact>com.frengor:ultimateadvancementapi-plugin:${parent.version}:jar</dependencyArtifact>
+        <dependencyName>ultimateadvancementapi-plugin</dependencyName>
+    </properties>
+
+    <!--<dependencies>
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-plugin</artifactId>
+            <version>${parent.version}</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.frengor</groupId>
+                    <artifactId>ultimateadvancementapi-common</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.frengor</groupId>
+                    <artifactId>eventmanagerapi</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.byteflux</groupId>
+                    <artifactId>libby-bukkit</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>dev.jorel</groupId>
+                    <artifactId>commandapi-shade</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>-->
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
