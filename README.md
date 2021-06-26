@@ -1,5 +1,11 @@
 # UltimateAdvancementAPI
 [![Build Status](https://jenkins.frengor.com/job/UltimateAdvancementAPI/badge/icon)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
+[![License](https://img.shields.io/badge/license-LGPL--3.0-orange)](https://github.com/frengor/UltimateAdvancementAPI/blob/main/LGPL)
+[![Version](https://img.shields.io/badge/version-1.0.0--BETA-blue)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
+[![Issues](https://img.shields.io/github/issues/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/issues)
+[![Stars](https://img.shields.io/github/stars/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/stargazers)
+[![Forks](https://img.shields.io/github/forks/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/network)
+[![Contributors](https://img.shields.io/github/contributors/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/graphs/contributors)
 
 A powerful API to create custom advancements for your minecraft server.
 
