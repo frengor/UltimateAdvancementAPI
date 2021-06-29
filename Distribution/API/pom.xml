@@ -7,16 +7,17 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-distribution</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.15.2-parent</version>
     </parent>
 
     <artifactId>ultimateadvancementapi</artifactId>
     <name>UltimateAdvancementAPI</name>
+    <version>${mcVersion}-${apiVersion}</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
     <properties>
-        <dependencyArtifact>com.frengor:ultimateadvancementapi-plugin:${parent.version}:jar</dependencyArtifact>
+        <dependencyArtifact>com.frengor:ultimateadvancementapi-plugin:${project.version}:jar</dependencyArtifact>
         <dependencyName>ultimateadvancementapi-plugin</dependencyName>
     </properties>
 
@@ -24,7 +25,7 @@
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-plugin</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

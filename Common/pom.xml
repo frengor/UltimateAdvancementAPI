@@ -7,11 +7,12 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.15.2-parent</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-common</artifactId>
     <name>UltimateAdvancementAPI-Common</name>
+    <version>${mcVersion}-${apiVersion}</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
