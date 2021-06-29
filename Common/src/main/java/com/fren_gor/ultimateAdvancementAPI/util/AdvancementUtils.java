@@ -23,13 +23,13 @@ import net.minecraft.server.v1_15_R1.ChatComponentText;
 import net.minecraft.server.v1_15_R1.Criterion;
 import net.minecraft.server.v1_15_R1.CriterionProgress;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
-import net.minecraft.server.v1_15_R1.MinecraftServer;
 import net.minecraft.server.v1_15_R1.PacketPlayOutAdvancements;
 import net.minecraft.server.v1_15_R1.PlayerConnection;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.craftbukkit.v1_15_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -218,7 +218,7 @@ public class AdvancementUtils {
 
     @SuppressWarnings("unchecked")
     public static void disableVanillaAdvancements() throws Exception {
-        Advancements registry = MinecraftServer.getServer().getAdvancementData().REGISTRY;
+        Advancements registry = ((CraftServer) Bukkit.getServer()).getServer().getAdvancementData().REGISTRY;
 
         if (registry.advancements.isEmpty()) {
             return;
