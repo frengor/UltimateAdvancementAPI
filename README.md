@@ -25,7 +25,7 @@ A powerful API to create custom advancements for your minecraft server.
 <dependency>
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi</artifactId>
-    <version>1.15.2-1.0.0-SNAPSHOT</version>
+    <version>1.15.2-1.0.0</version>
     <scope>provided</scope>
 </dependency>
 ```
