@@ -53,9 +53,9 @@
 
          <!-- CommandAPI -->
         <dependency>
-            <groupId>dev.jorel</groupId>
+            <groupId>dev.jorel.CommandAPI</groupId>
             <artifactId>commandapi-shade</artifactId>
-            <version>5.9</version>
+            <version>5.12</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
