@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-distribution</artifactId>
-        <version>1.15.2-parent</version>
+        <version>1.15.2-parent-SNAPSHOT</version>
     </parent>
 
     <artifactId>ultimateadvancementapi</artifactId>

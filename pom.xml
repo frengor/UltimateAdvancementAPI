@@ -6,7 +6,7 @@
 
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi-parent</artifactId>
-    <version>1.15.2-parent</version>
+    <version>1.15.2-parent-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>UltimateAdvancementAPI-Parent</name>
