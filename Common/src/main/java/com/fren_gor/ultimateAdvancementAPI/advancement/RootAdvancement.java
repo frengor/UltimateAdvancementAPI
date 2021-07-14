@@ -47,10 +47,6 @@ public class RootAdvancement extends Advancement {
     }
 
     @Override
-    public void giveReward(@NotNull Player player) {
-    }
-
-    @Override
     public final boolean isVisible(@NotNull Player player) {
         return true;
     }

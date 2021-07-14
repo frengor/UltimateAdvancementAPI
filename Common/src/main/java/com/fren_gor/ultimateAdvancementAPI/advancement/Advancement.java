@@ -290,7 +290,8 @@ public abstract class Advancement {
             giveReward(player);
     }
 
-    public abstract void giveReward(@NotNull Player player);
+    public void giveReward(@NotNull Player player) {
+    }
 
     public void grant(@NotNull Player player) {
         grant(player, true);
