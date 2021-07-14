@@ -25,7 +25,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvan
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementProgress;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementRequirements;
 
-public abstract class MultiParentsAdvancement extends BaseAdvancement {
+public class MultiParentsAdvancement extends BaseAdvancement {
 
     // Every parent goes here. Ignoring the parent in BaseAdvancement
     private final Map<BaseAdvancement, FakeAdvancement> parents;
