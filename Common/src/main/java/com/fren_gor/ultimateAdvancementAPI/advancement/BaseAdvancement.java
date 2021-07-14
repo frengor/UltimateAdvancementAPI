@@ -23,7 +23,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.ADV_REWA
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementCriteria;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementRequirements;
 
-public abstract class BaseAdvancement extends Advancement {
+public class BaseAdvancement extends Advancement {
 
     @Getter
     @NotNull
