@@ -9,7 +9,11 @@ import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.visibilities.IVisibility;
 import lombok.Getter;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.HoverEvent.Action;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.apache.commons.lang.Validate;
@@ -117,7 +121,11 @@ public abstract class Advancement {
      * @param player The player who's made the advancement.
      * @return The message to be displayed.
      */
-    public abstract @Nullable BaseComponent[] getAnnounceMessage(@NotNull Player player);
+    @Nullable
+    public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
+        ChatColor color = display.getFrame().getColor();
+        return new ComponentBuilder(player.getName() + " has completed the " + display.getFrame().getChatText() + ' ').color(ChatColor.WHITE).append(new ComponentBuilder("[").color(color).event(new HoverEvent(Action.SHOW_TEXT, display.getChatDescription())).append(display.getChatTitle()).append(new ComponentBuilder("]").reset().color(color).create()).create()).create();
+    }
 
     /**
      * Should craft the NMS advancement once and returns it henceforth.

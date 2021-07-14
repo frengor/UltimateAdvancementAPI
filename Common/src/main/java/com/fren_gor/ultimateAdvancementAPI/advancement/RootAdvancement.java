@@ -47,11 +47,6 @@ public class RootAdvancement extends Advancement {
     }
 
     @Override
-    public @Nullable BaseComponent[] getAnnounceMessage(@NotNull Player player) {
-        return null;
-    }
-
-    @Override
     public void giveReward(@NotNull Player player) {
     }
 

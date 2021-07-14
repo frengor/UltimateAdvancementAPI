@@ -49,13 +49,4 @@ public abstract class BaseAdvancement extends Advancement {
         Map<String, Criterion> advCriteria = getAdvancementCriteria(maxCriteria);
         return mcAdvancement = new net.minecraft.server.v1_15_R1.Advancement(getMinecraftKey(), parent.getMinecraftAdvancement(), display.getMinecraftDisplay(this), ADV_REWARDS, advCriteria, getAdvancementRequirements(advCriteria));
     }
-
-    @Override
-    @NotNull
-    public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
-        ChatColor color = display.getFrame().getColor();
-        return new ComponentBuilder(player.getName() + " has completed the " + display.getFrame().getChatText() + ' ').
-                color(ChatColor.WHITE).append(new ComponentBuilder("[").color(color).event(new HoverEvent(Action.SHOW_TEXT, display.getChatDescription())).append(display.getChatTitle()).append(new ComponentBuilder("]").reset().color(color).create()).create()).create();
-    }
-
 }
