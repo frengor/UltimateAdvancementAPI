@@ -45,6 +45,7 @@ public final class UltimateAdvancementAPI {
     @NotNull
     public static UltimateAdvancementAPI getInstance(@NotNull Plugin plugin) throws APINotInstantiatedException {
         Validate.notNull(plugin, "Plugin is null.");
+        Validate.isTrue(plugin.isEnabled(), "Plugin is not enabled.");
         if (main == null) {
             throw new APINotInstantiatedException();
         }
