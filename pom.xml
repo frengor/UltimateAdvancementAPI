@@ -89,7 +89,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Spigot 1.15.2 -->
+        <!-- Spigot 1.15.5 -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
