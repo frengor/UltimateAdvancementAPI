@@ -237,6 +237,7 @@
                                 <links>
                                     <link>https://frengor.com/javadocs/EventManagerAPI/build-server/</link>
                                     <link>https://javadoc.io/doc/org.jetbrains/annotations/19.0.0/</link>
+                                    <link>https://javadoc.io/static/net.md-5/bungeecord-chat/1.16-R0.4/</link>
                                 </links>
                                 <offlineLinks>
                                     <offlineLink>
