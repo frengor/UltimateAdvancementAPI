@@ -27,17 +27,17 @@ public class TaskAdvancement extends Advancement {
 
     @Getter
     @NotNull
-    private final Advancement parent;
+    private final AbstractMultiTaskAdvancement multitask;
 
-    public TaskAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent) {
-        this(advancementTab, key, display, parent, 1);
+    public TaskAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTaskAdvancement multitask) {
+        this(advancementTab, key, display, multitask, 1);
     }
 
-    public TaskAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
+    public TaskAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTaskAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
         super(advancementTab, key, display, maxCriteria);
-        Validate.notNull(parent, "Parent advancement is null.");
-        Validate.isTrue(advancementTab.isOwnedByThisTab(parent), "Parent advancement (" + parent.getKey() + ") is not owned by this tab (" + advancementTab.getNamespace() + ").");
-        this.parent = parent;
+        Validate.notNull(multitask, "Parent advancement is null.");
+        Validate.isTrue(advancementTab.isOwnedByThisTab(multitask), "Parent advancement (" + multitask.getKey() + ") is not owned by this tab (" + advancementTab.getNamespace() + ").");
+        this.multitask = multitask;
     }
 
     @Override
@@ -59,18 +59,6 @@ public class TaskAdvancement extends Advancement {
         validateCriteriaStrict(criteria, maxCriteria);
         Validate.notNull(uuid, "UUID is null.");
 
-        if (parent instanceof MultiTasksAdvancement) {
-            MultiTasksAdvancement parent = (MultiTasksAdvancement) this.parent;
-            parent.taskUpdating = true;
-            try {
-                parent.setCriteriaTeamProgression(uuid, parent.getTeamCriteria(uuid) + criteria - getTeamCriteria(uuid), giveRewards);
-            } finally {
-                parent.taskUpdating = false;
-            }
-        } else {
-            parent.setCriteriaTeamProgression(uuid, parent.getTeamCriteria(uuid) + criteria - getTeamCriteria(uuid), giveRewards);
-        }
-
         final DatabaseManager ds = advancementTab.getDatabaseManager();
         final TeamProgression pro = ds.getProgression(uuid);
         int old = ds.updateCriteria(key, pro, criteria);
@@ -82,6 +70,7 @@ public class TaskAdvancement extends Advancement {
         }
 
         handlePlayer(ds, pro, uuid, player, criteria, old, giveRewards);
+        multitask.reloadTasks(uuid, player, giveRewards);
     }
 
     protected void handlePlayer(@NotNull DatabaseManager ds, @Nullable TeamProgression pro, @NotNull UUID uuid, @Nullable Player player, int criteria, int old, boolean giveRewards) {

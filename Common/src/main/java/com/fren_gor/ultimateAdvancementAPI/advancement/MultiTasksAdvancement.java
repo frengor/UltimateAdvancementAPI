@@ -1,11 +1,13 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement;
 
-import com.google.common.collect.Sets;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskCriteriaUpdateException;
+import com.google.common.collect.Sets;
+import net.minecraft.server.v1_15_R1.AdvancementProgress;
+import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -21,9 +23,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementProgress;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
 
-public class MultiTasksAdvancement extends BaseAdvancement {
+public class MultiTasksAdvancement extends AbstractMultiTaskAdvancement {
 
     /**
      * Whether to enable arbitrary criteria in {@link MultiTasksAdvancement#setCriteriaTeamProgression(UUID, Player, int, boolean)}.
@@ -40,11 +43,7 @@ public class MultiTasksAdvancement extends BaseAdvancement {
 
     protected final Set<TaskAdvancement> tasks = new HashSet<>();
     protected final Map<Integer, Integer> criteriaCache = new HashMap<>();
-    protected boolean initialised = false, doResets = true;
-    /**
-     * Automatically set by {@link TaskAdvancement} when updating criteria via {@link Advancement#setCriteriaTeamProgression(UUID, Player, int, boolean)}
-     */
-    protected boolean taskUpdating = false;
+    protected boolean initialised = false, doReloads = true;
 
     public MultiTasksAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
         super(advancementTab, key, display, parent, maxCriteria);
@@ -59,21 +58,21 @@ public class MultiTasksAdvancement extends BaseAdvancement {
             throw new IllegalStateException("MultiTaskAdvancement is already initialised.");
         }
         Validate.notNull(tasks, "Set<TaskAdvancement> is null.");
-        int crit = 0;
+        int criteria = 0;
         for (TaskAdvancement t : tasks) {
             if (t == null) {
                 throw new IllegalArgumentException("A TaskAdvancement is null.");
             }
-            if (t.getParent() != this) {
-                throw new IllegalArgumentException("TaskAdvancement parent (" + t.getParent().key + ") doesn't match with this MultiTaskAdvancement. (" + key + ").");
+            if (t.getMultitask() != this) {
+                throw new IllegalArgumentException("TaskAdvancement parent (" + t.getMultitask().key + ") doesn't match with this MultiTaskAdvancement. (" + key + ").");
             }
             if (!advancementTab.isOwnedByThisTab(t)) {
                 throw new IllegalArgumentException("TaskAdvancement " + t.key + " is not owned by this tab (" + advancementTab.getNamespace() + ").");
             }
-            crit += t.maxCriteria;
+            criteria += t.maxCriteria;
         }
-        if (crit != maxCriteria) {
-            throw new IllegalArgumentException("Expected max criteria (" + maxCriteria + ") doesn't match the tasks' total one (" + crit + ").");
+        if (criteria != maxCriteria) {
+            throw new IllegalArgumentException("Expected max criteria (" + maxCriteria + ") doesn't match the tasks' total one (" + criteria + ").");
         }
         this.tasks.addAll(tasks);
         registerEvent(TeamUnloadEvent.class, e -> {
@@ -134,21 +133,14 @@ public class MultiTasksAdvancement extends BaseAdvancement {
         checkInitialisation();
         Validate.notNull(uuid, "UUID is null.");
         validateCriteriaStrict(criteria, maxCriteria);
-        if (!doResets)
-            return;
+
         int current = getTeamCriteria(uuid);
         if (current == criteria) {
             return; // Unnecessary update
         }
         final TeamProgression progression = advancementTab.getDatabaseManager().getProgression(uuid);
-        if (taskUpdating) {
-            updateTeamCriteriaCache(progression, criteria);
 
-            // Update MultiTasksAdvancement to players since a task has been updated
-            handlePlayer(advancementTab.getDatabaseManager(), progression, uuid, player, criteria, current, giveRewards);
-            return;
-        }
-        doResets = false;
+        doReloads = false;
         try {
             if (criteria == maxCriteria) {
                 for (TaskAdvancement t : tasks) {
@@ -187,19 +179,33 @@ public class MultiTasksAdvancement extends BaseAdvancement {
                 throw new ArbitraryMultiTaskCriteriaUpdateException();
             }
         } finally {
-            doResets = true;
+            doReloads = true;
         }
         updateTeamCriteriaCache(progression, criteria);
 
         handlePlayer(advancementTab.getDatabaseManager(), progression, uuid, player, criteria, current, giveRewards);
     }
 
+    @Override
+    public void reloadTasks(@NotNull UUID uuid, @Nullable Player player, boolean giveRewards) {
+        if (doReloads) { // Skip reloads when update comes from ourselves
+            Validate.notNull(uuid, "UUID is null.");
+
+            int current = getTeamCriteria(uuid);
+            TeamProgression pro = advancementTab.getDatabaseManager().getProgression(uuid);
+            resetTeamCriteriaCache(pro);
+
+            // Update MultiTasksAdvancement to players since a task has been updated
+            handlePlayer(advancementTab.getDatabaseManager(), pro, uuid, player, getTeamCriteria(uuid), current, giveRewards);
+        }
+    }
+
     public void resetCriteriaCache() {
         criteriaCache.clear();
     }
 
-    public void resetTeamCriteriaCache(@NotNull UUID uuid) {
-        criteriaCache.remove(advancementTab.getDatabaseManager().getProgression(uuid).getTeamId());
+    public void resetTeamCriteriaCache(@NotNull TeamProgression pro) {
+        criteriaCache.remove(pro.getTeamId());
     }
 
     protected void updateTeamCriteriaCache(@NotNull TeamProgression pro, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
@@ -209,6 +215,17 @@ public class MultiTasksAdvancement extends BaseAdvancement {
     private void checkInitialisation() {
         if (!initialised) {
             throw new IllegalStateException("MultiTaskAdvancement hasn't been initialised yet.");
+        }
+    }
+
+    @Override
+    public void onUpdate(@NotNull UUID uuid, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull TeamProgression teamProgression, @NotNull Set<MinecraftKey> added) {
+        if (isVisible(uuid)) {
+            net.minecraft.server.v1_15_R1.Advancement mcAdv = getMinecraftAdvancement();
+            advancementList.add(mcAdv);
+            MinecraftKey key = getMinecraftKey();
+            added.add(key);
+            progresses.put(key, getAdvancementProgress(mcAdv, getTeamCriteria(uuid)));
         }
     }
 
