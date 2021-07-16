@@ -12,13 +12,13 @@ import java.util.UUID;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 
-public abstract class AbstractMultiTaskAdvancement extends BaseAdvancement {
+public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
 
-    public AbstractMultiTaskAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent) {
+    public AbstractMultiTasksAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent) {
         super(advancementTab, key, display, parent);
     }
 
-    public AbstractMultiTaskAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
+    public AbstractMultiTasksAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
         super(advancementTab, key, display, parent, maxCriteria);
     }
 
@@ -38,6 +38,6 @@ public abstract class AbstractMultiTaskAdvancement extends BaseAdvancement {
         reloadTasks(uuid, Bukkit.getPlayer(uuid), giveRewards);
     }
 
-    public abstract void reloadTasks(@NotNull UUID uuid, @Nullable Player player, boolean giveRewards);
+    protected abstract void reloadTasks(@NotNull UUID uuid, @Nullable Player player, boolean giveRewards);
 
 }

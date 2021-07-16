@@ -27,13 +27,13 @@ public class TaskAdvancement extends Advancement {
 
     @Getter
     @NotNull
-    private final AbstractMultiTaskAdvancement multitask;
+    private final AbstractMultiTasksAdvancement multitask;
 
-    public TaskAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTaskAdvancement multitask) {
+    public TaskAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask) {
         this(advancementTab, key, display, multitask, 1);
     }
 
-    public TaskAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTaskAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
+    public TaskAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
         super(advancementTab, key, display, maxCriteria);
         Validate.notNull(multitask, "Parent advancement is null.");
         Validate.isTrue(advancementTab.isOwnedByThisTab(multitask), "Parent advancement (" + multitask.getKey() + ") is not owned by this tab (" + advancementTab.getNamespace() + ").");

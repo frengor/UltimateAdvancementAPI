@@ -26,7 +26,7 @@ import java.util.UUID;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementProgress;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
 
-public class MultiTasksAdvancement extends AbstractMultiTaskAdvancement {
+public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
 
     /**
      * Whether to enable arbitrary criteria in {@link MultiTasksAdvancement#setCriteriaTeamProgression(UUID, Player, int, boolean)}.
