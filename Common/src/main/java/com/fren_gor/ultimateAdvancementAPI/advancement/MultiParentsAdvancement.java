@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
@@ -25,7 +26,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvan
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementProgress;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementRequirements;
 
-public class MultiParentsAdvancement extends BaseAdvancement {
+public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
 
     // Every parent goes here. Ignoring the parent in BaseAdvancement
     private final Map<BaseAdvancement, FakeAdvancement> parents;
@@ -61,12 +62,6 @@ public class MultiParentsAdvancement extends BaseAdvancement {
         mcDisplay = display.getMinecraftDisplay(this);
     }
 
-    private static BaseAdvancement validateAndGetFirst(Set<BaseAdvancement> advs) {
-        Validate.notNull(advs, "Parent advancements are null.");
-        Validate.isTrue(advs.size() > 1, "There must be at least 2 parents.");
-        return Objects.requireNonNull(advs.iterator().next());
-    }
-
     @Override
     public void onUpdate(@NotNull UUID uuid, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull TeamProgression teamProgression, @NotNull Set<MinecraftKey> added) {
         if (isVisible(uuid)) {
@@ -96,6 +91,7 @@ public class MultiParentsAdvancement extends BaseAdvancement {
         return Collections.unmodifiableSet(parents.keySet());
     }
 
+    @Override
     public boolean isEveryParentGranted(@NotNull UUID uuid) {
         Validate.notNull(uuid, "Player cannot be null.");
         if (!parent.isGranted(uuid)) {
@@ -109,6 +105,7 @@ public class MultiParentsAdvancement extends BaseAdvancement {
         return true;
     }
 
+    @Override
     public boolean isAnyParentGranted(@NotNull UUID uuid) {
         Validate.notNull(uuid, "Player cannot be null.");
         if (parent.isGranted(uuid)) {
@@ -122,6 +119,7 @@ public class MultiParentsAdvancement extends BaseAdvancement {
         return false;
     }
 
+    @Override
     public boolean isAnyParentStarted(@NotNull UUID uuid) {
         Validate.notNull(uuid, "Player cannot be null.");
 
@@ -138,6 +136,7 @@ public class MultiParentsAdvancement extends BaseAdvancement {
         return false;
     }
 
+    @Override
     public boolean isEveryGrandparentGranted(@NotNull UUID uuid) {
         Validate.notNull(uuid, "Player cannot be null.");
 
@@ -161,6 +160,7 @@ public class MultiParentsAdvancement extends BaseAdvancement {
         return true;
     }
 
+    @Override
     public boolean isAnyGrandparentGranted(@NotNull UUID uuid) {
         Validate.notNull(uuid, "Player cannot be null.");
         BaseAdvancement parent = getParent();
@@ -184,6 +184,7 @@ public class MultiParentsAdvancement extends BaseAdvancement {
         return true;
     }
 
+    @Override
     public boolean isAnyGrandparentStarted(@NotNull UUID uuid) {
         Validate.notNull(uuid, "Player cannot be null.");
 
