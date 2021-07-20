@@ -11,6 +11,7 @@ import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementDispose
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementRegistrationEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.google.common.collect.Maps;
@@ -312,32 +313,62 @@ public final class AdvancementTab {
 
         PluginManager pluginManager = Bukkit.getPluginManager();
 
-        rootAdvancement.onRegister();
+        callOnRegister(rootAdvancement);
 
         try {
             pluginManager.callEvent(new AdvancementRegistrationEvent(rootAdvancement));
         } catch (IllegalStateException e) {
-            this.advancements.clear();
-            this.rootAdvancement = null;
+            onRegisterFail();
             throw e;
         }
 
         for (BaseAdvancement adv : advancements) {
             if (this.advancements.put(adv.getKey(), adv) != null) {
-                this.advancements.clear();
-                this.rootAdvancement = null;
+                onRegisterFail();
                 throw new DuplicatedException("Advancement " + adv.getKey() + " is duplicated.");
             }
-            adv.onRegister();
+
+            callOnRegister(adv);
+
             try {
                 pluginManager.callEvent(new AdvancementRegistrationEvent(adv));
             } catch (IllegalStateException e) {
-                this.advancements.clear();
-                this.rootAdvancement = null;
+                onRegisterFail();
                 throw e;
             }
         }
+
+        for (Advancement adv : this.advancements.values()) {
+            callValidation(adv);
+        }
+
         initialised = true;
+    }
+
+    private void callOnRegister(Advancement adv) {
+        try {
+            adv.onRegister();
+        } catch (Exception e) {
+            onRegisterFail();
+            throw new RuntimeException("Exception occurred while registering advancement " + adv.getKey() + ':', e);
+        }
+    }
+
+    private void callValidation(Advancement adv) {
+        try {
+            adv.validateRegister();
+        } catch (InvalidAdvancementException e) {
+            onRegisterFail();
+            throw new RuntimeException("Advancement " + adv.getKey() + " is not valid:", e);
+        } catch (Exception e) {
+            onRegisterFail();
+            throw new RuntimeException("Exception occurred while validating advancement " + adv.getKey() + ':', e);
+        }
+    }
+
+    private void onRegisterFail() {
+        this.advancements.clear();
+        this.rootAdvancement = null;
     }
 
     public void showTab(@NotNull Player... players) {
