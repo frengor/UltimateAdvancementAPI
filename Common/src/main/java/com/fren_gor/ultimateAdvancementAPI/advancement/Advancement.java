@@ -328,7 +328,7 @@ public abstract class Advancement {
     }
 
     public boolean isValid() {
-        return advancementTab.isActive() && advancementTab.getAdvancement(key) == this;
+        return advancementTab.isActive() && advancementTab.hasAdvancement(this);
     }
 
     protected final <E extends Event> void registerEvent(@NotNull Class<E> eventClass, @NotNull Consumer<E> consumer) {
