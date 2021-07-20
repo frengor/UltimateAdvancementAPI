@@ -1,8 +1,8 @@
 package com.fren_gor.ultimateAdvancementAPI.visibilities;
 
+import com.fren_gor.ultimateAdvancementAPI.advancement.AbstractMultiParentsAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
-import com.fren_gor.ultimateAdvancementAPI.advancement.MultiParentsAdvancement;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,8 +17,8 @@ public interface VanillaVisibility extends IVisibility {
         if (advancement.getTeamCriteria(uuid) > 0)
             return true;
 
-        if (advancement instanceof MultiParentsAdvancement) {
-            return ((MultiParentsAdvancement) advancement).isAnyGrandparentGranted(uuid);
+        if (advancement instanceof AbstractMultiParentsAdvancement) {
+            return ((AbstractMultiParentsAdvancement) advancement).isAnyGrandparentGranted(uuid);
         } else if (advancement instanceof BaseAdvancement) {
 
             Advancement parent = ((BaseAdvancement) advancement).getParent();
@@ -26,8 +26,8 @@ public interface VanillaVisibility extends IVisibility {
             if (parent.isGranted(uuid)) {
                 return true;
             }
-            if (parent instanceof MultiParentsAdvancement) {
-                return ((MultiParentsAdvancement) parent).isAnyParentGranted(uuid);
+            if (parent instanceof AbstractMultiParentsAdvancement) {
+                return ((AbstractMultiParentsAdvancement) parent).isAnyParentGranted(uuid);
             } else if (parent instanceof BaseAdvancement) {
                 return ((BaseAdvancement) parent).getParent().isGranted(uuid);
             }
