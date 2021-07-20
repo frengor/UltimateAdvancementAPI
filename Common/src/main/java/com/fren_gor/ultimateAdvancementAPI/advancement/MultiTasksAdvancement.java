@@ -214,7 +214,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
 
     private void checkInitialisation() {
         if (!initialised) {
-            throw new IllegalStateException("MultiTaskAdvancement hasn't been initialised yet.");
+            throw new IllegalStateException("MultiTasksAdvancement hasn't been initialised yet.");
         }
     }
 
