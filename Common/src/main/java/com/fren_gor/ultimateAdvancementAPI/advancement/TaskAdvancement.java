@@ -126,8 +126,4 @@ public class TaskAdvancement extends Advancement {
             giveReward(player);
     }
 
-    @Override
-    public void giveReward(@NotNull Player player) {
-    }
-
 }

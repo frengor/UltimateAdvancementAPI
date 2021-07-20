@@ -187,7 +187,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     }
 
     @Override
-    public void reloadTasks(@NotNull UUID uuid, @Nullable Player player, boolean giveRewards) {
+    protected void reloadTasks(@NotNull UUID uuid, @Nullable Player player, boolean giveRewards) {
         if (doReloads) { // Skip reloads when update comes from ourselves
             Validate.notNull(uuid, "UUID is null.");
 
@@ -231,9 +231,9 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
 
     @Override
     public void onDispose() {
-        super.onDispose();
         for (TaskAdvancement t : tasks) {
             t.onDispose();
         }
+        super.onDispose();
     }
 }

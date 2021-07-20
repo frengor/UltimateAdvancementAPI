@@ -93,10 +93,7 @@ public class MultiParentsAdvancement extends BaseAdvancement {
     @NotNull
     @Unmodifiable
     public Set<@NotNull BaseAdvancement> getParents() {
-        Set<BaseAdvancement> set = Sets.newHashSetWithExpectedSize(parents.size() + 1);
-        set.add((BaseAdvancement) parent);
-        set.addAll(parents.keySet());
-        return Collections.unmodifiableSet(set);
+        return Collections.unmodifiableSet(parents.keySet());
     }
 
     public boolean isEveryParentGranted(@NotNull UUID uuid) {
@@ -214,10 +211,10 @@ public class MultiParentsAdvancement extends BaseAdvancement {
 
     @Override
     public void onDispose() {
-        super.onDispose();
         for (FakeAdvancement f : parents.values()) {
             f.onDispose();
         }
+        super.onDispose();
     }
 
     @Override
@@ -227,7 +224,7 @@ public class MultiParentsAdvancement extends BaseAdvancement {
     }
 
     @NotNull
-    public net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement(@NotNull BaseAdvancement advancement) {
+    protected net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement(@NotNull BaseAdvancement advancement) {
         return new net.minecraft.server.v1_15_R1.Advancement(getMinecraftKey(), advancement.getMinecraftAdvancement(), mcDisplay, ADV_REWARDS, advCriteria, advRequirements);
     }
 }

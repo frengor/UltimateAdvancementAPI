@@ -41,7 +41,8 @@ public class BaseAdvancement extends Advancement {
         this.parent = parent;
     }
 
-    public @NotNull net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement() {
+    @NotNull
+    public net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement() {
         if (mcAdvancement != null) {
             return mcAdvancement;
         }
