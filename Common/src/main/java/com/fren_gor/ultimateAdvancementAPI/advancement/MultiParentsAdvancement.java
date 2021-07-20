@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import net.minecraft.server.v1_15_R1.Advancement;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
 import net.minecraft.server.v1_15_R1.Criterion;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
@@ -234,6 +235,13 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     @NotNull
     public BaseAdvancement getParent() {
         return (BaseAdvancement) parent;
+    }
+
+    @NotNull
+    @Override
+    public Advancement getMinecraftAdvancement() {
+        System.out.println("WARNING: Calls to MultiParentsAdvancement#getMinecraftAdvancement() results in an undefined behaviour, since there are more than one parents. This is not an error, though.");
+        return super.getMinecraftAdvancement();
     }
 
     @NotNull
