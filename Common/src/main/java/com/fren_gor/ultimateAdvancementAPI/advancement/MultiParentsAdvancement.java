@@ -56,6 +56,10 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
                 this.parents.clear();
                 throw new IllegalArgumentException("An advancement is null.");
             }
+            if (!advancementTab.isOwnedByThisTab(advancement)) {
+                this.parents.clear();
+                throw new IllegalArgumentException("An advancement (" + advancement.getKey() + ") is not owned by this tab (" + advancementTab + ").");
+            }
             FakeAdvancement adv = new FakeAdvancement(advancementTab, advancement, display.getX(), display.getY());
             this.parents.put(advancement, adv);
         }
@@ -208,6 +212,14 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
             return true;
         } else
             return pro.getCriteria(adv.getParent()) > 0;
+    }
+
+    @Override
+    public void validateRegister() throws InvalidAdvancementException {
+        for (BaseAdvancement advancement : parents.keySet()) {
+            if (!advancement.isValid())
+                throw new InvalidAdvancementException("A parent advancement is not valid (" + advancement.getKey() + ").");
+        }
     }
 
     @Override

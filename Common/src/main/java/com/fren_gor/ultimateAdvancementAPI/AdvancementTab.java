@@ -352,11 +352,13 @@ public final class AdvancementTab {
             }
         }
 
+        // Initialise before validation since advancementTab's methods have to be called
+        // Make sure to revert it in case of an invalid advancement is found. See onRegisterFail()
+        initialised = true;
+
         for (Advancement adv : this.advancements.values()) {
             callValidation(adv);
         }
-
-        initialised = true;
     }
 
     private void callOnRegister(Advancement adv) {
@@ -381,8 +383,10 @@ public final class AdvancementTab {
     }
 
     private void onRegisterFail() {
-        this.advancements.clear();
-        this.rootAdvancement = null;
+        // Revert initialised to false in case of an invalid advancement is found
+        initialised = false;
+        advancements.clear();
+        rootAdvancement = null;
     }
 
     public void showTab(@NotNull Player... players) {

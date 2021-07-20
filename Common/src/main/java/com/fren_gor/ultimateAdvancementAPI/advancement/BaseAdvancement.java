@@ -2,18 +2,10 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import lombok.Getter;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.HoverEvent.Action;
-import net.minecraft.server.v1_15_R1.AdvancementRewards;
 import net.minecraft.server.v1_15_R1.Criterion;
-import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.apache.commons.lang.Validate;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -39,6 +31,13 @@ public class BaseAdvancement extends Advancement {
         Validate.notNull(parent, "Parent advancement is null.");
         Validate.isTrue(advancementTab.isOwnedByThisTab(parent), "Parent advancement (" + parent.getKey() + ") is not owned by this tab (" + advancementTab.getNamespace() + ").");
         this.parent = parent;
+    }
+
+    @Override
+    public void validateRegister() throws InvalidAdvancementException {
+        if (!parent.isValid()) {
+            throw new InvalidAdvancementException("Parent advancement is not valid (" + parent.getKey() + ").");
+        }
     }
 
     @NotNull

@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskCriteriaUpdateException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.google.common.collect.Sets;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
@@ -226,6 +227,13 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             MinecraftKey key = getMinecraftKey();
             added.add(key);
             progresses.put(key, getAdvancementProgress(mcAdv, getTeamCriteria(uuid)));
+        }
+    }
+
+    @Override
+    public void validateRegister() throws InvalidAdvancementException {
+        if (!initialised) {
+            throw new InvalidAdvancementException("MultiTasksAdvancement hasn't been initialised yet.");
         }
     }
 
