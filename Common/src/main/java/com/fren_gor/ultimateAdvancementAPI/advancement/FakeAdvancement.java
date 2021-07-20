@@ -6,7 +6,6 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
-import net.minecraft.server.v1_15_R1.AdvancementRewards;
 import net.minecraft.server.v1_15_R1.ChatComponentText;
 import net.minecraft.server.v1_15_R1.Criterion;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
@@ -173,19 +172,22 @@ public final class FakeAdvancement extends BaseAdvancement {
     }
 
     @Override
+    public boolean isVisible(@NotNull UUID uuid) {
+        return true;
+    }
+
+    @Override
     public void onUpdate(@NotNull UUID uuid, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull TeamProgression teamProgression, @NotNull Set<MinecraftKey> added) {
-        if (isVisible(uuid)) {
-            net.minecraft.server.v1_15_R1.Advancement adv = getMinecraftAdvancement();
-            advancementList.add(adv);
+        net.minecraft.server.v1_15_R1.Advancement adv = getMinecraftAdvancement();
+        advancementList.add(adv);
 
-            // Inlining of getAdvancementProgress()
-            AdvancementProgress advPrg = new AdvancementProgress();
-            advPrg.a(adv.getCriteria(), adv.i());
+        // Inlining of getAdvancementProgress()
+        AdvancementProgress advPrg = new AdvancementProgress();
+        advPrg.a(adv.getCriteria(), adv.i());
 
-            MinecraftKey key = getMinecraftKey();
-            added.add(key);
-            progresses.put(key, advPrg);
-        }
+        MinecraftKey key = getMinecraftKey();
+        added.add(key);
+        progresses.put(key, advPrg);
     }
 
     public static final class FakeAdvancementDisplay extends AdvancementDisplay {
