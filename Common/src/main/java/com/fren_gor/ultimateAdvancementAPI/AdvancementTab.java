@@ -149,6 +149,20 @@ public final class AdvancementTab {
         return Collections.unmodifiableSet(advancements.keySet());
     }
 
+    @Contract(pure = true, value = "null -> false")
+    public boolean hasAdvancement(Advancement advancement) {
+        checkInitialisation();
+        if (advancement == null)
+            return false;
+        return advancements.containsKey(advancement.getKey());
+    }
+
+    @Contract(pure = true, value = "null -> false")
+    public boolean hasAdvancement(AdvancementKey namespacedKey) {
+        checkInitialisation();
+        return advancements.containsKey(namespacedKey);
+    }
+
     @Nullable
     @Contract(pure = true, value = "null -> null")
     public Advancement getAdvancement(AdvancementKey namespacedKey) {
