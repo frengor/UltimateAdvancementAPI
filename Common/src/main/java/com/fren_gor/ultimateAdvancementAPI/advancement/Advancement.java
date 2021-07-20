@@ -317,6 +317,9 @@ public abstract class Advancement {
         }
     }
 
+    public void onRegister() {
+    }
+
     public void onDispose() {
     }
 

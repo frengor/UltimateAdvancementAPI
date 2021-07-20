@@ -304,14 +304,15 @@ public final class AdvancementTab {
             }
         }
 
+        // Just to be sure
+        this.advancements.clear();
+
         this.rootAdvancement = rootAdvancement;
-        if (this.advancements.put(rootAdvancement.getKey(), rootAdvancement) != null) {
-            this.advancements.clear();
-            this.rootAdvancement = null;
-            throw new DuplicatedException("Root advancement is duplicated.");
-        }
+        this.advancements.put(rootAdvancement.getKey(), rootAdvancement);
 
         PluginManager pluginManager = Bukkit.getPluginManager();
+
+        rootAdvancement.onRegister();
 
         try {
             pluginManager.callEvent(new AdvancementRegistrationEvent(rootAdvancement));
@@ -327,6 +328,7 @@ public final class AdvancementTab {
                 this.rootAdvancement = null;
                 throw new DuplicatedException("Advancement " + adv.getKey() + " is duplicated.");
             }
+            adv.onRegister();
             try {
                 pluginManager.callEvent(new AdvancementRegistrationEvent(adv));
             } catch (IllegalStateException e) {
