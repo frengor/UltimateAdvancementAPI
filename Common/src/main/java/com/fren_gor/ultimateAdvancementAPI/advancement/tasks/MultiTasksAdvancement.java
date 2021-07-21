@@ -1,7 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
-import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
@@ -48,8 +47,8 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     protected final Map<Integer, Integer> criteriaCache = new HashMap<>();
     protected boolean initialised = false, doReloads = true;
 
-    public MultiTasksAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        super(advancementTab, key, display, parent, maxCriteria);
+    public MultiTasksAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
+        super(key, display, parent, maxCriteria);
     }
 
     public void registerTasks(@NotNull TaskAdvancement... tasks) {

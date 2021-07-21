@@ -1,7 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.multiParents;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
-import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.FakeAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
@@ -37,20 +36,20 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     private final String[][] advRequirements = getAdvancementRequirements(advCriteria);
     private final net.minecraft.server.v1_15_R1.AdvancementDisplay mcDisplay;
 
-    public MultiParentsAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull BaseAdvancement... parents) {
-        this(advancementTab, key, display, 1, parents);
+    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull BaseAdvancement... parents) {
+        this(key, display, 1, parents);
     }
 
-    public MultiParentsAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria, @NotNull BaseAdvancement... parents) {
-        this(advancementTab, key, display, maxCriteria, Sets.newHashSet(Objects.requireNonNull(parents)));
+    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria, @NotNull BaseAdvancement... parents) {
+        this(key, display, maxCriteria, Sets.newHashSet(Objects.requireNonNull(parents)));
     }
 
-    public MultiParentsAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull Set<BaseAdvancement> parents) {
-        this(advancementTab, key, display, 1, parents);
+    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Set<BaseAdvancement> parents) {
+        this(key, display, 1, parents);
     }
 
-    public MultiParentsAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria, @NotNull Set<BaseAdvancement> parents) {
-        super(advancementTab, key, display, validateAndGetFirst(parents), maxCriteria);
+    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria, @NotNull Set<BaseAdvancement> parents) {
+        super(key, display, validateAndGetFirst(parents), maxCriteria);
 
         this.parents = Maps.newHashMapWithExpectedSize(parents.size());
 
@@ -63,7 +62,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
                 this.parents.clear();
                 throw new IllegalArgumentException("An advancement (" + advancement.getKey() + ") is not owned by this tab (" + advancementTab + ").");
             }
-            FakeAdvancement adv = new FakeAdvancement(advancementTab, advancement, display.getX(), display.getY());
+            FakeAdvancement adv = new FakeAdvancement(advancement, display.getX(), display.getY());
             this.parents.put(advancement, adv);
         }
         mcDisplay = display.getMinecraftDisplay(this);
