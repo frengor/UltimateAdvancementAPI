@@ -1,7 +1,8 @@
-package com.fren_gor.ultimateAdvancementAPI.advancement;
+package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
+import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskCriteriaUpdateException;
@@ -64,13 +65,13 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             if (t == null) {
                 throw new IllegalArgumentException("A TaskAdvancement is null.");
             }
-            if (t.getMultitask() != this) {
-                throw new IllegalArgumentException("TaskAdvancement parent (" + t.getMultitask().key + ") doesn't match with this MultiTaskAdvancement. (" + key + ").");
+            if (t.getMultiTasksAdvancement() != this) {
+                throw new IllegalArgumentException("TaskAdvancement parent (" + t.getMultiTasksAdvancement().getKey() + ") doesn't match with this MultiTaskAdvancement. (" + key + ").");
             }
             if (!advancementTab.isOwnedByThisTab(t)) {
-                throw new IllegalArgumentException("TaskAdvancement " + t.key + " is not owned by this tab (" + advancementTab.getNamespace() + ").");
+                throw new IllegalArgumentException("TaskAdvancement " + t.getKey() + " is not owned by this tab (" + advancementTab.getNamespace() + ").");
             }
-            criteria += t.maxCriteria;
+            criteria += t.getMaxCriteria();
         }
         if (criteria != maxCriteria) {
             throw new IllegalArgumentException("Expected max criteria (" + maxCriteria + ") doesn't match the tasks' total one (" + criteria + ").");

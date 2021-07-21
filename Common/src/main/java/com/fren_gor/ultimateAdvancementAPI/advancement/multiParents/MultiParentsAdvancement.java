@@ -1,7 +1,9 @@
-package com.fren_gor.ultimateAdvancementAPI.advancement;
+package com.fren_gor.ultimateAdvancementAPI.advancement.multiParents;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
+import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
+import com.fren_gor.ultimateAdvancementAPI.advancement.FakeAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.google.common.collect.Maps;
@@ -147,7 +149,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
 
         if (!parent.isGranted(uuid)) {
             BaseAdvancement parent = getParent();
-            if (parent instanceof MultiParentsAdvancement && !((MultiParentsAdvancement) parent).isEveryParentGranted(uuid)) {
+            if (parent instanceof AbstractMultiParentsAdvancement && !((AbstractMultiParentsAdvancement) parent).isEveryParentGranted(uuid)) {
                 return false;
             } else if (!parent.getParent().isGranted(uuid)) {
                 return false;
@@ -155,7 +157,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
         }
         for (BaseAdvancement advancement : parents.keySet()) {
             if (!advancement.isGranted(uuid)) {
-                if (advancement instanceof MultiParentsAdvancement && !((MultiParentsAdvancement) advancement).isEveryParentGranted(uuid)) {
+                if (advancement instanceof AbstractMultiParentsAdvancement && !((AbstractMultiParentsAdvancement) advancement).isEveryParentGranted(uuid)) {
                     return false;
                 } else if (!advancement.getParent().isGranted(uuid)) {
                     return false;
@@ -172,7 +174,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
 
         if (parent.isGranted(uuid)) {
             return true;
-        } else if (parent instanceof MultiParentsAdvancement && ((MultiParentsAdvancement) parent).isAnyParentGranted(uuid)) {
+        } else if (parent instanceof AbstractMultiParentsAdvancement && ((AbstractMultiParentsAdvancement) parent).isAnyParentGranted(uuid)) {
             return true;
         } else if (parent.getParent().isGranted(uuid)) {
             return true;
@@ -180,7 +182,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
         for (BaseAdvancement advancement : parents.keySet()) {
             if (advancement.isGranted(uuid)) {
                 return true;
-            } else if (advancement instanceof MultiParentsAdvancement && ((MultiParentsAdvancement) advancement).isAnyParentGranted(uuid)) {
+            } else if (advancement instanceof AbstractMultiParentsAdvancement && ((AbstractMultiParentsAdvancement) advancement).isAnyParentGranted(uuid)) {
                 return true;
             } else if (advancement.getParent().isGranted(uuid)) {
                 return true;
@@ -209,7 +211,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
 
     private boolean isParentStarted(@NotNull TeamProgression pro, @NotNull BaseAdvancement adv, @NotNull UUID uuid) {
         // Avoid merging if to improve readability
-        if (adv instanceof MultiParentsAdvancement && ((MultiParentsAdvancement) adv).isAnyParentStarted(uuid)) {
+        if (adv instanceof AbstractMultiParentsAdvancement && ((AbstractMultiParentsAdvancement) adv).isAnyParentStarted(uuid)) {
             return true;
         } else
             return pro.getCriteria(adv.getParent()) > 0;
