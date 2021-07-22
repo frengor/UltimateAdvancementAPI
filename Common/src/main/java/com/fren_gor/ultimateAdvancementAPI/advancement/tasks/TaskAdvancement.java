@@ -117,6 +117,11 @@ public class TaskAdvancement extends BaseAdvancement {
     }
 
     @Override
+    public boolean isVisible(@NotNull UUID uuid) {
+        return false;
+    }
+
+    @Override
     @Contract(pure = true, value = "_, _, _, _, _ -> fail")
     public void onUpdate(@NotNull UUID uuid, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull TeamProgression teamProgression, @NotNull Set<MinecraftKey> added) {
         throw new UnsupportedOperationException();
@@ -128,6 +133,11 @@ public class TaskAdvancement extends BaseAdvancement {
 
         if (giveRewards)
             giveReward(player);
+    }
+
+    @Override
+    public boolean isValid() {
+        return getMultiTasksAdvancement().isValid();
     }
 
     @NotNull
