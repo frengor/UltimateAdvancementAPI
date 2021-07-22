@@ -65,9 +65,9 @@ public abstract class Advancement {
 
     Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
         Validate.isTrue(maxCriteria > 0, "Max criteria cannot be <= 0");
+        this.advancementTab = Objects.requireNonNull(advancementTab, "AdvancementTab is null.");
         this.key = new AdvancementKey(advancementTab.getNamespace(), key);
-        this.advancementTab = Objects.requireNonNull(advancementTab);
-        this.display = Objects.requireNonNull(display);
+        this.display = Objects.requireNonNull(display, "Display is null.");
         this.maxCriteria = maxCriteria;
         if (this instanceof IVisibility) {
             this.iVisibilityMethod = getIVisibilityMethod(getClass());
