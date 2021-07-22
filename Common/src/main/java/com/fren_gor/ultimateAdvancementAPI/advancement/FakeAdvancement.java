@@ -2,7 +2,6 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementFrameType;
-import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
@@ -32,8 +31,12 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     private net.minecraft.server.v1_15_R1.Advancement mcAdvancement;
 
-    public FakeAdvancement(@NotNull AdvancementTab advancementTab, @NotNull Advancement parent, float x, float y) {
-        super(advancementTab, "fakeadvancement._-.-_." + FAKE_NUMBER.getAndIncrement(), new FakeAdvancementDisplay(Material.GRASS_BLOCK, "FakeAdvancement", AdvancementFrameType.TASK, x, y), parent);
+    public FakeAdvancement(@NotNull Advancement parent, float x, float y) {
+        this(parent, new FakeAdvancementDisplay(Material.GRASS_BLOCK, "FakeAdvancement", AdvancementFrameType.TASK, x, y));
+    }
+
+    public FakeAdvancement(@NotNull Advancement parent, @NotNull FakeAdvancementDisplay display) {
+        super("fakeadvancement._-.-_." + FAKE_NUMBER.getAndIncrement(), display, parent);
     }
 
     @Override

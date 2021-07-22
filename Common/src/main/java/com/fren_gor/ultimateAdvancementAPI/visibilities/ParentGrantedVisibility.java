@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.visibilities;
 
-import com.fren_gor.ultimateAdvancementAPI.advancement.AbstractMultiParentsAdvancement;
+import com.fren_gor.ultimateAdvancementAPI.advancement.multiParents.AbstractMultiParentsAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import org.apache.commons.lang.Validate;

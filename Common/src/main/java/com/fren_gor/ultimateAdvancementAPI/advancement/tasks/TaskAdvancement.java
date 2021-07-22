@@ -1,16 +1,18 @@
-package com.fren_gor.ultimateAdvancementAPI.advancement;
+package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
-import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
+import com.fren_gor.ultimateAdvancementAPI.AdvancementFrameType;
+import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementCriteriaUpdateEvent;
-import lombok.Getter;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -18,26 +20,28 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
 
-public class TaskAdvancement extends Advancement {
+public class TaskAdvancement extends BaseAdvancement {
 
-    @Getter
-    @NotNull
-    private final AbstractMultiTasksAdvancement multitask;
-
-    public TaskAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask) {
-        this(advancementTab, key, display, multitask, 1);
+    public TaskAdvancement(@NotNull String key, @NotNull AbstractMultiTasksAdvancement multitask) {
+        this(key, multitask, 1);
     }
 
-    public TaskAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        super(advancementTab, key, display, maxCriteria);
-        Validate.notNull(multitask, "Parent advancement is null.");
-        Validate.isTrue(advancementTab.isOwnedByThisTab(multitask), "Parent advancement (" + multitask.getKey() + ") is not owned by this tab (" + advancementTab.getNamespace() + ").");
-        this.multitask = multitask;
+    public TaskAdvancement(@NotNull String key, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
+        this(key, new AdvancementDisplay(Material.GRASS_BLOCK, Objects.requireNonNull(key, "Key is null."), AdvancementFrameType.TASK, false, false, 0, 0), multitask, maxCriteria);
+    }
+
+    public TaskAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask) {
+        this(key, display, multitask, 1);
+    }
+
+    public TaskAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
+        super(key, display, Objects.requireNonNull(multitask, "AbstractMultiTasksAdvancement is null."), maxCriteria);
     }
 
     @Override
@@ -70,7 +74,7 @@ public class TaskAdvancement extends Advancement {
         }
 
         handlePlayer(ds, pro, uuid, player, criteria, old, giveRewards);
-        multitask.reloadTasks(uuid, player, giveRewards);
+        getMultiTasksAdvancement().reloadTasks(uuid, player, giveRewards);
     }
 
     protected void handlePlayer(@NotNull DatabaseManager ds, @Nullable TeamProgression pro, @NotNull UUID uuid, @Nullable Player player, int criteria, int old, boolean giveRewards) {
@@ -126,4 +130,14 @@ public class TaskAdvancement extends Advancement {
             giveReward(player);
     }
 
+    @NotNull
+    public AbstractMultiTasksAdvancement getMultiTasksAdvancement() {
+        return (AbstractMultiTasksAdvancement) parent;
+    }
+
+    @Override
+    public void validateRegister() throws InvalidAdvancementException {
+        // Always throw since Tasks cannot be registered in Tabs
+        throw new InvalidAdvancementException("TaskAdvancements cannot be registered in any AdvancementTab.");
+    }
 }

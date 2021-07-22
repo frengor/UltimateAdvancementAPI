@@ -1,7 +1,8 @@
-package com.fren_gor.ultimateAdvancementAPI.advancement;
+package com.fren_gor.ultimateAdvancementAPI.advancement.multiParents;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
-import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
+import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
+import com.fren_gor.ultimateAdvancementAPI.advancement.FakeAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.google.common.collect.Maps;
@@ -35,33 +36,33 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     private final String[][] advRequirements = getAdvancementRequirements(advCriteria);
     private final net.minecraft.server.v1_15_R1.AdvancementDisplay mcDisplay;
 
-    public MultiParentsAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull BaseAdvancement... parents) {
-        this(advancementTab, key, display, 1, parents);
+    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull BaseAdvancement... parents) {
+        this(key, display, 1, parents);
     }
 
-    public MultiParentsAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria, @NotNull BaseAdvancement... parents) {
-        this(advancementTab, key, display, maxCriteria, Sets.newHashSet(Objects.requireNonNull(parents)));
+    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria, @NotNull BaseAdvancement... parents) {
+        this(key, display, maxCriteria, Sets.newHashSet(Objects.requireNonNull(parents)));
     }
 
-    public MultiParentsAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull Set<BaseAdvancement> parents) {
-        this(advancementTab, key, display, 1, parents);
+    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Set<BaseAdvancement> parents) {
+        this(key, display, 1, parents);
     }
 
-    public MultiParentsAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria, @NotNull Set<BaseAdvancement> parents) {
-        super(advancementTab, key, display, validateAndGetFirst(parents), maxCriteria);
+    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria, @NotNull Set<BaseAdvancement> parents) {
+        super(key, display, validateAndGetFirst(parents), maxCriteria);
 
         this.parents = Maps.newHashMapWithExpectedSize(parents.size());
 
         for (BaseAdvancement advancement : parents) {
             if (advancement == null) {
                 this.parents.clear();
-                throw new IllegalArgumentException("An advancement is null.");
+                throw new IllegalArgumentException("A parent advancement is null.");
             }
             if (!advancementTab.isOwnedByThisTab(advancement)) {
                 this.parents.clear();
-                throw new IllegalArgumentException("An advancement (" + advancement.getKey() + ") is not owned by this tab (" + advancementTab + ").");
+                throw new IllegalArgumentException("A parent advancement (" + advancement.getKey() + ") is not owned by this tab (" + advancementTab + ").");
             }
-            FakeAdvancement adv = new FakeAdvancement(advancementTab, advancement, display.getX(), display.getY());
+            FakeAdvancement adv = new FakeAdvancement(advancement, display.getX(), display.getY());
             this.parents.put(advancement, adv);
         }
         mcDisplay = display.getMinecraftDisplay(this);
@@ -147,7 +148,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
 
         if (!parent.isGranted(uuid)) {
             BaseAdvancement parent = getParent();
-            if (parent instanceof MultiParentsAdvancement && !((MultiParentsAdvancement) parent).isEveryParentGranted(uuid)) {
+            if (parent instanceof AbstractMultiParentsAdvancement && !((AbstractMultiParentsAdvancement) parent).isEveryParentGranted(uuid)) {
                 return false;
             } else if (!parent.getParent().isGranted(uuid)) {
                 return false;
@@ -155,7 +156,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
         }
         for (BaseAdvancement advancement : parents.keySet()) {
             if (!advancement.isGranted(uuid)) {
-                if (advancement instanceof MultiParentsAdvancement && !((MultiParentsAdvancement) advancement).isEveryParentGranted(uuid)) {
+                if (advancement instanceof AbstractMultiParentsAdvancement && !((AbstractMultiParentsAdvancement) advancement).isEveryParentGranted(uuid)) {
                     return false;
                 } else if (!advancement.getParent().isGranted(uuid)) {
                     return false;
@@ -172,7 +173,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
 
         if (parent.isGranted(uuid)) {
             return true;
-        } else if (parent instanceof MultiParentsAdvancement && ((MultiParentsAdvancement) parent).isAnyParentGranted(uuid)) {
+        } else if (parent instanceof AbstractMultiParentsAdvancement && ((AbstractMultiParentsAdvancement) parent).isAnyParentGranted(uuid)) {
             return true;
         } else if (parent.getParent().isGranted(uuid)) {
             return true;
@@ -180,7 +181,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
         for (BaseAdvancement advancement : parents.keySet()) {
             if (advancement.isGranted(uuid)) {
                 return true;
-            } else if (advancement instanceof MultiParentsAdvancement && ((MultiParentsAdvancement) advancement).isAnyParentGranted(uuid)) {
+            } else if (advancement instanceof AbstractMultiParentsAdvancement && ((AbstractMultiParentsAdvancement) advancement).isAnyParentGranted(uuid)) {
                 return true;
             } else if (advancement.getParent().isGranted(uuid)) {
                 return true;
@@ -209,7 +210,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
 
     private boolean isParentStarted(@NotNull TeamProgression pro, @NotNull BaseAdvancement adv, @NotNull UUID uuid) {
         // Avoid merging if to improve readability
-        if (adv instanceof MultiParentsAdvancement && ((MultiParentsAdvancement) adv).isAnyParentStarted(uuid)) {
+        if (adv instanceof AbstractMultiParentsAdvancement && ((AbstractMultiParentsAdvancement) adv).isAnyParentStarted(uuid)) {
             return true;
         } else
             return pro.getCriteria(adv.getParent()) > 0;

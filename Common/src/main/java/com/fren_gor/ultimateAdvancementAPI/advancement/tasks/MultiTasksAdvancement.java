@@ -1,7 +1,7 @@
-package com.fren_gor.ultimateAdvancementAPI.advancement;
+package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
-import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
+import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskCriteriaUpdateException;
@@ -37,17 +37,18 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     public boolean ENABLE_ARBITRARY_SET_TEAM_CRITERIA = false;
     /**
      * Whether to disable {@link ArbitraryMultiTaskCriteriaUpdateException} in {@link MultiTasksAdvancement#setCriteriaTeamProgression(UUID, Player, int, boolean)}.
+     * <p>Ignored when {@link #ENABLE_ARBITRARY_SET_TEAM_CRITERIA} is set to {@code true}.
      *
      * @see MultiTasksAdvancement#setCriteriaTeamProgression(UUID, Player, int, boolean)
      */
-    public boolean DISABLE_ERROR_ON_ARBITRARY_SET_TEAM_CRITERIA = false;
+    public boolean DISABLE_EXCEPTION_ON_ARBITRARY_SET_TEAM_CRITERIA = false;
 
     protected final Set<TaskAdvancement> tasks = new HashSet<>();
     protected final Map<Integer, Integer> criteriaCache = new HashMap<>();
     protected boolean initialised = false, doReloads = true;
 
-    public MultiTasksAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        super(advancementTab, key, display, parent, maxCriteria);
+    public MultiTasksAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
+        super(key, display, parent, maxCriteria);
     }
 
     public void registerTasks(@NotNull TaskAdvancement... tasks) {
@@ -64,13 +65,14 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             if (t == null) {
                 throw new IllegalArgumentException("A TaskAdvancement is null.");
             }
-            if (t.getMultitask() != this) {
-                throw new IllegalArgumentException("TaskAdvancement parent (" + t.getMultitask().key + ") doesn't match with this MultiTaskAdvancement. (" + key + ").");
+            if (t.getMultiTasksAdvancement() != this) {
+                throw new IllegalArgumentException("TaskAdvancement's AbstractMultiTasksAdvancement (" + t.getMultiTasksAdvancement().getKey() + ") doesn't match with this MultiTasksAdvancement (" + key + ").");
             }
-            if (!advancementTab.isOwnedByThisTab(t)) {
-                throw new IllegalArgumentException("TaskAdvancement " + t.key + " is not owned by this tab (" + advancementTab.getNamespace() + ").");
-            }
-            criteria += t.maxCriteria;
+            // Useless check (the one above should make sure this one here is always true)
+            /*if (!advancementTab.isOwnedByThisTab(t)) {
+                throw new IllegalArgumentException("TaskAdvancement " + t.getKey() + " is not owned by this tab (" + advancementTab.getNamespace() + ").");
+            }*/
+            criteria += t.getMaxCriteria();
         }
         if (criteria != maxCriteria) {
             throw new IllegalArgumentException("Expected max criteria (" + maxCriteria + ") doesn't match the tasks' total one (" + criteria + ").");
@@ -120,14 +122,14 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * it is not possible (by default) to set any criteria, but {@code 0} or {@link MultiTasksAdvancement#maxCriteria}. Setting any criteria between these will result in an {@link ArbitraryMultiTaskCriteriaUpdateException}.
      * <p>
      * To enable arbitrary criteria, set {@link MultiTasksAdvancement#ENABLE_ARBITRARY_SET_TEAM_CRITERIA} to {@code true} ({@code false} by default).
-     * To disable the {@link ArbitraryMultiTaskCriteriaUpdateException} set {@link MultiTasksAdvancement#DISABLE_ERROR_ON_ARBITRARY_SET_TEAM_CRITERIA} to {@code true}.
+     * To disable the {@link ArbitraryMultiTaskCriteriaUpdateException} set {@link MultiTasksAdvancement#DISABLE_EXCEPTION_ON_ARBITRARY_SET_TEAM_CRITERIA} to {@code true}.
      * </p>
      *
      * @param uuid The uuid of the player.
      * @param player The player, null if it's not online. (Note: it must have been loaded into cache)
      * @param criteria The criteria to set. Must be between 0 and {@link MultiTasksAdvancement#maxCriteria}.
      * @param giveRewards Whether to give rewards to player if criteria reaches {@link MultiTasksAdvancement#maxCriteria}.
-     * @throws ArbitraryMultiTaskCriteriaUpdateException When criteria is not {@code 0} or {@link MultiTasksAdvancement#maxCriteria} and either {@link MultiTasksAdvancement#ENABLE_ARBITRARY_SET_TEAM_CRITERIA} or {@link MultiTasksAdvancement#DISABLE_ERROR_ON_ARBITRARY_SET_TEAM_CRITERIA} are not set to {@code true}.
+     * @throws ArbitraryMultiTaskCriteriaUpdateException When criteria is not {@code 0} or {@link MultiTasksAdvancement#maxCriteria} and either {@link MultiTasksAdvancement#ENABLE_ARBITRARY_SET_TEAM_CRITERIA} or {@link MultiTasksAdvancement#DISABLE_EXCEPTION_ON_ARBITRARY_SET_TEAM_CRITERIA} are not set to {@code true}.
      */
     @Override
     protected void setCriteriaTeamProgression(@NotNull UUID uuid, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) throws ArbitraryMultiTaskCriteriaUpdateException {
@@ -175,7 +177,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
                     }
                 }
             } else {
-                if (DISABLE_ERROR_ON_ARBITRARY_SET_TEAM_CRITERIA)
+                if (DISABLE_EXCEPTION_ON_ARBITRARY_SET_TEAM_CRITERIA)
                     return;
                 throw new ArbitraryMultiTaskCriteriaUpdateException();
             }
