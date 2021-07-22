@@ -66,11 +66,12 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
                 throw new IllegalArgumentException("A TaskAdvancement is null.");
             }
             if (t.getMultiTasksAdvancement() != this) {
-                throw new IllegalArgumentException("TaskAdvancement parent (" + t.getMultiTasksAdvancement().getKey() + ") doesn't match with this MultiTaskAdvancement. (" + key + ").");
+                throw new IllegalArgumentException("TaskAdvancement's AbstractMultiTasksAdvancement (" + t.getMultiTasksAdvancement().getKey() + ") doesn't match with this MultiTasksAdvancement (" + key + ").");
             }
-            if (!advancementTab.isOwnedByThisTab(t)) {
+            // Useless check (the one above should make sure this one here is always true)
+            /*if (!advancementTab.isOwnedByThisTab(t)) {
                 throw new IllegalArgumentException("TaskAdvancement " + t.getKey() + " is not owned by this tab (" + advancementTab.getNamespace() + ").");
-            }
+            }*/
             criteria += t.getMaxCriteria();
         }
         if (criteria != maxCriteria) {

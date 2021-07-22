@@ -56,11 +56,11 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
         for (BaseAdvancement advancement : parents) {
             if (advancement == null) {
                 this.parents.clear();
-                throw new IllegalArgumentException("An advancement is null.");
+                throw new IllegalArgumentException("A parent advancement is null.");
             }
             if (!advancementTab.isOwnedByThisTab(advancement)) {
                 this.parents.clear();
-                throw new IllegalArgumentException("An advancement (" + advancement.getKey() + ") is not owned by this tab (" + advancementTab + ").");
+                throw new IllegalArgumentException("A parent advancement (" + advancement.getKey() + ") is not owned by this tab (" + advancementTab + ").");
             }
             FakeAdvancement adv = new FakeAdvancement(advancement, display.getX(), display.getY());
             this.parents.put(advancement, adv);
