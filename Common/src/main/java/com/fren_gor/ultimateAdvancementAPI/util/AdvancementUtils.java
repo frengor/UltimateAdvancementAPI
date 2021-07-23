@@ -201,7 +201,7 @@ public class AdvancementUtils {
     @NotNull
     public static net.minecraft.server.v1_15_R1.AdvancementProgress getAdvancementProgress(@NotNull net.minecraft.server.v1_15_R1.Advancement mcAdv, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
         Validate.notNull(mcAdv, "NMS Advancement is null.");
-        Validate.isTrue(criteria >= 0, "Criteria must be >= 1.");
+        Validate.isTrue(criteria >= 0, "Criteria must be >= 0.");
 
         AdvancementProgress advPrg = new AdvancementProgress();
         advPrg.a(mcAdv.getCriteria(), mcAdv.i());
@@ -336,15 +336,26 @@ public class AdvancementUtils {
     }
 
     @NotNull
-    public static UUID uuidFromPlayer(@Nullable Player player) {
+    public static UUID uuidFromPlayer(@NotNull Player player) {
         Validate.notNull(player, "Player is null.");
         return player.getUniqueId();
     }
 
     @NotNull
-    public static UUID uuidFromPlayer(@Nullable OfflinePlayer player) {
+    public static UUID uuidFromPlayer(@NotNull OfflinePlayer player) {
         Validate.notNull(player, "OfflinePlayer is null.");
         return player.getUniqueId();
+    }
+
+    @NotNull
+    public static TeamProgression progressionFromUUID(@NotNull UUID uuid, @NotNull Advancement advancement) {
+        return progressionFromUUID(uuid, advancement.getAdvancementTab());
+    }
+
+    @NotNull
+    public static TeamProgression progressionFromUUID(@NotNull UUID uuid, @NotNull AdvancementTab tab) {
+        Validate.notNull(uuid, "UUID is null.");
+        return tab.getDatabaseManager().getProgression(uuid);
     }
 
 }

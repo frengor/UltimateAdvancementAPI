@@ -5,10 +5,8 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.minecraft.server.v1_15_R1.AdvancementProgress;
 import net.minecraft.server.v1_15_R1.ChatComponentText;
 import net.minecraft.server.v1_15_R1.Criterion;
-import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -19,7 +17,6 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -85,6 +82,12 @@ public final class FakeAdvancement extends BaseAdvancement {
     @Override
     @Contract("_ -> fail")
     public boolean isGranted(@NotNull UUID uuid) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Contract("_ -> fail")
+    public boolean isGranted(@NotNull TeamProgression progression) {
         throw new UnsupportedOperationException();
     }
 
@@ -209,14 +212,17 @@ public final class FakeAdvancement extends BaseAdvancement {
     }
 
     @Override
-    @Range(from = 0, to = Integer.MAX_VALUE)
     public int getTeamCriteria(@NotNull Player player) {
         return 0;
     }
 
     @Override
-    @Range(from = 0, to = Integer.MAX_VALUE)
     public int getTeamCriteria(@NotNull UUID uuid) {
+        return 0;
+    }
+
+    @Override
+    public int getTeamCriteria(@NotNull TeamProgression progression) {
         return 0;
     }
 
@@ -227,11 +233,19 @@ public final class FakeAdvancement extends BaseAdvancement {
     }
 
     @Override
-    public boolean isVisible(@NotNull UUID uuid) {
+    @Contract("_ -> true")
+    public boolean isVisible(@NotNull Player player) {
         return true;
     }
 
     @Override
+    @Contract("_ -> true")
+    public boolean isVisible(@NotNull UUID uuid) {
+        return true;
+    }
+
+    // Since isVisible() returns true for every input we can use the super method
+    /*@Override
     public void onUpdate(@NotNull UUID uuid, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull TeamProgression teamProgression, @NotNull Set<MinecraftKey> added) {
         net.minecraft.server.v1_15_R1.Advancement adv = getMinecraftAdvancement();
         advancementList.add(adv);
@@ -243,7 +257,7 @@ public final class FakeAdvancement extends BaseAdvancement {
         MinecraftKey key = getMinecraftKey();
         added.add(key);
         progresses.put(key, advPrg);
-    }
+    }*/
 
     public static final class FakeAdvancementDisplay extends AdvancementDisplay {
 

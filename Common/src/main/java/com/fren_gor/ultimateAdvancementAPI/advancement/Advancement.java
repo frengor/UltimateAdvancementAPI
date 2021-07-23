@@ -35,6 +35,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementProgress;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromUUID;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
@@ -103,7 +104,13 @@ public abstract class Advancement {
 
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int getTeamCriteria(@NotNull UUID uuid) {
-        return advancementTab.getDatabaseManager().getProgression(uuid).getCriteria(this);
+        return getTeamCriteria(progressionFromUUID(uuid, this));
+    }
+
+    @Range(from = 0, to = Integer.MAX_VALUE)
+    public int getTeamCriteria(@NotNull TeamProgression progression) {
+        Validate.notNull(progression, "TeamProgression is null.");
+        return progression.getCriteria(this);
     }
 
     public boolean isGranted(@NotNull Player player) {
@@ -112,7 +119,12 @@ public abstract class Advancement {
 
     public boolean isGranted(@NotNull UUID uuid) {
         Validate.notNull(uuid, "UUID is null.");
-        return getTeamCriteria(uuid) >= maxCriteria;
+        return isGranted(progressionFromUUID(uuid, this));
+    }
+
+    public boolean isGranted(@NotNull TeamProgression progression) {
+        Validate.notNull(progression, "TeamProgression is null.");
+        return getTeamCriteria(progression) >= maxCriteria;
     }
 
     /**
@@ -314,7 +326,7 @@ public abstract class Advancement {
             advancementList.add(mcAdv);
             MinecraftKey key = getMinecraftKey();
             added.add(key);
-            progresses.put(key, getAdvancementProgress(mcAdv, teamProgression.getCriteria(this)));
+            progresses.put(key, getAdvancementProgress(mcAdv, getTeamCriteria(teamProgression)));
         }
     }
 
@@ -379,6 +391,3 @@ public abstract class Advancement {
         return null;
     }
 }
-
-
-

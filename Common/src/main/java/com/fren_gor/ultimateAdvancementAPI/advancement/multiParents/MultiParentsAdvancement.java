@@ -87,7 +87,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
             advancementList.add(mcAdv);
             MinecraftKey key = getMinecraftKey();
             added.add(key);
-            progresses.put(key, getAdvancementProgress(mcAdv, teamProgression.getCriteria(this)));
+            progresses.put(key, getAdvancementProgress(mcAdv, getTeamCriteria(teamProgression)));
         }
     }
 
@@ -98,13 +98,11 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     }
 
     @Override
-    public boolean isEveryParentGranted(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "Player cannot be null.");
-        if (!parent.isGranted(uuid)) {
-            return false;
-        }
+    public boolean isEveryParentGranted(@NotNull TeamProgression pro) {
+        Validate.notNull(pro, "TeamProgression cannot be null.");
+
         for (BaseAdvancement advancement : parents.keySet()) {
-            if (!advancement.isGranted(uuid)) {
+            if (!advancement.isGranted(pro)) {
                 return false;
             }
         }
@@ -112,13 +110,11 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     }
 
     @Override
-    public boolean isAnyParentGranted(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "Player cannot be null.");
-        if (parent.isGranted(uuid)) {
-            return true;
-        }
+    public boolean isAnyParentGranted(@NotNull TeamProgression pro) {
+        Validate.notNull(pro, "TeamProgression cannot be null.");
+
         for (BaseAdvancement advancement : parents.keySet()) {
-            if (advancement.isGranted(uuid)) {
+            if (advancement.isGranted(pro)) {
                 return true;
             }
         }
@@ -126,39 +122,14 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     }
 
     @Override
-    public boolean isAnyParentStarted(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "Player cannot be null.");
+    public boolean isEveryGrandparentGranted(@NotNull TeamProgression pro) {
+        Validate.notNull(pro, "TeamProgression cannot be null.");
 
-        TeamProgression pro = advancementTab.getDatabaseManager().getProgression(uuid);
-
-        if (pro.getCriteria(parent) > 0) {
-            return true;
-        }
         for (BaseAdvancement advancement : parents.keySet()) {
-            if (pro.getCriteria(advancement) > 0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean isEveryGrandparentGranted(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "Player cannot be null.");
-
-        if (!parent.isGranted(uuid)) {
-            BaseAdvancement parent = getParent();
-            if (parent instanceof AbstractMultiParentsAdvancement && !((AbstractMultiParentsAdvancement) parent).isEveryParentGranted(uuid)) {
-                return false;
-            } else if (!parent.getParent().isGranted(uuid)) {
-                return false;
-            }
-        }
-        for (BaseAdvancement advancement : parents.keySet()) {
-            if (!advancement.isGranted(uuid)) {
-                if (advancement instanceof AbstractMultiParentsAdvancement && !((AbstractMultiParentsAdvancement) advancement).isEveryParentGranted(uuid)) {
+            if (!advancement.isGranted(pro)) {
+                if (advancement instanceof AbstractMultiParentsAdvancement && !((AbstractMultiParentsAdvancement) advancement).isEveryParentGranted(pro)) {
                     return false;
-                } else if (!advancement.getParent().isGranted(uuid)) {
+                } else if (!advancement.getParent().isGranted(pro)) {
                     return false;
                 }
             }
@@ -167,54 +138,51 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     }
 
     @Override
-    public boolean isAnyGrandparentGranted(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "Player cannot be null.");
-        BaseAdvancement parent = getParent();
+    public boolean isAnyGrandparentGranted(@NotNull TeamProgression pro) {
+        Validate.notNull(pro, "TeamProgression cannot be null.");
 
-        if (parent.isGranted(uuid)) {
-            return true;
-        } else if (parent instanceof AbstractMultiParentsAdvancement && ((AbstractMultiParentsAdvancement) parent).isAnyParentGranted(uuid)) {
-            return true;
-        } else if (parent.getParent().isGranted(uuid)) {
-            return true;
-        }
         for (BaseAdvancement advancement : parents.keySet()) {
-            if (advancement.isGranted(uuid)) {
+            if (advancement.isGranted(pro)) {
                 return true;
-            } else if (advancement instanceof AbstractMultiParentsAdvancement && ((AbstractMultiParentsAdvancement) advancement).isAnyParentGranted(uuid)) {
+            } else if (advancement instanceof AbstractMultiParentsAdvancement && ((AbstractMultiParentsAdvancement) advancement).isAnyParentGranted(pro)) {
                 return true;
-            } else if (advancement.getParent().isGranted(uuid)) {
-                return true;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public boolean isAnyGrandparentStarted(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "Player cannot be null.");
-
-        TeamProgression pro = advancementTab.getDatabaseManager().getProgression(uuid);
-        BaseAdvancement parent = getParent();
-
-        if (pro.getCriteria(parent) > 0 || isParentStarted(pro, parent, uuid)) {
-            return true;
-        }
-        for (BaseAdvancement advancement : parents.keySet()) {
-            if (pro.getCriteria(advancement) > 0 || isParentStarted(pro, advancement, uuid)) {
+            } else if (advancement.getParent().isGranted(pro)) {
                 return true;
             }
         }
         return false;
     }
 
-    private boolean isParentStarted(@NotNull TeamProgression pro, @NotNull BaseAdvancement adv, @NotNull UUID uuid) {
+    // Not currently used
+    /*public boolean isAnyParentStarted(@NotNull TeamProgression pro) {
+        Validate.notNull(pro, "TeamProgression cannot be null.");
+
+        for (BaseAdvancement advancement : parents.keySet()) {
+            if (advancement.getTeamCriteria(pro) > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isAnyGrandparentStarted(@NotNull TeamProgression pro) {
+        Validate.notNull(pro, "TeamProgression cannot be null.");
+
+        for (BaseAdvancement advancement : parents.keySet()) {
+            if (advancement.getTeamCriteria(pro) > 0 || isParentStarted(pro, advancement)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isParentStarted(@NotNull TeamProgression pro, @NotNull BaseAdvancement adv) {
         // Avoid merging if to improve readability
-        if (adv instanceof AbstractMultiParentsAdvancement && ((AbstractMultiParentsAdvancement) adv).isAnyParentStarted(uuid)) {
+        if (adv instanceof AbstractMultiParentsAdvancement && ((AbstractMultiParentsAdvancement) adv).isAnyParentStarted(pro)) {
             return true;
         } else
-            return pro.getCriteria(adv.getParent()) > 0;
-    }
+            return adv.getParent().getTeamCriteria(pro) > 0;
+    }*/
 
     @Override
     public void validateRegister() throws InvalidAdvancementException {

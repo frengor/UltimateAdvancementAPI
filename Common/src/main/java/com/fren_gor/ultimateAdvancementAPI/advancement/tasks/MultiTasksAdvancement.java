@@ -7,8 +7,6 @@ import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskCriteriaUpdateException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.google.common.collect.Sets;
-import net.minecraft.server.v1_15_R1.AdvancementProgress;
-import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +22,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementProgress;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
 
 public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
@@ -93,10 +90,9 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
 
     @Override
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int getTeamCriteria(@NotNull UUID uuid) {
+    public int getTeamCriteria(@NotNull TeamProgression progression) {
         checkInitialisation();
-        Validate.notNull(uuid, "UUID is null.");
-        TeamProgression progression = advancementTab.getDatabaseManager().getProgression(uuid);
+        Validate.notNull(progression, "TeamProgression is null.");
         Integer criteria = criteriaCache.get(progression.getTeamId());
         if (criteria == null) {
             int c = 0;
@@ -111,10 +107,10 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     }
 
     @Override
-    public boolean isGranted(@NotNull UUID uuid) {
+    public boolean isGranted(@NotNull TeamProgression pro) {
         checkInitialisation();
-        Validate.notNull(uuid, "UUID is null.");
-        return getTeamCriteria(uuid) >= maxCriteria;
+        Validate.notNull(pro, "TeamProgression is null.");
+        return getTeamCriteria(pro) >= maxCriteria;
     }
 
     /**
@@ -137,11 +133,11 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         Validate.notNull(uuid, "UUID is null.");
         validateCriteriaStrict(criteria, maxCriteria);
 
-        int current = getTeamCriteria(uuid);
+        final TeamProgression progression = advancementTab.getDatabaseManager().getProgression(uuid);
+        int current = getTeamCriteria(progression);
         if (current == criteria) {
             return; // Unnecessary update
         }
-        final TeamProgression progression = advancementTab.getDatabaseManager().getProgression(uuid);
 
         doReloads = false;
         try {
@@ -156,7 +152,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             } else if (ENABLE_ARBITRARY_SET_TEAM_CRITERIA) {
                 if (criteria < current) {
                     for (TaskAdvancement t : tasks) {
-                        int tc = t.getTeamCriteria(uuid);
+                        int tc = t.getTeamCriteria(progression);
                         if (current - tc > criteria) {
                             t.setCriteriaTeamProgression(uuid, player, 0, false);
                         } else if (current - tc <= criteria) {
@@ -166,7 +162,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
                     }
                 } else /*if (criteria > current)*/ {
                     for (TaskAdvancement t : tasks) {
-                        int ta = t.getTeamCriteria(uuid);
+                        int ta = t.getTeamCriteria(progression);
                         int tc = t.getMaxCriteria() - ta;
                         if (current + tc < criteria) {
                             t.setCriteriaTeamProgression(uuid, player, t.getMaxCriteria(), giveRewards);
@@ -194,12 +190,13 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         if (doReloads) { // Skip reloads when update comes from ourselves
             Validate.notNull(uuid, "UUID is null.");
 
-            int current = getTeamCriteria(uuid);
             TeamProgression pro = advancementTab.getDatabaseManager().getProgression(uuid);
+            int current = getTeamCriteria(pro);
             resetTeamCriteriaCache(pro);
 
             // Update MultiTasksAdvancement to players since a task has been updated
-            handlePlayer(advancementTab.getDatabaseManager(), pro, uuid, player, getTeamCriteria(uuid), current, giveRewards);
+            // Note that the return of getTeamCriteria should be changed from the previous call
+            handlePlayer(advancementTab.getDatabaseManager(), pro, uuid, player, getTeamCriteria(pro), current, giveRewards);
         }
     }
 
@@ -218,17 +215,6 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     private void checkInitialisation() {
         if (!initialised) {
             throw new IllegalStateException("MultiTasksAdvancement hasn't been initialised yet.");
-        }
-    }
-
-    @Override
-    public void onUpdate(@NotNull UUID uuid, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull TeamProgression teamProgression, @NotNull Set<MinecraftKey> added) {
-        if (isVisible(uuid)) {
-            net.minecraft.server.v1_15_R1.Advancement mcAdv = getMinecraftAdvancement();
-            advancementList.add(mcAdv);
-            MinecraftKey key = getMinecraftKey();
-            added.add(key);
-            progresses.put(key, getAdvancementProgress(mcAdv, getTeamCriteria(uuid)));
         }
     }
 
