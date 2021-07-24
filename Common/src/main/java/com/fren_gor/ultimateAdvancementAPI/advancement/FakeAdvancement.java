@@ -128,11 +128,6 @@ public final class FakeAdvancement extends BaseAdvancement {
     // ============ Overridden methods which throw an UnsupportedOperationException ============
 
     @Override
-    public @Range(from = 1, to = Integer.MAX_VALUE) int getMaxCriteria() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public boolean isGranted(@NotNull Player player) {
         throw new UnsupportedOperationException();
     }

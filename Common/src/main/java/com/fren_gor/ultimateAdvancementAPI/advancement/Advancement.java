@@ -94,7 +94,7 @@ public abstract class Advancement {
     }
 
     @Range(from = 1, to = Integer.MAX_VALUE)
-    public int getMaxCriteria() {
+    public final int getMaxCriteria() {
         return maxCriteria;
     }
 
