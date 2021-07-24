@@ -348,8 +348,18 @@ public class AdvancementUtils {
     }
 
     @NotNull
+    public static TeamProgression progressionFromPlayer(@NotNull Player player, @NotNull Advancement advancement) {
+        return progressionFromPlayer(player, advancement.getAdvancementTab());
+    }
+
+    @NotNull
     public static TeamProgression progressionFromUUID(@NotNull UUID uuid, @NotNull Advancement advancement) {
         return progressionFromUUID(uuid, advancement.getAdvancementTab());
+    }
+
+    @NotNull
+    public static TeamProgression progressionFromPlayer(@NotNull Player player, @NotNull AdvancementTab tab) {
+        return progressionFromUUID(uuidFromPlayer(player), tab);
     }
 
     @NotNull

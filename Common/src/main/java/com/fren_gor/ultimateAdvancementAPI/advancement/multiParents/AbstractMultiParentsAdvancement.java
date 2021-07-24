@@ -1,7 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.multiParents;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
-import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import org.apache.commons.lang.Validate;
@@ -18,13 +17,16 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFrom
 
 public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
 
-    public AbstractMultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement aParent) {
+    public AbstractMultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull BaseAdvancement aParent) {
         super(key, display, aParent);
     }
 
-    public AbstractMultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement aParent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
+    public AbstractMultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull BaseAdvancement aParent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
         super(key, display, aParent, maxCriteria);
     }
+
+    @NotNull
+    public abstract Set<@NotNull BaseAdvancement> getParents();
 
     public boolean isEveryParentGranted(@NotNull Player player) {
         return isEveryParentGranted(uuidFromPlayer(player));
@@ -67,9 +69,9 @@ public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
     public abstract boolean isAnyGrandparentGranted(@NotNull TeamProgression progression);
 
     @NotNull
-    protected static <E extends BaseAdvancement> E validateAndGetFirst(Set<E> advs) {
+    public static <E extends BaseAdvancement> E validateAndGetFirst(Set<E> advs) {
         Validate.notNull(advs, "Parent advancements are null.");
-        Validate.isTrue(advs.size() > 1, "There must be at least 2 parents.");
+        Validate.isTrue(advs.size() > 0, "There must be at least 1 parent.");
         return Objects.requireNonNull(advs.iterator().next());
     }
 }

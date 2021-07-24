@@ -203,10 +203,12 @@ public final class AdvancementTab {
     }
 
     public void updateAdvancementsToTeam(@NotNull UUID uuid) {
-        checkInitialisation();
-        Validate.notNull(uuid, "UUID is null.");
+        updateAdvancementsToTeam(databaseManager.getProgression(uuid));
+    }
 
-        TeamProgression pro = databaseManager.getProgression(uuid);
+    public void updateAdvancementsToTeam(@NotNull TeamProgression pro) {
+        checkInitialisation();
+        Validate.notNull(pro, "TeamProgression is null.");
 
         final int best = advancements.size() + 16;
 
@@ -216,7 +218,7 @@ public final class AdvancementTab {
         final Map<MinecraftKey, AdvancementProgress> progs = Maps.newHashMapWithExpectedSize(best);
 
         for (Advancement advancement : advancements.values()) {
-            advancement.onUpdate(uuid, advs, progs, pro, toRemove);
+            advancement.onUpdate(pro, advs, progs, toRemove);
         }
 
         PacketPlayOutAdvancements sendPacket = new PacketPlayOutAdvancements(false, advs, Collections.emptySet(), progs);
@@ -258,10 +260,8 @@ public final class AdvancementTab {
         final Set<net.minecraft.server.v1_15_R1.Advancement> advs = Sets.newHashSetWithExpectedSize(best);
         final Map<MinecraftKey, AdvancementProgress> progs = Maps.newHashMapWithExpectedSize(best);
 
-        UUID uuid = player.getUniqueId();
-
         for (Advancement advancement : advancements.values()) {
-            advancement.onUpdate(uuid, advs, progs, pro, toRemove);
+            advancement.onUpdate(pro, advs, progs, toRemove);
         }
 
         PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;

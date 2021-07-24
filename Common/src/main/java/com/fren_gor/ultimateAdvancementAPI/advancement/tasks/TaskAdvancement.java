@@ -22,7 +22,6 @@ import org.jetbrains.annotations.Range;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
 
@@ -59,12 +58,11 @@ public class TaskAdvancement extends BaseAdvancement {
     }
 
     @Override
-    protected void setCriteriaTeamProgression(@NotNull UUID uuid, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
+    protected void setCriteriaTeamProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
         validateCriteriaStrict(criteria, maxCriteria);
-        Validate.notNull(uuid, "UUID is null.");
+        Validate.notNull(pro, "TeamProgression is null.");
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
-        final TeamProgression pro = ds.getProgression(uuid);
         int old = ds.updateCriteria(key, pro, criteria);
 
         try {
@@ -73,25 +71,8 @@ public class TaskAdvancement extends BaseAdvancement {
             e.printStackTrace();
         }
 
-        handlePlayer(ds, pro, uuid, player, criteria, old, giveRewards);
-        getMultiTasksAdvancement().reloadTasks(uuid, player, giveRewards);
-    }
-
-    protected void handlePlayer(@NotNull DatabaseManager ds, @Nullable TeamProgression pro, @NotNull UUID uuid, @Nullable Player player, int criteria, int old, boolean giveRewards) {
-        if (criteria == this.maxCriteria && old < this.maxCriteria)
-            if (player != null) {
-                onGrant(player, giveRewards);
-            } else {
-                if (pro == null) {
-                    pro = ds.getProgression(uuid);
-                }
-                Player p = pro.getAnOnlineMember(ds);
-                if (p != null) {
-                    onGrant(p, giveRewards);
-                } else {
-                    ds.setUnredeemed(key, giveRewards, pro);
-                }
-            }
+        handlePlayer(pro, player, criteria, old, giveRewards, null);
+        getMultiTasksAdvancement().reloadTasks(pro, player, giveRewards);
     }
 
     @Override
@@ -117,13 +98,13 @@ public class TaskAdvancement extends BaseAdvancement {
     }
 
     @Override
-    public boolean isVisible(@NotNull UUID uuid) {
+    public boolean isVisible(@NotNull TeamProgression progression) {
         return false;
     }
 
     @Override
-    @Contract(pure = true, value = "_, _, _, _, _ -> fail")
-    public void onUpdate(@NotNull UUID uuid, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull TeamProgression teamProgression, @NotNull Set<MinecraftKey> added) {
+    @Contract(pure = true, value = "_, _, _, _ -> fail")
+    public void onUpdate(@NotNull TeamProgression pro, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
         throw new UnsupportedOperationException();
     }
 

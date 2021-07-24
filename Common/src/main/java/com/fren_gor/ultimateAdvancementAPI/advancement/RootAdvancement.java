@@ -2,14 +2,12 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
+import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import lombok.Getter;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.minecraft.server.v1_15_R1.AdvancementRewards;
 import net.minecraft.server.v1_15_R1.Criterion;
-import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.Map;
@@ -47,12 +45,20 @@ public class RootAdvancement extends Advancement {
     }
 
     @Override
+    @Contract("_ -> true")
     public final boolean isVisible(@NotNull Player player) {
         return true;
     }
 
     @Override
+    @Contract("_ -> true")
     public final boolean isVisible(@NotNull UUID uuid) {
+        return true;
+    }
+
+    @Override
+    @Contract("_ -> true")
+    public final boolean isVisible(@NotNull TeamProgression progression) {
         return true;
     }
 }

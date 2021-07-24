@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.ADV_REWARDS;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementCriteria;
@@ -69,15 +68,15 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     }
 
     @Override
-    public void onUpdate(@NotNull UUID uuid, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull TeamProgression teamProgression, @NotNull Set<MinecraftKey> added) {
-        if (isVisible(uuid)) {
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
+        if (isVisible(teamProgression)) {
             BaseAdvancement tmp = null;
             for (Entry<BaseAdvancement, FakeAdvancement> e : parents.entrySet()) {
-                if (e.getKey().isVisible(uuid)) {
+                if (e.getKey().isVisible(teamProgression)) {
                     if (tmp == null)
                         tmp = e.getKey();
                     else
-                        e.getValue().onUpdate(uuid, advancementList, progresses, teamProgression, added);
+                        e.getValue().onUpdate(teamProgression, advancementList, progresses, added);
                 }
             }
             if (tmp == null) {
@@ -91,6 +90,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
         }
     }
 
+    @Override
     @NotNull
     @Unmodifiable
     public Set<@NotNull BaseAdvancement> getParents() {
