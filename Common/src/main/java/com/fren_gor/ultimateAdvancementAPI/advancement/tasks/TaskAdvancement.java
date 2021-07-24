@@ -53,8 +53,8 @@ public class TaskAdvancement extends BaseAdvancement {
 
     @Override
     protected void setCriteriaTeamProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
-        validateCriteriaStrict(criteria, maxCriteria);
         Validate.notNull(pro, "TeamProgression is null.");
+        validateCriteriaStrict(criteria, maxCriteria);
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
         int old = ds.updateCriteria(key, pro, criteria);

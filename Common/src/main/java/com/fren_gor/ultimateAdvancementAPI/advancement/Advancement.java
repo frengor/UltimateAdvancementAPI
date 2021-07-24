@@ -36,6 +36,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementProgress;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromUUID;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
@@ -119,7 +120,6 @@ public abstract class Advancement {
     }
 
     public boolean isGranted(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "UUID is null.");
         return isGranted(progressionFromUUID(uuid, this));
     }
 
@@ -130,13 +130,14 @@ public abstract class Advancement {
 
     /**
      * Get the message to be displayed in chat when an advancement is made.<br>
-     * The message is sent to everybody.
+     * The message will be sent to everybody.
      *
      * @param player The player who's made the advancement.
-     * @return The message to be displayed.
+     * @return The message to be displayed. If {@code null} no message will be displayed.
      */
     @Nullable
     public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
+        Validate.notNull(player, "Player is null.");
         ChatColor color = display.getFrame().getColor();
         return new ComponentBuilder(player.getName() + " has completed the " + display.getFrame().getChatText() + ' ').color(ChatColor.WHITE).append(new ComponentBuilder("[").color(color).event(new HoverEvent(Action.SHOW_TEXT, display.getChatDescription())).append(display.getChatTitle()).append(new ComponentBuilder("]").reset().color(color).create()).create()).create();
     }
@@ -178,13 +179,13 @@ public abstract class Advancement {
 
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int incrementTeamCriteria(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
-        return incrementTeamCriteria(AdvancementUtils.progressionFromPlayer(player, this), player, increment, giveReward);
+        return incrementTeamCriteria(progressionFromPlayer(player, this), player, increment, giveReward);
     }
 
     @Range(from = 0, to = Integer.MAX_VALUE)
     protected int incrementTeamCriteria(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
-        validateIncrement(increment);
         Validate.notNull(pro, "TeamProgression is null.");
+        validateIncrement(increment);
 
         int crit = getTeamCriteria(pro);
         if (crit >= maxCriteria) {
@@ -211,12 +212,12 @@ public abstract class Advancement {
     }
 
     public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
-        setCriteriaTeamProgression(AdvancementUtils.progressionFromPlayer(player, this), player, criteria, giveReward);
+        setCriteriaTeamProgression(progressionFromPlayer(player, this), player, criteria, giveReward);
     }
 
     protected void setCriteriaTeamProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
-        validateCriteriaStrict(criteria, maxCriteria);
         Validate.notNull(pro, "TeamProgression is null.");
+        validateCriteriaStrict(criteria, maxCriteria);
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
         int old = ds.updateCriteria(key, pro, criteria);
@@ -231,7 +232,8 @@ public abstract class Advancement {
     }
 
     protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int criteria, int old, boolean giveRewards, @Nullable AfterHandle afterHandle) {
-        if (criteria == this.maxCriteria && old < this.maxCriteria) {
+        Validate.notNull(pro, "TeamProgression is null.");
+        if (criteria >= this.maxCriteria && old < this.maxCriteria) {
             if (player != null) {
                 onGrant(player, giveRewards);
             } else {
@@ -300,9 +302,6 @@ public abstract class Advancement {
             giveReward(player);
     }
 
-    public void giveReward(@NotNull Player player) {
-    }
-
     public void grant(@NotNull Player player) {
         grant(player, true);
     }
@@ -325,6 +324,9 @@ public abstract class Advancement {
             added.add(key);
             progresses.put(key, getAdvancementProgress(mcAdv, getTeamCriteria(teamProgression)));
         }
+    }
+
+    public void giveReward(@NotNull Player player) {
     }
 
     public void onRegister() {

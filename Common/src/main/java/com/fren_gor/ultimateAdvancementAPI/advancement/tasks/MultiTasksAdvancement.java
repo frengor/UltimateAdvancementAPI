@@ -203,10 +203,13 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     }
 
     public void resetTeamCriteriaCache(@NotNull TeamProgression pro) {
+        Validate.notNull(pro, "TeamProgression is null.");
         criteriaCache.remove(pro.getTeamId());
     }
 
     protected void updateTeamCriteriaCache(@NotNull TeamProgression pro, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
+        Validate.notNull(pro, "TeamProgression is null.");
+        validateCriteriaStrict(criteria, maxCriteria);
         criteriaCache.put(pro.getTeamId(), criteria);
     }
 
