@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -27,6 +28,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 
 public final class TeamProgression {
 
+    final AtomicBoolean inCache = new AtomicBoolean(false);
     @Getter
     private final int teamId;
     private final Set<UUID> players;
@@ -134,6 +136,10 @@ public final class TeamProgression {
             }
             return true;
         }
+    }
+
+    public boolean isValid() {
+        return inCache.get();
     }
 
     int updateCriteria(@NotNull AdvancementKey key, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {

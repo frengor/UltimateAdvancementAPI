@@ -314,6 +314,11 @@ public class AdvancementUtils {
         }
     }
 
+    public static void validateTeamProgression(TeamProgression pro) {
+        Validate.notNull(pro, "TeamProgression is null.");
+        Validate.isTrue(pro.isValid(), "Invalid TeamProgression.");
+    }
+
     public static void checkTeamProgressionNotNull(TeamProgression progression) {
         if (progression == null) {
             throw new UserNotLoadedException();
