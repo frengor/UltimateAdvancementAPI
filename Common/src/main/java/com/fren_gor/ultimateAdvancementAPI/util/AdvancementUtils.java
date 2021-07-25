@@ -282,6 +282,19 @@ public class AdvancementUtils {
         return builder.create();
     }
 
+    public static boolean startsWithEmptyLine(@NotNull String text) {
+        Validate.notNull(text);
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '§') {
+                i++; // Skip next character since it is a color code
+            } else {
+                return c == '\n';
+            }
+        }
+        return false;
+    }
+
     public static void validateCriteria(int criteria) {
         if (criteria < 0) {
             throw new IllegalArgumentException("Criteria cannot be < 0");
