@@ -206,10 +206,15 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
         return (BaseAdvancement) parent;
     }
 
+    /**
+     * Calls to this methods result in an undefined behaviour, since there is more than one parent.
+     * <p>Use when you don't need an exact parent in the NMS advancement.
+     *
+     * @return The NMS advancement.
+     */
     @NotNull
     @Override
     public Advancement getMinecraftAdvancement() {
-        System.out.println("WARNING: Calls to MultiParentsAdvancement#getMinecraftAdvancement() result in an undefined behaviour, since there are more than one parents. This is not an error, though.");
         return super.getMinecraftAdvancement();
     }
 
