@@ -10,7 +10,7 @@ public enum AdvancementFrameType {
 
     TASK(net.minecraft.server.v1_15_R1.AdvancementFrameType.TASK, ChatColor.GREEN, "advancement"),
     CHALLENGE(net.minecraft.server.v1_15_R1.AdvancementFrameType.CHALLENGE, ChatColor.DARK_PURPLE, "challenge"),
-    GOAL(net.minecraft.server.v1_15_R1.AdvancementFrameType.GOAL, ChatColor.GREEN, "advancement");
+    GOAL(net.minecraft.server.v1_15_R1.AdvancementFrameType.GOAL, ChatColor.GREEN, "goal");
 
     @Getter
     private final net.minecraft.server.v1_15_R1.AdvancementFrameType minecraftFrameType;
