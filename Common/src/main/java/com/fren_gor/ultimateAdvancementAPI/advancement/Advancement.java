@@ -140,7 +140,19 @@ public abstract class Advancement {
     public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
         Validate.notNull(player, "Player is null.");
         ChatColor color = display.getFrame().getColor();
-        return new ComponentBuilder(player.getName() + " has completed the " + display.getFrame().getChatText() + ' ').color(ChatColor.WHITE).append(new ComponentBuilder("[").color(color).event(new HoverEvent(Action.SHOW_TEXT, display.getChatDescription())).append(display.getChatTitle(), FormatRetention.EVENTS).append(new ComponentBuilder("]").color(color).create(), FormatRetention.EVENTS).create()).create();
+        return new ComponentBuilder(player.getName() + " has completed the " + display.getFrame().getChatText() + ' ')
+                .color(ChatColor.WHITE)
+                .append(new ComponentBuilder("[")
+                                .color(color)
+                                .event(new HoverEvent(Action.SHOW_TEXT, display.getChatDescription()))
+                                .create()
+                        , FormatRetention.NONE)
+                .append(display.getChatTitle(), FormatRetention.EVENTS)
+                .append(new ComponentBuilder("]")
+                                .color(color)
+                                .create()
+                        , FormatRetention.EVENTS)
+                .create();
     }
 
     @Range(from = 0, to = Integer.MAX_VALUE)
