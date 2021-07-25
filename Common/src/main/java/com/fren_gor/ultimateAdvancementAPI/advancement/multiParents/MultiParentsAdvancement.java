@@ -209,7 +209,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     @NotNull
     @Override
     public Advancement getMinecraftAdvancement() {
-        System.out.println("WARNING: Calls to MultiParentsAdvancement#getMinecraftAdvancement() results in an undefined behaviour, since there are more than one parents. This is not an error, though.");
+        System.out.println("WARNING: Calls to MultiParentsAdvancement#getMinecraftAdvancement() result in an undefined behaviour, since there are more than one parents. This is not an error, though.");
         return super.getMinecraftAdvancement();
     }
 
