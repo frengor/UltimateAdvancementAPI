@@ -92,6 +92,12 @@ public final class FakeAdvancement extends BaseAdvancement {
     }
 
     // Since isVisible() returns true for every input we can use the super method
+    @Override
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
+        // Keep to avoid accidental inclusion in UnsupportedOperationException methods down below
+        super.onUpdate(teamProgression, advancementList, progresses, added);
+    }
+    // instead of this version down below
     /*@Override
     public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
         net.minecraft.server.v1_15_R1.Advancement adv = getMinecraftAdvancement();
@@ -254,11 +260,6 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     @Override
     public void revoke(@NotNull Player player) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
         throw new UnsupportedOperationException();
     }
 }
