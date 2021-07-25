@@ -387,12 +387,13 @@ public abstract class Advancement {
                         return m;
                     }
                 } catch (NoSuchMethodException e) {
+                    // No method found, continue
                 }
             }
         }
         Class<?> sClazz = clazz.getSuperclass();
         if (Advancement.class.isAssignableFrom(sClazz) && sClazz != Advancement.class) {
-            return getIVisibilityMethod((Class<? extends Advancement>) sClazz);
+            return getIVisibilityMethod(sClazz.asSubclass(Advancement.class));
         }
         return null;
     }
