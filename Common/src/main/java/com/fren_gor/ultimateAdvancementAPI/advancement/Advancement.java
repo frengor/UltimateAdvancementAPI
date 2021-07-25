@@ -14,6 +14,7 @@ import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.HoverEvent.Action;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
@@ -139,7 +140,7 @@ public abstract class Advancement {
     public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
         Validate.notNull(player, "Player is null.");
         ChatColor color = display.getFrame().getColor();
-        return new ComponentBuilder(player.getName() + " has completed the " + display.getFrame().getChatText() + ' ').color(ChatColor.WHITE).append(new ComponentBuilder("[").color(color).event(new HoverEvent(Action.SHOW_TEXT, display.getChatDescription())).append(display.getChatTitle()).append(new ComponentBuilder("]").reset().color(color).create()).create()).create();
+        return new ComponentBuilder(player.getName() + " has completed the " + display.getFrame().getChatText() + ' ').color(ChatColor.WHITE).append(new ComponentBuilder("[").color(color).event(new HoverEvent(Action.SHOW_TEXT, display.getChatDescription())).append(display.getChatTitle(), FormatRetention.EVENTS).append(new ComponentBuilder("]").color(color).create(), FormatRetention.EVENTS).create()).create();
     }
 
     @Range(from = 0, to = Integer.MAX_VALUE)
