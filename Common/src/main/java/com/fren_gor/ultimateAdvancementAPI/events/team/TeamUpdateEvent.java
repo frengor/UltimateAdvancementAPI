@@ -21,7 +21,7 @@ public class TeamUpdateEvent extends Event {
     @NotNull
     private final TeamProgression team;
     @NotNull
-    private final UUID player;
+    private final UUID playerUUID;
     @NotNull
     private final Action action;
 

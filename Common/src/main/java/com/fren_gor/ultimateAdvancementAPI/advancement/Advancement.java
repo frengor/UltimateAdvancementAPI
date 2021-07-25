@@ -223,7 +223,7 @@ public abstract class Advancement {
         int old = ds.updateCriteria(key, pro, criteria);
 
         try {
-            Bukkit.getPluginManager().callEvent(new AdvancementCriteriaUpdateEvent(old, criteria, this));
+            Bukkit.getPluginManager().callEvent(new AdvancementCriteriaUpdateEvent(pro, old, criteria, this));
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
