@@ -269,7 +269,7 @@ public class AdvancementUtils {
             if (list.isEmpty()) {
                 return builder.create();
             }
-            builder.append("\n\n", FormatRetention.NONE);
+            builder.append("\n", FormatRetention.NONE);
         } else if (list.isEmpty()) {
             return builder.create();
         }
