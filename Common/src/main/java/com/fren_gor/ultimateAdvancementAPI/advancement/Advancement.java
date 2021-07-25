@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement;
 
-import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
