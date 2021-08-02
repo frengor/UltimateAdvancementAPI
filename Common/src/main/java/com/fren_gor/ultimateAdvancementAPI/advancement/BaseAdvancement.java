@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement;
 
-import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import lombok.Getter;
 import net.minecraft.server.v1_15_R1.Criterion;

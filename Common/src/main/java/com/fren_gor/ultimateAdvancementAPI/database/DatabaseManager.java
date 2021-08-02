@@ -442,7 +442,7 @@ public final class DatabaseManager {
 
         if (old != criteria) { // Don't update if criteria isn't being changed
             try {
-                Bukkit.getPluginManager().callEvent(new CriteriaUpdateEvent(old, criteria, key));
+                Bukkit.getPluginManager().callEvent(new CriteriaUpdateEvent(progression, old, criteria, key));
             } catch (IllegalStateException e) {
                 e.printStackTrace();
             }

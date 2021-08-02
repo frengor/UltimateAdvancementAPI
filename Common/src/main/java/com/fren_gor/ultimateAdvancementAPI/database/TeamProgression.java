@@ -1,10 +1,10 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import lombok.Getter;
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -73,6 +73,13 @@ public final class TeamProgression {
     public boolean contains(UUID uuid) {
         synchronized (players) {
             return players.contains(uuid);
+        }
+    }
+
+    @Contract(pure = true, value = "-> new")
+    public Set<@NotNull UUID> getMembersCopy() {
+        synchronized (players) {
+            return new HashSet<>(players);
         }
     }
 

@@ -1,9 +1,9 @@
-package com.fren_gor.ultimateAdvancementAPI;
+package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import lombok.Getter;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.minecraft.server.v1_15_R1.ChatComponentText;
@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -24,12 +25,10 @@ import java.util.StringJoiner;
 public class AdvancementDisplay {
 
     protected final ItemStack icon;
+    protected final BaseComponent[] chatTitle = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
+    protected final BaseComponent[] chatDescription = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
     @Getter
-    protected final BaseComponent[] chatTitle;
-    @Getter
-    protected final BaseComponent[] chatDescription;
-    @Getter
-    protected final String title;
+    protected final String title, rawTitle;
     @Getter
     @Unmodifiable
     protected final List<String> description;
@@ -55,17 +54,26 @@ public class AdvancementDisplay {
     }
 
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
+        this(icon, title, frame, showToast, announceChat, x, y, Objects.requireNonNull(frame, "AdvancementFrameType is null.").getColor(), description);
+    }
+
+    public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull String... description) {
+        this(icon, title, frame, showToast, announceChat, x, y, defaultColor, Arrays.asList(description));
+    }
+
+    public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull List<String> description) {
         Validate.notNull(icon, "Icon is null.");
         Validate.notNull(title, "Title si null.");
         Validate.notNull(frame, "Frame si null.");
-        Validate.notNull(description, "Description si null.");
+        Validate.notNull(defaultColor, "Default color si null.");
+        Validate.notNull(description, "Description is null.");
         Validate.isTrue(isNoElementNull(description), "An element of the description is null.");
         Validate.isTrue(x >= 0, "x is not null or positive.");
         Validate.isTrue(y >= 0, "y is not null or positive.");
 
         this.icon = icon.clone();
         this.title = title;
-        this.description = Collections.unmodifiableList(description);
+        this.description = Collections.unmodifiableList(new ArrayList<>(description));
 
         // Remove trailing spaces and color codes
         String titleTrimmed = title.trim();
@@ -73,16 +81,22 @@ public class AdvancementDisplay {
         while (titleTrimmed.charAt(toSub - 2) == '§') {
             toSub -= 2;
         }
-        titleTrimmed = titleTrimmed.substring(0, toSub).trim();
+        this.rawTitle = titleTrimmed.substring(0, toSub).trim();
 
-        this.chatTitle = TextComponent.fromLegacyText(titleTrimmed);
-        this.chatDescription = AdvancementUtils.fromStringList(title, description);
+        this.chatTitle[0] = new TextComponent(rawTitle);
+        // Old code, bugged for unknown reasons (found out that BaseComponent[] must have length 1 or it bugs in HoverEvents)
+        //this.chatDescription = AdvancementUtils.fromStringList(title, this.description);
 
-        StringJoiner joiner = new StringJoiner("\n");
-        for (String s : description)
+        StringJoiner joiner = new StringJoiner("\n" + defaultColor, defaultColor.toString(), "");
+        for (String s : this.description)
             joiner.add(s);
 
-        compactDescription = joiner.toString();
+        this.compactDescription = joiner.toString();
+        if (compactDescription.isEmpty()) {
+            this.chatDescription[0] = new TextComponent(rawTitle);
+        } else {
+            this.chatDescription[0] = new TextComponent(rawTitle + '\n' + compactDescription);
+        }
 
         this.frame = frame;
         this.showToast = showToast;
@@ -99,6 +113,19 @@ public class AdvancementDisplay {
         return announceChat;
     }
 
+    public BaseComponent[] getChatTitle() {
+        return chatTitle.clone();
+    }
+
+    public BaseComponent[] getChatDescription() {
+        return chatDescription.clone();
+    }
+
+    @NotNull
+    public ItemStack getIcon() {
+        return icon.clone();
+    }
+
     @NotNull
     public net.minecraft.server.v1_15_R1.AdvancementDisplay getMinecraftDisplay(@NotNull Advancement advancement) {
         Validate.notNull(advancement, "Advancement is null.");
@@ -110,11 +137,6 @@ public class AdvancementDisplay {
         net.minecraft.server.v1_15_R1.AdvancementDisplay advDisplay = new net.minecraft.server.v1_15_R1.AdvancementDisplay(getNMSIcon(), new ChatComponentText(title), new ChatComponentText(compactDescription), bg, frame.getMinecraftFrameType(), false, false, false);
         advDisplay.a(x, y);
         return advDisplay;
-    }
-
-    @NotNull
-    public ItemStack getIcon() {
-        return icon.clone();
     }
 
     @NotNull

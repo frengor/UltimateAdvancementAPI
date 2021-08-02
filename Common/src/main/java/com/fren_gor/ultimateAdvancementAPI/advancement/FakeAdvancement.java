@@ -1,9 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement;
 
-import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
-import com.fren_gor.ultimateAdvancementAPI.AdvancementFrameType;
-import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
 import net.minecraft.server.v1_15_R1.ChatComponentText;
@@ -48,18 +48,6 @@ public final class FakeAdvancement extends BaseAdvancement {
     }
 
     @Override
-    @Contract("-> fail")
-    public int getMaxCriteria() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_ -> fail")
-    public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     @NotNull
     public net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement() {
         if (mcAdvancement != null) {
@@ -71,168 +59,47 @@ public final class FakeAdvancement extends BaseAdvancement {
     }
 
     @Override
-    @Contract("_ -> fail")
-    public void giveReward(@NotNull Player player) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_ -> fail")
-    public boolean isGranted(@NotNull Player player) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_ -> fail")
-    public boolean isGranted(@NotNull UUID uuid) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_ -> fail")
-    public int incrementTeamCriteria(@NotNull UUID uuid) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _ -> fail")
-    public int incrementTeamCriteria(@NotNull UUID uuid, boolean giveReward) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_ -> fail")
-    public int incrementTeamCriteria(@NotNull Player player) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _ -> fail")
-    public int incrementTeamCriteria(@NotNull Player player, boolean giveReward) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _ -> fail")
-    public int incrementTeamCriteria(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _, _ -> fail")
-    public int incrementTeamCriteria(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _ -> fail")
-    public int incrementTeamCriteria(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _, _ -> fail")
-    public int incrementTeamCriteria(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _, _, _ -> fail")
-    protected int incrementTeamCriteria(@NotNull UUID uuid, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _ -> fail")
-    public void setCriteriaTeamProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _, _ -> fail")
-    public void setCriteriaTeamProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _ -> fail")
-    public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _, _ -> fail")
-    public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _, _, _ -> fail")
-    protected void setCriteriaTeamProgression(@NotNull UUID uuid, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _, _, _, _, _, _ -> fail")
-    protected void handlePlayer(@NotNull DatabaseManager ds, @Nullable TeamProgression pro, @NotNull UUID uuid, @Nullable Player player, int criteria, int old, boolean giveRewards) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_ -> fail")
-    public boolean isShownTo(Player player) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _ -> fail")
-    public void onGrant(@NotNull Player player, boolean giveRewards) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_ -> fail")
-    public void grant(@NotNull Player player) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_, _ -> fail")
-    public void grant(@NotNull Player player, boolean giveRewards) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract("_ -> fail")
-    public void revoke(@NotNull Player player) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Range(from = 0, to = Integer.MAX_VALUE)
     public int getTeamCriteria(@NotNull Player player) {
         return 0;
     }
 
     @Override
-    @Range(from = 0, to = Integer.MAX_VALUE)
     public int getTeamCriteria(@NotNull UUID uuid) {
         return 0;
     }
 
     @Override
-    @Contract("_ -> fail")
-    public void displayToastToPlayer(@NotNull Player player) {
-        throw new UnsupportedOperationException();
+    public int getTeamCriteria(@NotNull TeamProgression progression) {
+        return 0;
     }
 
     @Override
+    @Contract("_ -> true")
+    public boolean isVisible(@NotNull Player player) {
+        return true;
+    }
+
+    @Override
+    @Contract("_ -> true")
     public boolean isVisible(@NotNull UUID uuid) {
         return true;
     }
 
     @Override
-    public void onUpdate(@NotNull UUID uuid, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull TeamProgression teamProgression, @NotNull Set<MinecraftKey> added) {
+    @Contract("_ -> true")
+    public boolean isVisible(@NotNull TeamProgression progression) {
+        return true;
+    }
+
+    // Since isVisible() returns true for every input we can use the super method
+    @Override
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
+        // Keep to avoid accidental inclusion in UnsupportedOperationException methods down below
+        super.onUpdate(teamProgression, advancementList, progresses, added);
+    }
+    // instead of this version down below
+    /*@Override
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
         net.minecraft.server.v1_15_R1.Advancement adv = getMinecraftAdvancement();
         advancementList.add(adv);
 
@@ -243,7 +110,7 @@ public final class FakeAdvancement extends BaseAdvancement {
         MinecraftKey key = getMinecraftKey();
         added.add(key);
         progresses.put(key, advPrg);
-    }
+    }*/
 
     public static final class FakeAdvancementDisplay extends AdvancementDisplay {
 
@@ -262,5 +129,137 @@ public final class FakeAdvancement extends BaseAdvancement {
             advDisplay.a(x, y);
             return advDisplay;
         }
+    }
+
+    // ============ Overridden methods which throw an UnsupportedOperationException ============
+
+    @Override
+    public boolean isGranted(@NotNull Player player) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isGranted(@NotNull UUID uuid) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isGranted(@NotNull TeamProgression progression) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @Nullable BaseComponent[] getAnnounceMessage(@NotNull Player player) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull UUID uuid) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull UUID uuid, boolean giveReward) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull Player player) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull Player player, boolean giveReward) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setCriteriaTeamProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setCriteriaTeamProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected void setCriteriaTeamProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int criteria, int old, boolean giveRewards, @Nullable AfterHandle afterHandle) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void displayToastToPlayer(@NotNull Player player) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isShownTo(Player player) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void onGrant(@NotNull Player player, boolean giveRewards) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void giveReward(@NotNull Player player) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void grant(@NotNull Player player) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void grant(@NotNull Player player, boolean giveRewards) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void revoke(@NotNull Player player) {
+        throw new UnsupportedOperationException();
     }
 }

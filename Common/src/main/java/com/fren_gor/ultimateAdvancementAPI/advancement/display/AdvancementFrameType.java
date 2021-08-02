@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI;
+package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 public enum AdvancementFrameType {
 
     TASK(net.minecraft.server.v1_15_R1.AdvancementFrameType.TASK, ChatColor.GREEN, "advancement"),
-    CHALLENGE(net.minecraft.server.v1_15_R1.AdvancementFrameType.CHALLENGE, ChatColor.DARK_PURPLE, "challenge"),
-    GOAL(net.minecraft.server.v1_15_R1.AdvancementFrameType.GOAL, ChatColor.GREEN, "advancement");
+    GOAL(net.minecraft.server.v1_15_R1.AdvancementFrameType.GOAL, ChatColor.GREEN, "goal"),
+    CHALLENGE(net.minecraft.server.v1_15_R1.AdvancementFrameType.CHALLENGE, ChatColor.DARK_PURPLE, "challenge");
 
     @Getter
     private final net.minecraft.server.v1_15_R1.AdvancementFrameType minecraftFrameType;

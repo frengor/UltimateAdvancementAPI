@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement;
 
-import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
@@ -8,11 +8,13 @@ import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementCriteri
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
+import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.fren_gor.ultimateAdvancementAPI.visibilities.IVisibility;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.HoverEvent.Action;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
@@ -35,6 +37,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementProgress;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromPlayer;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromUUID;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
@@ -92,7 +96,7 @@ public abstract class Advancement {
     }
 
     @Range(from = 1, to = Integer.MAX_VALUE)
-    public int getMaxCriteria() {
+    public final int getMaxCriteria() {
         return maxCriteria;
     }
 
@@ -103,7 +107,13 @@ public abstract class Advancement {
 
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int getTeamCriteria(@NotNull UUID uuid) {
-        return advancementTab.getDatabaseManager().getProgression(uuid).getCriteria(this);
+        return getTeamCriteria(progressionFromUUID(uuid, this));
+    }
+
+    @Range(from = 0, to = Integer.MAX_VALUE)
+    public int getTeamCriteria(@NotNull TeamProgression progression) {
+        Validate.notNull(progression, "TeamProgression is null.");
+        return progression.getCriteria(this);
     }
 
     public boolean isGranted(@NotNull Player player) {
@@ -111,29 +121,39 @@ public abstract class Advancement {
     }
 
     public boolean isGranted(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "UUID is null.");
-        return getTeamCriteria(uuid) >= maxCriteria;
+        return isGranted(progressionFromUUID(uuid, this));
+    }
+
+    public boolean isGranted(@NotNull TeamProgression progression) {
+        Validate.notNull(progression, "TeamProgression is null.");
+        return getTeamCriteria(progression) >= maxCriteria;
     }
 
     /**
      * Get the message to be displayed in chat when an advancement is made.<br>
-     * The message is sent to everybody.
+     * The message will be sent to everybody.
      *
      * @param player The player who's made the advancement.
-     * @return The message to be displayed.
+     * @return The message to be displayed. If {@code null} no message will be displayed.
      */
     @Nullable
     public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
+        Validate.notNull(player, "Player is null.");
         ChatColor color = display.getFrame().getColor();
-        return new ComponentBuilder(player.getName() + " has completed the " + display.getFrame().getChatText() + ' ').color(ChatColor.WHITE).append(new ComponentBuilder("[").color(color).event(new HoverEvent(Action.SHOW_TEXT, display.getChatDescription())).append(display.getChatTitle()).append(new ComponentBuilder("]").reset().color(color).create()).create()).create();
+        return new ComponentBuilder(player.getName() + " has completed the " + display.getFrame().getChatText() + ' ')
+                .color(ChatColor.WHITE)
+                .append(new ComponentBuilder("[")
+                                .color(color)
+                                .event(new HoverEvent(Action.SHOW_TEXT, display.getChatDescription()))
+                                .create()
+                        , FormatRetention.NONE)
+                .append(display.getChatTitle(), FormatRetention.EVENTS)
+                .append(new ComponentBuilder("]")
+                                .color(color)
+                                .create()
+                        , FormatRetention.EVENTS)
+                .create();
     }
-
-    /**
-     * Should craft the NMS advancement once and returns it henceforth.
-     *
-     * @return The NMS advancement representing this advancement.
-     */
-    public abstract @NotNull net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement();
 
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int incrementTeamCriteria(@NotNull UUID uuid) {
@@ -142,7 +162,7 @@ public abstract class Advancement {
 
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int incrementTeamCriteria(@NotNull UUID uuid, boolean giveReward) {
-        return incrementTeamCriteria(uuid, Bukkit.getPlayer(Objects.requireNonNull(uuid)), 1, giveReward);
+        return incrementTeamCriteria(uuid, 1, giveReward);
     }
 
     @Range(from = 0, to = Integer.MAX_VALUE)
@@ -152,7 +172,7 @@ public abstract class Advancement {
 
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int incrementTeamCriteria(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
-        return incrementTeamCriteria(uuid, Bukkit.getPlayer(uuid), increment, giveReward);
+        return incrementTeamCriteria(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), increment, giveReward);
     }
 
     @Range(from = 0, to = Integer.MAX_VALUE)
@@ -162,7 +182,7 @@ public abstract class Advancement {
 
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int incrementTeamCriteria(@NotNull Player player, boolean giveReward) {
-        return incrementTeamCriteria(uuidFromPlayer(player), player, 1, giveReward);
+        return incrementTeamCriteria(player, 1, giveReward);
     }
 
     @Range(from = 0, to = Integer.MAX_VALUE)
@@ -172,15 +192,15 @@ public abstract class Advancement {
 
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int incrementTeamCriteria(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
-        return incrementTeamCriteria(uuidFromPlayer(player), player, increment, giveReward);
+        return incrementTeamCriteria(progressionFromPlayer(player, this), player, increment, giveReward);
     }
 
     @Range(from = 0, to = Integer.MAX_VALUE)
-    protected int incrementTeamCriteria(@NotNull UUID uuid, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
+    protected int incrementTeamCriteria(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
+        Validate.notNull(pro, "TeamProgression is null.");
         validateIncrement(increment);
-        Validate.notNull(uuid, "UUID is null.");
 
-        int crit = getTeamCriteria(uuid);
+        int crit = getTeamCriteria(pro);
         if (crit >= maxCriteria) {
             return crit;
         }
@@ -188,7 +208,7 @@ public abstract class Advancement {
         if (newCriteria > maxCriteria) {
             newCriteria = maxCriteria;
         }
-        setCriteriaTeamProgression(uuid, player, newCriteria, giveRewards);
+        setCriteriaTeamProgression(pro, player, newCriteria, giveRewards);
         return newCriteria;
     }
 
@@ -197,7 +217,7 @@ public abstract class Advancement {
     }
 
     public void setCriteriaTeamProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
-        setCriteriaTeamProgression(uuid, Bukkit.getPlayer(Objects.requireNonNull(uuid)), criteria, giveReward);
+        setCriteriaTeamProgression(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), criteria, giveReward);
     }
 
     public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
@@ -205,43 +225,43 @@ public abstract class Advancement {
     }
 
     public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
-        setCriteriaTeamProgression(uuidFromPlayer(player), player, criteria, giveReward);
+        setCriteriaTeamProgression(progressionFromPlayer(player, this), player, criteria, giveReward);
     }
 
-    protected void setCriteriaTeamProgression(@NotNull UUID uuid, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
+    protected void setCriteriaTeamProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
+        Validate.notNull(pro, "TeamProgression is null.");
         validateCriteriaStrict(criteria, maxCriteria);
-        Validate.notNull(uuid, "UUID is null.");
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
-        TeamProgression pro = ds.getProgression(uuid);
         int old = ds.updateCriteria(key, pro, criteria);
 
         try {
-            Bukkit.getPluginManager().callEvent(new AdvancementCriteriaUpdateEvent(old, criteria, this));
+            Bukkit.getPluginManager().callEvent(new AdvancementCriteriaUpdateEvent(pro, old, criteria, this));
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
 
-        handlePlayer(ds, pro, uuid, player, criteria, old, giveRewards);
+        handlePlayer(pro, player, criteria, old, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
     }
 
-    protected void handlePlayer(@NotNull DatabaseManager ds, @Nullable TeamProgression pro, @NotNull UUID uuid, @Nullable Player player, int criteria, int old, boolean giveRewards) {
-        if (criteria == this.maxCriteria && old < this.maxCriteria)
+    protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int criteria, int old, boolean giveRewards, @Nullable AfterHandle afterHandle) {
+        Validate.notNull(pro, "TeamProgression is null.");
+        if (criteria >= this.maxCriteria && old < this.maxCriteria) {
             if (player != null) {
                 onGrant(player, giveRewards);
             } else {
-                if (pro == null) {
-                    pro = ds.getProgression(uuid);
-                }
-                Player p = pro.getAnOnlineMember(ds);
-                if (p != null) {
-                    onGrant(p, giveRewards);
+                DatabaseManager ds = advancementTab.getDatabaseManager();
+                player = pro.getAnOnlineMember(ds);
+                if (player != null) {
+                    onGrant(player, giveRewards);
                 } else {
                     ds.setUnredeemed(key, giveRewards, pro);
                     return; // Skip advancement update, no player is online
                 }
             }
-        advancementTab.updateAdvancementsToTeam(uuid);
+        }
+        if (afterHandle != null)
+            afterHandle.apply(pro, player, this);
     }
 
     public void displayToastToPlayer(@NotNull Player player) {
@@ -253,11 +273,15 @@ public abstract class Advancement {
     }
 
     public boolean isVisible(@NotNull UUID uuid) {
+        return isVisible(progressionFromUUID(uuid, this));
+    }
+
+    public boolean isVisible(@NotNull TeamProgression progression) {
         if (iVisibilityMethod != null) {
             try {
-                return (boolean) iVisibilityMethod.invoke(this, this, uuid);
-            } catch (Throwable t) {
-                t.printStackTrace();
+                return (boolean) iVisibilityMethod.invoke(this, this, progression);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         return true;
@@ -291,9 +315,6 @@ public abstract class Advancement {
             giveReward(player);
     }
 
-    public void giveReward(@NotNull Player player) {
-    }
-
     public void grant(@NotNull Player player) {
         grant(player, true);
     }
@@ -308,14 +329,17 @@ public abstract class Advancement {
         setCriteriaTeamProgression(player, 0, false);
     }
 
-    public void onUpdate(@NotNull UUID uuid, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull TeamProgression teamProgression, @NotNull Set<MinecraftKey> added) {
-        if (isVisible(uuid)) {
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
+        if (isVisible(teamProgression)) {
             net.minecraft.server.v1_15_R1.Advancement mcAdv = getMinecraftAdvancement();
             advancementList.add(mcAdv);
             MinecraftKey key = getMinecraftKey();
             added.add(key);
-            progresses.put(key, getAdvancementProgress(mcAdv, teamProgression.getCriteria(this)));
+            progresses.put(key, getAdvancementProgress(mcAdv, getTeamCriteria(teamProgression)));
         }
+    }
+
+    public void giveReward(@NotNull Player player) {
     }
 
     public void onRegister() {
@@ -330,6 +354,13 @@ public abstract class Advancement {
     public boolean isValid() {
         return advancementTab.isActive() && advancementTab.hasAdvancement(this);
     }
+
+    /**
+     * Should craft the NMS advancement once and returns it henceforth.
+     *
+     * @return The NMS advancement representing this advancement.
+     */
+    public abstract @NotNull net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement();
 
     protected final <E extends Event> void registerEvent(@NotNull Class<E> eventClass, @NotNull Consumer<E> consumer) {
         advancementTab.getEventManager().register(this, eventClass, consumer);
@@ -364,21 +395,19 @@ public abstract class Advancement {
         for (Class<?> i : clazz.getInterfaces()) {
             if (i != IVisibility.class && IVisibility.class.isAssignableFrom(i)) {
                 try {
-                    final Method m = i.getDeclaredMethod("isVisible", Advancement.class, UUID.class);
+                    final Method m = i.getDeclaredMethod("isVisible", Advancement.class, TeamProgression.class);
                     if (m.isDefault()) {
                         return m;
                     }
                 } catch (NoSuchMethodException e) {
+                    // No method found, continue
                 }
             }
         }
         Class<?> sClazz = clazz.getSuperclass();
         if (Advancement.class.isAssignableFrom(sClazz) && sClazz != Advancement.class) {
-            return getIVisibilityMethod((Class<? extends Advancement>) sClazz);
+            return getIVisibilityMethod(sClazz.asSubclass(Advancement.class));
         }
         return null;
     }
 }
-
-
-

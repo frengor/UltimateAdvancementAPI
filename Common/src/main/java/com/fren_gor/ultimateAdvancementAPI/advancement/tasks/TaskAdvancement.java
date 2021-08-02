@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
-import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
-import com.fren_gor.ultimateAdvancementAPI.AdvancementFrameType;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
@@ -45,13 +45,6 @@ public class TaskAdvancement extends BaseAdvancement {
     }
 
     @Override
-    @NotNull
-    @Contract(pure = true, value = "-> fail")
-    public final net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     @Nullable
     @Contract(pure = true, value = "_ -> null")
     public final BaseComponent[] getAnnounceMessage(@NotNull Player player) {
@@ -59,72 +52,39 @@ public class TaskAdvancement extends BaseAdvancement {
     }
 
     @Override
-    protected void setCriteriaTeamProgression(@NotNull UUID uuid, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
+    protected void setCriteriaTeamProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
+        Validate.notNull(pro, "TeamProgression is null.");
         validateCriteriaStrict(criteria, maxCriteria);
-        Validate.notNull(uuid, "UUID is null.");
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
-        final TeamProgression pro = ds.getProgression(uuid);
         int old = ds.updateCriteria(key, pro, criteria);
 
         try {
-            Bukkit.getPluginManager().callEvent(new AdvancementCriteriaUpdateEvent(old, criteria, this));
+            Bukkit.getPluginManager().callEvent(new AdvancementCriteriaUpdateEvent(pro, old, criteria, this));
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
 
-        handlePlayer(ds, pro, uuid, player, criteria, old, giveRewards);
-        getMultiTasksAdvancement().reloadTasks(uuid, player, giveRewards);
-    }
-
-    protected void handlePlayer(@NotNull DatabaseManager ds, @Nullable TeamProgression pro, @NotNull UUID uuid, @Nullable Player player, int criteria, int old, boolean giveRewards) {
-        if (criteria == this.maxCriteria && old < this.maxCriteria)
-            if (player != null) {
-                onGrant(player, giveRewards);
-            } else {
-                if (pro == null) {
-                    pro = ds.getProgression(uuid);
-                }
-                Player p = pro.getAnOnlineMember(ds);
-                if (p != null) {
-                    onGrant(p, giveRewards);
-                } else {
-                    ds.setUnredeemed(key, giveRewards, pro);
-                }
-            }
+        handlePlayer(pro, player, criteria, old, giveRewards, null);
+        getMultiTasksAdvancement().reloadTasks(pro, player, giveRewards);
     }
 
     @Override
-    @Contract(pure = true, value = "_ -> fail")
-    public final void displayToastToPlayer(@NotNull Player player) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Contract(pure = true, value = "_ -> fail")
-    public final boolean isShownTo(Player player) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public final void grant(@NotNull Player player, boolean giveRewards) {
-        super.grant(player, giveRewards);
-    }
-
-    @Override
-    public final void revoke(@NotNull Player player) {
-        super.revoke(player);
-    }
-
-    @Override
-    public boolean isVisible(@NotNull UUID uuid) {
+    @Contract("_ -> false")
+    public final boolean isVisible(@NotNull Player player) {
         return false;
     }
 
     @Override
-    @Contract(pure = true, value = "_, _, _, _, _ -> fail")
-    public void onUpdate(@NotNull UUID uuid, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull TeamProgression teamProgression, @NotNull Set<MinecraftKey> added) {
-        throw new UnsupportedOperationException();
+    @Contract("_ -> false")
+    public final boolean isVisible(@NotNull UUID uuid) {
+        return false;
+    }
+
+    @Override
+    @Contract("_ -> false")
+    public final boolean isVisible(@NotNull TeamProgression progression) {
+        return false;
     }
 
     @Override
@@ -149,5 +109,28 @@ public class TaskAdvancement extends BaseAdvancement {
     public void validateRegister() throws InvalidAdvancementException {
         // Always throw since Tasks cannot be registered in Tabs
         throw new InvalidAdvancementException("TaskAdvancements cannot be registered in any AdvancementTab.");
+    }
+
+    // ============ Overridden methods which throw an UnsupportedOperationException ============
+
+    @Override
+    @NotNull
+    public final net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public final void displayToastToPlayer(@NotNull Player player) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public final boolean isShownTo(Player player) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void onUpdate(@NotNull TeamProgression pro, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
+        throw new UnsupportedOperationException();
     }
 }
