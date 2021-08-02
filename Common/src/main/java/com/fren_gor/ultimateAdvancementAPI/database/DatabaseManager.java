@@ -15,7 +15,6 @@ import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent.Action;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
@@ -500,6 +499,26 @@ public final class DatabaseManager {
         return false;
     }
 
+    @Contract(pure = true)
+    @Range(from = 0, to = MAX_SIMULTANEOUS_LOADING_REQUESTS)
+    public synchronized int getLoadingRequestsAmount(@NotNull Plugin plugin, @NotNull UUID uuid, @NotNull CacheFreeingOption.Option type) {
+        Validate.notNull(plugin, "Plugin is null.");
+        Validate.notNull(uuid, "UUID is null.");
+        Validate.notNull(type, "CacheFreeingOption.Option is null.");
+        TempUserMetadata t = tempLoaded.get(uuid);
+        if (t == null) {
+            return 0;
+        }
+        switch (type) {
+            case AUTOMATIC:
+                return t.getAuto(plugin);
+            case MANUAL:
+                return t.getManual(plugin);
+            default:
+                return 0;
+        }
+    }
+
     @NotNull
     public CompletableFuture<ObjectResult<@NotNull Boolean>> isUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid) throws UserNotLoadedException {
         return isUnredeemed(key, getProgression(uuid));
@@ -670,7 +689,6 @@ public final class DatabaseManager {
         }
     }
 
-    @EqualsAndHashCode
     @ToString
     private static final class TempUserMetadata {
 
@@ -705,6 +723,14 @@ public final class DatabaseManager {
 
         public int getRequests(@NotNull Plugin plugin) {
             return pluginRequests.getOrDefault(plugin, 0);
+        }
+
+        public int getAuto(@NotNull Plugin plugin) {
+            return getRequests(plugin) >>> 16;
+        }
+
+        public int getManual(@NotNull Plugin plugin) {
+            return getRequests(plugin) & 0xFFFF;
         }
 
         public boolean canBeRemoved() {
