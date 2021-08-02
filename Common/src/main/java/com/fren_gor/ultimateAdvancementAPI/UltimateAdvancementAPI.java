@@ -1,6 +1,8 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ObjectResult;
@@ -122,7 +124,7 @@ public final class UltimateAdvancementAPI {
     }
 
     public void displayCustomToast(@NotNull Player player, @NotNull AdvancementDisplay display) {
-        displayCustomToast(player, display.icon, display.title, display.frame);
+        displayCustomToast(player, display.getIcon(), display.getTitle(), display.getFrame());
     }
 
     public void displayCustomToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame) {

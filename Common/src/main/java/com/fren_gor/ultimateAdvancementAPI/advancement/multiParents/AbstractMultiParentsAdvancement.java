@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.multiParents;
 
-import com.fren_gor.ultimateAdvancementAPI.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import org.apache.commons.lang.Validate;

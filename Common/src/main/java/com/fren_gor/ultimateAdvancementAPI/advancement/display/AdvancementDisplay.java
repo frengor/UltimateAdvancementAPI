@@ -1,8 +1,7 @@
-package com.fren_gor.ultimateAdvancementAPI;
+package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -28,7 +27,6 @@ public class AdvancementDisplay {
     protected final ItemStack icon;
     protected final BaseComponent[] chatTitle = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
     protected final BaseComponent[] chatDescription = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
-    protected final BaseComponent[] fancyChatDescription = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
     @Getter
     protected final String title, rawTitle;
     @Getter
@@ -56,10 +54,19 @@ public class AdvancementDisplay {
     }
 
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
+        this(icon, title, frame, showToast, announceChat, x, y, Objects.requireNonNull(frame, "AdvancementFrameType is null.").getColor(), description);
+    }
+
+    public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull String... description) {
+        this(icon, title, frame, showToast, announceChat, x, y, defaultColor, Arrays.asList(description));
+    }
+
+    public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull List<String> description) {
         Validate.notNull(icon, "Icon is null.");
         Validate.notNull(title, "Title si null.");
         Validate.notNull(frame, "Frame si null.");
-        Validate.notNull(description, "Description si null.");
+        Validate.notNull(defaultColor, "Default color si null.");
+        Validate.notNull(description, "Description is null.");
         Validate.isTrue(isNoElementNull(description), "An element of the description is null.");
         Validate.isTrue(x >= 0, "x is not null or positive.");
         Validate.isTrue(y >= 0, "y is not null or positive.");
@@ -76,8 +83,7 @@ public class AdvancementDisplay {
         }
         this.rawTitle = titleTrimmed.substring(0, toSub).trim();
 
-        final ChatColor defaultColor = frame.getColor();
-        this.chatTitle[0] = new TextComponent(defaultColor + rawTitle);
+        this.chatTitle[0] = new TextComponent(rawTitle);
         // Old code, bugged for unknown reasons (found out that BaseComponent[] must have length 1 or it bugs in HoverEvents)
         //this.chatDescription = AdvancementUtils.fromStringList(title, this.description);
 
@@ -88,10 +94,8 @@ public class AdvancementDisplay {
         this.compactDescription = joiner.toString();
         if (compactDescription.isEmpty()) {
             this.chatDescription[0] = new TextComponent(rawTitle);
-            this.fancyChatDescription[0] = new TextComponent(rawTitle);
         } else {
             this.chatDescription[0] = new TextComponent(rawTitle + '\n' + compactDescription);
-            this.fancyChatDescription[0] = new TextComponent(rawTitle + (AdvancementUtils.startsWithEmptyLine(compactDescription) ? "\n" : "\n\n") + compactDescription);
         }
 
         this.frame = frame;
@@ -114,10 +118,6 @@ public class AdvancementDisplay {
     }
 
     public BaseComponent[] getChatDescription() {
-        return chatDescription.clone();
-    }
-
-    public BaseComponent[] getFancyChatDescription() {
         return chatDescription.clone();
     }
 
