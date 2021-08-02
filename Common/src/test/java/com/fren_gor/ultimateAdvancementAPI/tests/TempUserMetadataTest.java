@@ -1,8 +1,12 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.MockedStatic;
@@ -50,7 +54,6 @@ public class TempUserMetadataTest {
             m.setAccessible(true);
             methods.put(m.getName(), m);
         }
-        testUserMetadataInstance = constructor.newInstance(Objects.requireNonNull(players.keySet().iterator().next(), "Couldn't find a player in players map."));
     }
 
     @AfterClass
@@ -62,6 +65,16 @@ public class TempUserMetadataTest {
         testUserMetadataInstance = null;
         TempUserMetadataClass = null;
         constructor = null;
+    }
+
+    @Before
+    public void before() throws Exception {
+        testUserMetadataInstance = constructor.newInstance(Objects.requireNonNull(players.keySet().iterator().next(), "Couldn't find a player in players map."));
+    }
+
+    @After
+    public void after() throws Exception {
+        testUserMetadataInstance = null;
     }
 
     @Test
@@ -126,6 +139,83 @@ public class TempUserMetadataTest {
         assertEquals(0xABCD_0000, old);
         old = (int) m.invoke(testUserMetadataInstance, old);
         assertEquals(0xABCD_0000, old);
+    }
+
+    @Test
+    public void addRequest() throws Exception {
+        final Method m = getMethod("addRequest");
+        final Plugin p1 = new FakePlugin("Test1");
+        final Plugin p2 = new FakePlugin("Test2");
+        assertAutoManual(0, 0, p1);
+        assertAutoManual(0, 0, p2);
+        for (int i = 1; i <= Character.MAX_VALUE; i++) {
+            m.invoke(testUserMetadataInstance, p1, true);
+            assertAutoManual(i, 0, p1);
+            m.invoke(testUserMetadataInstance, p2, true);
+            assertAutoManual(i, 0, p2);
+        }
+        for (int i = 1; i <= Character.MAX_VALUE; i++) {
+            m.invoke(testUserMetadataInstance, p1, false);
+            assertAutoManual(Character.MAX_VALUE, i, p1);
+            m.invoke(testUserMetadataInstance, p2, false);
+            assertAutoManual(Character.MAX_VALUE, i, p2);
+        }
+        assertAutoManual(0, 0, new FakePlugin("Another")); // Just to be sure
+        assertThrows(RuntimeException.class, () -> {
+            try {
+                m.invoke(testUserMetadataInstance, p1, true);
+            } catch (ReflectiveOperationException e) {
+                throw e.getCause() != null ? e.getCause() : e;
+            }
+        });
+        assertThrows(RuntimeException.class, () -> {
+            try {
+                m.invoke(testUserMetadataInstance, p1, false);
+            } catch (ReflectiveOperationException e) {
+                throw e.getCause() != null ? e.getCause() : e;
+            }
+        });
+    }
+
+    @Test
+    public void removeRequest() throws Exception {
+        final Method add = getMethod("addRequest");
+        final Method m = getMethod("removeRequest");
+        final Plugin p1 = new FakePlugin("Test1");
+        final Plugin p2 = new FakePlugin("Test2");
+
+        // Prepare tests, addRequest method is tested above
+        for (int i = 0; i < Character.MAX_VALUE; i++) {
+            add.invoke(testUserMetadataInstance, p1, true);
+            add.invoke(testUserMetadataInstance, p1, false);
+            add.invoke(testUserMetadataInstance, p2, true);
+            add.invoke(testUserMetadataInstance, p2, false);
+        }
+        assertAutoManual(Character.MAX_VALUE, Character.MAX_VALUE, p1);
+        assertAutoManual(Character.MAX_VALUE, Character.MAX_VALUE, p2);
+        for (int i = Character.MAX_VALUE - 1; i >= 0; i--) {
+            m.invoke(testUserMetadataInstance, p1, true);
+            assertAutoManual(i, Character.MAX_VALUE, p1);
+            m.invoke(testUserMetadataInstance, p2, true);
+            assertAutoManual(i, Character.MAX_VALUE, p2);
+        }
+        for (int i = Character.MAX_VALUE - 1; i >= 0; i--) {
+            m.invoke(testUserMetadataInstance, p1, false);
+            assertAutoManual(0, i, p1);
+            m.invoke(testUserMetadataInstance, p2, false);
+            assertAutoManual(0, i, p2);
+        }
+        m.invoke(testUserMetadataInstance, p1, true);
+        assertAutoManual(0, 0, p1);
+        m.invoke(testUserMetadataInstance, p1, false);
+        assertAutoManual(0, 0, p1);
+    }
+
+    private void assertAutoManual(int auto, int manual, @NotNull Plugin pl) throws Exception {
+        final Method gA = getMethod("getAuto");
+        final Method gM = getMethod("getManual");
+        Assert.assertEquals(auto, gA.invoke(testUserMetadataInstance, pl));
+        Assert.assertEquals(manual, gM.invoke(testUserMetadataInstance, pl));
     }
 
     private Method getMethod(String method) {

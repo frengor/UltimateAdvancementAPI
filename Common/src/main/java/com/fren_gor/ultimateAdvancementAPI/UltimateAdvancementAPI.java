@@ -323,6 +323,18 @@ public final class UltimateAdvancementAPI {
         return main.getDatabaseManager().isOfflinePlayerLoaded(uuid, plugin);
     }
 
+    public int getLoadingRequestsAmount(@NotNull Plugin plugin, @NotNull Player player, @NotNull CacheFreeingOption.Option type) {
+        return getLoadingRequestsAmount(plugin, uuidFromPlayer(player), type);
+    }
+
+    public int getLoadingRequestsAmount(@NotNull Plugin plugin, @NotNull OfflinePlayer offlinePlayer, @NotNull CacheFreeingOption.Option type) {
+        return getLoadingRequestsAmount(plugin, uuidFromPlayer(offlinePlayer), type);
+    }
+
+    public int getLoadingRequestsAmount(@NotNull Plugin plugin, @NotNull UUID uuid, @NotNull CacheFreeingOption.Option type) {
+        return main.getDatabaseManager().getLoadingRequestsAmount(plugin, uuid, type);
+    }
+
     public void unloadOfflinePlayer(@NotNull OfflinePlayer player) {
         unloadOfflinePlayer(uuidFromPlayer(player));
     }
