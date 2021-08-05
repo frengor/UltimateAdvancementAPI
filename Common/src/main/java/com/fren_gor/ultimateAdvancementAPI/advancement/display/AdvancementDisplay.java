@@ -46,6 +46,63 @@ public class AdvancementDisplay {
     protected final float x, y;
 
     /**
+     * AdvancementDisplay main constructor.
+     *
+     * @param icon - ItemStack - what item will be shown on the tab.
+     * @param title - String - the displayed title of the advancement.
+     * @param frame - AdvancementFrameType - which shape has the advancement.
+     * @param showToast - boolean - if it shows the toast message.
+     * @param announceChat - boolean - if it shows the announceChat message.
+     * @param x - float - x coordinate.
+     * @param y - float - y coordinate.
+     * @param defaultColor - ChatColor - description's color.
+     * @param description - List<String> - the description title of the advancement.
+     */
+    public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull List<String> description) {
+        Validate.notNull(icon, "Icon is null.");
+        Validate.notNull(title, "Title si null.");
+        Validate.notNull(frame, "Frame si null.");
+        Validate.notNull(defaultColor, "Default color si null.");
+        Validate.notNull(description, "Description is null.");
+        Validate.isTrue(isNoElementNull(description), "An element of the description is null.");
+        Validate.isTrue(x >= 0, "x is not null or positive.");
+        Validate.isTrue(y >= 0, "y is not null or positive.");
+
+        this.icon = icon.clone();
+        this.title = title;
+        this.description = Collections.unmodifiableList(new ArrayList<>(description));
+
+        // Remove trailing spaces and color codes
+        String titleTrimmed = title.trim();
+        int toSub = titleTrimmed.length();
+        while (titleTrimmed.charAt(toSub - 2) == '§') {
+            toSub -= 2;
+        }
+        this.rawTitle = titleTrimmed.substring(0, toSub).trim();
+
+        this.chatTitle[0] = new TextComponent(rawTitle);
+        // Old code, bugged for unknown reasons (found out that BaseComponent[] must have length 1 or it bugs in HoverEvents)
+        //this.chatDescription = AdvancementUtils.fromStringList(title, this.description);
+
+        StringJoiner joiner = new StringJoiner("\n" + defaultColor, defaultColor.toString(), "");
+        for (String s : this.description)
+            joiner.add(s);
+
+        this.compactDescription = joiner.toString();
+        if (compactDescription.isEmpty()) {
+            this.chatDescription[0] = new TextComponent(rawTitle);
+        } else {
+            this.chatDescription[0] = new TextComponent(rawTitle + '\n' + compactDescription);
+        }
+
+        this.frame = frame;
+        this.showToast = showToast;
+        this.announceChat = announceChat;
+        this.x = x;
+        this.y = y;
+    }
+
+    /**
      * AdvancementDisplay with Material instead of ItemStack.
      * Varargs of strings as description.
      *
@@ -126,63 +183,6 @@ public class AdvancementDisplay {
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull String... description) {
         this(icon, title, frame, showToast, announceChat, x, y, defaultColor, Arrays.asList(description));
-    }
-
-    /**
-     * AdvancementDisplay main constructor.
-     *
-     * @param icon - ItemStack - what item will be shown on the tab.
-     * @param title - String - the displayed title of the advancement.
-     * @param frame - AdvancementFrameType - which shape has the advancement.
-     * @param showToast - boolean - if it shows the toast message.
-     * @param announceChat - boolean - if it shows the announceChat message.
-     * @param x - float - x coordinate.
-     * @param y - float - y coordinate.
-     * @param defaultColor - ChatColor - description's color.
-     * @param description - List<String> - the description title of the advancement.
-     */
-    public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull List<String> description) {
-        Validate.notNull(icon, "Icon is null.");
-        Validate.notNull(title, "Title si null.");
-        Validate.notNull(frame, "Frame si null.");
-        Validate.notNull(defaultColor, "Default color si null.");
-        Validate.notNull(description, "Description is null.");
-        Validate.isTrue(isNoElementNull(description), "An element of the description is null.");
-        Validate.isTrue(x >= 0, "x is not null or positive.");
-        Validate.isTrue(y >= 0, "y is not null or positive.");
-
-        this.icon = icon.clone();
-        this.title = title;
-        this.description = Collections.unmodifiableList(new ArrayList<>(description));
-
-        // Remove trailing spaces and color codes
-        String titleTrimmed = title.trim();
-        int toSub = titleTrimmed.length();
-        while (titleTrimmed.charAt(toSub - 2) == '§') {
-            toSub -= 2;
-        }
-        this.rawTitle = titleTrimmed.substring(0, toSub).trim();
-
-        this.chatTitle[0] = new TextComponent(rawTitle);
-        // Old code, bugged for unknown reasons (found out that BaseComponent[] must have length 1 or it bugs in HoverEvents)
-        //this.chatDescription = AdvancementUtils.fromStringList(title, this.description);
-
-        StringJoiner joiner = new StringJoiner("\n" + defaultColor, defaultColor.toString(), "");
-        for (String s : this.description)
-            joiner.add(s);
-
-        this.compactDescription = joiner.toString();
-        if (compactDescription.isEmpty()) {
-            this.chatDescription[0] = new TextComponent(rawTitle);
-        } else {
-            this.chatDescription[0] = new TextComponent(rawTitle + '\n' + compactDescription);
-        }
-
-        this.frame = frame;
-        this.showToast = showToast;
-        this.announceChat = announceChat;
-        this.x = x;
-        this.y = y;
     }
 
     /**
