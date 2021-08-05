@@ -22,6 +22,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+/**
+ * The AdvancementDisplay groups all the graphic components into one class.
+ * Describes the aesthetic aspect of the advancement.
+ */
 public class AdvancementDisplay {
 
     protected final ItemStack icon;
@@ -41,26 +45,102 @@ public class AdvancementDisplay {
     @Getter
     protected final float x, y;
 
+    /**
+     * AdvancementDisplay with Material instead of ItemStack.
+     * Varargs of strings as description.
+     *
+     * @param icon - Material
+     * @param title - String
+     * @param frame - AdvancementFrameType
+     * @param showToast - boolean
+     * @param announceChat - boolean
+     * @param x - float
+     * @param y - float
+     * @param description - varargs of strings
+     */
     public AdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
         this(icon, title, frame, showToast, announceChat, x, y, Arrays.asList(description));
     }
 
+    /**
+     * AdvancementDisplay with Material instead of ItemStack.
+     *
+     * @param icon - Material
+     * @param title - String
+     * @param frame - AdvancementFrameType
+     * @param showToast - boolean
+     * @param announceChat - boolean
+     * @param x - float
+     * @param y - float
+     * @param description - List<String>
+     */
     public AdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
         this(new ItemStack(Objects.requireNonNull(icon, "Icon is null.")), title, frame, showToast, announceChat, x, y, description);
     }
 
+    /**
+     * AdvancementDisplay constructor without defaultcolor. It will be chosen based on AdvancementFrameType.
+     * Varargs of strings as description.
+     *
+     * @param icon - ItemStack
+     * @param title - String
+     * @param frame - AdvancementFrameType
+     * @param showToast - boolean
+     * @param announceChat - boolean
+     * @param x - float
+     * @param y - float
+     * @param description - varargs of strings
+     */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
         this(icon, title, frame, showToast, announceChat, x, y, Arrays.asList(description));
     }
 
+    /**
+     * AdvancementDisplay constructor without defaultcolor. It will be chosen based on AdvancementFrameType.
+     *
+     * @param icon - ItemStack
+     * @param title - String
+     * @param frame - AdvancementFrameType
+     * @param showToast - boolean
+     * @param announceChat - boolean
+     * @param x - float
+     * @param y - float
+     * @param description - List<String>
+     */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
         this(icon, title, frame, showToast, announceChat, x, y, Objects.requireNonNull(frame, "AdvancementFrameType is null.").getColor(), description);
     }
 
+    /**
+     * AdvancementDisplay constructor with varargs of strings as description.
+     *
+     * @param icon - ItemStack
+     * @param title - String
+     * @param frame - AdvancementFrameType
+     * @param showToast - boolean
+     * @param announceChat - boolean
+     * @param x - float
+     * @param y - float
+     * @param defaultColor - ChatColor
+     * @param description - varargs of strings
+     */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull String... description) {
         this(icon, title, frame, showToast, announceChat, x, y, defaultColor, Arrays.asList(description));
     }
 
+    /**
+     * AdvancementDisplay main constructor.
+     *
+     * @param icon - ItemStack - what item will be shown on the tab.
+     * @param title - String - the displayed title of the advancement.
+     * @param frame - AdvancementFrameType - which shape has the advancement.
+     * @param showToast - boolean - if it shows the toast message.
+     * @param announceChat - boolean - if it shows the announceChat message.
+     * @param x - float - x coordinate.
+     * @param y - float - y coordinate.
+     * @param defaultColor - ChatColor - description's color.
+     * @param description - List<String> - the description title of the advancement.
+     */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull List<String> description) {
         Validate.notNull(icon, "Icon is null.");
         Validate.notNull(title, "Title si null.");
@@ -105,27 +185,57 @@ public class AdvancementDisplay {
         this.y = y;
     }
 
+    /**
+     * Getter of showToast.
+     *
+     * @return boolean
+     */
     public boolean doesShowToast() {
         return showToast;
     }
 
+    /**
+     * Getter of announceToChat.
+     *
+     * @return
+     */
     public boolean doesAnnounceToChat() {
         return announceChat;
     }
 
+    /**
+     * This method returns the BaseComponent array of title for the chat.
+     *
+     * @return BaseComponent[]
+     */
     public BaseComponent[] getChatTitle() {
         return chatTitle.clone();
     }
 
+    /**
+     * This method returns the BaseComponent array of description for the chat.
+     *
+     * @return BaseComponent[]
+     */
     public BaseComponent[] getChatDescription() {
         return chatDescription.clone();
     }
 
+    /**
+     * Getter for the Icon
+     * @return
+     */
     @NotNull
     public ItemStack getIcon() {
         return icon.clone();
     }
 
+    /**
+     * Given an advancement, its display is returned based on the minecraft version. It is used in packets.
+     *
+     * @param advancement
+     * @return net.minecraft.server.v1_15_R1.AdvancementDisplay
+     */
     @NotNull
     public net.minecraft.server.v1_15_R1.AdvancementDisplay getMinecraftDisplay(@NotNull Advancement advancement) {
         Validate.notNull(advancement, "Advancement is null.");
@@ -139,11 +249,22 @@ public class AdvancementDisplay {
         return advDisplay;
     }
 
+    /**
+     * Returns the icon according to the minecraft version. It is used in packets
+     *
+     * @return net.minecraft.server.v1_15_R1.ItemStack
+     */
     @NotNull
     public net.minecraft.server.v1_15_R1.ItemStack getNMSIcon() {
         return CraftItemStack.asNMSCopy(icon);
     }
 
+    /**
+     * This method checks if all elements of a list are non-null
+     * @param list
+     * @param <T>
+     * @return boolean
+     */
     private static <T> boolean isNoElementNull(@NotNull List<T> list) {
         for (T t : list) {
             if (t == null) {
