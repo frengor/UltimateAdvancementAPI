@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.commands.UltimateAdvancementAPIComman
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.CommandAPIConfig;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
@@ -38,6 +39,9 @@ public class AdvancementPlugin extends JavaPlugin {
             correctVersion = false;
             return;
         }
+        CommandAPIConfig config = new CommandAPIConfig();
+        config.setVerboseOutput(false);
+        CommandAPI.onLoad(config);
         new UltimateAdvancementAPICommand(main).register();
     }
 
