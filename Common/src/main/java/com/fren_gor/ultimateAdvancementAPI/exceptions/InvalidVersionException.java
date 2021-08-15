@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.exceptions;
 
-import jdk.internal.jline.internal.Nullable;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 public class InvalidVersionException extends RuntimeException {
 
