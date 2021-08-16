@@ -87,11 +87,15 @@ public class AdvancementDisplay {
         // Old code, bugged for unknown reasons (found out that BaseComponent[] must have length 1 or it bugs in HoverEvents)
         //this.chatDescription = AdvancementUtils.fromStringList(title, this.description);
 
-        StringJoiner joiner = new StringJoiner("\n" + defaultColor, defaultColor.toString(), "");
-        for (String s : this.description)
-            joiner.add(s);
+        if (this.description.isEmpty()) {
+            this.compactDescription = "";
+        } else {
+            StringJoiner joiner = new StringJoiner("\n" + defaultColor, defaultColor.toString(), "");
+            for (String s : this.description)
+                joiner.add(s);
 
-        this.compactDescription = joiner.toString();
+            this.compactDescription = joiner.toString();
+        }
         if (compactDescription.isEmpty()) {
             this.chatDescription[0] = new TextComponent(rawTitle);
         } else {
