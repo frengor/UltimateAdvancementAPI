@@ -2,7 +2,6 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
-import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -23,132 +22,170 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * The AdvancementDisplay groups all the graphic components into one class.
- * Describes the aesthetic aspect of the advancement.
+ * AdvancementDisplay groups all the graphical components into a class
+ * and describes the aesthetic aspect of the advancement, that is, how it is
+ * shown in the advancements GUI. Components such as title, description,
+ * position in x and y etc. are saved. Instead, the parent or maxCriteria are saved in advancement class.
+ * Usually the default color of the description is taken directly from the advancement frame type, but it can be specified in the appropriate constructor.
  */
 public class AdvancementDisplay {
 
     /**
-     * icon is an ItemStack and tell which item will be displayed on the tab.
+     * The icon of the advancement and tell which item will be displayed on the GUI.
      */
     protected final ItemStack icon;
 
     /**
-     * chatTitle is used for packets, the object contains the information about the advancement title that needs to be sent to the player as a packet.
+     * Usually the BaseComponent[] object is used for packets, it contains the information about the advancement title that needs to be sent to the player as a packet.
      */
     protected final BaseComponent[] chatTitle = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
 
     /**
-     * chatDescription is used for packets, the object contains the information about the advancement description that needs to be sent to the player as a packet.
+     * Usually the BaseComponent[] object is used for packets, it contains the information about the advancement description that needs to be sent to the player as a packet.
      */
     protected final BaseComponent[] chatDescription = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
 
     /**
-     * title is the String passed from the constructors and will be the displayed title.
-     * rawTitle is a trimmed and without color codes title.
+     * The title of the advancement and it will be the displayed title.
      */
-    @Getter
-    protected final String title, rawTitle;
+    protected final String title;
 
     /**
-     * description of the advancement.
+     * The title of the advancement but trimmed and without color codes.
      */
-    @Getter
+    protected final String rawTitle;
+
+    /**
+     * The description of the advancement.
+     */
     @Unmodifiable
     protected final List<String> description;
 
     /**
-     * description of the advancement on a single String with "\n" between the lines of the description.
+     * The description of the advancement on a single String with "\n" between the lines of the description.
      */
-    @Getter
     protected final String compactDescription;
 
     /**
      * The shape of the advancement.
+     *
+     * @see AdvancementFrameType
      */
-    @Getter
     protected final AdvancementFrameType frame;
 
     /**
-     * Tell if the toast message needs to be sent
+     * Tell if the toast message needs to be sent.
      */
     protected final boolean showToast;
 
     /**
-     * Tell if the advancement completion message needs to be sent
+     * Tell if the advancement completion message needs to be sent.
      */
     protected final boolean announceChat;
 
     /**
-     * Advancement position in x and y coordinates
+     * The advancement position relative to the x-axis.
      */
-    @Getter
-    protected final float x, y;
+    protected final float x;
 
     /**
-     * {@link AdvancementDisplay#AdvancementDisplay(ItemStack, String, AdvancementFrameType, boolean, boolean, float, float, ChatColor, List)}
+     * The advancement position relative to the y-axis.
+     */
+    protected final float y;
+
+    /**
+     * Create a new AdvancementDisplay.
      *
-     * Changes:
-     * Material instead of ItemStack.
-     * Varargs of strings as description.
+     * @param icon         What item will be shown on the GUI.
+     * @param title        The displayed title of the advancement.
+     * @param frame        Which shape has the advancement.
+     * @param showToast    If it shows the toast message.
+     * @param announceChat If it shows the announceChat message.
+     * @param x            X coordinate.
+     * @param y            Y coordinate..
+     * @param description  The description of the advancement.
      */
     public AdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
         this(icon, title, frame, showToast, announceChat, x, y, Arrays.asList(description));
     }
 
     /**
-     * {@link AdvancementDisplay#AdvancementDisplay(ItemStack, String, AdvancementFrameType, boolean, boolean, float, float, ChatColor, List)}
+     * Create a new AdvancementDisplay.
      *
-     * Changes:
-     * Material instead of ItemStack.
+     * @param icon         What item will be shown on the GUI.
+     * @param title        The displayed title of the advancement.
+     * @param frame        Which shape has the advancement.
+     * @param showToast    If it shows the toast message.
+     * @param announceChat If it shows the announceChat message.
+     * @param x            X coordinate.
+     * @param y            Y coordinate..
+     * @param description  The description of the advancement.
      */
     public AdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
         this(new ItemStack(Objects.requireNonNull(icon, "Icon is null.")), title, frame, showToast, announceChat, x, y, description);
     }
 
     /**
-     * {@link AdvancementDisplay#AdvancementDisplay(ItemStack, String, AdvancementFrameType, boolean, boolean, float, float, ChatColor, List)}
+     * Create a new AdvancementDisplay.
      *
-     * Changes:
-     * AdvancementDisplay constructor without defaultcolor. It will be chosen based on AdvancementFrameType.
-     * Varargs of strings as description.
+     * @param icon         What item will be shown on the GUI.
+     * @param title        The displayed title of the advancement.
+     * @param frame        Which shape has the advancement.
+     * @param showToast    If it shows the toast message.
+     * @param announceChat If it shows the announceChat message.
+     * @param x            X coordinate.
+     * @param y            Y coordinate..
+     * @param description  The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
         this(icon, title, frame, showToast, announceChat, x, y, Arrays.asList(description));
     }
 
     /**
-     * {@link AdvancementDisplay#AdvancementDisplay(ItemStack, String, AdvancementFrameType, boolean, boolean, float, float, ChatColor, List)}
+     * Create a new AdvancementDisplay.
      *
-     * Changes:
-     * AdvancementDisplay constructor without defaultcolor. It will be chosen based on AdvancementFrameType.
+     * @param icon         What item will be shown on the GUI.
+     * @param title        The displayed title of the advancement.
+     * @param frame        Which shape has the advancement.
+     * @param showToast    If it shows the toast message.
+     * @param announceChat If it shows the announceChat message.
+     * @param x            X coordinate.
+     * @param y            Y coordinate..
+     * @param description  The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
         this(icon, title, frame, showToast, announceChat, x, y, Objects.requireNonNull(frame, "AdvancementFrameType is null.").getColor(), description);
     }
 
     /**
-     * {@link AdvancementDisplay#AdvancementDisplay(ItemStack, String, AdvancementFrameType, boolean, boolean, float, float, ChatColor, List)}
+     * Create a new AdvancementDisplay.
      *
-     * Changes:
-     * AdvancementDisplay constructor with varargs of strings as description.
+     * @param icon         What item will be shown on the GUI.
+     * @param title        The displayed title of the advancement.
+     * @param frame        Which shape has the advancement.
+     * @param showToast    If it shows the toast message.
+     * @param announceChat If it shows the announceChat message.
+     * @param x            X coordinate.
+     * @param y            Y coordinate.
+     * @param defaultColor Description default color.
+     * @param description  The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull String... description) {
         this(icon, title, frame, showToast, announceChat, x, y, defaultColor, Arrays.asList(description));
     }
 
     /**
-     * Create a new AdvancementDisplay
+     * Create a new AdvancementDisplay.
      *
-     * @param icon         - ItemStack - what item will be shown on the tab.
-     * @param title        - String - the displayed title of the advancement.
-     * @param frame        - AdvancementFrameType - which shape has the advancement.
-     * @param showToast    - boolean - if it shows the toast message.
-     * @param announceChat - boolean - if it shows the announceChat message.
-     * @param x            - float - x coordinate.
-     * @param y            - float - y coordinate.
-     * @param defaultColor - ChatColor - description's color.
-     * @param description  - List<String> - the description title of the advancement.
+     * @param icon         What item will be shown on the GUI.
+     * @param title        The displayed title of the advancement.
+     * @param frame        Which shape has the advancement.
+     * @param showToast    If it shows the toast message.
+     * @param announceChat If it shows the announceChat message.
+     * @param x            X coordinate.
+     * @param y            Y coordinate.
+     * @param defaultColor Description default color.
+     * @param description  The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull List<String> description) {
         Validate.notNull(icon, "Icon is null.");
@@ -195,45 +232,45 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Returns if the toast message needs to be shown
+     * Returns whether the toast should be sent.
      *
-     * @return boolean
+     * @return whether the toast should be sent.
      */
     public boolean doesShowToast() {
         return showToast;
     }
 
     /**
-     * Returns if the advancement completion message needs to be sent
+     * Returns whether the advancement completion message should be sent.
      *
-     * @return
+     * @return whether the advancement completion message should be sent.
      */
     public boolean doesAnnounceToChat() {
         return announceChat;
     }
 
     /**
-     * Returns the BaseComponent array of title for the chat.
+     * Returns the BaseComponent array of title for the chat reason.
      *
-     * @return BaseComponent[]
+     * @return the BaseComponent array of title.
      */
     public BaseComponent[] getChatTitle() {
         return chatTitle.clone();
     }
 
     /**
-     * Returns the BaseComponent array of description for the chat.
+     * Returns the BaseComponent array of description for the chat reason.
      *
-     * @return BaseComponent[]
+     * @return the BaseComponent array of title.
      */
     public BaseComponent[] getChatDescription() {
         return chatDescription.clone();
     }
 
     /**
-     * Returns a clone of the icon
+     * Returns a clone of the icon.
      *
-     * @return
+     * @return a clone of the icon.
      */
     @NotNull
     public ItemStack getIcon() {
@@ -243,8 +280,8 @@ public class AdvancementDisplay {
     /**
      * Given an advancement, its display is returned based on the minecraft version. It is used in packets.
      *
-     * @param advancement
-     * @return net.minecraft.server.v1_15_R1.AdvancementDisplay
+     * @param advancement The advancement of which you want to get the minecraft display.
+     * @return The minecraft advancement, that is, the real advancement display class.
      */
     @NotNull
     public net.minecraft.server.v1_15_R1.AdvancementDisplay getMinecraftDisplay(@NotNull Advancement advancement) {
@@ -260,22 +297,15 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Returns the icon according to the minecraft version. It is used in packets
+     * Returns the icon according to the minecraft version. It is used in packets.
      *
-     * @return net.minecraft.server.v1_15_R1.ItemStack
+     * @return The NMS icon.
      */
     @NotNull
     public net.minecraft.server.v1_15_R1.ItemStack getNMSIcon() {
         return CraftItemStack.asNMSCopy(icon);
     }
 
-    /**
-     * This method checks if all elements of a list are non-null
-     *
-     * @param list
-     * @param <T>
-     * @return boolean
-     */
     private static <T> boolean isNoElementNull(@NotNull List<T> list) {
         for (T t : list) {
             if (t == null) {
@@ -285,4 +315,67 @@ public class AdvancementDisplay {
         return true;
     }
 
+    /**
+     * Returns the title of the advancement.
+     *
+     * @return the title of the advancement.
+     */
+    public String getTitle() {
+        return title;
+    }
+
+    /**
+     * Returns trimmed and without color codes title.
+     *
+     * @return the raw title
+     */
+    public String getRawTitle() {
+        return rawTitle;
+    }
+
+    /**
+     * Returns the description of the advancement.
+     *
+     * @return the description of the advancement.
+     */
+    @Unmodifiable
+    public List<String> getDescription() {
+        return description;
+    }
+
+    /**
+     * Returns the compact description.
+     *
+     * @return the compact description.
+     */
+    public String getCompactDescription() {
+        return compactDescription;
+    }
+
+    /**
+     * Returns the frame type.
+     *
+     * @return the frame type.
+     */
+    public AdvancementFrameType getFrame() {
+        return frame;
+    }
+
+    /**
+     * Returns the advancement position relative to the x-axis.
+     *
+     * @return the x-axis.
+     */
+    public float getX() {
+        return x;
+    }
+
+    /**
+     * Returns the advancement position relative to the y-axis.
+     *
+     * @return the y-axis.
+     */
+    public float getY() {
+        return y;
+    }
 }
