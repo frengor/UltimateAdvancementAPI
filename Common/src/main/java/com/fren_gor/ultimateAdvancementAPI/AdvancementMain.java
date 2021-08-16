@@ -4,6 +4,7 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import lombok.Getter;
 import net.byteflux.libby.BukkitLibraryManager;
@@ -37,7 +38,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 
 public final class AdvancementMain {
 
-    private final static AtomicBoolean LOADED = new AtomicBoolean(false), ENABLED = new AtomicBoolean(false);
+    private final static AtomicBoolean LOADED = new AtomicBoolean(false), ENABLED = new AtomicBoolean(false), INVALID_VERSION = new AtomicBoolean(false);
 
     @Getter
     private final Plugin owningPlugin;
@@ -64,11 +65,19 @@ public final class AdvancementMain {
         this.libFolder = libFolder;
     }
 
-    public void load() {
+    public void load() throws InvalidVersionException {
+        checkPrimaryThread();
         if (!LOADED.compareAndSet(false, true)) {
             throw new IllegalStateException("UltimateAdvancementAPI is getting loaded twice.");
         }
-        // Keeping this method since there might be some code here in the future.
+        // Check mc version
+        final String nms = "v1_15_R1";
+        final String fancy = "1.15-1.15.2";
+        final String actual = Bukkit.getServer().getClass().getName().split("\\.")[3];
+        if (!nms.equals(actual)) {
+            INVALID_VERSION.set(true);
+            throw new InvalidVersionException(fancy, actual, "Invalid minecraft version, couldn't load UltimateAdvancementAPI. Supported versions are " + fancy + '.');
+        }
     }
 
     public void enableSQLite(File SQLiteDatabase) {
@@ -98,6 +107,10 @@ public final class AdvancementMain {
     }
 
     private void commonEnablePreDatabase() {
+        checkPrimaryThread();
+        if (INVALID_VERSION.get()) {
+            throw new InvalidVersionException("Incorrect minecraft version. Couldn't enable UltimateAdvancementAPI.");
+        }
         if (!isLoaded()) {
             throw new IllegalStateException("UltimateAdvancementAPI is not loaded.");
         }
@@ -142,6 +155,10 @@ public final class AdvancementMain {
     }
 
     public void disable() {
+        checkPrimaryThread();
+        if (INVALID_VERSION.get()) {
+            throw new InvalidVersionException("Incorrect minecraft version. Couldn't disable UltimateAdvancementAPI.");
+        }
         checkInitialisation();
         LOADED.set(false);
         ENABLED.set(false);
@@ -317,6 +334,12 @@ public final class AdvancementMain {
         return command.startsWith("/minecraft:reload") || command.startsWith("minecraft:reload");
     }
 
+    private static void checkPrimaryThread() {
+        if (!Bukkit.isPrimaryThread()) {
+            throw new IllegalStateException("Executing thread is not main thread.");
+        }
+    }
+
     // Duplicated methods from JavaPlugin
 
     public @NotNull Logger getLogger() {
@@ -328,7 +351,7 @@ public final class AdvancementMain {
     }
 
     public static boolean isLoaded() {
-        return LOADED.get();
+        return LOADED.get() && !INVALID_VERSION.get();
     }
 
     public static boolean isEnabled() {
