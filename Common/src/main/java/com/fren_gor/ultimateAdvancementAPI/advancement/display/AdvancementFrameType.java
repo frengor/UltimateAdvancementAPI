@@ -8,9 +8,9 @@ import org.jetbrains.annotations.NotNull;
 @RequiredArgsConstructor
 public enum AdvancementFrameType {
 
-    TASK(net.minecraft.server.v1_15_R1.AdvancementFrameType.TASK, ChatColor.GREEN, "advancement"),
-    GOAL(net.minecraft.server.v1_15_R1.AdvancementFrameType.GOAL, ChatColor.GREEN, "goal"),
-    CHALLENGE(net.minecraft.server.v1_15_R1.AdvancementFrameType.CHALLENGE, ChatColor.DARK_PURPLE, "challenge");
+    TASK(net.minecraft.server.v1_15_R1.AdvancementFrameType.TASK, ChatColor.GREEN, "has made the advancement"),
+    GOAL(net.minecraft.server.v1_15_R1.AdvancementFrameType.GOAL, ChatColor.GREEN, "has reached the goal"),
+    CHALLENGE(net.minecraft.server.v1_15_R1.AdvancementFrameType.CHALLENGE, ChatColor.DARK_PURPLE, "has completed the challenge");
 
     @Getter
     private final net.minecraft.server.v1_15_R1.AdvancementFrameType minecraftFrameType;
