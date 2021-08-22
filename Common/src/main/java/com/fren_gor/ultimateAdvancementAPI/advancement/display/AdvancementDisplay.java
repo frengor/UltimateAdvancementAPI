@@ -63,9 +63,9 @@ public class AdvancementDisplay {
 
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull List<String> description) {
         Validate.notNull(icon, "Icon is null.");
-        Validate.notNull(title, "Title si null.");
-        Validate.notNull(frame, "Frame si null.");
-        Validate.notNull(defaultColor, "Default color si null.");
+        Validate.notNull(title, "Title is null.");
+        Validate.notNull(frame, "Frame is null.");
+        Validate.notNull(defaultColor, "Default color is null.");
         Validate.notNull(description, "Description is null.");
         Validate.isTrue(isNoElementNull(description), "An element of the description is null.");
         Validate.isTrue(x >= 0, "x is not null or positive.");
