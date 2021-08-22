@@ -83,7 +83,7 @@ public class AdvancementDisplay {
         }
         this.rawTitle = titleTrimmed.substring(0, toSub).trim();
 
-        this.chatTitle[0] = new TextComponent(rawTitle);
+        this.chatTitle[0] = new TextComponent(defaultColor + rawTitle);
         // Old code, bugged for unknown reasons (found out that BaseComponent[] must have length 1 or it bugs in HoverEvents)
         //this.chatDescription = AdvancementUtils.fromStringList(title, this.description);
 
