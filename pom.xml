@@ -129,40 +129,6 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>org.ec4j.maven</groupId>
-                    <artifactId>editorconfig-maven-plugin</artifactId>
-                    <version>0.0.1</version>
-                    <executions>
-                        <execution>
-                            <id>check</id>
-                            <phase>verify</phase>
-                            <goals>
-                                <goal>check</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <configuration>
-                        <!-- See http://ec4j.github.io/editorconfig-maven-plugin/ for full configuration reference -->
-                        <excludes>
-                            <!-- Note that maven submodule directories and many non-source file patterns are excluded by default -->
-                            <!-- see https://github.com/ec4j/editorconfig-linters/blob/master/editorconfig-lint-api/src/main/java/org/ec4j/lint/api/Constants.java#L37 -->
-                            <!-- You can exclude further files from processing: -->
-                            <exclude>**/licenses/**</exclude>
-                            <exclude>**/resources/**</exclude>
-                            <exclude>**/*.xml</exclude>
-                            <exclude>**/*.yml</exclude>
-                            <exclude>**/*.yaml</exclude>
-                            <exclude>**/*.json</exclude>
-                            <exclude>**/*.iml</exclude>
-                        </excludes>
-                        <!-- All files are included by default:
-                        <includes>
-                          <include>**</include>
-                        </includes>
-                        -->
-                    </configuration>
-                </plugin>
-                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
                     <version>3.1.0</version>
