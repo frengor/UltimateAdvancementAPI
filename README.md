@@ -35,6 +35,13 @@ A powerful API to create custom advancements for your minecraft server.
 
 Test plugin can be found [here](https://github.com/frengor/UltimateAdvancementAPI-Tests).
 
+## Contributing
+
+Feel free to open issues or pull requests. Feature requests can be done opening an issue, the `enhancement` tag will be applied by maintainers.
+
+For pull requests, use the formatting style settings present in [`.editorconfig`](./.editorconfig) file.
+
+
 ## Credits
 
 API has been made by [fren_gor](https://github.com/frengor) and [EscanorTargaryen](https://github.com/EscanorTargaryen).
