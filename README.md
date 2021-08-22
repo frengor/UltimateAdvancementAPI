@@ -41,7 +41,6 @@ Feel free to open issues or pull requests. Feature requests can be done opening 
 
 For pull requests, use the formatting style settings present in [`.editorconfig`](./.editorconfig) file.
 
-
 ## Credits
 
 API has been made by [fren_gor](https://github.com/frengor) and [EscanorTargaryen](https://github.com/EscanorTargaryen).
