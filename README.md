@@ -39,7 +39,7 @@ Test plugin can be found [here](https://github.com/frengor/UltimateAdvancementAP
 
 Feel free to open issues or pull requests. Feature requests can be done opening an issue, the `enhancement` tag will be applied by maintainers.
 
-For pull requests, use the formatting style settings present in [`.editorconfig`](./.editorconfig) file.
+For pull requests, use the formatting style settings present under `.idea/codeStyles` folder.
 
 ## Credits
 
