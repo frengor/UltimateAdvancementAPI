@@ -97,9 +97,9 @@ public class AdvancementDisplay {
             this.compactDescription = joiner.toString();
         }
         if (compactDescription.isEmpty()) {
-            this.chatDescription[0] = new TextComponent(rawTitle);
+            this.chatDescription[0] = new TextComponent(defaultColor + rawTitle);
         } else {
-            this.chatDescription[0] = new TextComponent(rawTitle + '\n' + compactDescription);
+            this.chatDescription[0] = new TextComponent(defaultColor + rawTitle + '\n' + compactDescription);
         }
 
         this.frame = frame;
