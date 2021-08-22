@@ -45,13 +45,13 @@
 
         <!-- For JavaDoc Generation -->
         <dependency>
-             <groupId>com.frengor</groupId>
-             <artifactId>eventmanagerapi</artifactId>
-             <version>1.0-SNAPSHOT</version>
-             <scope>provided</scope>
-         </dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>eventmanagerapi</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
 
-         <!-- CommandAPI -->
+        <!-- CommandAPI -->
         <dependency>
             <groupId>dev.jorel.CommandAPI</groupId>
             <artifactId>commandapi-shade</artifactId>
@@ -82,6 +82,10 @@
             </resource>
         </resources>
         <plugins>
+            <plugin>
+                <groupId>org.ec4j.maven</groupId>
+                <artifactId>editorconfig-maven-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
