@@ -10,7 +10,7 @@
 A powerful API to create custom advancements for your minecraft server.
 
 **Download Page:** <https://frengor.com/UltimateAdvancementAPI>  
-**JavaDoc:** <https://frengor.com/javadocs/UltimateAdvancementAPI/build-server/>  
+**Javadoc:** <https://frengor.com/javadocs/UltimateAdvancementAPI/build-server/>  
 **Jenkins:** <https://jenkins.frengor.com/job/UltimateAdvancementAPI/>
 
 **Get it with maven:**
@@ -34,6 +34,12 @@ A powerful API to create custom advancements for your minecraft server.
 #### Test Plugin:
 
 Test plugin can be found [here](https://github.com/frengor/UltimateAdvancementAPI-Tests).
+
+## Contributing
+
+Feel free to open issues or pull requests. Feature requests can be done opening an issue, the `enhancement` tag will be applied by maintainers.
+
+For pull requests, use the formatting style settings present under `.idea/codeStyles` folder.
 
 ## Credits
 

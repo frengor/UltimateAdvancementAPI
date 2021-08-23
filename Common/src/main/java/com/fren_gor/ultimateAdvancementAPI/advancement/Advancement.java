@@ -140,7 +140,7 @@ public abstract class Advancement {
     public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
         Validate.notNull(player, "Player is null.");
         ChatColor color = display.getFrame().getColor();
-        return new ComponentBuilder(player.getName() + " has completed the " + display.getFrame().getChatText() + ' ')
+        return new ComponentBuilder(player.getName() + ' ' + display.getFrame().getChatText() + ' ')
                 .color(ChatColor.WHITE)
                 .append(new ComponentBuilder("[")
                                 .color(color)
