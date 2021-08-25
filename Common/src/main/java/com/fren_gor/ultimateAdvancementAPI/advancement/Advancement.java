@@ -45,10 +45,11 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 
 /**
  * The Advancement class is the parent class of every advancement. It provides the basic methods and fields to work with advancements.
- * Let's go over what information Advancement class stores/provides (so, which properties every advancement has):
- * A unique namespaced key (i.e. "advtab1:myadvancement"), which identifies the advancement and is stored into an AdvancementKey instance. It is composed by a namespace (the part before colon :), which is the namespace of the advancement tab, and a key (the part after colon :). So, for example, an advancement with namespaced key "mytab:myadv" is an advancement inside "mytab" tab and with "myadv" key. Also, every advancement inside a tab must have a unique key. Note that the namespaced key is not visible to the players in the advancement GUI;
- * An AdvancementDisplay instance, which describes the advancement visual information like title, description, icon and position in the GUI;
- * The maximum criteria. The criteria is a positive integer which represents the progression of a player. The maximum criteria is the times the advancement action should be done.
+ * Advancement properties:
+ * A unique namespaced key (i.e. "advtab1:myadvancement").
+ * An AdvancementDisplay instance, which describes the advancement visual information.
+ * The maximum criteria.
+ * It is extended only by RootAdvancement and BaseAdvancement and it can't be extended by other classes.
  */
 public abstract class Advancement {
 
