@@ -102,7 +102,7 @@ public class AdvancementDisplay {
      * @param showToast If it shows the toast message.
      * @param announceChat If it shows the announceChat message.
      * @param x X coordinate.
-     * @param y Y coordinate..
+     * @param y Y coordinate.
      * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
@@ -118,7 +118,7 @@ public class AdvancementDisplay {
      * @param showToast If it shows the toast message.
      * @param announceChat If it shows the announceChat message.
      * @param x X coordinate.
-     * @param y Y coordinate..
+     * @param y Y coordinate.
      * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
@@ -134,7 +134,7 @@ public class AdvancementDisplay {
      * @param showToast If it shows the toast message.
      * @param announceChat If it shows the announceChat message.
      * @param x X coordinate.
-     * @param y Y coordinate..
+     * @param y Y coordinate.
      * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
@@ -150,7 +150,7 @@ public class AdvancementDisplay {
      * @param showToast If it shows the toast message.
      * @param announceChat If it shows the announceChat message.
      * @param x X coordinate.
-     * @param y Y coordinate..
+     * @param y Y coordinate.
      * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
@@ -238,7 +238,7 @@ public class AdvancementDisplay {
     /**
      * Returns whether the toast should be sent.
      *
-     * @return whether the toast should be sent.
+     * @return Whether the toast should be sent.
      */
     public boolean doesShowToast() {
         return showToast;
@@ -247,7 +247,7 @@ public class AdvancementDisplay {
     /**
      * Returns whether the advancement completion message should be sent.
      *
-     * @return whether the advancement completion message should be sent.
+     * @return Whether the advancement completion message should be sent.
      */
     public boolean doesAnnounceToChat() {
         return announceChat;
@@ -256,7 +256,7 @@ public class AdvancementDisplay {
     /**
      * Returns the BaseComponent array of title for the chat reason.
      *
-     * @return the BaseComponent array of title.
+     * @return The BaseComponent array of title.
      */
     public BaseComponent[] getChatTitle() {
         return chatTitle.clone();
@@ -265,7 +265,7 @@ public class AdvancementDisplay {
     /**
      * Returns the BaseComponent array of description for the chat reason.
      *
-     * @return the BaseComponent array of title.
+     * @return The BaseComponent array of title.
      */
     public BaseComponent[] getChatDescription() {
         return chatDescription.clone();
@@ -274,7 +274,7 @@ public class AdvancementDisplay {
     /**
      * Returns a clone of the icon.
      *
-     * @return a clone of the icon.
+     * @return A clone of the icon.
      */
     @NotNull
     public ItemStack getIcon() {
@@ -322,7 +322,7 @@ public class AdvancementDisplay {
     /**
      * Returns the title of the advancement.
      *
-     * @return the title of the advancement.
+     * @return The title of the advancement.
      */
     public String getTitle() {
         return title;
@@ -331,7 +331,7 @@ public class AdvancementDisplay {
     /**
      * Returns trimmed and without color codes title.
      *
-     * @return the raw title
+     * @return The raw title
      */
     public String getRawTitle() {
         return rawTitle;
@@ -340,7 +340,7 @@ public class AdvancementDisplay {
     /**
      * Returns the description of the advancement.
      *
-     * @return the description of the advancement.
+     * @return The description of the advancement.
      */
     @Unmodifiable
     public List<String> getDescription() {
@@ -350,7 +350,7 @@ public class AdvancementDisplay {
     /**
      * Returns the compact description.
      *
-     * @return the compact description.
+     * @return The compact description.
      */
     public String getCompactDescription() {
         return compactDescription;
@@ -359,7 +359,7 @@ public class AdvancementDisplay {
     /**
      * Returns the frame type.
      *
-     * @return the frame type.
+     * @return The frame type.
      */
     public AdvancementFrameType getFrame() {
         return frame;
@@ -368,7 +368,7 @@ public class AdvancementDisplay {
     /**
      * Returns the advancement position relative to the x-axis.
      *
-     * @return the x-axis.
+     * @return The x-axis.
      */
     public float getX() {
         return x;
@@ -377,7 +377,7 @@ public class AdvancementDisplay {
     /**
      * Returns the advancement position relative to the y-axis.
      *
-     * @return the y-axis.
+     * @return The y-axis.
      */
     public float getY() {
         return y;

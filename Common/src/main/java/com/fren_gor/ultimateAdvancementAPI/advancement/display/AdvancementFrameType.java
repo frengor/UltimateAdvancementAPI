@@ -41,9 +41,9 @@ public enum AdvancementFrameType {
     private final String chatText;
 
     /**
-     * Given a nms AdvancementFrameType, returns a new AdvancementFrameType
-     * @param nms nms advancement frame type
-     * @return an AdvancementFrameType
+     * Given a nms AdvancementFrameType, returns a new AdvancementFrameType.
+     * @param nms Nms advancement frame type.
+     * @return An AdvancementFrameType.
      */
     @NotNull
     public static AdvancementFrameType fromNMS(@NotNull net.minecraft.server.v1_15_R1.AdvancementFrameType nms) {
