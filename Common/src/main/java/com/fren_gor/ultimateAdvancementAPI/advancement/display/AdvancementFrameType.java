@@ -8,7 +8,11 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * AdvancementFrameType describe which shape has the advancement
+ * AdvancementFrameType describe which shape has the advancement in the GUI and which description color is related to.
+ * There are 3 types:
+ * - task (squared shape with green as default color).
+ * - goal (square with rounded top and bottom with green as default color).
+ * - challenge (thorns at the corners with dark purple as default color).
  */
 @RequiredArgsConstructor
 public enum AdvancementFrameType {
@@ -18,27 +22,28 @@ public enum AdvancementFrameType {
     CHALLENGE(net.minecraft.server.v1_15_R1.AdvancementFrameType.CHALLENGE, ChatColor.DARK_PURPLE, "has completed the challenge");
 
     /**
-     * Real minecraft class for the AdvancementFrameType, it is used in packets
+     * Real minecraft class for the AdvancementFrameType, it is used in packets.
      */
     @Getter
     private final net.minecraft.server.v1_15_R1.AdvancementFrameType minecraftFrameType;
 
     /**
-     * Which color is related to the frame, it is used to color the description in hover message in {@link Advancement#getAnnounceMessage(Player)}
+     * Which color is related to the frame, it is used to color the description.
      */
     @Getter
     private final ChatColor color;
 
     /**
-     * Which world needs to be sent in the description in hover message in {@link Advancement#getAnnounceMessage(Player)}
+     * How the advancement completion message should end.
+     * @see Advancement#getAnnounceMessage(Player)
      */
     @Getter
     private final String chatText;
 
     /**
-     * Given a minecraft nms AdvancementFrameType, returns a new AdvancementFrameType
-     * @param nms - nms advancement frame type
-     * @return - AdvancementFrameType
+     * Given a nms AdvancementFrameType, returns a new AdvancementFrameType
+     * @param nms nms advancement frame type
+     * @return AdvancementFrameType
      */
     @NotNull
     public static AdvancementFrameType fromNMS(@NotNull net.minecraft.server.v1_15_R1.AdvancementFrameType nms) {
