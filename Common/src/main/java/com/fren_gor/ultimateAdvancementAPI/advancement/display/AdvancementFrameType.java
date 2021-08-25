@@ -43,7 +43,7 @@ public enum AdvancementFrameType {
     /**
      * Given a nms AdvancementFrameType, returns a new AdvancementFrameType
      * @param nms nms advancement frame type
-     * @return AdvancementFrameType
+     * @return an AdvancementFrameType
      */
     @NotNull
     public static AdvancementFrameType fromNMS(@NotNull net.minecraft.server.v1_15_R1.AdvancementFrameType nms) {
