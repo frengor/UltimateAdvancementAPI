@@ -96,14 +96,14 @@ public class AdvancementDisplay {
     /**
      * Create a new AdvancementDisplay.
      *
-     * @param icon         What item will be shown on the GUI.
-     * @param title        The displayed title of the advancement.
-     * @param frame        Which shape has the advancement.
-     * @param showToast    If it shows the toast message.
+     * @param icon What item will be shown on the GUI.
+     * @param title The displayed title of the advancement.
+     * @param frame Which shape has the advancement.
+     * @param showToast If it shows the toast message.
      * @param announceChat If it shows the announceChat message.
-     * @param x            X coordinate.
-     * @param y            Y coordinate..
-     * @param description  The description of the advancement.
+     * @param x X coordinate.
+     * @param y Y coordinate..
+     * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
         this(icon, title, frame, showToast, announceChat, x, y, Arrays.asList(description));
@@ -112,14 +112,14 @@ public class AdvancementDisplay {
     /**
      * Create a new AdvancementDisplay.
      *
-     * @param icon         What item will be shown on the GUI.
-     * @param title        The displayed title of the advancement.
-     * @param frame        Which shape has the advancement.
-     * @param showToast    If it shows the toast message.
+     * @param icon What item will be shown on the GUI.
+     * @param title The displayed title of the advancement.
+     * @param frame Which shape has the advancement.
+     * @param showToast If it shows the toast message.
      * @param announceChat If it shows the announceChat message.
-     * @param x            X coordinate.
-     * @param y            Y coordinate..
-     * @param description  The description of the advancement.
+     * @param x X coordinate.
+     * @param y Y coordinate..
+     * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
         this(new ItemStack(Objects.requireNonNull(icon, "Icon is null.")), title, frame, showToast, announceChat, x, y, description);
@@ -128,14 +128,14 @@ public class AdvancementDisplay {
     /**
      * Create a new AdvancementDisplay.
      *
-     * @param icon         What item will be shown on the GUI.
-     * @param title        The displayed title of the advancement.
-     * @param frame        Which shape has the advancement.
-     * @param showToast    If it shows the toast message.
+     * @param icon What item will be shown on the GUI.
+     * @param title The displayed title of the advancement.
+     * @param frame Which shape has the advancement.
+     * @param showToast If it shows the toast message.
      * @param announceChat If it shows the announceChat message.
-     * @param x            X coordinate.
-     * @param y            Y coordinate..
-     * @param description  The description of the advancement.
+     * @param x X coordinate.
+     * @param y Y coordinate..
+     * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
         this(icon, title, frame, showToast, announceChat, x, y, Arrays.asList(description));
@@ -144,14 +144,14 @@ public class AdvancementDisplay {
     /**
      * Create a new AdvancementDisplay.
      *
-     * @param icon         What item will be shown on the GUI.
-     * @param title        The displayed title of the advancement.
-     * @param frame        Which shape has the advancement.
-     * @param showToast    If it shows the toast message.
+     * @param icon What item will be shown on the GUI.
+     * @param title The displayed title of the advancement.
+     * @param frame Which shape has the advancement.
+     * @param showToast If it shows the toast message.
      * @param announceChat If it shows the announceChat message.
-     * @param x            X coordinate.
-     * @param y            Y coordinate..
-     * @param description  The description of the advancement.
+     * @param x X coordinate.
+     * @param y Y coordinate..
+     * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
         this(icon, title, frame, showToast, announceChat, x, y, Objects.requireNonNull(frame, "AdvancementFrameType is null.").getColor(), description);
@@ -160,15 +160,15 @@ public class AdvancementDisplay {
     /**
      * Create a new AdvancementDisplay.
      *
-     * @param icon         What item will be shown on the GUI.
-     * @param title        The displayed title of the advancement.
-     * @param frame        Which shape has the advancement.
-     * @param showToast    If it shows the toast message.
+     * @param icon What item will be shown on the GUI.
+     * @param title The displayed title of the advancement.
+     * @param frame Which shape has the advancement.
+     * @param showToast If it shows the toast message.
      * @param announceChat If it shows the announceChat message.
-     * @param x            X coordinate.
-     * @param y            Y coordinate.
+     * @param x X coordinate.
+     * @param y Y coordinate.
      * @param defaultColor Description default color.
-     * @param description  The description of the advancement.
+     * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull String... description) {
         this(icon, title, frame, showToast, announceChat, x, y, defaultColor, Arrays.asList(description));
@@ -177,15 +177,15 @@ public class AdvancementDisplay {
     /**
      * Create a new AdvancementDisplay.
      *
-     * @param icon         What item will be shown on the GUI.
-     * @param title        The displayed title of the advancement.
-     * @param frame        Which shape has the advancement.
-     * @param showToast    If it shows the toast message.
+     * @param icon What item will be shown on the GUI.
+     * @param title The displayed title of the advancement.
+     * @param frame Which shape has the advancement.
+     * @param showToast If it shows the toast message.
      * @param announceChat If it shows the announceChat message.
-     * @param x            X coordinate.
-     * @param y            Y coordinate.
+     * @param x X coordinate.
+     * @param y Y coordinate.
      * @param defaultColor Description default color.
-     * @param description  The description of the advancement.
+     * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull List<String> description) {
         Validate.notNull(icon, "Icon is null.");
