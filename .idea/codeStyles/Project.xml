@@ -19,6 +19,7 @@
       </option>
       <option name="JD_ALIGN_PARAM_COMMENTS" value="false" />
       <option name="JD_ALIGN_EXCEPTION_COMMENTS" value="false" />
+      <option name="JD_INDENT_ON_CONTINUATION" value="true" />
     </JavaCodeStyleSettings>
     <Markdown>
       <option name="MAX_LINES_AROUND_HEADER" value="0" />
