@@ -654,6 +654,7 @@ public abstract class Advancement {
      *
      * @param eventClass The event class.
      * @param consumer The code to run when the event occurs.
+     * @param <E> The event class.
      */
     protected final <E extends Event> void registerEvent(@NotNull Class<E> eventClass, @NotNull Consumer<E> consumer) {
         advancementTab.getEventManager().register(this, eventClass, consumer);
@@ -665,6 +666,7 @@ public abstract class Advancement {
      * @param eventClass The event class.
      * @param priority The priority of the event. See {@link EventPriority}.
      * @param consumer The code to run when the event occurs.
+     * @param <E> The event class.
      */
     protected final <E extends Event> void registerEvent(@NotNull Class<E> eventClass, @NotNull EventPriority priority, @NotNull Consumer<E> consumer) {
         advancementTab.getEventManager().register(this, eventClass, priority, consumer);
