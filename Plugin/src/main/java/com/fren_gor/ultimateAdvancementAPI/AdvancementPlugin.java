@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI;
 
 import com.fren_gor.ultimateAdvancementAPI.commands.UltimateAdvancementAPICommand;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
+import com.fren_gor.ultimateAdvancementAPI.metrics.BStats;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIConfig;
@@ -11,6 +12,11 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class AdvancementPlugin extends JavaPlugin {
+
+    /**
+     * Spigot resource id
+     */
+    private static final int RESOURCE_ID = 95585;
 
     @Getter
     private static AdvancementPlugin instance;
@@ -66,6 +72,8 @@ public class AdvancementPlugin extends JavaPlugin {
                 e.printStackTrace();
             }
         }
+
+        BStats.init(this);
     }
 
     @Override
