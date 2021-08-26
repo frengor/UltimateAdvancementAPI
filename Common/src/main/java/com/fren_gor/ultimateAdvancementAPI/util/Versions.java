@@ -20,7 +20,7 @@ import java.util.Objects;
 @UtilityClass
 public class Versions {
 
-    private static final String API_VERSION = "1.0.0";
+    private static final String API_VERSION = "1.0.1";
     private static String nmsVersion = null;
 
     private static final List<String> SUPPORTED_VERSIONS = Collections.unmodifiableList(Arrays.asList("1.15", "1.15.1", "1.15.2"));
