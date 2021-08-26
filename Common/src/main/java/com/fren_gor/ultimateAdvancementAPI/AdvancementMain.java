@@ -34,6 +34,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 
@@ -75,7 +76,7 @@ public final class AdvancementMain {
         final String actual = Versions.getNMSVersion();
         if (!Versions.getSupportedNMSVersions().contains(actual)) {
             INVALID_VERSION.set(true);
-            String fancy = Versions.getNMSVersionsRange();
+            String fancy = Versions.getSupportedNMSVersions().stream().map(Versions::getNMSVersionsRange).collect(Collectors.joining(", ", "[", "]"));
             throw new InvalidVersionException(fancy, actual, "Invalid minecraft version, couldn't load UltimateAdvancementAPI. Supported versions are " + fancy + '.');
         }
     }
