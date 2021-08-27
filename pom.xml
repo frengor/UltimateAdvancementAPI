@@ -146,9 +146,23 @@
                     </executions>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>1.18.20</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+                <plugin>
                     <groupId>org.projectlombok</groupId>
                     <artifactId>lombok-maven-plugin</artifactId>
-                    <version>1.18.12.0</version>
+                    <version>1.18.20.0</version>
                     <executions>
                         <execution>
                             <phase>generate-sources</phase>
@@ -221,6 +235,7 @@
                             </goals>
                             <configuration>
                                 <attach>false</attach>
+                                <doclint>all,-missing</doclint> <!-- To remove when javadoc is finished -->
                                 <failOnWarnings>true</failOnWarnings>
                             </configuration>
                         </execution>
@@ -238,18 +253,17 @@
                                     <link>https://frengor.com/javadocs/EventManagerAPI/build-server/</link>
                                     <link>https://javadoc.io/doc/org.jetbrains/annotations/19.0.0/</link>
                                     <link>https://javadoc.io/static/net.md-5/bungeecord-chat/1.16-R0.4/</link>
+                                    <link>https://hub.spigotmc.org/javadocs/spigot/</link>
                                 </links>
-                                <offlineLinks>
-                                    <offlineLink>
-                                        <url>https://hub.spigotmc.org/javadocs/spigot/</url>
-                                        <location>https://www.frengor.com/spigot-package-list/</location>
-                                    </offlineLink>
-                                </offlineLinks>
                             </configuration>
                         </execution>
                     </executions>
                     <configuration>
                         <quiet>true</quiet>
+                        <bottom>
+                            <!-- Hacky way to insert custom css without modifying the full css style file -->
+                            <![CDATA[<style>main a[href*="://"]::after{content: none;}</style>Copyright &#169; {inceptionYear}&#x2013;{currentYear} fren_gor, EscanorTargaryen. All rights reserved.]]>
+                        </bottom>
                         <tags>
                             <tag>
                                 <name>apiNote</name>

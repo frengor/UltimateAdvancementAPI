@@ -52,13 +52,13 @@
 
         <!-- For JavaDoc Generation -->
         <dependency>
-             <groupId>com.frengor</groupId>
-             <artifactId>eventmanagerapi</artifactId>
-             <version>1.0-SNAPSHOT</version>
-             <scope>provided</scope>
-         </dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>eventmanagerapi</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
 
-         <!-- CommandAPI -->
+        <!-- CommandAPI -->
         <dependency>
             <groupId>dev.jorel.CommandAPI</groupId>
             <artifactId>commandapi-shade</artifactId>
@@ -112,6 +112,10 @@
                         </relocation>
                     </relocations>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.projectlombok</groupId>
