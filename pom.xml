@@ -85,7 +85,7 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>20.1.0</version>
+            <version>22.0.0</version>
             <scope>provided</scope>
         </dependency>
 
@@ -251,7 +251,7 @@
                                 <sourcepath>${project.build.directory}/delombok</sourcepath>
                                 <links>
                                     <link>https://frengor.com/javadocs/EventManagerAPI/build-server/</link>
-                                    <link>https://javadoc.io/doc/org.jetbrains/annotations/19.0.0/</link>
+                                    <link>https://javadoc.io/doc/org.jetbrains/annotations/22.0.0/</link>
                                     <link>https://javadoc.io/static/net.md-5/bungeecord-chat/1.16-R0.4/</link>
                                     <link>https://hub.spigotmc.org/javadocs/spigot/</link>
                                 </links>
