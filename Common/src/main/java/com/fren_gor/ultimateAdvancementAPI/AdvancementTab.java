@@ -80,7 +80,7 @@ public final class AdvancementTab {
     /**
      * Gets whether the tab is initialised and not disposed.
      *
-     * @return true iff this tab is initialised and not disposed, false otherwise.
+     * @return {@code true} if this tab is initialised and not disposed, {@code false} otherwise.
      */
     public boolean isActive() {
         return initialised && !disposed;

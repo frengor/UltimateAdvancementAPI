@@ -38,12 +38,25 @@ import java.util.function.Function;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 
+/**
+ * All utility methods to use properly the API.
+ */
 @SuppressWarnings("unused")
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class UltimateAdvancementAPI {
 
+    /**
+     * Main class of the plugin.{@see AdvancementMain}
+     */
     static AdvancementMain main;
 
+    /**
+     * Returns the instance to use all the methods of UltimateAdvancementAPI class.
+     *
+     * @param plugin The plugin instance.
+     * @return The instance to use UltimateAdvancementAPI class.
+     * @throws APINotInstantiatedException If the API is not instantiated properly.
+     */
     @NotNull
     public static UltimateAdvancementAPI getInstance(@NotNull Plugin plugin) throws APINotInstantiatedException {
         Validate.notNull(plugin, "Plugin is null.");
@@ -56,35 +69,73 @@ public final class UltimateAdvancementAPI {
 
     private final Plugin plugin;
 
+    /**
+     * Create a new advancement tab.
+     *
+     * @param namespace The unique name of the tab.
+     * @return A new advancement tab.
+     * @throws DuplicatedException If there are more than 1 tab with the same unique name.
+     */
     @NotNull
     @Contract("_ -> new")
     public AdvancementTab createAdvancementTab(@NotNull String namespace) throws DuplicatedException {
         return main.createAdvancementTab(plugin, namespace);
     }
 
+    /**
+     * Returns the wanted advancement tab.
+     *
+     * @param namespace The unique name of the wanted advancement tab.
+     * @return The wanted advancement tab.
+     */
     @Nullable
     public AdvancementTab getAdvancementTab(@NotNull String namespace) {
         return main.getAdvancementTab(namespace);
     }
 
+    /**
+     * Returns if the advancement tab has already been registered.
+     *
+     * @param namespace The unique name of the advancement tab.
+     * @return If the advancement tab has already been registered.
+     */
     public boolean isAdvancementTabRegistered(@NotNull String namespace) {
         return main.isAdvancementTabRegistered(namespace);
     }
 
+    /**
+     * Returns an unmodifiable list with all registered advancement tabs.
+     *
+     * @return An unmodifiable list with all registered advancement tabs.
+     */
+    //TODO differenza tra questo e getTabs()
     @UnmodifiableView
     @NotNull
     public Collection<@NotNull AdvancementTab> getPluginAdvancementTabs() {
         return main.getPluginAdvancementTabs(plugin);
     }
 
+    /**
+     * Unregister an advancement tab.
+     *
+     * @param namespace The unique name of the advancement tab to be unregistered.
+     */
     public void unregisterAdvancementTab(@NotNull String namespace) {
         main.unregisterAdvancementTab(namespace);
     }
 
+    /**
+     * Unregister all advancement tabs.
+     */
     public void unregisterPluginAdvancementTabs() {
         main.unregisterAdvancementTabs(plugin);
     }
 
+    /**
+     * Returns a list of all advancement unique names.
+     *
+     * @return A list of all advancement unique names.
+     */
     @NotNull
     @UnmodifiableView
     @Contract(pure = true)
@@ -92,6 +143,12 @@ public final class UltimateAdvancementAPI {
         return main.getAdvancementTabNamespaces();
     }
 
+    /**
+     * Filter by name the unique names of the advancement tabs.
+     *
+     * @param input The filter.
+     * @return A filtered list of the advancement tab unique names.
+     */
     @NotNull
     @Contract(pure = true, value = "_ -> new")
     public List<@NotNull String> filterNamespaces(@Nullable String input) {
