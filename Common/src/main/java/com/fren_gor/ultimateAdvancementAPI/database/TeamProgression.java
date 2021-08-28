@@ -25,13 +25,23 @@ import java.util.function.Predicate;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteria;
 
+/**
+ * TeamProgression objects stores information about a team and its advancement progressions.
+ * <p>TeamProgression is used to cache team information from the database.
+ */
 public final class TeamProgression {
 
-    @Getter
+
     private final int teamId;
     private final Set<UUID> players;
     private final Map<AdvancementKey, Integer> advancements;
 
+    /**
+     * Create a new TeamProgression.
+     *
+     * @param teamId The unique teamId value to be stored in the database.
+     * @param member A member to be added in a new team.
+     */
     public TeamProgression(int teamId, @NotNull UUID member) {
         Validate.notNull(member, "Member is null.");
         this.advancements = new ConcurrentHashMap<>();
@@ -40,6 +50,13 @@ public final class TeamProgression {
         players.add(member);
     }
 
+    /**
+     * Create a new TeamProgression.
+     *
+     * @param advancements All the advancement keys with their progression.
+     * @param teamId The team id stored in the database.
+     * @param members Team member list.
+     */
     public TeamProgression(@NotNull Map<AdvancementKey, Integer> advancements, int teamId, @NotNull Collection<UUID> members) {
         Validate.notNull(advancements, "Advancements is null.");
         Validate.notNull(members, "Members is null.");
@@ -49,6 +66,12 @@ public final class TeamProgression {
         players.addAll(members);
     }
 
+    /**
+     * Returns the progression of the advancement.
+     *
+     * @param advancement An advancement.
+     * @return The criteria progression.
+     */
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int getCriteria(@NotNull Advancement advancement) {
         Validate.notNull(advancement, "Advancement is null.");
@@ -64,11 +87,23 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Returns whether a player is contained by the team.
+     *
+     * @param player A player.
+     * @return Whether a player is contained by the team.
+     */
     @Contract(pure = true)
     public boolean contains(@NotNull Player player) {
         return contains(uuidFromPlayer(player));
     }
 
+    /**
+     * Returns whether a UUID player is contained by the team.
+     *
+     * @param uuid A UUID player.
+     * @return Whether a UUID player is contained by the team.
+     */
     @Contract(pure = true, value = "null -> false")
     public boolean contains(UUID uuid) {
         synchronized (players) {
@@ -76,6 +111,11 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Returns a copy of the member list.
+     *
+     * @return A copy of the member list.
+     */
     @Contract(pure = true, value = "-> new")
     public Set<@NotNull UUID> getMembersCopy() {
         synchronized (players) {
@@ -83,6 +123,11 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Returns the number of members.
+     *
+     * @return The number of members.
+     */
     @Contract(pure = true)
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int getSize() {
@@ -91,6 +136,11 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Run code for each member.
+     *
+     * @param action The code tu run for each member.
+     */
     public void forEachMember(@NotNull Consumer<UUID> action) {
         Validate.notNull(action, "Consumer is null.");
         synchronized (players) {
@@ -100,6 +150,12 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Run code for each member and checks if the code returns {@code true} for every member.
+     *
+     * @param action The code to run.
+     * @return If the code returns {@code true} for every member.
+     */
     public boolean everyMemberMatch(@NotNull Predicate<UUID> action) {
         Validate.notNull(action, "Predicate is null.");
         synchronized (players) {
@@ -112,6 +168,12 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Run code for each member and checks if the code returns {@code true} at least one.
+     *
+     * @param action The code to run.
+     * @return If the code returns {@code true} at least one.
+     */
     public boolean anyMemberMatch(@NotNull Predicate<UUID> action) {
         Validate.notNull(action, "Predicate is null.");
         synchronized (players) {
@@ -124,6 +186,12 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Run code for each member and checks if the code returns {@code false} for every member.
+     *
+     * @param action The code to run.
+     * @return If the code returns {@code false} for every member.
+     */
     public boolean noMemberMatch(@NotNull Predicate<UUID> action) {
         Validate.notNull(action, "Predicate is null.");
         synchronized (players) {
@@ -136,18 +204,36 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Sets the criteria of an advancement.
+     *
+     * @param key The key of the advancement.
+     * @param criteria The new criteria progression to be set.
+     * @return The previous criteria progress.
+     */
     int updateCriteria(@NotNull AdvancementKey key, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
         validateCriteria(criteria);
         Integer i = advancements.put(key, criteria);
         return i == null ? 0 : i;
     }
 
+    /**
+     * Removes a player from the team.
+     *
+     * @param uuid The UUID player to be removed.
+     */
     void removeMember(UUID uuid) {
         synchronized (players) {
             players.remove(uuid);
         }
     }
 
+    /**
+     * Adds a player in the team.
+     *
+     * @param uuid The UUID player to be added.
+     * @return {@code true} if the member list did not already contain the specified member.
+     */
     boolean addMember(@NotNull UUID uuid) {
         Validate.notNull(uuid, "UUID is null.");
         synchronized (players) {
@@ -155,6 +241,11 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Returns a random player of the team.
+     *
+     * @return A random UUID player of the team.
+     */
     @Nullable
     public UUID getAMember() {
         synchronized (players) {
@@ -162,6 +253,12 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Returns an online player of the team.
+     *
+     * @param manager The database manager.
+     * @return An online player of the team, {@code null} if there are none.
+     */
     @Nullable
     public Player getAnOnlineMember(@NotNull DatabaseManager manager) {
         Validate.notNull(manager, "DatabaseManager is null.");
@@ -175,6 +272,9 @@ public final class TeamProgression {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return "TeamProgression{" +
@@ -182,6 +282,9 @@ public final class TeamProgression {
                 '}';
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -192,8 +295,20 @@ public final class TeamProgression {
         return teamId == that.teamId;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int hashCode() {
+        return teamId;
+    }
+
+    /**
+     * Returns the team unique id.
+     *
+     * @return the team unique id.
+     */
+    public int getTeamId() {
         return teamId;
     }
 }
