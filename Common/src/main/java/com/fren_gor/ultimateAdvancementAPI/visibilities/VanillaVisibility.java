@@ -7,8 +7,16 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * If an advancement implements this visibility, it will be visible only if the parent/s or grandparent/s is/are granted.
+ */
 public interface VanillaVisibility extends IVisibility {
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code true} if the parent/s or grandparent/s is/are granted.
+     */
     @Override
     default boolean isVisible(@NotNull Advancement advancement, @NotNull TeamProgression progression) {
         Validate.notNull(advancement, "Advancement is null.");

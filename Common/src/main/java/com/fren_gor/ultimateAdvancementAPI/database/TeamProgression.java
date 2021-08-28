@@ -139,7 +139,7 @@ public final class TeamProgression {
     /**
      * Run code for each member.
      *
-     * @param action The code tu run for each member.
+     * @param action The code to run for each member.
      */
     public void forEachMember(@NotNull Consumer<UUID> action) {
         Validate.notNull(action, "Consumer is null.");
