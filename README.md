@@ -1,7 +1,7 @@
 # UltimateAdvancementAPI
 [![Build Status](https://jenkins.frengor.com/job/UltimateAdvancementAPI/badge/icon)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
 [![License](https://img.shields.io/badge/license-LGPL--3.0-orange)](https://github.com/frengor/UltimateAdvancementAPI/blob/main/LGPL)
-[![Version](https://frengor.com/javadocs/UltimateAdvancementAPI/last-release.php)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
+[![Version](https://frengor.com/UltimateAdvancementAPI/last-release.php)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
 [![Issues](https://img.shields.io/github/issues/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/issues)
 [![Stars](https://img.shields.io/github/stars/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/stargazers)
 [![Forks](https://img.shields.io/github/forks/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/network)
@@ -10,7 +10,7 @@
 A powerful API to create custom advancements for your minecraft server.
 
 **Download Page:** <https://frengor.com/UltimateAdvancementAPI>  
-**Javadoc:** <https://frengor.com/javadocs/UltimateAdvancementAPI/build-server/>  
+**Javadoc:** <https://frengor.com/javadocs/UltimateAdvancementAPI/latest/>  
 **Jenkins:** <https://jenkins.frengor.com/job/UltimateAdvancementAPI/>
 
 **Get it with maven:**
