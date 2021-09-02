@@ -8,14 +8,17 @@ import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * If an advancement implements this visibility, it will be visible only if the parent/s is/are granted.
+ * If an advancement implements this visibility, it will be visible only if every one of its parents are granted.
+ * <p>This class is part of the Advancement Visibility System. See {@link IVisibility} for more information.
  */
 public interface ParentGrantedVisibility extends IVisibility {
 
     /**
-     * {@inheritDoc}
+     * Whether every parent of the provided advancement is granted for the specified team.
      *
-     * @return {@code true} if the parent/s of the advancement is/are granted.
+     * @param advancement The advancement.
+     * @param progression The team {@link TeamProgression}.
+     * @return Whether every parent of the provided advancement is granted for the specified team.
      */
     @Override
     default boolean isVisible(@NotNull Advancement advancement, @NotNull TeamProgression progression) {
