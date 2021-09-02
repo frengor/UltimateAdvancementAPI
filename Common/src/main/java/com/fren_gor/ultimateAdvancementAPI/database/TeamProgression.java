@@ -1,10 +1,10 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import lombok.Getter;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -44,6 +44,7 @@ public final class TeamProgression {
      * @param member A member to be added in a new team.
      */
     public TeamProgression(int teamId, @NotNull UUID member) {
+        CallerClassUtil.validateConstructorCallingClass();
         Validate.notNull(member, "Member is null.");
         this.advancements = new ConcurrentHashMap<>();
         this.teamId = teamId;
@@ -59,6 +60,7 @@ public final class TeamProgression {
      * @param members Team member list.
      */
     public TeamProgression(@NotNull Map<AdvancementKey, Integer> advancements, int teamId, @NotNull Collection<UUID> members) {
+        CallerClassUtil.validateConstructorCallingClass();
         Validate.notNull(advancements, "Advancements is null.");
         Validate.notNull(members, "Members is null.");
         this.advancements = new ConcurrentHashMap<>(advancements);
@@ -321,5 +323,23 @@ public final class TeamProgression {
      */
     public int getTeamId() {
         return teamId;
+    }
+
+    private static final class CallerClassUtil extends SecurityManager {
+
+        private static final CallerClassUtil INSTANCE = new CallerClassUtil();
+
+        public static void validateConstructorCallingClass() {
+            if (!INSTANCE.getCallingClasses()[3].getPackage().getName().startsWith("com.fren_gor.ultimateAdvancementAPI.database")) {
+                throw new IllegalOperationException("TeamProgression can be instantiated only by classes inside the com.fren_gor.ultimateAdvancementAPI.database package or its sub-packages.");
+            }
+        }
+
+        private CallerClassUtil() {
+        }
+
+        private Class<?>[] getCallingClasses() {
+            return getClassContext();
+        }
     }
 }

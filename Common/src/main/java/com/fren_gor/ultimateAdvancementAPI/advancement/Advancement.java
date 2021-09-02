@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDispla
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementCriteriaUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
@@ -84,11 +85,11 @@ public abstract class Advancement {
     protected final int maxCriteria;
 
     private Advancement() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Private constructor.");
     }
 
     /**
-     * Create a new Advancement.
+     * Creates a new Advancement.
      *
      * @param advancementTab The advancement tab it belongs to.
      * @param key The unique key of the advancement, just the name.
@@ -99,7 +100,7 @@ public abstract class Advancement {
     }
 
     /**
-     * Create a new Advancement.
+     * Creates a new Advancement.
      *
      * @param advancementTab The advancement tab it belongs to.
      * @param key The unique key of the advancement, just the name.
@@ -107,6 +108,12 @@ public abstract class Advancement {
      * @param maxCriteria The times the advancement action should be done.
      */
     Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
+        // Validate class inheritance: Advancement can be extended only by RootAdvancement and BaseAdvancement
+        // This makes sure no reflection is being used to make an invalid Advancement
+        // The instanceOfs order provides max speed in most cases (there is usually one root for many base advancements)
+        if (!(this instanceof BaseAdvancement || this instanceof RootAdvancement)) {
+            throw new IllegalOperationException(getClass().getName() + " is neither an instance of RootAdvancement nor BaseAdvancement.");
+        }
         Validate.isTrue(maxCriteria > 0, "Max criteria cannot be <= 0");
         this.advancementTab = Objects.requireNonNull(advancementTab, "AdvancementTab is null.");
         this.key = new AdvancementKey(advancementTab.getNamespace(), key);
