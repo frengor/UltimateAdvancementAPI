@@ -273,7 +273,7 @@ public final class DatabaseManager {
     @NotNull
     private CompletableFuture<Result> updatePlayerTeam(@NotNull UUID playerToMove, @Nullable Player ptm, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
         Validate.notNull(playerToMove, "Player to move is null.");
-        Validate.notNull(otherTeamProgression, "TeamProgression is null.");
+        validateTeamProgression(otherTeamProgression);
 
         synchronized (DatabaseManager.this) {
             if (!progressionCache.containsKey(playerToMove)) {
@@ -444,7 +444,7 @@ public final class DatabaseManager {
     @NotNull
     public Entry<Integer, CompletableFuture<Result>> updateCriteriaWithCompletable(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
         Validate.notNull(key, "Key is null.");
-        Validate.notNull(progression, "TeamProgression is null.");
+        validateTeamProgression(progression);
         Validate.isTrue(progression.getSize() > 0, "TeamProgression doesn't contain any player.");
         AdvancementUtils.checkSync();
 
@@ -538,7 +538,7 @@ public final class DatabaseManager {
     @NotNull
     public CompletableFuture<ObjectResult<@NotNull Boolean>> isUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
         Validate.notNull(key, "AdvancementKey is null.");
-        Validate.notNull(pro, "TeamProgression is null.");
+        validateTeamProgression(pro);
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return new ObjectResult<>(database.isUnredeemed(key, pro.getTeamId()));
@@ -561,7 +561,7 @@ public final class DatabaseManager {
     @NotNull
     public CompletableFuture<Result> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull TeamProgression pro) {
         Validate.notNull(key, "AdvancementKey is null.");
-        Validate.notNull(pro, "TeamProgression is null.");
+        validateTeamProgression(pro);
         return CompletableFuture.supplyAsync(() -> {
             try {
                 database.setUnredeemed(key, giveRewards, pro.getTeamId());
@@ -584,7 +584,7 @@ public final class DatabaseManager {
     @NotNull
     public CompletableFuture<Result> unsetUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
         Validate.notNull(key, "AdvancementKey is null.");
-        Validate.notNull(pro, "TeamProgression is null.");
+        validateTeamProgression(pro);
         return CompletableFuture.supplyAsync(() -> {
             try {
                 database.unsetUnredeemed(key, pro.getTeamId());
@@ -702,6 +702,11 @@ public final class DatabaseManager {
                 }
             }
         }
+    }
+
+    private static void validateTeamProgression(@NotNull TeamProgression pro) {
+        Validate.notNull(pro, "TeamProgression is null.");
+        Validate.isTrue(pro.isValid(), "TeamProgression is not valid (this means it is not present in cache).");
     }
 
     @ToString
