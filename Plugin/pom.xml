@@ -35,6 +35,13 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bukkit</artifactId>
+            <version>2.2.1</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- For JavaDoc Generation -->
         <dependency>
             <groupId>net.byteflux</groupId>
@@ -45,13 +52,13 @@
 
         <!-- For JavaDoc Generation -->
         <dependency>
-             <groupId>com.frengor</groupId>
-             <artifactId>eventmanagerapi</artifactId>
-             <version>1.0-SNAPSHOT</version>
-             <scope>provided</scope>
-         </dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>eventmanagerapi</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
 
-         <!-- CommandAPI -->
+        <!-- CommandAPI -->
         <dependency>
             <groupId>dev.jorel.CommandAPI</groupId>
             <artifactId>commandapi-shade</artifactId>
@@ -99,8 +106,16 @@
                             <pattern>dev.jorel.commandapi</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>org.bstats</pattern>
+                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.org.bstats</shadedPattern>
+                        </relocation>
                     </relocations>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.projectlombok</groupId>
