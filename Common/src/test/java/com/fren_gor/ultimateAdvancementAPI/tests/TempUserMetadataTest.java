@@ -43,7 +43,7 @@ public class TempUserMetadataTest {
             UUID uuid = UUID.randomUUID();
             FakePlayer pl = new FakePlayer(uuid);
             bukkitMock.when(() -> Bukkit.getPlayer(uuid)).thenReturn(pl);
-            assertEquals(Bukkit.getPlayer(uuid), pl);
+            assertEquals("Mock failed", Bukkit.getPlayer(uuid), pl);
             players.put(uuid, pl);
         }
         TempUserMetadataClass = Class.forName("com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager$TempUserMetadata");

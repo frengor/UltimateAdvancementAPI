@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -31,7 +32,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
  */
 public final class TeamProgression {
 
-
+    final AtomicBoolean inCache = new AtomicBoolean(false);
     private final int teamId;
     private final Set<UUID> players;
     private final Map<AdvancementKey, Integer> advancements;
@@ -205,6 +206,16 @@ public final class TeamProgression {
     }
 
     /**
+     * Gets whether the current TeamProgression object is valid. A TeamProgression object is valid if and only if it is stored
+     * into the caching system (see {@link DatabaseManager}).
+     *
+     * @return Whether the current TeamProgression object is valid.
+     */
+    public boolean isValid() {
+        return inCache.get();
+    }
+
+    /**
      * Sets the criteria of an advancement.
      *
      * @param key The key of the advancement.
@@ -232,7 +243,7 @@ public final class TeamProgression {
      * Adds a player in the team.
      *
      * @param uuid The UUID player to be added.
-     * @return {@code true} if the member list did not already contain the specified member.
+     * @return {@code true} if the member list did not already contain the specified member, {@code false} otherwise.
      */
     boolean addMember(@NotNull UUID uuid) {
         Validate.notNull(uuid, "UUID is null.");
@@ -306,7 +317,7 @@ public final class TeamProgression {
     /**
      * Returns the team unique id.
      *
-     * @return the team unique id.
+     * @return The team unique id.
      */
     public int getTeamId() {
         return teamId;

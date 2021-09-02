@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import lombok.Getter;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.apache.commons.lang.Validate;
@@ -33,6 +34,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 
@@ -71,11 +73,10 @@ public final class AdvancementMain {
             throw new IllegalStateException("UltimateAdvancementAPI is getting loaded twice.");
         }
         // Check mc version
-        final String nms = "v1_15_R1";
-        final String fancy = "1.15-1.15.2";
-        final String actual = Bukkit.getServer().getClass().getName().split("\\.")[3];
-        if (!nms.equals(actual)) {
+        final String actual = Versions.getNMSVersion();
+        if (!Versions.getSupportedNMSVersions().contains(actual)) {
             INVALID_VERSION.set(true);
+            String fancy = Versions.getSupportedNMSVersions().stream().map(Versions::getNMSVersionsRange).collect(Collectors.joining(", ", "[", "]"));
             throw new InvalidVersionException(fancy, actual, "Invalid minecraft version, couldn't load UltimateAdvancementAPI. Supported versions are " + fancy + '.');
         }
     }

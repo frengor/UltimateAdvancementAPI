@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.database;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption.Option;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.SQLite;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
@@ -96,6 +97,7 @@ public final class DatabaseManager {
                 } else {
                     TeamProgression t = progressionCache.remove(e.getPlayer().getUniqueId());
                     if (t != null && t.noMemberMatch(progressionCache::containsKey)) {
+                        t.inCache.set(false); // Invalidate TeamProgression
                         Bukkit.getPluginManager().callEvent(new TeamUnloadEvent(t));
                     }
                 }
@@ -136,6 +138,7 @@ public final class DatabaseManager {
         }
         synchronized (this) {
             tempLoaded.clear();
+            progressionCache.forEach((u, t) -> t.inCache.set(false)); // Invalidate TeamProgression
             progressionCache.clear();
         }
     }
@@ -177,6 +180,7 @@ public final class DatabaseManager {
 
         Entry<TeamProgression, Boolean> e = database.loadOrRegisterPlayer(uuid, player.getName());
         updatePlayerName(player);
+        e.getKey().inCache.set(true); // Set TeamProgression valid
         progressionCache.put(uuid, e.getKey());
         runSync(main, () -> Bukkit.getPluginManager().callEvent(new TeamLoadEvent(e.getKey())));
         return e;
@@ -355,11 +359,14 @@ public final class DatabaseManager {
             final TeamProgression pro;
             boolean teamUnloaded;
             synchronized (DatabaseManager.this) {
+                newPro.inCache.set(true); // Set TeamProgression valid
                 pro = progressionCache.put(uuid, newPro);
 
                 if (pro != null) {
                     pro.removeMember(uuid);
-                    teamUnloaded = pro.noMemberMatch(progressionCache::containsKey);
+                    if (teamUnloaded = pro.noMemberMatch(progressionCache::containsKey)) {
+                        pro.inCache.set(false); // Invalidate TeamProgression
+                    }
                 } else {
                     teamUnloaded = false;
                 }
@@ -630,7 +637,10 @@ public final class DatabaseManager {
                 return new ObjectResult<>(e);
             }
             handleCacheFreeingOption(uuid, t, option); // Direct caching and handle requests
-            runSync(main, () -> Bukkit.getPluginManager().callEvent(new TeamLoadEvent(t)));
+            if (option.option != Option.DONT_CACHE) {
+                t.inCache.set(true); // Set TeamProgression valid
+                runSync(main, () -> Bukkit.getPluginManager().callEvent(new TeamLoadEvent(t)));
+            }
             return new ObjectResult<>(t);
         });
     }
@@ -682,6 +692,7 @@ public final class DatabaseManager {
                 if (!meta.isOnline) {
                     TeamProgression t = progressionCache.remove(uuid);
                     if (t != null && t.noMemberMatch(progressionCache::containsKey)) {
+                        t.inCache.set(false); // Invalidate TeamProgression
                         Bukkit.getPluginManager().callEvent(new TeamUnloadEvent(t));
                     }
                 }
