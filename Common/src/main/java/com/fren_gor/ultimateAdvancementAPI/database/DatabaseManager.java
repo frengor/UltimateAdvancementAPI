@@ -307,6 +307,9 @@ public final class DatabaseManager {
                 if (pro != null) {
                     pro.removeMember(playerToMove);
                     teamUnloaded = pro.noMemberMatch(progressionCache::containsKey);
+                    if (teamUnloaded) {
+                        pro.inCache.set(false); // Invalidate TeamProgression
+                    }
                 } else {
                     teamUnloaded = false;
                 }
@@ -364,7 +367,8 @@ public final class DatabaseManager {
 
                 if (pro != null) {
                     pro.removeMember(uuid);
-                    if (teamUnloaded = pro.noMemberMatch(progressionCache::containsKey)) {
+                    teamUnloaded = pro.noMemberMatch(progressionCache::containsKey);
+                    if (teamUnloaded) {
                         pro.inCache.set(false); // Invalidate TeamProgression
                     }
                 } else {
