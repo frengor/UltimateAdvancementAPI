@@ -28,11 +28,21 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+/**
+ * Class used to establish a connection to a SQLite database.
+ */
 public class SQLite implements IDatabase {
 
     private final Logger logger;
     private final Connection connection;
 
+    /**
+     * Creates the SQLite connection.
+     *
+     * @param dbFile The SQLite database file. If it doesn't exist, it is created.
+     * @param logger The plugin {@link Logger}.
+     * @throws Exception If anything goes wrong.
+     */
     public SQLite(@NotNull File dbFile, @NotNull Logger logger) throws Exception {
         if (!dbFile.exists() && !dbFile.createNewFile()) {
             throw new IOException("Cannot create the database file.");
@@ -46,6 +56,9 @@ public class SQLite implements IDatabase {
         this.logger = logger;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setUp() throws SQLException {
         try (Statement statement = openConnection().createStatement()) {
@@ -58,16 +71,25 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Connection openConnection() throws SQLException {
         return connection;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void close() throws SQLException {
         connection.close();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getTeamId(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         try (PreparedStatement ps = openConnection().prepareStatement("SELECT `TeamID` FROM `Players` WHERE `UUID`=?;")) {
@@ -81,6 +103,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<UUID> getTeamMembers(int teamId) throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("SELECT `UUID` FROM `Players` WHERE `TeamID`=?;")) {
@@ -94,6 +119,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Map<AdvancementKey, Integer> getTeamAdvancements(int teamId) throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("SELECT `Namespace`,`Key`,`Criteria` FROM `Advancements` WHERE `TeamID`=?;")) {
@@ -114,6 +142,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @NotNull String name) throws SQLException {
         int teamId;
@@ -145,6 +176,9 @@ public class SQLite implements IDatabase {
         return new SimpleEntry<>(new TeamProgression(map, teamId, list), false);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public TeamProgression loadUUID(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         int teamID = Integer.MIN_VALUE;
@@ -180,6 +214,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updateAdvancement(@NotNull AdvancementKey key, int teamId, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) throws SQLException {
         if (criteria <= 0) {
@@ -200,6 +237,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("SELECT `Namespace`, `Key`, `GiveRewards` FROM `Unredeemed` WHERE `TeamID`=?;")) {
@@ -220,6 +260,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, int teamId) throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("INSERT OR IGNORE INTO `Unredeemed` (`Namespace`, `Key`, `TeamID`, `GiveRewards`) VALUES (?, ?, ?, ?);")) {
@@ -231,6 +274,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnredeemed(@NotNull AdvancementKey key, int teamId) throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("SELECT Count(*) FROM `Unredeemed` WHERE `Namespace`=? AND `Key`=? AND `TeamID`=?;")) {
@@ -242,6 +288,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unsetUnredeemed(@NotNull AdvancementKey key, int teamId) throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("DELETE FROM `Unredeemed` WHERE `Namespace`=? AND `Key`=? AND `TeamID`=?;")) {
@@ -252,6 +301,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unsetUnredeemed(@NotNull List<Entry<AdvancementKey, Boolean>> keyList, int teamId) throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("DELETE FROM `Unredeemed` WHERE `Namespace`=? AND `Key`=? AND `TeamID`=?;")) {
@@ -264,6 +316,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unregisterPlayer(@NotNull UUID uuid) throws SQLException {
         try (PreparedStatement stDelete = openConnection().prepareStatement("DELETE FROM `Players` WHERE `UUID`=?;")) {
@@ -272,6 +327,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void movePlayer(@NotNull UUID uuid, int newTeamId) throws SQLException {
         try (PreparedStatement stUpdate = openConnection().prepareStatement("UPDATE `Players` SET `TeamID`=? WHERE `UUID`=?;")) {
@@ -281,6 +339,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public TeamProgression movePlayerInNewTeam(@NotNull UUID uuid) throws SQLException {
         try (PreparedStatement psInsert = openConnection().prepareStatement("INSERT INTO `Teams` DEFAULT VALUES;")) {
@@ -295,6 +356,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<UUID> getPlayersByName(@NotNull String name) throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("SELECT `UUID` FROM `Players` WHERE `Name`=?;")) {
@@ -308,6 +372,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getPlayerName(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         try (PreparedStatement ps = openConnection().prepareStatement("SELECT `Name` FROM `Players` WHERE `UUID`=? LIMIT 1;")) {
@@ -320,6 +387,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updatePlayerName(@NotNull UUID uuid, @NotNull String name) throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("UPDATE `Players` SET `Name`=? WHERE `UUID`=?;")) {
@@ -329,6 +399,9 @@ public class SQLite implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void clearUpTeams() throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("DELETE FROM `Teams` WHERE `ID` NOT IN (SELECT `TeamID` FROM `Players` GROUP BY `TeamID`);")) {

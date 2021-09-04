@@ -29,6 +29,9 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+/**
+ * Class used to establish a connection to a MySQL database.
+ */
 public class MySQL implements IDatabase {
 
     private final Logger logger;
@@ -36,6 +39,20 @@ public class MySQL implements IDatabase {
     private final DataSource dataSource;
     private final Method close;
 
+    /**
+     * Creates the MySQL connection.
+     *
+     * @param username The username.
+     * @param password The password.
+     * @param databaseName The name of the database.
+     * @param host The MySQL host.
+     * @param port The MySQL port.
+     * @param poolSize The pool size.
+     * @param connectionTimeout The connection timeout.
+     * @param logger The plugin {@link Logger}.
+     * @param manager The {@link LibraryManager}.
+     * @throws Exception If anything goes wrong.
+     */
     public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, int port, int poolSize, long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws Exception {
         classLoader = new IsolatedClassLoader();
         classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.31").checksum("zahiqmloOsBy7ir9C5PQcM6rKR71uFfTGLJMFZWza4o=").build()));
@@ -77,6 +94,9 @@ public class MySQL implements IDatabase {
         this.logger = logger;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setUp() throws SQLException {
         try (Connection conn = openConnection(); Statement statement = conn.createStatement()) {
@@ -88,11 +108,17 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Connection openConnection() throws SQLException {
         return dataSource.getConnection();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void close() throws SQLException {
         try {
@@ -107,6 +133,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getTeamId(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `TeamID` FROM `Players` WHERE `UUID`=?;")) {
@@ -120,6 +149,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<UUID> getTeamMembers(int teamId) throws SQLException {
         try (Connection conn = openConnection()) {
@@ -139,6 +171,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Map<AdvancementKey, Integer> getTeamAdvancements(int teamId) throws SQLException {
         try (Connection conn = openConnection()) {
@@ -165,6 +200,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @NotNull String name) throws SQLException {
         int teamId;
@@ -198,6 +236,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public TeamProgression loadUUID(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         int teamID = Integer.MIN_VALUE;
@@ -235,6 +276,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updateAdvancement(@NotNull AdvancementKey key, int teamId, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) throws SQLException {
         try (Connection conn = openConnection()) {
@@ -257,6 +301,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `Namespace`, `Key`, `GiveRewards` FROM `Unredeemed` WHERE `TeamID`=?;")) {
@@ -277,6 +324,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, int teamId) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("INSERT IGNORE INTO `Unredeemed` (`Namespace`, `Key`, `TeamID`, `GiveRewards`) VALUES (?, ?, ?, ?);")) {
@@ -288,6 +338,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnredeemed(@NotNull AdvancementKey key, int teamId) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT Count(*) FROM `Unredeemed` WHERE `Namespace`=? AND `Key`=? AND `TeamID`=?;")) {
@@ -299,6 +352,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unsetUnredeemed(@NotNull AdvancementKey key, int teamId) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("DELETE FROM `Unredeemed` WHERE `Namespace`=? AND `Key`=? AND `TeamID`=?;")) {
@@ -309,6 +365,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unsetUnredeemed(@NotNull List<Entry<AdvancementKey, Boolean>> keyList, int teamId) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("DELETE FROM `Unredeemed` WHERE `Namespace`=? AND `Key`=? AND `TeamID`=?;")) {
@@ -321,6 +380,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unregisterPlayer(@NotNull UUID uuid) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement stDelete = conn.prepareStatement("DELETE FROM `Players` WHERE `UUID`=?;")) {
@@ -329,6 +391,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void movePlayer(@NotNull UUID uuid, int newTeamId) throws SQLException {
         try (Connection conn = openConnection()) {
@@ -344,6 +409,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public TeamProgression movePlayerInNewTeam(@NotNull UUID uuid) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement psInsert = conn.prepareStatement("INSERT INTO `Teams` () VALUES ();")) {
@@ -358,6 +426,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<UUID> getPlayersByName(@NotNull String name) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `UUID` FROM `Players` WHERE `Name`=?;")) {
@@ -371,6 +442,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getPlayerName(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `Name` FROM `Players` WHERE `UUID`=? LIMIT 1;")) {
@@ -383,6 +457,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updatePlayerName(@NotNull UUID uuid, @NotNull String name) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("UPDATE `Players` SET `Name`=? WHERE `UUID`=?;")) {
@@ -392,6 +469,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void clearUpTeams() throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("DELETE FROM `Teams` WHERE `ID` NOT IN (SELECT `TeamID` FROM `Players` GROUP BY `TeamID`);")) {

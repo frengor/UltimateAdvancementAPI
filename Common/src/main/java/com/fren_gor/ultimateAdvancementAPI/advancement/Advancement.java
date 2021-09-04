@@ -554,7 +554,6 @@ public abstract class Advancement {
             runSync(advancementTab.getOwningPlugin(), () -> AdvancementUtils.displayToastDuringUpdate(player, this));
         }
 
-        // Display handled by client (see AdvancementDisplay#showToast())
         if (giveRewards)
             giveReward(player);
     }
@@ -608,7 +607,6 @@ public abstract class Advancement {
      * @param player The player that has done the advancement.
      */
     public void giveReward(@NotNull Player player) {
-
     }
 
     /**
@@ -617,7 +615,6 @@ public abstract class Advancement {
      * <p>You can't use all methods in {@link AdvancementTab} because this method is called before the advancement tab registration.
      */
     public void onRegister() {
-
     }
 
     /**
@@ -629,7 +626,6 @@ public abstract class Advancement {
      * @throws InvalidAdvancementException If the check fails.
      */
     public void validateRegister() throws InvalidAdvancementException {
-
     }
 
     /**
@@ -637,7 +633,6 @@ public abstract class Advancement {
      * <p>It does not do anything by default. Override the method to change the behavior.
      */
     public void onDispose() {
-
     }
 
     /**
