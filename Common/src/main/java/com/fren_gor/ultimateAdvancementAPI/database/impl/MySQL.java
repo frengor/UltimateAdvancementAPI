@@ -72,7 +72,7 @@ public class MySQL implements IDatabase {
             // Test connection
             try (Connection conn = openConnection()) {
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw new SQLException("Couldn't set up database.", e);
         }
         this.logger = logger;

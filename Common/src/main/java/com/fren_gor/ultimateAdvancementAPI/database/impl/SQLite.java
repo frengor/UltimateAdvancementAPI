@@ -43,7 +43,7 @@ public class SQLite implements IDatabase {
             config.setEncoding(Encoding.UTF8);
             config.setSynchronous(SynchronousMode.FULL);
             this.connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile, config.toProperties());
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw new SQLException("Couldn't set up database.", e);
         }
         this.logger = logger;
