@@ -36,44 +36,43 @@ public class MySQL implements IDatabase {
     private final DataSource dataSource;
     private final Method close;
 
-    public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, int port, int poolSize, long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws SQLException {
+    public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, int port, int poolSize, long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws Exception {
         classLoader = new IsolatedClassLoader();
         classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.31").checksum("zahiqmloOsBy7ir9C5PQcM6rKR71uFfTGLJMFZWza4o=").build()));
         classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-simple").version("1.7.31").checksum("AHwNOZ4Tefv4YkfDCkLRDWGAlBRo9Ky+mu4Uu2Qqwdw=").build()));
         classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("com.zaxxer").artifactId("HikariCP").version("4.0.3").checksum("fAJK7/HBBjV210RTUT+d5kR9jmJNF/jifzCi6XaIxsk=").build()));
 
-        try {
-            Class<?> hikariConfig = classLoader.loadClass("com.zaxxer.hikari.HikariConfig");
-            Class<?> hikariDataSource = classLoader.loadClass("com.zaxxer.hikari.HikariDataSource");
+        Class<?> hikariConfig = classLoader.loadClass("com.zaxxer.hikari.HikariConfig");
+        Class<?> hikariDataSource = classLoader.loadClass("com.zaxxer.hikari.HikariDataSource");
 
-            close = hikariDataSource.getDeclaredMethod("close");
+        close = hikariDataSource.getDeclaredMethod("close");
 
-            Properties props = new Properties();
-            props.put("jdbcUrl", "jdbc:mysql://" + host + ":" + port + '/' + databaseName);
-            props.put("driverClassName", "com.mysql.jdbc.Driver");
-            props.put("username", username);
-            props.put("password", password);
-            props.put("minimumIdle", poolSize);
-            props.put("maximumPoolSize", poolSize);
-            props.put("connectionTimeout", connectionTimeout);
-            props.put("dataSource.useSSL", false);
-            props.put("dataSource.cachePrepStmts", true);
-            props.put("dataSource.prepStmtCacheSize", 250);
-            props.put("dataSource.prepStmtCacheSqlLimit", 2048);
-            props.put("dataSource.useServerPrepStmts", true);
-            props.put("dataSource.useLocalSessionState", true);
-            props.put("dataSource.rewriteBatchedStatements", true);
-            props.put("dataSource.cacheResultSetMetadata", true);
-            props.put("dataSource.cacheServerConfiguration", true);
-            props.put("dataSource.maintainTimeStats", false);
+        Properties props = new Properties();
+        props.put("jdbcUrl", "jdbc:mysql://" + host + ":" + port + '/' + databaseName);
+        props.put("driverClassName", "com.mysql.jdbc.Driver");
+        props.put("username", username);
+        props.put("password", password);
+        props.put("minimumIdle", poolSize);
+        props.put("maximumPoolSize", poolSize);
+        props.put("connectionTimeout", connectionTimeout);
+        props.put("dataSource.useSSL", false);
+        props.put("dataSource.cachePrepStmts", true);
+        props.put("dataSource.prepStmtCacheSize", 250);
+        props.put("dataSource.prepStmtCacheSqlLimit", 2048);
+        props.put("dataSource.useServerPrepStmts", true);
+        props.put("dataSource.useLocalSessionState", true);
+        props.put("dataSource.rewriteBatchedStatements", true);
+        props.put("dataSource.cacheResultSetMetadata", true);
+        props.put("dataSource.cacheServerConfiguration", true);
+        props.put("dataSource.maintainTimeStats", false);
 
-            Object config = hikariConfig.getConstructor(Properties.class).newInstance(props);
-            this.dataSource = (DataSource) hikariDataSource.getConstructor(hikariConfig).newInstance(config);
-            // Test connection
-            try (Connection conn = openConnection()) {
-            }
-        } catch (Exception e) {
-            throw new SQLException("Couldn't set up database.", e);
+        Object config = hikariConfig.getConstructor(Properties.class).newInstance(props);
+        this.dataSource = (DataSource) hikariDataSource.getConstructor(hikariConfig).newInstance(config);
+        // Test connection
+        // noinspection EmptyTryBlock - disable intellij warning
+        try (Connection ignored = openConnection()) {
+        } catch (SQLException e) {
+            throw new SQLException("An exception occurred while testing the established connection.", e);
         }
         this.logger = logger;
     }

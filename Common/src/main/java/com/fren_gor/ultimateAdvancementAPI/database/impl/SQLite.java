@@ -2,8 +2,8 @@ package com.fren_gor.ultimateAdvancementAPI.database.impl;
 
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalKeyException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -12,6 +12,7 @@ import org.sqlite.SQLiteConfig.Encoding;
 import org.sqlite.SQLiteConfig.SynchronousMode;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -32,20 +33,16 @@ public class SQLite implements IDatabase {
     private final Logger logger;
     private final Connection connection;
 
-    public SQLite(@NotNull File dbFile, @NotNull Logger logger) throws SQLException {
-        try {
-            if (!dbFile.exists()) {
-                dbFile.createNewFile();
-            }
-            Class.forName("org.sqlite.JDBC");
-            SQLiteConfig config = new SQLiteConfig();
-            config.enforceForeignKeys(true);
-            config.setEncoding(Encoding.UTF8);
-            config.setSynchronous(SynchronousMode.FULL);
-            this.connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile, config.toProperties());
-        } catch (Exception e) {
-            throw new SQLException("Couldn't set up database.", e);
+    public SQLite(@NotNull File dbFile, @NotNull Logger logger) throws Exception {
+        if (!dbFile.exists() && !dbFile.createNewFile()) {
+            throw new IOException("Cannot create the database file.");
         }
+        Class.forName("org.sqlite.JDBC");
+        SQLiteConfig config = new SQLiteConfig();
+        config.enforceForeignKeys(true);
+        config.setEncoding(Encoding.UTF8);
+        config.setSynchronous(SynchronousMode.FULL);
+        this.connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile, config.toProperties());
         this.logger = logger;
     }
 
