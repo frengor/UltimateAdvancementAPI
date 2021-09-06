@@ -1,11 +1,12 @@
 package com.fren_gor.ultimateAdvancementAPI.exceptions;
 
+import com.fren_gor.ultimateAdvancementAPI.database.Result;
+
 /**
  * This exception is thrown when an illegal operation occurs.
- * <p>For example, calling the TeamProgression constructor from outside the com.fren_gor.ultimateAdvancementAPI.database
- * will throw an IllegalOperationException.
+ * <p>For example, calling {@link Result#getOccurredException()} when no exception occurred results in an {@code IllegalOperationException}.
  */
-public class IllegalOperationException extends RuntimeException {
+public class IllegalOperationException extends UnsupportedOperationException {
 
     public IllegalOperationException() {
         super();
@@ -21,9 +22,5 @@ public class IllegalOperationException extends RuntimeException {
 
     public IllegalOperationException(Throwable cause) {
         super(cause);
-    }
-
-    protected IllegalOperationException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
     }
 }
