@@ -1,7 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
+import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UnhandledException;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -29,16 +31,17 @@ public class Result {
         return occurredException == null;
     }
 
-    public Exception getOccurredException() throws UnsupportedOperationException {
+    public Exception getOccurredException() throws IllegalOperationException {
         if (!isExceptionOccurred()) {
-            throw new UnsupportedOperationException("No exception occurred.");
+            throw new IllegalOperationException("No exception occurred.");
         }
         return occurredException;
     }
 
-    public void rethrowException() throws UnhandledException, UnsupportedOperationException {
+    @Contract("-> fail")
+    public void rethrowException() throws UnhandledException, IllegalOperationException {
         rethrowExceptionIfOccurred();
-        throw new UnsupportedOperationException("No exception occurred.");
+        throw new IllegalOperationException("No exception occurred.");
     }
 
     public void rethrowExceptionIfOccurred() throws UnhandledException {
@@ -46,9 +49,9 @@ public class Result {
             throw new UnhandledException(occurredException);
     }
 
-    public void printStackTrace() throws UnsupportedOperationException {
+    public void printStackTrace() throws IllegalOperationException {
         if (!isExceptionOccurred()) {
-            throw new UnsupportedOperationException("No exception occurred.");
+            throw new IllegalOperationException("No exception occurred.");
         }
         occurredException.printStackTrace();
     }
