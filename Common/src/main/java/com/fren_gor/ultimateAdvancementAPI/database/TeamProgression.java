@@ -27,8 +27,8 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFrom
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteria;
 
 /**
- * TeamProgression objects stores information about a team and its advancement progressions.
- * <p>TeamProgression is used to cache team information by the caching system.
+ * The {@code TeamProgression} class stores information about a team and its advancement progressions.
+ * <p>{@code TeamProgression} is used to cache team information by the caching system.
  * <p>This class is thread safe.
  */
 public final class TeamProgression {
