@@ -76,7 +76,7 @@ public final class AdvancementTab {
      * @param databaseManager The database manager.
      * @param namespace The unique name of the advancement tab.
      */
-    protected AdvancementTab(@NotNull Plugin owningPlugin, @NotNull DatabaseManager databaseManager, @NotNull String namespace) {
+    AdvancementTab(@NotNull Plugin owningPlugin, @NotNull DatabaseManager databaseManager, @NotNull String namespace) {
         checkNamespace(namespace);
         this.namespace = Objects.requireNonNull(namespace);
         this.owningPlugin = Objects.requireNonNull(owningPlugin);
