@@ -22,6 +22,7 @@ import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -48,11 +49,29 @@ import java.util.function.Consumer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 
+/**
+ * The database manager. It handles the connection to the database and caches the requested values to improve performances.
+ * <p>The caching system caches teams using {@link TeamProgression}s and keeps a link between each online player and the
+ * associated {@link TeamProgression}. Two players who are part of the same team will always be associated to the same {@link TeamProgression} object.
+ * More formally, the object returned by {@link #getProgression(Player)} is the same if and only the players are members of the same team:
+ * <blockquote><pre>
+ * TeamProgression teamP1 = getProgression(playerOne);
+ * TeamProgression teamP2 = getProgression(playerTwo);
+ * if (teamP1.contains(p2)) { // Players are members of the same team
+ *    assert teamP1 == teamP2;
+ * } else { // Players are in two separate teams
+ *    assert teamP1 != teamP2;
+ * }
+ * </pre></blockquote>
+ * <p>By default, players are kept in cache until they quit.
+ * However, this behavior can be overridden through the {@link #loadOfflinePlayer(UUID, CacheFreeingOption)} method,
+ * which forces a player to stay in cache even if they quits. If the player was not online, they'll be loaded.
+ */
 public final class DatabaseManager {
 
     /**
      * Max possible loading requests a plugin can make simultaneously per offline player.
-     * <p>Limit is applied to automatic and manual requests separately and doesn't apply to requests which doesn't cache.
+     * <p>Limit is applied to automatic and manual requests separately and doesn't apply to requests which don't cache.
      */
     public static final int MAX_SIMULTANEOUS_LOADING_REQUESTS = Character.MAX_VALUE;
     private final AdvancementMain main;
@@ -130,6 +149,10 @@ public final class DatabaseManager {
         });
     }
 
+    /**
+     * Closes the connection to the database and frees the cache.
+     * <p>This method does not call {@link Event}s.
+     */
     public void unregister() {
         if (eventManager.isEnabled())
             eventManager.unregister(this);
