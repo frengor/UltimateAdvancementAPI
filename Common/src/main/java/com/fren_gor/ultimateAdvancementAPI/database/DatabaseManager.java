@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.database;
 
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
+import com.fren_gor.ultimateAdvancementAPI.UltimateAdvancementAPI;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption.Option;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
@@ -42,6 +43,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
@@ -238,6 +240,13 @@ public final class DatabaseManager {
             });
     }
 
+    /**
+     * Update the name of a player saved in the database.
+     *
+     * @param player The player to update.
+     * @return The result of the operation.
+     * @see UltimateAdvancementAPI#updatePlayerName(Player)
+     */
     @NotNull
     public CompletableFuture<Result> updatePlayerName(@NotNull Player player) {
         Validate.notNull(player, "Player cannot be null.");
@@ -255,16 +264,42 @@ public final class DatabaseManager {
         });
     }
 
+    /**
+     * Moves a player from a team to another.
+     *
+     * @param playerToMove The player to move.
+     * @param otherTeamMember The player who belongs to the target team.
+     * @return The result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the database.
+     * @see UltimateAdvancementAPI#updatePlayerTeam(Player, Player, Consumer)
+     */
     @NotNull
     public CompletableFuture<Result> updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player otherTeamMember) throws UserNotLoadedException {
         return updatePlayerTeam(playerToMove, getProgression(otherTeamMember));
     }
 
+    /**
+     * Moves a player from a team to another.
+     *
+     * @param playerToMove The UUID player to move.
+     * @param otherTeamMember The UUID player who belongs to the target team.
+     * @return The result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the database.
+     * @see UltimateAdvancementAPI#updatePlayerTeam(UUID, UUID, Consumer)
+     */
     @NotNull
     public CompletableFuture<Result> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID otherTeamMember) throws UserNotLoadedException {
         return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), getProgression(otherTeamMember));
     }
 
+    /**
+     * Moves a player from a team to another.
+     *
+     * @param playerToMove The player to move.
+     * @param otherTeamProgression The team progression of the target team.
+     * @return The result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the database.
+     */
     @NotNull
     public CompletableFuture<Result> updatePlayerTeam(@NotNull Player playerToMove, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
         return updatePlayerTeam(uuidFromPlayer(playerToMove), playerToMove, otherTeamProgression);
@@ -332,10 +367,26 @@ public final class DatabaseManager {
         });
     }
 
+    /**
+     * Create a new team for a player.
+     *
+     * @param player The player to move.
+     * @return The result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the database.
+     * @see UltimateAdvancementAPI#movePlayerInNewTeam(Player)
+     */
     public CompletableFuture<ObjectResult<@NotNull TeamProgression>> movePlayerInNewTeam(@NotNull Player player) throws UserNotLoadedException {
         return movePlayerInNewTeam(uuidFromPlayer(player), player);
     }
 
+    /**
+     * Create a new team for a player.
+     *
+     * @param uuid The UUID player to move.
+     * @return The result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the database.
+     * @see UltimateAdvancementAPI#movePlayerInNewTeam(UUID)
+     */
     public CompletableFuture<ObjectResult<@NotNull TeamProgression>> movePlayerInNewTeam(@NotNull UUID uuid) throws UserNotLoadedException {
         return movePlayerInNewTeam(uuid, Bukkit.getPlayer(uuid));
     }
@@ -390,10 +441,26 @@ public final class DatabaseManager {
         });
     }
 
+    /**
+     * Unregisters an offline player.
+     *
+     * @param player The offline player to unregister.
+     * @return The result of the operation.
+     * @throws IllegalStateException Whether the player is online or temporarily loaded into the database cache.
+     * @see UltimateAdvancementAPI#unregisterOfflinePlayer(OfflinePlayer)
+     */
     public CompletableFuture<Result> unregisterOfflinePlayer(@NotNull OfflinePlayer player) throws IllegalStateException {
         return unregisterOfflinePlayer(uuidFromPlayer(player));
     }
 
+    /**
+     * Unregisters an offline player.
+     *
+     * @param uuid The UUID player to unregister.
+     * @return The result of the operation.
+     * @throws IllegalStateException Whether the player is online or temporarily loaded into the database cache.
+     * @see UltimateAdvancementAPI#unregisterOfflinePlayer(UUID)
+     */
     public CompletableFuture<Result> unregisterOfflinePlayer(@NotNull UUID uuid) throws IllegalStateException {
         Validate.notNull(uuid, "UUID is null.");
         AdvancementUtils.checkSync();
@@ -473,11 +540,27 @@ public final class DatabaseManager {
         return new SimpleEntry<>(old, CompletableFuture.completedFuture(Result.SUCCESSFUL));
     }
 
+    /**
+     * Returns the progression of a player's team.
+     *
+     * @param player The player of the team.
+     * @return The team progression.
+     * @throws UserNotLoadedException If the player was not loaded into the database.
+     * @see UltimateAdvancementAPI#getProgression(Player)
+     */
     @NotNull
     public TeamProgression getProgression(@NotNull Player player) throws UserNotLoadedException {
         return getProgression(uuidFromPlayer(player));
     }
 
+    /**
+     * Returns the progression of a player's team.
+     *
+     * @param uuid The UUID player of the team.
+     * @return The team progression.
+     * @throws UserNotLoadedException If the player was not loaded into the database.
+     * @see UltimateAdvancementAPI#getProgression(UUID)
+     */
     @NotNull
     public synchronized TeamProgression getProgression(@NotNull UUID uuid) throws UserNotLoadedException {
         Validate.notNull(uuid, "UUID is null.");
@@ -486,11 +569,25 @@ public final class DatabaseManager {
         return pro;
     }
 
+    /**
+     * Returns if a player is loaded and cached.
+     *
+     * @param player The player of a team.
+     * @return If a player is loaded.
+     * @see UltimateAdvancementAPI#isLoaded(Player)
+     */
     @Contract(pure = true)
     public boolean isLoaded(@NotNull Player player) {
         return isLoaded(uuidFromPlayer(player));
     }
 
+    /**
+     * Returns if a player is loaded and cached.
+     *
+     * @param uuid The UUID player of a team.
+     * @return If a player is loaded.
+     * @see UltimateAdvancementAPI#isLoaded(UUID)
+     */
     @Contract(pure = true, value = "null -> false")
     public synchronized boolean isLoaded(UUID uuid) {
         return progressionCache.containsKey(uuid);
@@ -510,6 +607,15 @@ public final class DatabaseManager {
         return false;
     }
 
+    /**
+     * Returns the number of the loading requests done on a single player.
+     *
+     * @param plugin The plugin.
+     * @param uuid The UUID player of a team.
+     * @param type The type of the loading request.
+     * @return The number of the loading requests done on a single player.
+     @see UltimateAdvancementAPI#getLoadingRequestsAmount(Plugin, UUID, Option)
+     */
     @Contract(pure = true)
     @Range(from = 0, to = MAX_SIMULTANEOUS_LOADING_REQUESTS)
     public synchronized int getLoadingRequestsAmount(@NotNull Plugin plugin, @NotNull UUID uuid, @NotNull CacheFreeingOption.Option type) {
@@ -530,6 +636,15 @@ public final class DatabaseManager {
         }
     }
 
+    /**
+     * If the advancement has been completed but no rewards have been given yet.
+     *
+     * @param key The {@link AdvancementKey} of the advancement.
+     * @param uuid The UUID player of the team.
+     * @return The result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the database.
+     * @see UltimateAdvancementAPI#isUnredeemed(Advancement, UUID, Consumer)
+     */
     @NotNull
     public CompletableFuture<ObjectResult<@NotNull Boolean>> isUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid) throws UserNotLoadedException {
         return isUnredeemed(key, getProgression(uuid));
@@ -553,6 +668,16 @@ public final class DatabaseManager {
         });
     }
 
+    /**
+     * Sets if an advancement is unredeemed.
+     *
+     * @param key The {@link AdvancementKey} of the advancement.
+     * @param giveRewards {@code true} to set the advancement as unredeemed, {@code false} otherwise.
+     * @param uuid The UUID player of the team.
+     * @return The result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the database.
+     * @see UltimateAdvancementAPI#setUnredeemed(Advancement, UUID, boolean, Consumer)
+     */
     @NotNull
     public CompletableFuture<Result> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull UUID uuid) throws UserNotLoadedException {
         return setUnredeemed(key, giveRewards, getProgression(uuid));
@@ -576,6 +701,15 @@ public final class DatabaseManager {
         });
     }
 
+    /**
+     * Unsets an advancement as unredeemed.
+     *
+     * @param key The {@link AdvancementKey} of the advancement.
+     * @param uuid The UUID player of the team.
+     * @return The result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the database.
+     * @see UltimateAdvancementAPI#unsetUnredeemed(Advancement, UUID, Consumer)
+     */
     @NotNull
     public CompletableFuture<Result> unsetUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid) throws UserNotLoadedException {
         return unsetUnredeemed(key, getProgression(uuid));
@@ -599,6 +733,13 @@ public final class DatabaseManager {
         });
     }
 
+    /**
+     * Gets the stored name of a player in the database.
+     *
+     * @param uuid The UUID player.
+     * @return The result of the operation.
+     * @see UltimateAdvancementAPI#getStoredPlayerName(UUID, Consumer)
+     */
     @NotNull
     public CompletableFuture<ObjectResult<@NotNull String>> getStoredPlayerName(@NotNull UUID uuid) {
         Validate.notNull(uuid, "UUID is null.");
@@ -615,6 +756,14 @@ public final class DatabaseManager {
         });
     }
 
+    /**
+     * Loads from database the information about a team.
+     *
+     * @param uuid The UUID player of a team.
+     * @param option Select how to manage the occupied memory.
+     * @return The result of the operation.
+     * @see UltimateAdvancementAPI#loadOfflinePlayer(UUID, CacheFreeingOption, Consumer)
+     */
     @NotNull
     public synchronized CompletableFuture<ObjectResult<@NotNull TeamProgression>> loadOfflinePlayer(@NotNull UUID uuid, @NotNull CacheFreeingOption option) {
         Validate.notNull(uuid, "UUID is null.");
@@ -675,12 +824,27 @@ public final class DatabaseManager {
         return tempLoaded.containsKey(uuid);
     }
 
+    /**
+     * Returns if the player in cached in the plugin memory.
+     *
+     * @param uuid The UUID player of a team.
+     * @param requester The plugin.
+     * @return If the player in cached in the plugin memory.
+     * @see UltimateAdvancementAPI#isOfflinePlayerLoaded(UUID)
+     */
     @Contract(pure = true, value = "null, null -> false; null, !null -> false; !null, null -> false")
     public synchronized boolean isOfflinePlayerLoaded(UUID uuid, Plugin requester) {
         TempUserMetadata t = tempLoaded.get(uuid);
         return t != null && Integer.compareUnsigned(t.getRequests(requester), 0) > 0;
     }
 
+    /**
+     * Unload team information that was previously cached
+     *
+     * @param uuid The UUID player of a team.
+     * @param requester The plugin.
+     @see UltimateAdvancementAPI#unloadOfflinePlayer(UUID)
+     */
     public void unloadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
         internalUnloadOfflinePlayer(uuid, requester, false);
     }
