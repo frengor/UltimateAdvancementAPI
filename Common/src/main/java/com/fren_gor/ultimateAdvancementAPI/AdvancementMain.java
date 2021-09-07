@@ -183,6 +183,15 @@ public final class AdvancementMain {
             databaseManager.unregister();
     }
 
+    /**
+     * Create a new advancement tab.
+     *
+     * @param plugin Which plugin to register advancement tabs.
+     * @param namespace The unique name of the tab.
+     * @return A new advancement tab.
+     * @throws DuplicatedException If there are more than 1 tab with the same unique name.
+     * @see UltimateAdvancementAPI#createAdvancementTab(String)
+     */
     @NotNull
     @Contract("_, _ -> new")
     public AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace) throws DuplicatedException {
@@ -199,6 +208,13 @@ public final class AdvancementMain {
         return tab;
     }
 
+    /**
+     * Returns the wanted advancement tab.
+     *
+     * @param namespace The unique name of the wanted advancement tab.
+     * @return The wanted advancement tab.
+     * @see UltimateAdvancementAPI#getAdvancementTab(String)
+     */
     @Nullable
     public AdvancementTab getAdvancementTab(@NotNull String namespace) {
         checkInitialisation();
@@ -206,12 +222,26 @@ public final class AdvancementMain {
         return tabs.get(namespace);
     }
 
+    /**
+     * Returns if the advancement tab has already been registered.
+     *
+     * @param namespace The unique name of the advancement tab.
+     * @return If the advancement tab has already been registered.
+     * @see UltimateAdvancementAPI#isAdvancementTabRegistered(String)
+     */
     public boolean isAdvancementTabRegistered(@NotNull String namespace) {
         checkInitialisation();
         Validate.notNull(namespace, "Namespace is null.");
         return tabs.containsKey(namespace);
     }
 
+    /**
+     * Returns an unmodifiable list with the registered advancement tabs of your plugin.
+     *
+     * @param plugin Which plugin to returns the advancement tabs.
+     * @return An unmodifiable list with the registered advancement tabs of your plugin.
+     * @see UltimateAdvancementAPI#getPluginAdvancementTabs()
+     */
     @UnmodifiableView
     @NotNull
     public Collection<@NotNull AdvancementTab> getPluginAdvancementTabs(@NotNull Plugin plugin) {
@@ -220,6 +250,12 @@ public final class AdvancementMain {
         return Collections.unmodifiableCollection(pluginMap.getOrDefault(plugin, Collections.emptyList()));
     }
 
+    /**
+     * Unregister an advancement tab.
+     *
+     * @param namespace The unique name of the advancement tab to be unregistered.
+     * @see UltimateAdvancementAPI#unregisterAdvancementTab(String)
+     */
     public void unregisterAdvancementTab(@NotNull String namespace) {
         checkInitialisation();
         Validate.notNull(namespace, "Namespace is null.");
@@ -228,6 +264,12 @@ public final class AdvancementMain {
             tab.dispose();
     }
 
+    /**
+     * Unregister all advancement tabs.
+     *
+     * @param plugin Which plugin to unregister advancement tabs.
+     * @see UltimateAdvancementAPI#unregisterPluginAdvancementTabs()
+     */
     public void unregisterAdvancementTabs(@NotNull Plugin plugin) {
         checkInitialisation();
         Validate.notNull(plugin, "Plugin is null.");
@@ -238,6 +280,14 @@ public final class AdvancementMain {
         }
     }
 
+    /**
+     *  Returns the wanted advancement.
+     *  i.g. of the namespaced key: "namespace:key"
+     *
+     * @param namespacedKey The namespace of the advancement tab and the unique key of the advancement.
+     * @return The wanted advancement, or {@code null}.
+     * @see UltimateAdvancementAPI#getAdvancement(String)
+     */
     @Nullable
     public Advancement getAdvancement(@NotNull String namespacedKey) {
         checkInitialisation();
@@ -248,6 +298,14 @@ public final class AdvancementMain {
         return getAdvancement(namespacedKey.substring(0, colon), namespacedKey.substring(colon + 1));
     }
 
+    /**
+     * Returns the wanted advancement.
+     *
+     * @param namespace The namespace of the advancement tab.
+     * @param key The unique key of the advancement.
+     * @return The wanted advancement, or {@code null}.
+     * @see UltimateAdvancementAPI#getAdvancement(String, String)
+     */
     @Nullable
     public Advancement getAdvancement(@NotNull String namespace, @NotNull String key) {
         checkInitialisation();
@@ -256,6 +314,13 @@ public final class AdvancementMain {
         return getAdvancement(new AdvancementKey(namespace, key));
     }
 
+    /**
+     *  Returns the wanted advancement.
+     *
+     * @param namespacedKey The {@link AdvancementKey} of the advancement.
+     * @return The wanted advancement, or {@code null}.
+     * @see UltimateAdvancementAPI#getAdvancement(AdvancementKey)
+     */
     @Nullable
     public Advancement getAdvancement(@NotNull AdvancementKey namespacedKey) {
         checkInitialisation();
@@ -266,6 +331,12 @@ public final class AdvancementMain {
         return tab.getAdvancement(namespacedKey);
     }
 
+    /**
+     * Returns a list of all advancement unique names.
+     *
+     * @return A list of all advancement unique names.
+     * @see UltimateAdvancementAPI#getAdvancementTabNamespaces()
+     */
     @NotNull
     @UnmodifiableView
     @Contract(pure = true)
@@ -274,6 +345,13 @@ public final class AdvancementMain {
         return Collections.unmodifiableSet(tabs.keySet());
     }
 
+    /**
+     * Filter by name the unique names of the advancement tabs.
+     *
+     * @param input The filter.
+     * @return A filtered list of the advancement tab unique names.
+     * @see UltimateAdvancementAPI#filterNamespaces(String)
+     */
     @NotNull
     @Contract(pure = true, value = "_ -> new")
     public List<@NotNull String> filterNamespaces(@Nullable String input) {
@@ -308,6 +386,12 @@ public final class AdvancementMain {
         return l;
     }
 
+    /**
+     * Returns an unmodifiable list with all registered advancement tabs.
+     *
+     * @return An unmodifiable list with all registered advancement tabs.
+     * @see UltimateAdvancementAPI#getTabs()
+     */
     @UnmodifiableView
     @NotNull
     public Collection<@NotNull AdvancementTab> getTabs() {
@@ -315,6 +399,12 @@ public final class AdvancementMain {
         return Collections.unmodifiableCollection(tabs.values());
     }
 
+    /**
+     * Updates every advancement for a player.
+     *
+     * @param player Which player to update the advancements.
+     * @see UltimateAdvancementAPI#updatePlayer(Player)
+     */
     public void updatePlayer(@NotNull Player player) {
         checkInitialisation();
         Validate.notNull(player, "Player is null.");
