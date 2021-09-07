@@ -193,7 +193,7 @@ public class AdvancementDisplay {
         Validate.notNull(frame, "Frame is null.");
         Validate.notNull(defaultColor, "Default color is null.");
         Validate.notNull(description, "Description is null.");
-        Validate.isTrue(isNoElementNull(description), "An element of the description is null.");
+        Validate.noNullElements(description, "An element of the description is null.");
         Validate.isTrue(x >= 0, "x is not null or positive.");
         Validate.isTrue(y >= 0, "y is not null or positive.");
 
@@ -308,15 +308,6 @@ public class AdvancementDisplay {
     @NotNull
     public net.minecraft.server.v1_15_R1.ItemStack getNMSIcon() {
         return CraftItemStack.asNMSCopy(icon);
-    }
-
-    private static <T> boolean isNoElementNull(@NotNull List<T> list) {
-        for (T t : list) {
-            if (t == null) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
