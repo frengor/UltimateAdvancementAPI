@@ -29,7 +29,7 @@ mysql:
   port: 3306
   advanced-settings:
     # Set these only if you know what you're doing
-    poolSize: 5
+    poolSize: 10
     connectionTimeout: 6000
 
 # Do not touch!!!
