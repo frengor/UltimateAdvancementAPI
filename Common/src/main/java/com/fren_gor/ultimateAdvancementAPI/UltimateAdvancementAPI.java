@@ -413,8 +413,6 @@ public final class UltimateAdvancementAPI {
         callSyncIfNotNull(main.getDatabaseManager().updatePlayerName(player), action);
     }
 
-
-
     /**
      * If the advancement has been completed but no rewards have been given yet.
      *
@@ -700,36 +698,33 @@ public final class UltimateAdvancementAPI {
     /**
      * Returns the number of active caches on a single player.
      *
-     * @param plugin The plugin.
      * @param player The player of a team.
      * @param type The type of the loading request.
      * @return The number of the loading requests done on a single player.
      */
-    public int getLoadingRequestsAmount(@NotNull Plugin plugin, @NotNull Player player, @NotNull CacheFreeingOption.Option type) {
-        return getLoadingRequestsAmount(plugin, uuidFromPlayer(player), type);
+    public int getLoadingRequestsAmount(@NotNull Player player, @NotNull CacheFreeingOption.Option type) {
+        return getLoadingRequestsAmount(uuidFromPlayer(player), type);
     }
 
     /**
      * Returns the number of active caches on a single player.
      *
-     * @param plugin The plugin.
      * @param offlinePlayer The offline player of a team.
      * @param type The type of the loading request.
      * @return The number of the loading requests done on a single player.
      */
-    public int getLoadingRequestsAmount(@NotNull Plugin plugin, @NotNull OfflinePlayer offlinePlayer, @NotNull CacheFreeingOption.Option type) {
-        return getLoadingRequestsAmount(plugin, uuidFromPlayer(offlinePlayer), type);
+    public int getLoadingRequestsAmount(@NotNull OfflinePlayer offlinePlayer, @NotNull CacheFreeingOption.Option type) {
+        return getLoadingRequestsAmount(uuidFromPlayer(offlinePlayer), type);
     }
 
     /**
      * Returns the number of active caches on a single player.
      *
-     * @param plugin The plugin.
      * @param uuid The UUID player of a team.
      * @param type The type of the loading request.
      * @return The number of the loading requests done on a single player.
      */
-    public int getLoadingRequestsAmount(@NotNull Plugin plugin, @NotNull UUID uuid, @NotNull CacheFreeingOption.Option type) {
+    public int getLoadingRequestsAmount(@NotNull UUID uuid, @NotNull CacheFreeingOption.Option type) {
         return main.getDatabaseManager().getLoadingRequestsAmount(plugin, uuid, type);
     }
 
