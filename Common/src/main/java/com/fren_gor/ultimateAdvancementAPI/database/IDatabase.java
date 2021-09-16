@@ -145,7 +145,7 @@ public interface IDatabase {
     void setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, int teamId) throws SQLException;
 
     /**
-     * Gets whether the provided advancement is unredeemed for the specified team.
+     * Returns whether the provided advancement is unredeemed for the specified team.
      *
      * @param key The advancement key.
      * @param teamId The team id.

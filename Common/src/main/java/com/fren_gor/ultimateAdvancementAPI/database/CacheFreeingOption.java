@@ -46,20 +46,20 @@ public final class CacheFreeingOption {
     }
 
     /**
-     * Gets a {@code CacheFreeingOption} instance with caching strategy {@link Option#DONT_CACHE}.
+     * Gets a {@code CacheFreeingOption} instance with caching strategy <a href="./CacheFreeingOption.Option.html#DONT_CACHE"><code>CacheFreeingOption.Option#DONT_CACHE</code></a>.
      *
-     * @return A {@code CacheFreeingOption} instance with caching strategy {@link Option#DONT_CACHE}.
+     * @return A {@code CacheFreeingOption} instance with caching strategy <a href="./CacheFreeingOption.Option.html#DONT_CACHE"><code>CacheFreeingOption.Option#DONT_CACHE</code></a>.
      */
     public static CacheFreeingOption DONT_CACHE() {
         return DONT_CACHE;
     }
 
     /**
-     * Gets a {@code CacheFreeingOption} instance with caching strategy {@link Option#AUTOMATIC}.
+     * Gets a {@code CacheFreeingOption} instance with caching strategy <a href="./CacheFreeingOption.Option.html#AUTOMATIC"><code>CacheFreeingOption.Option#AUTOMATIC</code></a>.
      *
      * @param requester The {@link Plugin} that will make the request.
      * @param ticks The amount of ticks the requested player will remain in the cache.
-     * @return A {@code CacheFreeingOption} instance with caching strategy {@link Option#AUTOMATIC}.
+     * @return A {@code CacheFreeingOption} instance with caching strategy <a href="./CacheFreeingOption.Option.html#AUTOMATIC"><code>CacheFreeingOption.Option#AUTOMATIC</code></a>.
      */
     public static CacheFreeingOption AUTOMATIC(@NotNull Plugin requester, @Range(from = 0, to = Long.MAX_VALUE) long ticks) {
         Validate.notNull(requester, "Plugin is null.");
@@ -68,10 +68,10 @@ public final class CacheFreeingOption {
     }
 
     /**
-     * Gets a {@code CacheFreeingOption} instance with caching strategy {@link Option#MANUAL}.
+     * Gets a {@code CacheFreeingOption} instance with caching strategy <a href="./CacheFreeingOption.Option.html#MANUAL"><code>CacheFreeingOption.Option#MANUAL</code></a>.
      *
      * @param requester The {@link Plugin} that will make the request.
-     * @return A {@code CacheFreeingOption} instance with caching strategy {@link Option#MANUAL}.
+     * @return A {@code CacheFreeingOption} instance with caching strategy <a href="./CacheFreeingOption.Option.html#MANUAL"><code>CacheFreeingOption.Option#MANUAL</code></a>.
      */
     public static CacheFreeingOption MANUAL(@NotNull Plugin requester) {
         Validate.notNull(requester, "Plugin is null.");

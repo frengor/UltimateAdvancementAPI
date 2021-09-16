@@ -13,14 +13,13 @@ import java.util.Objects;
  * If it failed, then an {@link Exception} occurred.
  * Example usage:
  * <blockquote><pre>
- *     Result res = doOperation();
- *     if (res.isSucceeded()) { // the condition here is equivalent to !res.isExceptionOccurred()
- *         // success
- *     } else {
- *         // exception occurred!
- *         Exception exception = res.getOccurredException();
- *     }
- * </pre></blockquote>
+ * Result res = doOperation();
+ * if (res.isSucceeded()) { // the condition here is equivalent to !res.isExceptionOccurred()
+ *     // success
+ * } else {
+ *     // exception occurred!
+ *     Exception exception = res.getOccurredException();
+ * }</pre></blockquote>
  */
 public class Result {
 
@@ -53,7 +52,7 @@ public class Result {
     }
 
     /**
-     * Whether an {@link Exception} occurred executing the operation.
+     * Returns whether an {@link Exception} occurred executing the operation.
      * If no {@link Exception} occurred, then the operation succeeded.
      *
      * @return {@code true} if no exception occurred, {@code false} otherwise.
@@ -63,7 +62,7 @@ public class Result {
     }
 
     /**
-     * Whether the operation succeeded.
+     * Returns whether the operation succeeded.
      * If the operation succeeded, then no {@link Exception} occurred.
      *
      * @return {@code true} if the operation succeeded, {@code false} otherwise.

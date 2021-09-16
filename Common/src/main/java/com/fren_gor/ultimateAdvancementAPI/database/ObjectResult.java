@@ -22,7 +22,7 @@ import java.util.Objects;
  *     }
  * </pre></blockquote>
  *
- * @param <T> The result type
+ * @param <T> The result type.
  */
 public class ObjectResult<T> extends Result {
 
@@ -59,7 +59,7 @@ public class ObjectResult<T> extends Result {
     }
 
     /**
-     * Whether the operation succeeded and the result is not {@code null}.
+     * Returns whether the operation succeeded and the result is not {@code null}.
      * <p>More formally, this method returns true if and only if {@code (isSucceeded() &amp;&amp; getResult() != null) == true}.
      *
      * @return Whether the operation succeeded and the result is not {@code null}.
