@@ -8,6 +8,7 @@ import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import net.byteflux.libby.Library;
 import net.byteflux.libby.LibraryManager;
 import net.byteflux.libby.classloader.IsolatedClassLoader;
+import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -46,14 +47,24 @@ public class MySQL implements IDatabase {
      * @param password The password.
      * @param databaseName The name of the database.
      * @param host The MySQL host.
-     * @param port The MySQL port.
-     * @param poolSize The pool size.
-     * @param connectionTimeout The connection timeout.
+     * @param port The MySQL port. Must be greater than zero.
+     * @param poolSize The pool size. Must be greater than zero.
+     * @param connectionTimeout The connection timeout. Must be greater or equals to 250.
      * @param logger The plugin {@link Logger}.
      * @param manager The {@link LibraryManager}.
      * @throws Exception If anything goes wrong.
      */
-    public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, int port, int poolSize, long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws Exception {
+    public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Integer.MAX_VALUE) long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws Exception {
+        Validate.notNull(username, "Username is null.");
+        Validate.notNull(password, "Password is null.");
+        Validate.notNull(databaseName, "Database name is null.");
+        Validate.notNull(host, "Host is null.");
+        Validate.isTrue(port > 0, "Port must be greater than zero.");
+        Validate.isTrue(poolSize > 0, "Pool size must be greater than zero.");
+        Validate.isTrue(connectionTimeout >= 250, "Connection timeout must be greater or equals to 250.");
+        Validate.notNull(logger, "Logger is null.");
+        Validate.notNull(manager, "LibraryManager is null.");
+
         classLoader = new IsolatedClassLoader();
         classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.31").checksum("zahiqmloOsBy7ir9C5PQcM6rKR71uFfTGLJMFZWza4o=").build()));
         classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-simple").version("1.7.31").checksum("AHwNOZ4Tefv4YkfDCkLRDWGAlBRo9Ky+mu4Uu2Qqwdw=").build()));
@@ -72,6 +83,7 @@ public class MySQL implements IDatabase {
         props.put("minimumIdle", poolSize);
         props.put("maximumPoolSize", poolSize);
         props.put("connectionTimeout", connectionTimeout);
+        props.put("poolName", "UltimateAdvancementAPI");
         props.put("dataSource.useSSL", false);
         props.put("dataSource.cachePrepStmts", true);
         props.put("dataSource.prepStmtCacheSize", 250);

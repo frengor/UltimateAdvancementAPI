@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalKeyException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 import org.sqlite.SQLiteConfig;
@@ -44,6 +45,8 @@ public class SQLite implements IDatabase {
      * @throws Exception If anything goes wrong.
      */
     public SQLite(@NotNull File dbFile, @NotNull Logger logger) throws Exception {
+        Validate.notNull(dbFile, "Database file is null.");
+        Validate.notNull(logger, "Logger is null.");
         if (!dbFile.exists() && !dbFile.createNewFile()) {
             throw new IOException("Cannot create the database file.");
         }
