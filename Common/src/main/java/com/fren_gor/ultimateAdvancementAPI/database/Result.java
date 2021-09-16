@@ -121,17 +121,11 @@ public class Result {
         occurredException.printStackTrace();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         return "Result{" + (isExceptionOccurred() ? "occurredException=" + occurredException + ", succeeded=false" : "succeeded=true") + '}';
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -142,9 +136,6 @@ public class Result {
         return Objects.equals(occurredException, result.occurredException);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int hashCode() {
         return occurredException != null ? occurredException.hashCode() : 0;

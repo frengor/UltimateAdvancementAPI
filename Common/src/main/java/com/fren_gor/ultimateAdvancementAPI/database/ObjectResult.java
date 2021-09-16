@@ -81,17 +81,11 @@ public class ObjectResult<T> extends Result {
         return result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         return "ObjectResult{" + (isExceptionOccurred() ? "occurredException=" + occurredException + ", succeeded=false" : "result=" + result + ", succeeded=true") + '}';
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -103,9 +97,6 @@ public class ObjectResult<T> extends Result {
         return Objects.equals(result, that.result);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int hashCode() {
         int result1 = super.hashCode();

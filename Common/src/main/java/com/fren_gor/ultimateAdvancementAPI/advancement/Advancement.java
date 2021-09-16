@@ -686,9 +686,6 @@ public abstract class Advancement {
         return key.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -699,9 +696,6 @@ public abstract class Advancement {
         return key.equals(that.key);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int hashCode() {
         return key.hashCode();

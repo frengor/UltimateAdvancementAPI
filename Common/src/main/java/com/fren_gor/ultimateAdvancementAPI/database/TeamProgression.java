@@ -298,9 +298,6 @@ public final class TeamProgression {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         return "TeamProgression{" +
@@ -308,9 +305,6 @@ public final class TeamProgression {
                 '}';
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -321,9 +315,6 @@ public final class TeamProgression {
         return teamId == that.teamId;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int hashCode() {
         return teamId;

@@ -620,17 +620,11 @@ public final class AdvancementTab {
             throw new IllegalArgumentException("Tab isn't shown to " + (player == null ? "null" : player.getName()));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         return namespace;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -641,9 +635,6 @@ public final class AdvancementTab {
         return namespace.equals(that.namespace);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int hashCode() {
         return namespace.hashCode();
