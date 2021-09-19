@@ -191,7 +191,7 @@ public final class DatabaseManager {
     }
 
     /**
-     * Main function to load the player from the database.
+     * Main function to load the provided player from the database.
      * <p><strong>Should be called async.</strong>
      *
      * @param player The player to load.
@@ -210,7 +210,7 @@ public final class DatabaseManager {
     }
 
     /**
-     * Load the player from the database. If they is not present, this method registers they.
+     * Load the provided player from the database. If they is not present, this method registers they.
      * <p><strong>Should be called async.</strong>
      *
      * @param player The player.
@@ -265,7 +265,7 @@ public final class DatabaseManager {
     }
 
     /**
-     * Process unredeemed advancement for the provided player and team. The player is assumed to be in the team.
+     * Process unredeemed advancements for the provided player and team. The player is assumed to be in the team.
      * <p><strong>Should be called async.</strong>
      *
      * @param player The player.
@@ -313,7 +313,7 @@ public final class DatabaseManager {
     }
 
     /**
-     * Updates the player name in the database.
+     * Updates the name of the specified player in the database.
      *
      * @param player The player to update.
      * @return A {@link CompletableFuture} which provides the {@link Result} of the operation.

@@ -508,6 +508,7 @@ public abstract class Advancement {
      * @return Whether the advancement is visible to the player.
      */
     public boolean isVisible(@NotNull TeamProgression progression) {
+        // Advancement visibility system
         if (iVisibilityMethod != null) {
             try {
                 return (boolean) iVisibilityMethod.invoke(this, this, progression);
@@ -515,6 +516,7 @@ public abstract class Advancement {
                 e.printStackTrace();
             }
         }
+        // Visible by default
         return true;
     }
 
