@@ -49,12 +49,12 @@ public class MySQL implements IDatabase {
      * @param host The MySQL host.
      * @param port The MySQL port. Must be greater than zero.
      * @param poolSize The pool size. Must be greater than zero.
-     * @param connectionTimeout The connection timeout. Must be greater or equals to 250.
+     * @param connectionTimeout The connection timeout. Must be greater or equal to 250.
      * @param logger The plugin {@link Logger}.
      * @param manager The {@link LibraryManager}.
      * @throws Exception If anything goes wrong.
      */
-    public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Integer.MAX_VALUE) long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws Exception {
+    public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws Exception {
         Validate.notNull(username, "Username is null.");
         Validate.notNull(password, "Password is null.");
         Validate.notNull(databaseName, "Database name is null.");

@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption;
+import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption.Option;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ObjectResult;
 import com.fren_gor.ultimateAdvancementAPI.database.Result;
@@ -39,23 +40,30 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 
 /**
- * All utility methods to use properly the API.
+ * Class for making requests to the API.
  */
 @SuppressWarnings("unused")
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class UltimateAdvancementAPI {
 
     /**
-     * Main class of the plugin.@see AdvancementMain
+     * The instance of the main class of the API. Set by {@link AdvancementMain} on enabling.
      */
     static AdvancementMain main;
 
+    private static AdvancementMain getMain() throws IllegalStateException {
+        if (main == null) {
+            throw new IllegalStateException("UltimateAdvancementAPI is not enabled.");
+        }
+        return main;
+    }
+
     /**
-     * Returns the instance to use all the methods of UltimateAdvancementAPI class.
+     * Returns a new instance of {@code UltimateAdvancementAPI}.
      *
-     * @param plugin The plugin instance.
-     * @return The instance to use UltimateAdvancementAPI class.
-     * @throws APINotInstantiatedException If the API is not instantiated properly.
+     * @param plugin The plugin that is going to use the instance.
+     * @return A new instance of {@code UltimateAdvancementAPI}.
+     * @throws APINotInstantiatedException If the API is not enabled.
      */
     @NotNull
     public static UltimateAdvancementAPI getInstance(@NotNull Plugin plugin) throws APINotInstantiatedException {
@@ -70,171 +78,185 @@ public final class UltimateAdvancementAPI {
     private final Plugin plugin;
 
     /**
-     * Create a new advancement tab.
+     * Creates a new {@link AdvancementTab} with the provided namespace. The namespace must be unique.
      *
-     * @param namespace The unique name of the tab.
-     * @return A new advancement tab.
-     * @throws DuplicatedException If there are more than 1 tab with the same unique name.
+     * @param namespace The unique namespace of the tab.
+     * @return The new {@link AdvancementTab}.
+     * @throws DuplicatedException If another tab with the name already exists.
+     * @throws IllegalStateException If the API is not enabled.
      */
     @NotNull
     @Contract("_ -> new")
     public AdvancementTab createAdvancementTab(@NotNull String namespace) throws DuplicatedException {
-        return main.createAdvancementTab(plugin, namespace);
+        return getMain().createAdvancementTab(plugin, namespace);
     }
 
     /**
-     * Returns the wanted advancement tab.
+     * Gets an advancement tab by its namespace.
      *
-     * @param namespace The unique name of the wanted advancement tab.
-     * @return The wanted advancement tab.
+     * @param namespace The namespace of the advancement tab.
+     * @return The advancement tab with the provided namespace, or {@code null} if there isn't any tab with such namespace.
+     * @throws IllegalStateException If the API is not enabled.
      */
     @Nullable
     public AdvancementTab getAdvancementTab(@NotNull String namespace) {
-        return main.getAdvancementTab(namespace);
+        return getMain().getAdvancementTab(namespace);
     }
 
     /**
-     * Returns if the advancement tab has already been registered.
+     * Returns whether an advancement tab with the provided namespace has already been registered.
      *
-     * @param namespace The unique name of the advancement tab.
-     * @return If the advancement tab has already been registered.
+     * @param namespace The namespace of the advancement tab.
+     * @return Whether an advancement tab with the provided namespace has already been registered.
+     * @throws IllegalStateException If the API is not enabled.
      */
     public boolean isAdvancementTabRegistered(@NotNull String namespace) {
-        return main.isAdvancementTabRegistered(namespace);
+        return getMain().isAdvancementTabRegistered(namespace);
     }
 
     /**
-     * Returns an unmodifiable list with the registered advancement tabs of your plugin.
+     * Returns an unmodifiable {@link Collection} of the advancement tabs registered by the provided plugin.
      *
-     * @return An unmodifiable list with the registered advancement tabs of your plugin.
+     * @return An unmodifiable {@link Collection} of the advancement tabs registered by the provided plugin.
+     * @throws IllegalStateException If the API is not enabled.
      */
     @UnmodifiableView
     @NotNull
     public Collection<@NotNull AdvancementTab> getPluginAdvancementTabs() {
-        return main.getPluginAdvancementTabs(plugin);
+        return getMain().getPluginAdvancementTabs(plugin);
     }
 
     /**
-     * Unregister an advancement tab.
+     * Unregisters an advancement tab.
      *
-     * @param namespace The unique name of the advancement tab to be unregistered.
+     * @param namespace The namespace of the advancement tab to be unregistered.
+     * @throws IllegalStateException If the API is not enabled.
      */
     public void unregisterAdvancementTab(@NotNull String namespace) {
-        main.unregisterAdvancementTab(namespace);
+        getMain().unregisterAdvancementTab(namespace);
     }
 
     /**
-     * Unregister all advancement tabs of this plugin.
+     * Unregisters all the advancement tabs owned by the provided plugin.
+     *
+     * @throws IllegalStateException If the API is not enabled.
      */
     public void unregisterPluginAdvancementTabs() {
-        main.unregisterAdvancementTabs(plugin);
+        getMain().unregisterAdvancementTabs(plugin);
     }
 
     /**
-     * Returns a list of all advancement unique names.
+     * Returns an unmodifiable {@link Set} containing the namespaces of every registered advancement tab.
      *
-     * @return A list of all advancement unique names.
+     * @return An unmodifiable {@link Set} containing the namespaces of every registered advancement tab.
+     * @throws IllegalStateException If the API is not enabled.
      */
     @NotNull
     @UnmodifiableView
     @Contract(pure = true)
     public Set<@NotNull String> getAdvancementTabNamespaces() {
-        return main.getAdvancementTabNamespaces();
+        return getMain().getAdvancementTabNamespaces();
     }
 
     /**
-     * Filter by name the unique names of the advancement tabs.
+     * Returns the namespaced keys of every registered advancement which namespaced key starts with the provided one.
      *
-     * @param input The filter.
-     * @return A filtered list of the advancement tab unique names.
+     * @param input The partial namespaced key that acts as a filter.
+     * @return A filtered {@link List} that contains only the matching namespaced keys of the registered advancements.
+     * @throws IllegalStateException If the API is not enabled.
      */
     @NotNull
     @Contract(pure = true, value = "_ -> new")
     public List<@NotNull String> filterNamespaces(@Nullable String input) {
-        return main.filterNamespaces(input);
+        return getMain().filterNamespaces(input);
     }
 
     /**
-     * Returns an unmodifiable list with all registered advancement tabs.
+     * Returns an unmodifiable {@link Collection} of every registered advancement tab.
      *
-     * @return An unmodifiable list with all registered advancement tabs.
+     * @return An unmodifiable {@link Collection} of every registered advancement tab.
+     * @throws IllegalStateException If the API is not enabled.
      */
     @NotNull
     @UnmodifiableView
     public Collection<@NotNull AdvancementTab> getTabs() {
-        return main.getTabs();
+        return getMain().getTabs();
     }
 
     /**
-     * Updates every advancement for a player.
+     * Updates every advancement to a player.
+     * <p>An advancement is updated only if its tab is shown to the player (see {@link AdvancementTab#isShownTo(Player)}).
      *
-     * @param player A player.
+     * @param player The player to be updated.
+     * @throws IllegalStateException If the API is not enabled.
      */
     public void updatePlayer(@NotNull Player player) {
-        main.updatePlayer(player);
+        getMain().updatePlayer(player);
     }
 
     /**
-     * Returns the wanted advancement.
-     * i.g. of the namespaced key: "namespace:key"
+     * Returns the advancement with the provided namespaced key.
      *
-     * @param namespacedKey The namespace of the advancement tab and the unique key of the advancement.
-     * @return The wanted advancement, or {@code null}.
+     * @param namespacedKey The namespaced key of the advancement. It must be in the format {@code "namespace:key"}.
+     * @return The advancement with the provided namespaced key., or {@code null} if it doesn't exist.
+     * @throws IllegalStateException If the API is not enabled.
      */
     @Nullable
     public Advancement getAdvancement(@NotNull String namespacedKey) {
-        return main.getAdvancement(namespacedKey);
+        return getMain().getAdvancement(namespacedKey);
     }
 
     /**
-     * Returns the wanted advancement.
+     * Returns the advancement with the provided namespaced key.
      *
-     * @param namespace The namespace of the advancement tab.
-     * @param key The unique key of the advancement.
-     * @return The wanted advancement, or {@code null}.
+     * @param namespace The namespace of the advancement's tab.
+     * @param key The key of the advancement.
+     * @return The advancement with the provided namespaced key, or {@code null} if it doesn't exist.
+     * @throws IllegalStateException If the API is not enabled.
      */
     @Nullable
     public Advancement getAdvancement(@NotNull String namespace, @NotNull String key) {
-        return main.getAdvancement(namespace, key);
+        return getMain().getAdvancement(namespace, key);
     }
 
     /**
-     * Returns the wanted advancement.
+     * Returns the advancement with the provided namespaced key.
      *
      * @param namespacedKey The {@link AdvancementKey} of the advancement.
-     * @return The wanted advancement, or {@code null}.
+     * @return The advancement with the provided namespaced key, or {@code null} if it doesn't exist.
+     * @throws IllegalStateException If the API is not enabled.
      */
     @Nullable
     public Advancement getAdvancement(@NotNull AdvancementKey namespacedKey) {
-        return main.getAdvancement(namespacedKey);
+        return getMain().getAdvancement(namespacedKey);
     }
 
     /**
-     * Displays a custom toast to a player.
+     * Displays a custom toast notification to a player.
      *
-     * @param player A player to show the toast.
-     * @param display The advancement display to know the information to show.
+     * @param player The player the toast notification will be shown to.
+     * @param display The {@link AdvancementDisplay} that contains the graphic information to show.
      */
     public void displayCustomToast(@NotNull Player player, @NotNull AdvancementDisplay display) {
         displayCustomToast(player, display.getIcon(), display.getTitle(), display.getFrame());
     }
 
     /**
-     * Displays a custom toast to a player.
+     * Displays a custom toast notification to a player.
      *
-     * @param player A player to show the toast.
-     * @param icon The displayed item of the toast.
-     * @param title The displayed title of the toast.
-     * @param frame The {@link AdvancementFrameType} of the toast.
+     * @param player The player the toast notification will be shown to.
+     * @param icon The item of the toast notification.
+     * @param title The title of the toast notification.
+     * @param frame The shape of the toast notification frame.
      */
     public void displayCustomToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame) {
         AdvancementUtils.displayToast(player, icon, title, frame);
     }
 
     /**
-     * Disable vanilla advancement.
+     * Disables the vanilla advancements until next server restart or reload.
      *
-     * @throws RuntimeException This exception is a wrapper of the real one which may have been thrown while disabling vanilla advancements.
+     * @throws RuntimeException If the operation fails. It is a wrapper for the real exception.
      */
     public void disableVanillaAdvancements() throws RuntimeException {
         try {
@@ -245,45 +267,48 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Returns the progression of a player's team.
+     * Returns the {@link TeamProgression} of the team of the provided player.
      *
-     * @param player The player of the team.
-     * @return The team progression.
-     * @throws UserNotLoadedException If the player was not loaded into the database.
+     * @param player The player.
+     * @return The {@link TeamProgression} of the player's team.
+     * @throws UserNotLoadedException If the player was not loaded into the caching system.
+     *         For more information about the caching system see {@link DatabaseManager}.
      */
     @NotNull
     public TeamProgression getProgression(@NotNull Player player) throws UserNotLoadedException {
-        return main.getDatabaseManager().getProgression(player);
+        return getMain().getDatabaseManager().getProgression(player);
     }
 
     /**
-     * Returns the progression of a player's team.
+     * Returns the {@link TeamProgression} of the team of the provided player.
      *
-     * @param uuid The UUID player of the team.
-     * @return The team progression.
-     * @throws UserNotLoadedException If the player was not loaded into the database.
+     * @param uuid The {@link UUID} of the player.
+     * @return The {@link TeamProgression} of the player's team.
+     * @throws UserNotLoadedException If the player was not loaded into the caching system.
+     *         For more information about the caching system see {@link DatabaseManager}.
      */
     @NotNull
     public TeamProgression getProgression(@NotNull UUID uuid) throws UserNotLoadedException {
-        return main.getDatabaseManager().getProgression(uuid);
+        return getMain().getDatabaseManager().getProgression(uuid);
     }
 
     /**
-     * Moves a player from a team to another.
+     * Moves the provided player from their team to the second player's one.
      *
      * @param playerToMove The player to move.
-     * @param aDestTeamPlayer The player who belongs to the target team.
+     * @param aDestTeamPlayer A player of the destination team.
      */
     public void updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player aDestTeamPlayer) {
         updatePlayerTeam(playerToMove, aDestTeamPlayer, null);
     }
 
     /**
-     * Moves a player from a team to another.
+     * Moves the provided player from their team to the second player's one.
      *
      * @param playerToMove The player to move.
-     * @param aDestTeamPlayer The player who belongs to the target team.
-     * @param action Code to run with the operation result.
+     * @param aDestTeamPlayer A player of the destination team.
+     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
+     *         If no code should be called, it can be put to {@code null}.
      */
     public void updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player aDestTeamPlayer, @Nullable Consumer<Result> action) {
         Validate.notNull(playerToMove, "Player to move is null.");
@@ -292,21 +317,22 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Moves a player from a team to another.
+     * Moves the provided player from their team to the second player's one.
      *
-     * @param playerToMove The UUID player to move.
-     * @param aDestTeamPlayer The UUID player who belongs to the target team.
+     * @param playerToMove The {@link UUID} of the player to move.
+     * @param aDestTeamPlayer The {@link UUID} of a player of the destination team.
      */
     public void updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID aDestTeamPlayer) {
         updatePlayerTeam(playerToMove, aDestTeamPlayer, null);
     }
 
     /**
-     * Moves a player from a team to another.
+     * Moves the provided player from their team to the second player's one.
      *
-     * @param playerToMove The UUID player to move.
-     * @param aDestTeamPlayer The UUID player who belongs to the target team.
-     * @param action The code to run with the operation result.
+     * @param playerToMove The {@link UUID} of the player to move.
+     * @param aDestTeamPlayer The {@link UUID} of a player of the destination team.
+     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
+     *         If no code should be called, it can be put to {@code null}.
      */
     public void updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID aDestTeamPlayer, @Nullable Consumer<Result> action) {
         Validate.notNull(playerToMove, "Player to move is null.");
@@ -315,87 +341,101 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Create a new team for a player.
+     * Moves the provided player into a new team.
      *
-     * @param playerToMove The player to move.
+     * @param playerToMove The player to be moved.
      */
     public void movePlayerInNewTeam(@NotNull Player playerToMove) {
         movePlayerInNewTeam(playerToMove, null);
     }
 
     /**
-     * Create a new team for a player.
+     * Moves the provided player into a new team.
      *
-     * @param playerToMove The player to move.
-     * @param action The code to run with the operation result.
+     * @param playerToMove The player to be moved.
+     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
+     *         which provides the {@link TeamProgression} of the player's new team (when the operation is successful).
+     *         If no code should be called, it can be put to {@code null}.
      */
     public void movePlayerInNewTeam(@NotNull Player playerToMove, @Nullable Consumer<ObjectResult<@NotNull TeamProgression>> action) {
         callAfterLoad(playerToMove, ds -> ds.movePlayerInNewTeam(playerToMove), action);
     }
 
     /**
-     * Create a new team for a player.
+     * Moves the provided player into a new team.
      *
-     * @param playerToMove The UUID player to move.
+     * @param playerToMove The {@link UUID} of the player to be moved.
      */
     public void movePlayerInNewTeam(@NotNull UUID playerToMove) {
         movePlayerInNewTeam(playerToMove, null);
     }
 
     /**
-     * Create a new team for a player.
+     * Moves the provided player into a new team.
      *
-     * @param playerToMove The player to move.
-     * @param action The code to run with the operation result.
+     * @param playerToMove The {@link UUID} of the player to be moved.
+     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
+     *         which provides the {@link TeamProgression} of the player's new team (when the operation is successful).
+     *         If no code should be called, it can be put to {@code null}.
      */
     public void movePlayerInNewTeam(@NotNull UUID playerToMove, @Nullable Consumer<ObjectResult<@NotNull TeamProgression>> action) {
         callAfterLoad(playerToMove, ds -> ds.movePlayerInNewTeam(playerToMove), action);
     }
 
     /**
-     * Unregisters an offline player.
+     * Unregisters the provided offline player, removing they from the database.
+     * <p>They must be offline and not loaded into the caching system.
+     * For more information about the caching system see {@link DatabaseManager}.
      *
      * @param player The offline player to unregister.
-     * @throws IllegalStateException Whether the player is online or temporarily loaded into the database cache.
+     * @throws IllegalStateException If the player is online or loaded into the caching system.
      */
     public void unregisterOfflinePlayer(@NotNull OfflinePlayer player) throws IllegalStateException {
         unregisterOfflinePlayer(player, null);
     }
 
     /**
-     * Unregisters an offline player.
+     * Unregisters the provided offline player, removing they from the database.
+     * <p>They must be offline and not loaded into the caching system.
+     * For more information about the caching system see {@link DatabaseManager}.
      *
      * @param player The offline player to unregister.
-     * @param action The code to run with the operation result.
-     * @throws IllegalStateException Whether the player is online or temporarily loaded into the database cache.
+     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
+     *         If no code should be called, it can be put to {@code null}.
+     * @throws IllegalStateException If the player is online or loaded into the caching system.
      */
     public void unregisterOfflinePlayer(@NotNull OfflinePlayer player, @Nullable Consumer<Result> action) throws IllegalStateException {
-        callSyncIfNotNull(main.getDatabaseManager().unregisterOfflinePlayer(player), action);
+        callSyncIfNotNull(getMain().getDatabaseManager().unregisterOfflinePlayer(player), action);
     }
 
     /**
-     * Unregisters an offline player.
+     * Unregisters the provided player, removing they from the database.
+     * <p>They must be offline and not loaded into the caching system.
+     * For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param uuid The UUID player to unregister.
-     * @throws IllegalStateException Whether the player is online or temporarily loaded into the database cache.
+     * @param uuid The {@link UUID} of the player to unregister.
+     * @throws IllegalStateException If the player is online or loaded into the caching system.
      */
     public void unregisterOfflinePlayer(@NotNull UUID uuid) throws IllegalStateException {
         unregisterOfflinePlayer(uuid, null);
     }
 
     /**
-     * Unregisters an offline player.
+     * Unregisters the provided player, removing they from the database.
+     * <p>They must be offline and not loaded into the caching system.
+     * For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param uuid The UUID player to unregister.
-     * @param action The code to run with the operation result.
-     * @throws IllegalStateException Whether the player is online or temporarily loaded into the database cache.
+     * @param uuid The {@link UUID} of the player to unregister.
+     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
+     *         If no code should be called, it can be put to {@code null}.
+     * @throws IllegalStateException If the player is online or loaded into the caching system.
      */
     public void unregisterOfflinePlayer(@NotNull UUID uuid, @Nullable Consumer<Result> action) throws IllegalStateException {
-        callSyncIfNotNull(main.getDatabaseManager().unregisterOfflinePlayer(uuid), action);
+        callSyncIfNotNull(getMain().getDatabaseManager().unregisterOfflinePlayer(uuid), action);
     }
 
     /**
-     * Update the name of a player saved in the database.
+     * Updates the name of the specified player in the database.
      *
      * @param player The player to update.
      */
@@ -404,32 +444,35 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Update the name of a player saved in the database.
+     * Updates the name of the specified player in the database.
      *
      * @param player The player to update.
-     * @param action The code to run with the operation result.
+     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
+     *         If no code should be called, it can be put to {@code null}.
      */
     public void updatePlayerName(@NotNull Player player, @Nullable Consumer<Result> action) {
-        callSyncIfNotNull(main.getDatabaseManager().updatePlayerName(player), action);
+        callSyncIfNotNull(getMain().getDatabaseManager().updatePlayerName(player), action);
     }
 
     /**
-     * If the advancement has been completed but no rewards have been given yet.
+     * Gets whether the provided advancement is unredeemed for the specified player.
      *
      * @param advancement The advancement.
      * @param player The player.
-     * @param action The code to run with the operation result.
+     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
+     *         which provides the {@link Boolean} result.
      */
     public void isUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @NotNull Consumer<ObjectResult<@NotNull Boolean>> action) {
         isUnredeemed(advancement, uuidFromPlayer(player), action);
     }
 
     /**
-     * If the advancement has been completed but no rewards have been given yet.
+     * Returns whether the provided advancement is unredeemed for the specified team.
      *
      * @param advancement The advancement.
-     * @param uuid The UUID player.
-     * @param action The code to run with the operation result.
+     * @param uuid The {@link UUID} of the player.
+     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
+     *         which provides the {@link Boolean} result.
      */
     public void isUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @NotNull Consumer<ObjectResult<@NotNull Boolean>> action) {
         Validate.notNull(advancement, "Advancement is null.");
@@ -444,96 +487,104 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Sets an advancement as unredeemed.
+     * Sets the provided advancement unredeemed for the specified player.
+     * <p>Rewards will be given on redeem.
      *
      * @param advancement The advancement.
      * @param player The player.
-     * @throws NotGrantedException This requires that the advancement be completed.
+     * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull Player player) throws NotGrantedException {
         setUnredeemed(advancement, player, true);
     }
 
     /**
-     * Sets an advancement as unredeemed.
+     * Sets the provided advancement unredeemed for the specified player.
+     * <p>Rewards will be given on redeem.
      *
      * @param advancement The advancement.
      * @param player The player.
-     * @param action The code to run with the operation result.
-     * @throws NotGrantedException This requires that the advancement be completed.
+     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
+     *         If no code should be called, it can be put to {@code null}.
+     * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @Nullable Consumer<Result> action) throws NotGrantedException {
         setUnredeemed(advancement, player, true, action);
     }
 
     /**
-     * Sets if an advancement is unredeemed.
+     * Sets the provided advancement unredeemed for the specified player.
      *
      * @param advancement The advancement.
      * @param player The player.
-     * @param giveRewards {@code true} to set the advancement as unredeemed, {@code false} otherwise.
-     * @throws NotGrantedException This requires that the advancement be completed.
+     * @param giveRewards Whether to give rewards on redeem.
+     * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, boolean giveRewards) throws NotGrantedException {
         setUnredeemed(advancement, uuidFromPlayer(player), giveRewards);
     }
 
     /**
-     * Sets if an advancement is unredeemed.
+     * Sets the provided advancement unredeemed for the specified player.
      *
      * @param advancement The advancement.
      * @param player The player.
-     * @param giveRewards {@code true} to set the advancement as unredeemed, {@code false} otherwise.
-     * @param action The code to run with the operation result.
-     * @throws NotGrantedException This requires that the advancement be completed.
+     * @param giveRewards Whether to give rewards on redeem.
+     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
+     *         If no code should be called, it can be put to {@code null}.
+     * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, boolean giveRewards, @Nullable Consumer<Result> action) throws NotGrantedException {
         setUnredeemed(advancement, uuidFromPlayer(player), giveRewards, action);
     }
 
     /**
-     * Sets an advancement as unredeemed.
+     * Sets the provided advancement unredeemed for the specified player.
+     * <p>Rewards will be given on redeem.
      *
      * @param advancement The advancement.
-     * @param uuid The UUID player.
-     * @throws NotGrantedException This requires that the advancement be completed.
+     * @param uuid The {@link UUID} of the player.
+     * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid) throws NotGrantedException {
         setUnredeemed(advancement, uuid, true);
     }
 
     /**
-     * Sets an advancement as unredeemed.
+     * Sets the provided advancement unredeemed for the specified player.
+     * <p>Rewards will be given on redeem.
      *
      * @param advancement The advancement.
-     * @param uuid The UUID player.
-     * @param action The code to run with the operation result.
-     * @throws NotGrantedException This requires that the advancement be completed.
+     * @param uuid The {@link UUID} of the player.
+     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
+     *         If no code should be called, it can be put to {@code null}.
+     * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @Nullable Consumer<Result> action) throws NotGrantedException {
         setUnredeemed(advancement, uuid, true, action);
     }
 
     /**
-     * Sets if an advancement is unredeemed.
+     * Sets the provided advancement unredeemed for the specified player.
      *
      * @param advancement The advancement.
-     * @param uuid The UUID player.
-     * @param giveRewards {@code true} to set the advancement as unredeemed, {@code false} otherwise.
-     * @throws NotGrantedException This requires that the advancement be completed.
+     * @param uuid The {@link UUID} of the player.
+     * @param giveRewards Whether to give rewards on redeem.
+     * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, boolean giveRewards) throws NotGrantedException {
         setUnredeemed(advancement, uuid, giveRewards, null);
     }
 
     /**
-     * Sets if an advancement is unredeemed.
+     * Sets the provided advancement unredeemed for the specified player.
      *
      * @param advancement The advancement.
-     * @param uuid The UUID player.
-     * @param giveRewards {@code true} to set the advancement as unredeemed, {@code false} otherwise.
-     * @param action The code to run with the operation result.
-     * @throws NotGrantedException This requires that the advancement be completed.
+     * @param uuid The {@link UUID} of the player.
+     * @param giveRewards Whether to give rewards on redeem.
+     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
+     *         If no code should be called, it can be put to {@code null}.
+     * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, boolean giveRewards, @Nullable Consumer<Result> action) throws NotGrantedException {
         Validate.notNull(advancement, "Advancement is null.");
@@ -547,42 +598,44 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Unsets an advancement as unredeemed.
+     * Redeems the specified advancement for the provided player.
      *
      * @param advancement The advancement.
-     * @param player The player of a team.
+     * @param player The player.
      */
     public void unsetUnredeemed(@NotNull Advancement advancement, @NotNull Player player) {
         unsetUnredeemed(advancement, player, null);
     }
 
     /**
-     * Unsets an advancement as unredeemed.
+     * Redeems the specified advancement for the provided player.
      *
      * @param advancement The advancement.
-     * @param player The player of a team.
-     * @param action The code to run with the operation result.
+     * @param player The player.
+     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
+     *         If no code should be called, it can be put to {@code null}.
      */
     public void unsetUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @Nullable Consumer<Result> action) {
         unsetUnredeemed(advancement, uuidFromPlayer(player), action);
     }
 
     /**
-     * Unsets an advancement as unredeemed.
+     * Redeems the specified advancement for the provided player.
      *
      * @param advancement The advancement.
-     * @param uuid The UUID player of a team.
+     * @param uuid The {@link UUID} of the player.
      */
     public void unsetUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid) {
         unsetUnredeemed(advancement, uuid, null);
     }
 
     /**
-     * Unsets an advancement as unredeemed.
+     * Redeems the specified advancement for the provided player.
      *
      * @param advancement The advancement.
-     * @param uuid The UUID player of a team.
-     * @param action The code to run with the operation result.
+     * @param uuid The {@link UUID} of the player.
+     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
+     *         If no code should be called, it can be put to {@code null}.
      */
     public void unsetUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @Nullable Consumer<Result> action) {
         Validate.notNull(advancement, "Advancement is null.");
@@ -591,180 +644,216 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Returns if a player is loaded and cached.
+     * Returns whether the provided player is loaded into the caching system.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param player The player of a team.
-     * @return If a player is loaded.
+     * @param player The player.
+     * @return Whether the provided player is loaded into the caching system.
      */
     public boolean isLoaded(@NotNull Player player) {
-        return main.getDatabaseManager().isLoaded(player);
+        return getMain().getDatabaseManager().isLoaded(player);
     }
 
     /**
-     * Returns if a player is loaded and cached.
+     * Returns whether the provided offline player is loaded into the caching system.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param uuid The UUID player of a team.
-     * @return If a player is loaded.
+     * @param player The offline player.
+     * @return Whether the provided player is loaded into the caching system.
+     */
+    public boolean isLoaded(@NotNull OfflinePlayer player) {
+        return getMain().getDatabaseManager().isLoaded(player);
+    }
+
+    /**
+     * Returns whether the provided offline player is loaded into the caching system.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
+     *
+     * @param uuid The {@link UUID} of the player.
+     * @return Whether the provided player is loaded into the caching system.
      */
     public boolean isLoaded(@NotNull UUID uuid) {
-        return main.getDatabaseManager().isLoaded(uuid);
+        return getMain().getDatabaseManager().isLoaded(uuid);
     }
 
     /**
-     * Loads from database the information about a team.
-     * <p>The player will be loaded as {@link CacheFreeingOption#MANUAL(Plugin)} so then use {@link #unloadOfflinePlayer(OfflinePlayer)}
+     * Loads the provided offline player from the database into the caching system.
+     * <p>The offline player will be loaded manually (see {@link CacheFreeingOption#MANUAL(Plugin)}),
+     * so {@link #unloadOfflinePlayer(OfflinePlayer)} must be called to unload they.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param player The player of a team.
+     * @param player The offline player to load.
      */
     public void loadOfflinePlayer(@NotNull OfflinePlayer player) {
         loadOfflinePlayer(uuidFromPlayer(player));
     }
 
     /**
-     * Loads from database the information about a team.
-     * <p>The player will be loaded as {@link CacheFreeingOption#MANUAL(Plugin)} so then use {@link #unloadOfflinePlayer(OfflinePlayer)}
+     * Loads the provided player from the database into the caching system.
+     * <p>The player will be loaded manually (see {@link CacheFreeingOption#MANUAL(Plugin)}),
+     * so {@link #unloadOfflinePlayer(UUID)} must be called to unload they.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param uuid The UUID player of a team.
+     * @param uuid The {@link UUID} of the player to load.
      */
     public void loadOfflinePlayer(@NotNull UUID uuid) {
         loadOfflinePlayer(uuid, CacheFreeingOption.MANUAL(plugin), null);
     }
 
     /**
-     * Loads from database the information about a team.
-     * <p>The player will be loaded as {@link CacheFreeingOption#DONT_CACHE()}.
+     * Loads the provided offline player from the database without putting they into the caching system (see {@link CacheFreeingOption#DONT_CACHE()}).
+     * <p>The loaded {@link TeamProgression} can be retrieved through the {@link Consumer}&lt;{@link ObjectResult}&gt;.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param player The player of a team.
-     * @param action The code to run with the operation result.
+     * @param player The offline player to load.
+     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
+     *         which provides the loaded {@link TeamProgression}.
      */
     public void loadOfflinePlayer(@NotNull OfflinePlayer player, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
         loadOfflinePlayer(uuidFromPlayer(player), action);
     }
 
     /**
-     * Loads from database the information about a team.
-     * <p>The player will be loaded as "CacheFreeingOption.MANUAL" so then use {@link #unloadOfflinePlayer(OfflinePlayer)}
+     * Loads the provided player from the database without putting they into the caching system (see {@link CacheFreeingOption#DONT_CACHE()}).
+     * <p>The loaded {@link TeamProgression} can be retrieved through the {@link Consumer}&lt;{@link ObjectResult}&gt;.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param uuid The UUID player of a team.
-     * @param action The code to run with the operation result.
+     * @param uuid The {@link UUID} of the player to load.
+     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
+     *         which provides the loaded {@link TeamProgression}.
      */
     public void loadOfflinePlayer(@NotNull UUID uuid, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
         loadOfflinePlayer(uuid, CacheFreeingOption.DONT_CACHE(), action);
     }
 
     /**
-     * Loads from database the information about a team.
+     * Loads the provided offline player from the database with the specified {@link CacheFreeingOption}.
+     * <p>For more information about the {@link CacheFreeingOption} see {@link DatabaseManager#loadOfflinePlayer(UUID, CacheFreeingOption)}.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param player The player of a team.
-     * @param option Select how to manage the occupied memory.
-     * @param action The code to run with the operation result.
+     * @param player The offline player to load.
+     * @param option The chosen {@link CacheFreeingOption}.
+     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
+     *         which provides the loaded {@link TeamProgression}.
      */
     public void loadOfflinePlayer(@NotNull OfflinePlayer player, @NotNull CacheFreeingOption option, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
         loadOfflinePlayer(uuidFromPlayer(player), option, action);
     }
 
     /**
-     * Loads from database the information about a team.
+     * Loads the provided player from the database with the specified {@link CacheFreeingOption}.
+     * <p>For more information about the {@link CacheFreeingOption} see {@link DatabaseManager#loadOfflinePlayer(UUID, CacheFreeingOption)}.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param uuid The UUID player of a team.
-     * @param option Select how to manage the occupied memory.
-     * @param action The code to run with the operation result.
+     * @param uuid The {@link UUID} of the player to load.
+     * @param option The chosen {@link CacheFreeingOption}.
+     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
+     *         which provides the loaded {@link TeamProgression}.
      */
     public void loadOfflinePlayer(@NotNull UUID uuid, @NotNull CacheFreeingOption option, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
-        callSyncIfNotNull(main.getDatabaseManager().loadOfflinePlayer(uuid, option), action);
+        callSyncIfNotNull(getMain().getDatabaseManager().loadOfflinePlayer(uuid, option), action);
     }
 
     /**
-     * Returns if the player in cached in the plugin memory.
+     * Returns whether at least one loading request is currently active for the specified offline player.
      *
-     * @param player The player of a team.
-     * @return If the player in cached in the plugin memory.
+     * @param player The offline player.
+     * @return Whether at least one loading request is currently active for the specified offline player.
      */
     public boolean isOfflinePlayerLoaded(@NotNull OfflinePlayer player) {
         return isOfflinePlayerLoaded(uuidFromPlayer(player));
     }
 
     /**
-     * Returns if the player in cached in the plugin memory.
+     * Returns whether at least one loading request is currently active for the specified player.
      *
-     * @param uuid The UUID player of a team.
-     * @return If the player in cached in the plugin memory.
+     * @param uuid The {@link UUID} of the player.
+     * @return Whether at least one loading request is currently active for the specified player.
      */
     @Contract(pure = true, value = "null -> false")
     public boolean isOfflinePlayerLoaded(UUID uuid) {
-        return main.getDatabaseManager().isOfflinePlayerLoaded(uuid, plugin);
+        return getMain().getDatabaseManager().isOfflinePlayerLoaded(uuid, plugin);
     }
 
     /**
-     * Returns the number of active caches on a single player.
+     * Returns the number of currently active loading requests for the specified player with the provided {@link CacheFreeingOption.Option}.
      *
-     * @param player The player of a team.
-     * @param type The type of the loading request.
-     * @return The number of the loading requests done on a single player.
+     * @param player The player.
+     * @param type The {@link CacheFreeingOption.Option}.
+     * @return The number of the currently active player loading requests.
+     * @see DatabaseManager#getLoadingRequestsAmount(Plugin, UUID, Option)
      */
     public int getLoadingRequestsAmount(@NotNull Player player, @NotNull CacheFreeingOption.Option type) {
         return getLoadingRequestsAmount(uuidFromPlayer(player), type);
     }
 
     /**
-     * Returns the number of active caches on a single player.
+     * Returns the number of currently active loading requests for the specified offline player with the provided {@link CacheFreeingOption.Option}.
      *
-     * @param offlinePlayer The offline player of a team.
-     * @param type The type of the loading request.
-     * @return The number of the loading requests done on a single player.
+     * @param offlinePlayer The offline player.
+     * @param type The {@link CacheFreeingOption.Option}.
+     * @return The number of the currently active player loading requests.
+     * @see DatabaseManager#getLoadingRequestsAmount(Plugin, UUID, Option)
      */
     public int getLoadingRequestsAmount(@NotNull OfflinePlayer offlinePlayer, @NotNull CacheFreeingOption.Option type) {
         return getLoadingRequestsAmount(uuidFromPlayer(offlinePlayer), type);
     }
 
     /**
-     * Returns the number of active caches on a single player.
+     * Returns the number of currently active loading requests for the specified player with the provided {@link CacheFreeingOption.Option}.
      *
-     * @param uuid The UUID player of a team.
-     * @param type The type of the loading request.
-     * @return The number of the loading requests done on a single player.
+     * @param uuid The {@link UUID} of the player.
+     * @param type The {@link CacheFreeingOption.Option}.
+     * @return The number of the currently active player loading requests.
+     * @see DatabaseManager#getLoadingRequestsAmount(Plugin, UUID, Option)
      */
     public int getLoadingRequestsAmount(@NotNull UUID uuid, @NotNull CacheFreeingOption.Option type) {
-        return main.getDatabaseManager().getLoadingRequestsAmount(plugin, uuid, type);
+        return getMain().getDatabaseManager().getLoadingRequestsAmount(plugin, uuid, type);
     }
 
     /**
-     * Unload team information that was previously cached
+     * Removes one manual caching request for the provided offline player. If the counter reaches zero, they will be unloaded from the caching system.
+     * <p>Note that this method will only unload players loaded with {@link CacheFreeingOption#MANUAL(Plugin)}.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param player The player of a team.
+     * @param player The player to unload.
      */
     public void unloadOfflinePlayer(@NotNull OfflinePlayer player) {
         unloadOfflinePlayer(uuidFromPlayer(player));
     }
 
     /**
-     * Unload team information that was previously cached
+     * Removes one manual caching request for the provided player. If the counter reaches zero, they will be unloaded from the caching system.
+     * <p>Note that this method will only unload players loaded with {@link CacheFreeingOption#MANUAL(Plugin)}.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param uuid The UUID player of a team.
+     * @param uuid The {@link UUID} of the player to unload.
      */
     public void unloadOfflinePlayer(@NotNull UUID uuid) {
-        main.getDatabaseManager().unloadOfflinePlayer(uuid, plugin);
+        getMain().getDatabaseManager().unloadOfflinePlayer(uuid, plugin);
     }
 
     /**
-     * Gets the stored name of a player in the database.
+     * Gets the in-database stored name of the provided player.
      *
      * @param player The player.
-     * @param action The code to run with the operation result.
+     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
+     *         which provides the in-database stored name of the player.
      */
     public void getStoredPlayerName(@NotNull OfflinePlayer player, @NotNull Consumer<ObjectResult<@Nullable String>> action) {
         getStoredPlayerName(uuidFromPlayer(player), action);
     }
 
     /**
-     * Gets the stored name of a player in the database.
+     * Gets the in-database stored name of the provided player.
      *
-     * @param uuid The UUID player.
-     * @param action The code to run with the operation result.
+     * @param uuid The {@link UUID} of the player.
+     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
+     *         which provides the in-database stored name of the player.
      */
     public void getStoredPlayerName(@NotNull UUID uuid, @NotNull Consumer<ObjectResult<@Nullable String>> action) {
         Validate.notNull(action, "Consumer is null.");
-        main.getDatabaseManager().getStoredPlayerName(uuid).thenAccept(s -> runSync(plugin, () -> action.accept(s)));
+        getMain().getDatabaseManager().getStoredPlayerName(uuid).thenAccept(s -> runSync(plugin, () -> action.accept(s)));
     }
 
     private <T extends Result> void callAfterLoad(@NotNull Player player, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
@@ -773,7 +862,7 @@ public final class UltimateAdvancementAPI {
 
     private <T extends Result> void callAfterLoad(@NotNull UUID uuid, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
         Validate.notNull(uuid, "UUID is null.");
-        final DatabaseManager ds = main.getDatabaseManager();
+        final DatabaseManager ds = getMain().getDatabaseManager();
         ds.loadOfflinePlayer(uuid, CacheFreeingOption.MANUAL(plugin)).thenAccept(t1 -> {
             if (t1.isExceptionOccurred()) {
                 new RuntimeException("An exception occurred while loading user " + uuid + ':', t1.getOccurredException()).printStackTrace();
@@ -810,7 +899,7 @@ public final class UltimateAdvancementAPI {
     }
 
     private <T extends Result> void callAfterLoad(@NotNull UUID uuid1, @NotNull UUID uuid2, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
-        final DatabaseManager ds = main.getDatabaseManager();
+        final DatabaseManager ds = getMain().getDatabaseManager();
         final CacheFreeingOption cacheFreeingOption = CacheFreeingOption.MANUAL(plugin);
         ds.loadOfflinePlayer(uuid1, cacheFreeingOption).thenAccept(t1 -> {
             if (t1.isExceptionOccurred()) {

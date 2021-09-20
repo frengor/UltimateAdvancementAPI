@@ -28,23 +28,25 @@ public class BaseAdvancement extends Advancement {
     private net.minecraft.server.v1_15_R1.Advancement mcAdvancement;
 
     /**
-     * Create a new BaseAdvancement.
+     * Creates a new {@code BaseAdvancement} with a maximum criteria of {@code 1}.
+     * <p>The tab of this advancement will be the parent one.
      *
-     * @param key The unique key of the advancement.
-     * @param display The {@link AdvancementDisplay} instance of the advancement.
-     * @param parent The advancement parent of the advancement.
+     * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     * @param display The display information of this advancement.
+     * @param parent The parent of this advancement.
      */
     public BaseAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent) {
         this(key, display, parent, 1);
     }
 
     /**
-     * Create a new BaseAdvancement.
+     * Creates a new {@code BaseAdvancement}.
+     * <p>The tab of this advancement will be the parent one.
      *
-     * @param key The unique key of the advancement.
-     * @param display The {@link AdvancementDisplay} instance of the advancement.
-     * @param parent The advancement parent of the advancement.
-     * @param maxCriteria The times the advancement action should be done.
+     * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     * @param display The display information of this advancement.
+     * @param parent The parent of this advancement.
+     * @param maxCriteria The maximum advancement criteria.
      */
     public BaseAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
         super(Objects.requireNonNull(parent, "Parent advancement is null.").advancementTab, key, display, maxCriteria);
@@ -75,10 +77,11 @@ public class BaseAdvancement extends Advancement {
     }
 
     /**
-     * Returns the advancement parent.
+     * Gets the parent of the advancement.
      *
-     * @return The advancement parent.
+     * @return The parent of the advancement.
      */
+    @NotNull
     public Advancement getParent() {
         return parent;
     }

@@ -155,10 +155,11 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
     }
 
     /**
-     * {@inheritDoc}
      * Compares this {@code AdvancementKey} to the provided one.
      *
      * @param key The other {@code AdvancementKey}.
+     * @return A negative integer, zero, or a positive integer as this key is less than, equal to, or greater than the specified one.
+     * @throws NullPointerException If the specified key is null
      */
     @Override
     public int compareTo(@NotNull AdvancementKey key) {

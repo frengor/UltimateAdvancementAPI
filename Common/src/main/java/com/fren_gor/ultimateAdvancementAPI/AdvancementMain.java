@@ -7,7 +7,6 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
-import lombok.Getter;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
@@ -20,6 +19,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.UnmodifiableView;
 
 import java.io.File;
@@ -38,28 +38,41 @@ import java.util.stream.Collectors;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 
+/**
+ * Main class of the API. It is used to instantiate the API.
+ */
 public final class AdvancementMain {
 
     private final static AtomicBoolean LOADED = new AtomicBoolean(false), ENABLED = new AtomicBoolean(false), INVALID_VERSION = new AtomicBoolean(false);
 
-    @Getter
     private final Plugin owningPlugin;
-    @Getter
     private EventManager eventManager;
-    @Getter
     private DatabaseManager databaseManager;
-    @Getter
     private BukkitLibraryManager libbyManager;
     private final String libFolder;
     private final Map<String, AdvancementTab> tabs = new HashMap<>();
     private final Map<Plugin, List<AdvancementTab>> pluginMap = new HashMap<>();
 
+    /**
+     * Creates a new {@code AdvancementMain}.
+     * <p>The library folder is {@code "plugins/pluginDirectory/.libs"}.
+     * Use {@link #AdvancementMain(Plugin, String)} to customize.
+     *
+     * @param owningPlugin The plugin instantiating the API.
+     */
     public AdvancementMain(@NotNull Plugin owningPlugin) {
         Validate.notNull(owningPlugin, "Plugin is null.");
         this.owningPlugin = owningPlugin;
         this.libFolder = ".libs";
     }
 
+    /**
+     * Creates a new {@code AdvancementMain}.
+     *
+     * @param owningPlugin The plugin instantiating the API.
+     * @param libFolder The name of the folder when additional libraries will be stored into.
+     *         The folder is created into the plugin directory.
+     */
     public AdvancementMain(@NotNull Plugin owningPlugin, String libFolder) {
         Validate.notNull(owningPlugin, "Plugin is null.");
         Validate.notNull(libFolder, "Lib folder is null.");
@@ -67,6 +80,13 @@ public final class AdvancementMain {
         this.libFolder = libFolder;
     }
 
+    /**
+     * Loads the API.
+     * <p><strong>Cannot be called twice</strong> until {@link #disable()} is called.
+     *
+     * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
+     * @throws IllegalStateException If it is called at an invalid moment.
+     */
     public void load() throws InvalidVersionException {
         checkPrimaryThread();
         if (!LOADED.compareAndSet(false, true)) {
@@ -81,6 +101,16 @@ public final class AdvancementMain {
         }
     }
 
+    /**
+     * Enables the API using a SQLite database.
+     * <p><strong>Must be called after {@link #load()} and cannot be called twice</strong> until {@link #disable()} is called.
+     * Also, only one <i>enable</i> method can be called per loading.
+     *
+     * @param SQLiteDatabase The SQLite database file.
+     * @throws RuntimeException If the enabling fails. It is a wrapper for the real exception.
+     * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
+     * @throws IllegalStateException If it is called at an invalid moment.
+     */
     public void enableSQLite(File SQLiteDatabase) {
         commonEnablePreDatabase();
 
@@ -94,7 +124,22 @@ public final class AdvancementMain {
         commonEnablePostDatabase();
     }
 
-    public void enableMySQL(String username, String password, String databaseName, String host, int port, int poolSize, long connectionTimeout) {
+    /**
+     * Enables the API using a MySQL database.
+     * <p><strong>Must be called after {@link #load()} and cannot be called twice</strong> until {@link #disable()} is called.
+     * Also, only one <i>enable</i> method can be called per loading.
+     *
+     * @param username The username.
+     * @param password The password.
+     * @param databaseName The name of the database.
+     * @param host The MySQL host.
+     * @param port The MySQL port. Must be greater than zero.
+     * @param poolSize The pool size. Must be greater than zero.
+     * @param connectionTimeout The connection timeout. Must be greater or equal to 250.
+     * @throws RuntimeException If the enabling fails. It is a wrapper for the real exception.
+     * @throws IllegalStateException If it is called at an invalid moment.
+     */
+    public void enableMySQL(String username, String password, String databaseName, String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout) {
         commonEnablePreDatabase();
 
         try {
@@ -155,6 +200,13 @@ public final class AdvancementMain {
         throw new RuntimeException("Exception setting up database.", e);
     }
 
+    /**
+     * Disables the API.
+     * <p><strong>Can be called exactly once</strong> after an <i>enable</i> method is called.
+     *
+     * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
+     * @throws IllegalStateException If the API is not enabled.
+     */
     public void disable() {
         checkPrimaryThread();
         if (INVALID_VERSION.get()) {
@@ -184,12 +236,13 @@ public final class AdvancementMain {
     }
 
     /**
-     * Create a new advancement tab.
+     * Creates a new {@link AdvancementTab} with the provided namespace. The namespace must be unique.
      *
-     * @param plugin Which plugin to register advancement tabs.
-     * @param namespace The unique name of the tab.
-     * @return A new advancement tab.
-     * @throws DuplicatedException If there are more than 1 tab with the same unique name.
+     * @param plugin The owner of the new tab.
+     * @param namespace The unique namespace of the tab.
+     * @return The new {@link AdvancementTab}.
+     * @throws DuplicatedException If another tab with the name already exists.
+     * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#createAdvancementTab(String)
      */
     @NotNull
@@ -209,10 +262,11 @@ public final class AdvancementMain {
     }
 
     /**
-     * Returns the wanted advancement tab.
+     * Gets an advancement tab by its namespace.
      *
-     * @param namespace The unique name of the wanted advancement tab.
-     * @return The wanted advancement tab.
+     * @param namespace The namespace of the advancement tab.
+     * @return The advancement tab with the provided namespace, or {@code null} if there isn't any tab with such namespace.
+     * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#getAdvancementTab(String)
      */
     @Nullable
@@ -223,10 +277,11 @@ public final class AdvancementMain {
     }
 
     /**
-     * Returns if the advancement tab has already been registered.
+     * Returns whether an advancement tab with the provided namespace has already been registered.
      *
-     * @param namespace The unique name of the advancement tab.
-     * @return If the advancement tab has already been registered.
+     * @param namespace The namespace of the advancement tab.
+     * @return Whether an advancement tab with the provided namespace has already been registered.
+     * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#isAdvancementTabRegistered(String)
      */
     public boolean isAdvancementTabRegistered(@NotNull String namespace) {
@@ -236,10 +291,11 @@ public final class AdvancementMain {
     }
 
     /**
-     * Returns an unmodifiable list with the registered advancement tabs of your plugin.
+     * Returns an unmodifiable {@link Collection} of the advancement tabs registered by the provided plugin.
      *
-     * @param plugin Which plugin to returns the advancement tabs.
-     * @return An unmodifiable list with the registered advancement tabs of your plugin.
+     * @param plugin The plugin that owns the returned advancement tabs.
+     * @return An unmodifiable {@link Collection} of the advancement tabs registered by the provided plugin.
+     * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#getPluginAdvancementTabs()
      */
     @UnmodifiableView
@@ -251,9 +307,10 @@ public final class AdvancementMain {
     }
 
     /**
-     * Unregister an advancement tab.
+     * Unregisters an advancement tab.
      *
-     * @param namespace The unique name of the advancement tab to be unregistered.
+     * @param namespace The namespace of the advancement tab to be unregistered.
+     * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#unregisterAdvancementTab(String)
      */
     public void unregisterAdvancementTab(@NotNull String namespace) {
@@ -265,9 +322,10 @@ public final class AdvancementMain {
     }
 
     /**
-     * Unregister all advancement tabs.
+     * Unregisters all the advancement tabs owned by the provided plugin.
      *
-     * @param plugin Which plugin to unregister advancement tabs.
+     * @param plugin The plugin that owns the advancement tabs to be unregistered.
+     * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#unregisterPluginAdvancementTabs()
      */
     public void unregisterAdvancementTabs(@NotNull Plugin plugin) {
@@ -281,11 +339,11 @@ public final class AdvancementMain {
     }
 
     /**
-     *  Returns the wanted advancement.
-     *  i.g. of the namespaced key: "namespace:key"
+     * Returns the advancement with the provided namespaced key.
      *
-     * @param namespacedKey The namespace of the advancement tab and the unique key of the advancement.
-     * @return The wanted advancement, or {@code null}.
+     * @param namespacedKey The namespaced key of the advancement. It must be in the format {@code "namespace:key"}.
+     * @return The advancement with the provided namespaced key., or {@code null} if it doesn't exist.
+     * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#getAdvancement(String)
      */
     @Nullable
@@ -299,11 +357,12 @@ public final class AdvancementMain {
     }
 
     /**
-     * Returns the wanted advancement.
+     * Returns the advancement with the provided namespaced key.
      *
-     * @param namespace The namespace of the advancement tab.
-     * @param key The unique key of the advancement.
-     * @return The wanted advancement, or {@code null}.
+     * @param namespace The namespace of the advancement's tab.
+     * @param key The key of the advancement.
+     * @return The advancement with the provided namespaced key, or {@code null} if it doesn't exist.
+     * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#getAdvancement(String, String)
      */
     @Nullable
@@ -315,10 +374,11 @@ public final class AdvancementMain {
     }
 
     /**
-     *  Returns the wanted advancement.
+     * Returns the advancement with the provided namespaced key.
      *
      * @param namespacedKey The {@link AdvancementKey} of the advancement.
-     * @return The wanted advancement, or {@code null}.
+     * @return The advancement with the provided namespaced key, or {@code null} if it doesn't exist.
+     * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#getAdvancement(AdvancementKey)
      */
     @Nullable
@@ -332,9 +392,10 @@ public final class AdvancementMain {
     }
 
     /**
-     * Returns a list of all advancement unique names.
+     * Returns an unmodifiable {@link Set} containing the namespaces of every registered advancement tab.
      *
-     * @return A list of all advancement unique names.
+     * @return An unmodifiable {@link Set} containing the namespaces of every registered advancement tab.
+     * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#getAdvancementTabNamespaces()
      */
     @NotNull
@@ -346,10 +407,11 @@ public final class AdvancementMain {
     }
 
     /**
-     * Filter by name the unique names of the advancement tabs.
+     * Returns the namespaced keys of every registered advancement which namespaced key starts with the provided one.
      *
-     * @param input The filter.
-     * @return A filtered list of the advancement tab unique names.
+     * @param input The partial namespaced key that acts as a filter.
+     * @return A filtered {@link List} that contains only the matching namespaced keys of the registered advancements.
+     * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#filterNamespaces(String)
      */
     @NotNull
@@ -387,9 +449,10 @@ public final class AdvancementMain {
     }
 
     /**
-     * Returns an unmodifiable list with all registered advancement tabs.
+     * Returns an unmodifiable {@link Collection} of every registered advancement tab.
      *
-     * @return An unmodifiable list with all registered advancement tabs.
+     * @return An unmodifiable {@link Collection} of every registered advancement tab.
+     * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#getTabs()
      */
     @UnmodifiableView
@@ -400,9 +463,11 @@ public final class AdvancementMain {
     }
 
     /**
-     * Updates every advancement for a player.
+     * Updates every advancement to a player.
+     * <p>An advancement is updated only if its tab is shown to the player (see {@link AdvancementTab#isShownTo(Player)}).
      *
-     * @param player Which player to update the advancements.
+     * @param player The player to be updated.
+     * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#updatePlayer(Player)
      */
     public void updatePlayer(@NotNull Player player) {
@@ -431,21 +496,85 @@ public final class AdvancementMain {
         }
     }
 
-    // Duplicated methods from JavaPlugin
-
-    public @NotNull Logger getLogger() {
-        return owningPlugin.getLogger();
+    /**
+     * Gets the plugin that instantiated the API.
+     *
+     * @return The plugin that instantiated the API.
+     */
+    @NotNull
+    public Plugin getOwningPlugin() {
+        return owningPlugin;
     }
 
-    public File getDataFolder() {
-        return owningPlugin.getDataFolder();
+    /**
+     * Gets the {@link EventManager} API global instance.
+     *
+     * @return The {@link EventManager} API global instance.
+     */
+    @NotNull
+    public EventManager getEventManager() {
+        return eventManager;
     }
 
+    /**
+     * Gets the {@link DatabaseManager}.
+     *
+     * @return The {@link DatabaseManager}.
+     */
+    @NotNull
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
+    }
+
+    /**
+     * Gets the libby manager.
+     * <p>Libby is a library to handle dependencies at runtime. <a href="https://github.com/AlessioDP/libby">Check it out here.</a>
+     *
+     * @return The libby manager.
+     */
+    @NotNull
+    public BukkitLibraryManager getLibbyManager() {
+        return libbyManager;
+    }
+
+    /**
+     * Returns whether the API is loaded.
+     *
+     * @return Whether the API is loaded.
+     */
     public static boolean isLoaded() {
         return LOADED.get() && !INVALID_VERSION.get();
     }
 
+    /**
+     * Returns whether the API is enabled.
+     *
+     * @return Whether the API is enabled.
+     */
     public static boolean isEnabled() {
         return ENABLED.get();
+    }
+
+    // Shortcuts for JavaPlugin methods
+
+    /**
+     * Gets the owning plugin {@link Logger}.
+     * <p>This method is equivalent to {@code getOwningPlugin().getLogger()}.
+     *
+     * @return The owning plugin {@link Logger}.
+     */
+    @NotNull
+    public Logger getLogger() {
+        return owningPlugin.getLogger();
+    }
+
+    /**
+     * Gets the owning plugin data folder.
+     * <p>This method is equivalent to {@code getOwningPlugin().getDataFolder()}.
+     *
+     * @return The owning plugin data folder.
+     */
+    public File getDataFolder() {
+        return owningPlugin.getDataFolder();
     }
 }

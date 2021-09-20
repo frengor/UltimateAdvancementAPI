@@ -10,6 +10,7 @@ import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -22,36 +23,33 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * AdvancementDisplay groups all the graphical components into a class
- * and describes the aesthetic aspect of the advancement, that is, how it is
- * shown in the advancements GUI. Components such as title, description,
- * position in x and y etc. are saved. Instead, the parent or maxCriteria are saved in advancement class.
- * Usually the default color of the description is taken directly from the advancement frame type, but it can be specified in the appropriate constructor.
+ * The {@code AdvancementDisplay} class contains the graphical information of the advancement.
+ * <p>It contains the title, description, icon, etc. etc.
  */
 public class AdvancementDisplay {
 
     /**
-     * The icon of the advancement and tell which item will be displayed on the GUI.
+     * The icon of the advancement in the advancement GUI.
      */
     protected final ItemStack icon;
 
     /**
-     * Usually the BaseComponent[] object is used for packets, it contains the information about the advancement title that needs to be sent to the player as a packet.
+     * The fancy title used by {@link Advancement#getAnnounceMessage(Player)}.
      */
     protected final BaseComponent[] chatTitle = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
 
     /**
-     * Usually the BaseComponent[] object is used for packets, it contains the information about the advancement description that needs to be sent to the player as a packet.
+     * The fancy description used by {@link Advancement#getAnnounceMessage(Player)}.
      */
     protected final BaseComponent[] chatDescription = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
 
     /**
-     * The title of the advancement and it will be the displayed title.
+     * The title of the advancement.
      */
     protected final String title;
 
     /**
-     * The title of the advancement but trimmed and without color codes.
+     * The trimmed title of the advancement.
      */
     protected final String rawTitle;
 
@@ -62,47 +60,49 @@ public class AdvancementDisplay {
     protected final List<String> description;
 
     /**
-     * The description of the advancement on a single String with "\n" between the lines of the description.
+     * The description of the advancement compacted as a single {@link String} (with {@code '\n' + defaultColorCode} between lines).
      */
     protected final String compactDescription;
 
     /**
-     * The shape of the advancement.
-     *
-     * @see AdvancementFrameType
+     * The shape of the advancement frame in the advancement GUI.
      */
     protected final AdvancementFrameType frame;
 
     /**
-     * Tell if the toast message needs to be sent.
+     * Whether the toast notification should be sent on advancement grant.
      */
     protected final boolean showToast;
 
     /**
-     * Tell if the advancement completion message needs to be sent.
+     * Whether the advancement completion message should be sent on advancement grant.
      */
     protected final boolean announceChat;
 
     /**
-     * The advancement position relative to the x-axis.
+     * The advancement x coordinate.
      */
     protected final float x;
 
     /**
-     * The advancement position relative to the y-axis.
+     * The advancement y coordinate.
      */
     protected final float y;
 
     /**
-     * Create a new AdvancementDisplay.
+     * Creates a new {@code AdvancementDisplay}.
+     * <p>The default color of the title and description is {@code frame.getColor()}.
+     * <p>The advancement is positioned by the x and y coordinates in the advancement GUI. The origin is placed in the
+     * upper-left corner of the advancement GUI. The x-axis points to the right (as usual), whereas the y-axis points downward.
+     * Thus, the x and y coordinates must be positive.
      *
-     * @param icon What item will be shown on the GUI.
-     * @param title The displayed title of the advancement.
-     * @param frame Which shape has the advancement.
-     * @param showToast If it shows the toast message.
-     * @param announceChat If it shows the announceChat message.
-     * @param x X coordinate.
-     * @param y Y coordinate.
+     * @param icon The material of the advancement's icon in the advancement GUI.
+     * @param title The title of the advancement.
+     * @param frame The shape of the advancement frame in the advancement GUI.
+     * @param showToast Whether the toast notification should be sent on advancement grant.
+     * @param announceChat Whether the advancement completion message should be sent on advancement grant.
+     * @param x The advancement x coordinate. Must be positive.
+     * @param y The advancement y coordinate. Must be positive.
      * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
@@ -110,15 +110,19 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Create a new AdvancementDisplay.
+     * Creates a new {@code AdvancementDisplay}.
+     * <p>The default color of the title and description is {@code frame.getColor()}.
+     * <p>The advancement is positioned by the x and y coordinates in the advancement GUI. The origin is placed in the
+     * upper-left corner of the advancement GUI. The x-axis points to the right (as usual), whereas the y-axis points downward.
+     * Thus, the x and y coordinates must be positive.
      *
-     * @param icon What item will be shown on the GUI.
-     * @param title The displayed title of the advancement.
-     * @param frame Which shape has the advancement.
-     * @param showToast If it shows the toast message.
-     * @param announceChat If it shows the announceChat message.
-     * @param x X coordinate.
-     * @param y Y coordinate.
+     * @param icon The material of the advancement's icon in the advancement GUI.
+     * @param title The title of the advancement.
+     * @param frame The shape of the advancement frame in the advancement GUI.
+     * @param showToast Whether the toast notification should be sent on advancement grant.
+     * @param announceChat Whether the advancement completion message should be sent on advancement grant.
+     * @param x The advancement x coordinate. Must be positive.
+     * @param y The advancement y coordinate. Must be positive.
      * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
@@ -126,15 +130,19 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Create a new AdvancementDisplay.
+     * Creates a new {@code AdvancementDisplay}.
+     * <p>The default color of the title and description is {@code frame.getColor()}.
+     * <p>The advancement is positioned by the x and y coordinates in the advancement GUI. The origin is placed in the
+     * upper-left corner of the advancement GUI. The x-axis points to the right (as usual), whereas the y-axis points downward.
+     * Thus, the x and y coordinates must be positive.
      *
-     * @param icon What item will be shown on the GUI.
-     * @param title The displayed title of the advancement.
-     * @param frame Which shape has the advancement.
-     * @param showToast If it shows the toast message.
-     * @param announceChat If it shows the announceChat message.
-     * @param x X coordinate.
-     * @param y Y coordinate.
+     * @param icon The advancement's icon in the advancement GUI.
+     * @param title The title of the advancement.
+     * @param frame The shape of the advancement frame in the advancement GUI.
+     * @param showToast Whether the toast notification should be sent on advancement grant.
+     * @param announceChat Whether the advancement completion message should be sent on advancement grant.
+     * @param x The advancement x coordinate. Must be positive.
+     * @param y The advancement y coordinate. Must be positive.
      * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
@@ -142,15 +150,19 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Create a new AdvancementDisplay.
+     * Creates a new {@code AdvancementDisplay}.
+     * <p>The default color of the title and description is {@code frame.getColor()}.
+     * <p>The advancement is positioned by the x and y coordinates in the advancement GUI. The origin is placed in the
+     * upper-left corner of the advancement GUI. The x-axis points to the right (as usual), whereas the y-axis points downward.
+     * Thus, the x and y coordinates must be positive.
      *
-     * @param icon What item will be shown on the GUI.
-     * @param title The displayed title of the advancement.
-     * @param frame Which shape has the advancement.
-     * @param showToast If it shows the toast message.
-     * @param announceChat If it shows the announceChat message.
-     * @param x X coordinate.
-     * @param y Y coordinate.
+     * @param icon The advancement's icon in the advancement GUI.
+     * @param title The title of the advancement.
+     * @param frame The shape of the advancement frame in the advancement GUI.
+     * @param showToast Whether the toast notification should be sent on advancement grant.
+     * @param announceChat Whether the advancement completion message should be sent on advancement grant.
+     * @param x The advancement x coordinate. Must be positive.
+     * @param y The advancement y coordinate. Must be positive.
      * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
@@ -158,16 +170,19 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Create a new AdvancementDisplay.
+     * Creates a new {@code AdvancementDisplay}.
+     * <p>The advancement is positioned by the x and y coordinates in the advancement GUI. The origin is placed in the
+     * upper-left corner of the advancement GUI. The x-axis points to the right (as usual), whereas the y-axis points downward.
+     * Thus, the x and y coordinates must be positive.
      *
-     * @param icon What item will be shown on the GUI.
-     * @param title The displayed title of the advancement.
-     * @param frame Which shape has the advancement.
-     * @param showToast If it shows the toast message.
-     * @param announceChat If it shows the announceChat message.
-     * @param x X coordinate.
-     * @param y Y coordinate.
-     * @param defaultColor Description default color.
+     * @param icon The advancement's icon in the advancement GUI.
+     * @param title The title of the advancement.
+     * @param frame The shape of the advancement frame in the advancement GUI.
+     * @param showToast Whether the toast notification should be sent on advancement grant.
+     * @param announceChat Whether the advancement completion message should be sent on advancement grant.
+     * @param x The advancement x coordinate. Must be positive.
+     * @param y The advancement y coordinate. Must be positive.
+     * @param defaultColor The default color of the title and description.
      * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull String... description) {
@@ -175,16 +190,19 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Create a new AdvancementDisplay.
+     * Creates a new {@code AdvancementDisplay}.
+     * <p>The advancement is positioned by the x and y coordinates in the advancement GUI. The origin is placed in the
+     * upper-left corner of the advancement GUI. The x-axis points to the right (as usual), whereas the y-axis points downward.
+     * Thus, the x and y coordinates must be positive.
      *
-     * @param icon What item will be shown on the GUI.
-     * @param title The displayed title of the advancement.
-     * @param frame Which shape has the advancement.
-     * @param showToast If it shows the toast message.
-     * @param announceChat If it shows the announceChat message.
-     * @param x X coordinate.
-     * @param y Y coordinate.
-     * @param defaultColor Description default color.
+     * @param icon The advancement's icon in the advancement GUI.
+     * @param title The title of the advancement.
+     * @param frame The shape of the advancement frame in the advancement GUI.
+     * @param showToast Whether the toast notification should be sent on advancement grant.
+     * @param announceChat Whether the advancement completion message should be sent on advancement grant.
+     * @param x The advancement x coordinate. Must be positive.
+     * @param y The advancement y coordinate. Must be positive.
+     * @param defaultColor The default color of the title and description.
      * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull List<String> description) {
@@ -236,43 +254,45 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Returns whether the toast should be sent.
+     * Returns whether the toast notification should be sent on advancement grant.
      *
-     * @return Whether the toast should be sent.
+     * @return Whether the toast notification should be sent on advancement grant.
      */
     public boolean doesShowToast() {
         return showToast;
     }
 
     /**
-     * Returns whether the advancement completion message should be sent.
+     * Returns whether the advancement completion message should be sent on advancement grant.
      *
-     * @return Whether the advancement completion message should be sent.
+     * @return Whether the advancement completion message should be sent on advancement grant.
      */
     public boolean doesAnnounceToChat() {
         return announceChat;
     }
 
     /**
-     * Returns the BaseComponent array of title for the chat reason.
+     * Gets the {@link BaseComponent} array that contains the fancy title. Used by {@link Advancement#getAnnounceMessage(Player)}.
      *
-     * @return The BaseComponent array of title.
+     * @return The {@link BaseComponent} array that contains the fancy title.
      */
+    @NotNull
     public BaseComponent[] getChatTitle() {
         return chatTitle.clone();
     }
 
     /**
-     * Returns the BaseComponent array of description for the chat reason.
+     * Gets the {@link BaseComponent} array that contains the fancy description. Used by {@link Advancement#getAnnounceMessage(Player)}.
      *
-     * @return The BaseComponent array of title.
+     * @return The {@link BaseComponent} array that contains the fancy description.
      */
+    @NotNull
     public BaseComponent[] getChatDescription() {
         return chatDescription.clone();
     }
 
     /**
-     * Returns a clone of the icon.
+     * Gets a clone of the icon.
      *
      * @return A clone of the icon.
      */
@@ -282,10 +302,10 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Given an advancement, its display is returned based on the minecraft version. It is used in packets.
+     * Returns the NMS AdvancementDisplay, using the provided advancement for construction (when necessary).
      *
-     * @param advancement The advancement of which you want to get the minecraft display.
-     * @return The minecraft advancement, that is, the real advancement display class.
+     * @param advancement The advancement used, when necessary, to create the NMS AdvancementDisplay. Must be not {@code null}.
+     * @return The NMS AdvancementDisplay.
      */
     @NotNull
     public net.minecraft.server.v1_15_R1.AdvancementDisplay getMinecraftDisplay(@NotNull Advancement advancement) {
@@ -301,7 +321,7 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Returns the icon according to the minecraft version. It is used in packets.
+     * Returns the NMS icon.
      *
      * @return The NMS icon.
      */
@@ -315,15 +335,17 @@ public class AdvancementDisplay {
      *
      * @return The title of the advancement.
      */
+    @NotNull
     public String getTitle() {
         return title;
     }
 
     /**
-     * Returns trimmed and without color codes title.
+     * Returns the trimmed title of the advancement.
      *
-     * @return The raw title
+     * @return The trimmed title of the advancement.
      */
+    @NotNull
     public String getRawTitle() {
         return rawTitle;
     }
@@ -339,19 +361,22 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Returns the compact description.
+     * Returns the compacted description.
      *
-     * @return The compact description.
+     * @return The compacted description.
+     * @see #compactDescription
      */
+    @NotNull
     public String getCompactDescription() {
         return compactDescription;
     }
 
     /**
-     * Returns the frame type.
+     * Returns the shape of the advancement frame in the advancement GUI.
      *
-     * @return The frame type.
+     * @return The shape of the advancement frame in the advancement GUI.
      */
+    @NotNull
     public AdvancementFrameType getFrame() {
         return frame;
     }
@@ -359,7 +384,7 @@ public class AdvancementDisplay {
     /**
      * Returns the advancement position relative to the x-axis.
      *
-     * @return The x-axis.
+     * @return The x coordinate.
      */
     public float getX() {
         return x;
@@ -368,7 +393,7 @@ public class AdvancementDisplay {
     /**
      * Returns the advancement position relative to the y-axis.
      *
-     * @return The y-axis.
+     * @return The y coordinate.
      */
     public float getY() {
         return y;

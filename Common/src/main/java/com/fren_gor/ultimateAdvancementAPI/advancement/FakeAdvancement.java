@@ -2,7 +2,6 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
-import com.fren_gor.ultimateAdvancementAPI.advancement.multiParents.MultiParentsAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -29,9 +28,11 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvan
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementRequirements;
 
 /**
- * FakeAdvancements are advancements that are created and used only to recreate visible lines and connect multiple advancements.
- * <p>They are used in the API for {@link MultiParentsAdvancement} management. These are not saved to the database.
- * <p>Many of the methods are overridden and cannot be used.
+ * The {@code FakeAdvancement} class is a non-saved and non-registrable invisible advancement.
+ * <p>This means that {@code FakeAdvancement}s are not saved into the database and that they cannot be registered in any tab.
+ * <p>They are also not displayed by clients, but the connection to their parent is still visible.
+ * Thus, they can be sent in packets to display a connection.
+ * <p>Since {@code FakeAdvancement}s are not saved, many methods are not supported.
  */
 public final class FakeAdvancement extends BaseAdvancement {
 
@@ -40,21 +41,21 @@ public final class FakeAdvancement extends BaseAdvancement {
     private net.minecraft.server.v1_15_R1.Advancement mcAdvancement;
 
     /**
-     * Create a new FakeAdvancement.
+     * Creates a new {@code FakeAdvancement}.
      *
      * @param parent The parent of the advancement.
-     * @param x X coordinate.
-     * @param y Y coordinate.
+     * @param x The x coordinate of the advancement.
+     * @param y The y coordinate of the advancement.
      */
     public FakeAdvancement(@NotNull Advancement parent, float x, float y) {
         this(parent, new FakeAdvancementDisplay(Material.GRASS_BLOCK, "FakeAdvancement", AdvancementFrameType.TASK, x, y));
     }
 
     /**
-     * Create a new FakeAdvancement.
+     * Creates a new {@code FakeAdvancement}.
      *
      * @param parent The parent of the advancement.
-     * @param display The {@link FakeAdvancementDisplay}.
+     * @param display The display information of this advancement.
      */
     public FakeAdvancement(@NotNull Advancement parent, @NotNull FakeAdvancementDisplay display) {
         super("fakeadvancement._-.-_." + FAKE_NUMBER.getAndIncrement(), display, parent);
@@ -85,8 +86,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method returns always {@code 0}.
      *
-     * @return {@code 0} every time.
+     * @return Always {@code 0}.
      */
     @Override
     public int getTeamCriteria(@NotNull Player player) {
@@ -95,8 +97,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method returns always {@code 0}.
      *
-     * @return {@code 0} every time.
+     * @return Always {@code 0}.
      */
     @Override
     public int getTeamCriteria(@NotNull UUID uuid) {
@@ -105,8 +108,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method returns always {@code 0}.
      *
-     * @return {@code 0} every time.
+     * @return Always {@code 0}.
      */
     @Override
     public int getTeamCriteria(@NotNull TeamProgression progression) {
@@ -115,8 +119,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method returns always {@code true}.
      *
-     * @return {@code true} every time.
+     * @return Always {@code true}.
      */
     @Override
     @Contract("_ -> true")
@@ -126,8 +131,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method returns always {@code true}.
      *
-     * @return {@code true} every time.
+     * @return Always {@code true}.
      */
     @Override
     @Contract("_ -> true")
@@ -137,8 +143,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method returns always {@code true}.
      *
-     * @return {@code true} every time.
+     * @return Always {@code true}.
      */
     @Override
     @Contract("_ -> true")
@@ -146,17 +153,16 @@ public final class FakeAdvancement extends BaseAdvancement {
         return true;
     }
 
-    //TODO
-    // Since isVisible() returns true for every input we can use the super method
+    /**
+     * {@inheritDoc}
+     */
+    // Must be kept to avoid accidental inclusion in UnsupportedOperationException methods down below
     @Override
     public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
-        // Keep to avoid accidental inclusion in UnsupportedOperationException methods down below
+        // Since isVisible() returns true for every input we can use the super method
         super.onUpdate(teamProgression, advancementList, progresses, added);
-    }
-    // instead of this version down below
-    /*@Override
-    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
-        net.minecraft.server.v1_15_R1.Advancement adv = getMinecraftAdvancement();
+        // instead of this version down below
+        /*net.minecraft.server.v1_15_R1.Advancement adv = getMinecraftAdvancement();
         advancementList.add(adv);
 
         // Inlining of getAdvancementProgress()
@@ -165,37 +171,37 @@ public final class FakeAdvancement extends BaseAdvancement {
 
         MinecraftKey key = getMinecraftKey();
         added.add(key);
-        progresses.put(key, advPrg);
-    }*/
+        progresses.put(key, advPrg);*/
+    }
 
     /**
-     * The display for the {@link FakeAdvancement}.
+     * The {@link AdvancementDisplay} used by {@link FakeAdvancement}s.
      *
-     * @see AdvancementDisplay
+     * @see FakeAdvancement
      */
     public static final class FakeAdvancementDisplay extends AdvancementDisplay {
 
         /**
-         * Create a new FakeAdvancementDisplay.
+         * Creates a new {@code FakeAdvancementDisplay}.
          *
-         * @param icon What item will be shown on the GUI.
+         * @param icon The material of the item that will be shown in the GUI.
          * @param title The title of the advancement.
-         * @param frame Which shape has the advancement.
-         * @param x X coordinate.
-         * @param y Y coordinate.
+         * @param frame The shape of the advancement.
+         * @param x The x coordinate of the advancement.
+         * @param y The y coordinate of the advancement.
          */
         public FakeAdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, float x, float y) {
             super(icon, title, frame, false, false, x, y, Collections.emptyList());
         }
 
         /**
-         * Create a new FakeAdvancementDisplay.
+         * Creates a new {@code FakeAdvancementDisplay}.
          *
-         * @param icon What item will be shown on the GUI.
+         * @param icon The item that will be shown in the GUI.
          * @param title The title of the advancement.
-         * @param frame Which shape has the advancement.
-         * @param x X coordinate.
-         * @param y Y coordinate.
+         * @param frame The shape of the advancement.
+         * @param x The x coordinate of the advancement.
+         * @param y The y coordinate of the advancement.
          */
         public FakeAdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, float x, float y) {
             super(icon, title, frame, false, false, x, y, Collections.emptyList());
@@ -217,8 +223,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public boolean isGranted(@NotNull Player player) {
@@ -227,8 +234,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public boolean isGranted(@NotNull UUID uuid) {
@@ -237,8 +245,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public boolean isGranted(@NotNull TeamProgression progression) {
@@ -247,8 +256,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public @Nullable BaseComponent[] getAnnounceMessage(@NotNull Player player) {
@@ -257,8 +267,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull UUID uuid) {
@@ -267,8 +278,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull UUID uuid, boolean giveReward) {
@@ -277,8 +289,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
@@ -287,8 +300,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
@@ -297,8 +311,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull Player player) {
@@ -307,8 +322,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull Player player, boolean giveReward) {
@@ -317,8 +333,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
@@ -327,8 +344,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
@@ -337,8 +355,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     protected @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
@@ -347,8 +366,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public void setCriteriaTeamProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
@@ -357,8 +377,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public void setCriteriaTeamProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
@@ -367,8 +388,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
@@ -377,8 +399,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
@@ -387,8 +410,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     protected void setCriteriaTeamProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
@@ -397,8 +421,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int criteria, int old, boolean giveRewards, @Nullable AfterHandle afterHandle) {
@@ -407,8 +432,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public void displayToastToPlayer(@NotNull Player player) {
@@ -417,8 +443,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public boolean isShownTo(Player player) {
@@ -427,8 +454,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public void onGrant(@NotNull Player player, boolean giveRewards) {
@@ -437,8 +465,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public void giveReward(@NotNull Player player) {
@@ -447,8 +476,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public void grant(@NotNull Player player) {
@@ -457,8 +487,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public void grant(@NotNull Player player, boolean giveRewards) {
@@ -467,8 +498,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
      *
-     * @throws UnsupportedOperationException Always when the method is called.
+     * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
     public void revoke(@NotNull Player player) {

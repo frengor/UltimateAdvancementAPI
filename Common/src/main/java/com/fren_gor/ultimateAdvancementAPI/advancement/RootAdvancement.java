@@ -18,16 +18,14 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvan
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementRequirements;
 
 /**
- * RootAdvancement directly extends Advancement.
- * <p>It represents the first advancement of a tab.
- * <p>Therefore, there must be only one RootAdvancement per tab and it has no parent advancement.
- * <p>RootAdvancement must be always visible and it contains the background texture path.
+ * The first advancement of an advancement tree.
+ * <p>It has no parents and stores the path to the background texture image of the tab. Also, it must be always visible.
  */
 public class RootAdvancement extends Advancement {
 
     /**
-     * The background texture path.
-     * <p>The corresponding image will be used as advancement GUI background.
+     * The path of the background texture image.
+     * <p>The corresponding image will be used as the background of the tab in the advancement GUI.
      */
     @NotNull
     private final String backgroundTexture;
@@ -35,25 +33,25 @@ public class RootAdvancement extends Advancement {
     private net.minecraft.server.v1_15_R1.Advancement mcAdvancement;
 
     /**
-     * Create a new RootAdvancement.
+     * Creates a new {@code RootAdvancement} with a maximum criteria of {@code 1}.
      *
-     * @param advancementTab The {@link AdvancementTab} instance that the advancement belongs to.
-     * @param key The unique key of the advancement.
-     * @param display The {@link AdvancementDisplay} instance of the advancement.
-     * @param backgroundTexture The background texture path.
+     * @param advancementTab The advancement tab of the advancement.
+     * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     * @param display The display information of this advancement.
+     * @param backgroundTexture The path of the background texture image (like "textures/block/stone.png").
      */
     public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull String backgroundTexture) {
         this(advancementTab, key, display, backgroundTexture, 1);
     }
 
     /**
-     * Create a new RootAdvancement.
+     * Creates a new {@code RootAdvancement}.
      *
-     * @param advancementTab The {@link AdvancementTab} instance that the advancement belongs to.
-     * @param key The unique key of the advancement.
-     * @param display The {@link AdvancementDisplay} instance of the advancement.
-     * @param backgroundTexture The background texture path.
-     * @param maxCriteria The times the advancement action should be done.
+     * @param advancementTab The advancement tab of the advancement.
+     * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     * @param display The display information of this advancement.
+     * @param backgroundTexture The path of the background texture image (like "textures/block/stone.png").
+     * @param maxCriteria The maximum advancement criteria.
      */
     public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull String backgroundTexture, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
         super(advancementTab, key, display, maxCriteria);
@@ -74,10 +72,11 @@ public class RootAdvancement extends Advancement {
     }
 
     /**
-     * The root advancement must be always visible.
+     * Returns whether the advancement is visible to the provided player.
+     * <p>The root advancement must be always visible, so this method always returns {@code true}.
      *
-     * @param player From which player to know whether the advancement is visible to the team.
-     * @return {@code true}.
+     * @param player The player.
+     * @return Always {@code true}.
      */
     @Override
     @Contract("_ -> true")
@@ -86,10 +85,11 @@ public class RootAdvancement extends Advancement {
     }
 
     /**
-     * The root advancement must be always visible.
+     * Returns whether the advancement is visible to the provided player.
+     * <p>The root advancement must be always visible, so this method always returns {@code true}.
      *
-     * @param uuid From which UUID player to know whether the advancement is visible to the team.
-     * @return {@code true}.
+     * @param uuid The {@link UUID} of the player.
+     * @return Always {@code true}.
      */
     @Override
     @Contract("_ -> true")
@@ -98,10 +98,11 @@ public class RootAdvancement extends Advancement {
     }
 
     /**
-     * The root advancement must be always visible.
+     * Returns whether the advancement is visible to the provided team.
+     * <p>The root advancement must be always visible, so this method always returns {@code true}.
      *
-     * @param progression From which {@link TeamProgression} to know whether the advancement is visible to the team.
-     * @return {@code true}.
+     * @param progression The {@link TeamProgression} of the team.
+     * @return Always {@code true}.
      */
     @Override
     @Contract("_ -> true")
@@ -110,10 +111,11 @@ public class RootAdvancement extends Advancement {
     }
 
     /**
-     * Returns the path of the background texture as {@link String}.
+     * Gets the path to the background texture image of the tab.
      *
-     * @return The path of the background texture.
+     * @return The path to the background texture image of the tab.
      */
+    @NotNull
     public String getBackgroundTexture() {
         return backgroundTexture;
     }

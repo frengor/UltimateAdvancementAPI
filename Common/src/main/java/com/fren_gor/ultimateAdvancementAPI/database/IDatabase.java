@@ -92,7 +92,7 @@ public interface IDatabase {
     Map<AdvancementKey, Integer> getTeamAdvancements(int teamId) throws SQLException;
 
     /**
-     * Loads the provided player or registers they if they is new.
+     * Loads the provided player or registers they if they are new.
      *
      * @param uuid The player {@link UUID}.
      * @param name The player name.

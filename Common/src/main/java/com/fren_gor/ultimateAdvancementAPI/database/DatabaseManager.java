@@ -64,7 +64,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFrom
  * }</pre></blockquote>
  * By default, players are kept in cache until they quit.
  * However, this behavior can be overridden through the {@link #loadOfflinePlayer(UUID, CacheFreeingOption)} method,
- * which forces a player to stay in cache even if they quits. If the player is not online, they'll be loaded.
+ * which forces a player to stay in cache even if they quit. If the player is not online, they'll be loaded.
  * <p>There is, however, a limit on the maximum amount of requests a plugin can do.
  * For more information, see {@link DatabaseManager#getLoadingRequestsAmount(Plugin, UUID, CacheFreeingOption.Option)}.
  * <p>This class is thread safe.
@@ -107,10 +107,10 @@ public final class DatabaseManager {
      * @param host The MySQL host.
      * @param port The MySQL port. Must be greater than zero.
      * @param poolSize The pool size. Must be greater than zero.
-     * @param connectionTimeout The connection timeout. Must be greater or equals to 250.
+     * @param connectionTimeout The connection timeout. Must be greater or equal to 250.
      * @throws Exception If anything goes wrong.
      */
-    public DatabaseManager(@NotNull AdvancementMain main, @NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Integer.MAX_VALUE) long connectionTimeout) throws Exception {
+    public DatabaseManager(@NotNull AdvancementMain main, @NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout) throws Exception {
         this.main = main;
         this.eventManager = main.getEventManager();
 
@@ -210,7 +210,7 @@ public final class DatabaseManager {
     }
 
     /**
-     * Load the provided player from the database. If they is not present, this method registers they.
+     * Load the provided player from the database. If they are not present, this method registers they.
      * <p><strong>Should be called async.</strong>
      *
      * @param player The player.
@@ -706,6 +706,18 @@ public final class DatabaseManager {
     }
 
     /**
+     * Returns whether the provided offline player is loaded into the cache.
+     *
+     * @param player The player.
+     * @return Whether the provided offline player is loaded into the cache.
+     * @see UltimateAdvancementAPI#isLoaded(OfflinePlayer)
+     */
+    @Contract(pure = true)
+    public boolean isLoaded(@NotNull OfflinePlayer player) {
+        return isLoaded(uuidFromPlayer(player));
+    }
+
+    /**
      * Returns whether the provided player is loaded into the cache.
      *
      * @param uuid The {@link UUID} of the player.
@@ -990,7 +1002,7 @@ public final class DatabaseManager {
     }
 
     /**
-     * Returns whether at least one loading request for the specified player is currently active.
+     * Returns whether at least one loading request is currently active for the specified player.
      *
      * @param uuid The {@link UUID} of the player.
      * @return Whether at least one loading request for the specified player is currently active.
@@ -1001,7 +1013,7 @@ public final class DatabaseManager {
     }
 
     /**
-     * Returns whether at least one loading request, done by the provided plugin, for the specified player is currently active.
+     * Returns whether at least one loading request, done by the provided plugin, is currently active for the specified player.
      *
      * @param uuid The {@link UUID} of the player.
      * @param requester The plugin which requested the loading.
@@ -1015,7 +1027,7 @@ public final class DatabaseManager {
     }
 
     /**
-     * Unload the provided player from the caching system.
+     * Unloads the provided player from the caching system.
      * <p>Note that this method will only unload players loaded with {@link CacheFreeingOption#MANUAL(Plugin)}.
      *
      * @param uuid The {@link UUID} of the player to unload.
