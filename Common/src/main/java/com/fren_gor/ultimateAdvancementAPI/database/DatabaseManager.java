@@ -89,7 +89,9 @@ public final class DatabaseManager {
      * @param dbFile The SQLite database file.
      * @throws Exception If anything goes wrong.
      */
-    public DatabaseManager(AdvancementMain main, File dbFile) throws Exception {
+    public DatabaseManager(@NotNull AdvancementMain main, @NotNull File dbFile) throws Exception {
+        Validate.notNull(main, "AdvancementMain is null.");
+        Validate.notNull(dbFile, "Database file is null.");
         this.main = main;
         this.eventManager = main.getEventManager();
 
@@ -111,6 +113,7 @@ public final class DatabaseManager {
      * @throws Exception If anything goes wrong.
      */
     public DatabaseManager(@NotNull AdvancementMain main, @NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout) throws Exception {
+        Validate.notNull(main, "AdvancementMain is null.");
         this.main = main;
         this.eventManager = main.getEventManager();
 
