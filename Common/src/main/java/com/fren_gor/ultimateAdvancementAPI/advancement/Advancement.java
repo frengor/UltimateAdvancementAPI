@@ -112,6 +112,8 @@ public abstract class Advancement {
         }
         Validate.isTrue(maxCriteria > 0, "Max criteria cannot be <= 0");
         this.advancementTab = Objects.requireNonNull(advancementTab, "AdvancementTab is null.");
+        Validate.isTrue(!advancementTab.isInitialised(), "AdvancementTab is already initialised.");
+        Validate.isTrue(!advancementTab.isDisposed(), "AdvancementTab is disposed.");
         this.key = new AdvancementKey(advancementTab.getNamespace(), key);
         this.display = Objects.requireNonNull(display, "Display is null.");
         this.maxCriteria = maxCriteria;
