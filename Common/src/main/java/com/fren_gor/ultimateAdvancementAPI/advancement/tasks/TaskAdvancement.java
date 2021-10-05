@@ -27,10 +27,10 @@ import java.util.UUID;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
 
 /**
- * The {@code TaskAdvancement} class represents a task. It is used by {@link MultiTasksAdvancement} to separate
- * an advancement progression into different progression.
+ * The {@code TaskAdvancement} class represents a task. It can be used by any {@link AbstractMultiTasksAdvancement} subclass
+ * to separate an advancement progression into different progression (one per task).
  * <p>For example, the advancement "mine 5 blocks of every plank" can be made using a {@code TaskAdvancement}
- * for every plank (with a criteria of 5) and registering them into a {@link MultiTasksAdvancement}.
+ * for every plank (with a criteria of 5) and registering them into an {@link AbstractMultiTasksAdvancement}.
  * <p>{@code TaskAdvancement}s are saved into the database, but they are never sent to players.
  * For this reason they cannot be registered in tabs either.
  */
@@ -61,7 +61,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * Creates a new {@code TaskAdvancement}.
      *
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
-     * @param display The display information of this advancement.
+     * @param display The display information of this task.
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      */
     public TaskAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask) {
@@ -72,7 +72,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * Creates a new {@code TaskAdvancement}.
      *
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
-     * @param display The display information of this advancement.
+     * @param display The display information of this task.
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param maxCriteria The maximum criteria of the task.
      */
