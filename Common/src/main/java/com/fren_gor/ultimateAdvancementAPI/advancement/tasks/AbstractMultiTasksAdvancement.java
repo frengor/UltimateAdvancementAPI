@@ -16,11 +16,11 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progress
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromUUID;
 
 /**
- * The {@code AbstractMultiTasksAdvancement} class abstracts the implementation of any multi-tasks advancement, providing a standard.
+ * The {@code AbstractMultiTasksAdvancement} class abstracts the implementation of any multi-tasks advancement,
+ * providing a standard supported by the API.
  * <p>A multi-task advancement is an advancement that separates its progression into different progressions (one per task).
- * <p>This class has built-in support in the API. For example, a default implementation for a task is {@link TaskAdvancement},
- * which works with any {@code AbstractMultiTasksAdvancement}.
- * <p>A default implementation for {@code AbstractMultiTasksAdvancement} is {@link MultiTasksAdvancement}.
+ * <p>A default implementation for a task is {@link TaskAdvancement}, which works with any {@code AbstractMultiTasksAdvancement},
+ * whereas a default implementation for {@code AbstractMultiTasksAdvancement} is {@link MultiTasksAdvancement}.
  */
 public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
 
