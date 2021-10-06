@@ -40,7 +40,7 @@
 
     <properties>
         <!-- Project Properties -->
-        <apiVersion>1.0.1</apiVersion> <!-- Change also in Versions class -->
+        <apiVersion>1.0.2</apiVersion> <!-- Change also in Versions class -->
         <mcVersion>1.15.2</mcVersion>
         <projectEncoding>UTF-8</projectEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
