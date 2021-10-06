@@ -618,11 +618,21 @@ public final class AdvancementTab {
         for (Advancement a : advancements.values()) {
             try {
                 // Trigger AdvancementDisposeEvent
-                pluginManager.callEvent(new AdvancementDisposeEvent(a));
+                try {
+                    pluginManager.callEvent(new AdvancementDisposeEvent(a));
+                } catch (IllegalStateException e) {
+                    System.err.println("An exception has occurred while calling AdvancementDisposeEvent for " + a);
+                    e.printStackTrace();
+                }
                 // Dispose the advancement
                 a.onDispose();
                 // Trigger AdvancementDisposedEvent
-                pluginManager.callEvent(new AdvancementDisposedEvent(a.getKey()));
+                try {
+                    pluginManager.callEvent(new AdvancementDisposedEvent(a.getKey()));
+                } catch (IllegalStateException e) {
+                    System.err.println("An exception has occurred while calling AdvancementDisposedEvent for " + a);
+                    e.printStackTrace();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
