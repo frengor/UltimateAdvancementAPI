@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Called just before an advancement is being disposed.
- * <p>Note that the {@link Advancement#onDispose() method has not been already called).
+ * <p>Note that the {@link Advancement#onDispose()} method has not been already called.
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
