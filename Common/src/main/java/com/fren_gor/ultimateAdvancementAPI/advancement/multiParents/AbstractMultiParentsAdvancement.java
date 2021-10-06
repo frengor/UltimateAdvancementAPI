@@ -177,9 +177,11 @@ public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
      * @throws IllegalArgumentException If the {@link Set} is null, empty, or the first element is {@code null}.
      */
     @NotNull
-    public static <E extends BaseAdvancement> E validateAndGetFirst(Set<E> advs) {
-        Validate.notNull(advs, "Parent advancements are null.");
-        Validate.isTrue(advs.size() > 0, "There must be at least 1 parent.");
-        return Objects.requireNonNull(advs.iterator().next());
+    public static <E extends BaseAdvancement> E validateAndGetFirst(@NotNull Set<E> advancements) {
+        Validate.notNull(advancements, "Parent advancements are null.");
+        Validate.isTrue(advancements.size() > 0, "There must be at least 1 parent.");
+        E e = advancements.iterator().next();
+        Validate.notNull(e, "A parent advancement is null.");
+        return e;
     }
 }
