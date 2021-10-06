@@ -134,7 +134,7 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
     public static void checkNamespace(String namespace) throws IllegalArgumentException, IllegalKeyException {
         Validate.notNull(namespace, "Namespace is null.");
         Validate.isTrue(!namespace.isEmpty(), "Namespace is empty.");
-        if (namespace.length() <= 127) {
+        if (namespace.length() > 127) {
             throw new IllegalKeyException("Too long namespace (max allowed is 127 chars).");
         }
     }
@@ -149,7 +149,7 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
     public static void checkKey(String key) throws IllegalArgumentException, IllegalKeyException {
         Validate.notNull(key, "Key is null.");
         Validate.isTrue(!key.isEmpty(), "Key is empty.");
-        if (key.length() <= 127) {
+        if (key.length() > 127) {
             throw new IllegalKeyException("Too long key (max allowed is 127 chars).");
         }
     }
