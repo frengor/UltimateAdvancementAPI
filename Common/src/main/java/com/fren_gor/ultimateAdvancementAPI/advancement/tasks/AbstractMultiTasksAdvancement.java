@@ -19,8 +19,8 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progress
  * The {@code AbstractMultiTasksAdvancement} class abstracts the implementation of any multi-tasks advancement,
  * providing a standard supported by the API.
  * <p>A multi-task advancement is an advancement that separates its progression into different progressions (one per task).
- * <p>A default implementation for a task is {@link TaskAdvancement}, which works with any {@code AbstractMultiTasksAdvancement},
- * whereas a default implementation for {@code AbstractMultiTasksAdvancement} is {@link MultiTasksAdvancement}.
+ * <p>An implementation of a task is {@link TaskAdvancement}, which works with any {@code AbstractMultiTasksAdvancement},
+ * whereas an implementation of {@code AbstractMultiTasksAdvancement} is {@link MultiTasksAdvancement}.
  */
 public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
 

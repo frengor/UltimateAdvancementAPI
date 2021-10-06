@@ -14,11 +14,11 @@ import org.jetbrains.annotations.NotNull;
 public interface VanillaVisibility extends IVisibility {
 
     /**
-     * Whether either every parent or every grandparent of the provided advancement is granted for the specified team.
+     * Whether either any parent or any grandparent of the provided advancement is granted for the specified team.
      *
      * @param advancement The advancement.
      * @param progression The team {@link TeamProgression}.
-     * @return Whether either every parent or every grandparent of the provided advancement is granted for the specified team.
+     * @return Whether either any parent or any grandparent of the provided advancement is granted for the specified team.
      */
     @Override
     default boolean isVisible(@NotNull Advancement advancement, @NotNull TeamProgression progression) {

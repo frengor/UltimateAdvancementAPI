@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 public interface ParentGrantedVisibility extends IVisibility {
 
     /**
-     * Whether every parent of the provided advancement is granted for the specified team.
+     * Whether any parent of the provided advancement is granted for the specified team.
      *
      * @param advancement The advancement.
      * @param progression The team {@link TeamProgression}.

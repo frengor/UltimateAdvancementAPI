@@ -8,8 +8,11 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Called when a player loading fails.
+ */
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public final class PlayerLoadingFailedEvent extends Event {
 
     @NotNull

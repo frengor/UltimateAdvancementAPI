@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,7 +18,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFrom
  * The {@code AbstractMultiParentsAdvancement} class abstracts the implementation of any multi-parent advancement,
  * providing a standard supported by the API.
  * <p>A multi-parent advancement is an advancement that has more than one parent.
- * <p>A default implementation for {@code AbstractMultiParentsAdvancement} is {@link MultiParentsAdvancement}.
+ * <p>An implementation of {@code AbstractMultiParentsAdvancement} is {@link MultiParentsAdvancement}.
  */
 public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
 
@@ -110,26 +109,73 @@ public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
      */
     public abstract boolean isAnyParentGranted(@NotNull TeamProgression progression);
 
+    /**
+     * Returns whether every parent and every grandparent advancements are granted for the provided player's team.
+     *
+     * @param player The player.
+     * @return Whether either any parent or any grandparent advancement is granted for the provided player's team.
+     */
     public boolean isEveryGrandparentGranted(@NotNull Player player) {
         return isEveryGrandparentGranted(uuidFromPlayer(player));
     }
 
+    /**
+     * Returns whether every parent and every grandparent advancements are granted for the provided player's team.
+     *
+     * @param uuid The {@link UUID} of the player.
+     * @return Whether either any parent or any grandparent advancement is granted for the provided player's team.
+     */
     public boolean isEveryGrandparentGranted(@NotNull UUID uuid) {
         return isEveryGrandparentGranted(progressionFromUUID(uuid, this));
     }
 
+    /**
+     * Returns whether every parent and every grandparent advancements are granted for the provided team.
+     *
+     * @param progression The {@link TeamProgression} of the team.
+     * @return Whether either any parent or any grandparent advancement is granted for the provided team.
+     */
     public abstract boolean isEveryGrandparentGranted(@NotNull TeamProgression progression);
 
+    /**
+     * Returns whether either any parent or any grandparent advancement is granted for the provided player's team.
+     *
+     * @param player The player.
+     * @return Whether either any parent or any grandparent advancement is granted for the provided player's team.
+     */
     public boolean isAnyGrandparentGranted(@NotNull Player player) {
         return isAnyGrandparentGranted(uuidFromPlayer(player));
     }
 
+    /**
+     * Returns whether either any parent or any grandparent advancement is granted for the provided player's team.
+     *
+     * @param uuid The {@link UUID} of the player.
+     * @return Whether either any parent or any grandparent advancement is granted for the provided player's team.
+     */
     public boolean isAnyGrandparentGranted(@NotNull UUID uuid) {
         return isAnyGrandparentGranted(progressionFromUUID(uuid, this));
     }
 
+    /**
+     * Returns whether either any parent or any grandparent advancement is granted for the provided team.
+     *
+     * @param progression The {@link TeamProgression} of the team.
+     * @return Whether either any parent or any grandparent advancement is granted for the provided team.
+     */
     public abstract boolean isAnyGrandparentGranted(@NotNull TeamProgression progression);
 
+    /**
+     * Returns the first element of the provided {@link Set} of {@link BaseAdvancement}s. This method is intended to
+     * be used to safely get an advancement from the {@link Set} of parent advancements passed as parameter in the subclass constructor.
+     * The obtained parent advancement should be passed to {@link #AbstractMultiParentsAdvancement(String, AdvancementDisplay, BaseAdvancement, int)}.
+     * <p>If the returned element is {@code null} or it doesn't exist (the {@link Set} is empty), an {@link IllegalArgumentException} is thrown.
+     *
+     * @param advancements The advancements of the {@link Set}.
+     * @param <E> The type of the elements in the {@link Set}.
+     * @return The first element of the {@link Set}.
+     * @throws IllegalArgumentException If the {@link Set} is null, empty, or the first element is {@code null}.
+     */
     @NotNull
     public static <E extends BaseAdvancement> E validateAndGetFirst(Set<E> advs) {
         Validate.notNull(advs, "Parent advancements are null.");

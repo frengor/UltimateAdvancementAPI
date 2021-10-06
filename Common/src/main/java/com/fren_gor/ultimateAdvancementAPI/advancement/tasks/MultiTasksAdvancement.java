@@ -25,7 +25,7 @@ import java.util.Set;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
 
 /**
- * A default implementation for {@link AbstractMultiTasksAdvancement}. {@link TaskAdvancement}s have to be registered
+ * An implementation of {@link AbstractMultiTasksAdvancement}. {@link TaskAdvancement}s have to be registered
  * using {@link #registerTasks(Set)} in order to initialise an instance of this class.
  */
 public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
