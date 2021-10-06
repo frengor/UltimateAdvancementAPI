@@ -871,7 +871,7 @@ public final class UltimateAdvancementAPI {
             CompletableFuture<T> c;
             try {
                 c = internalAction.apply(ds);
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 new RuntimeException("An exception occurred while calling API method:", t).printStackTrace();
                 ds.unloadOfflinePlayer(uuid, plugin);
                 return;
@@ -882,7 +882,7 @@ public final class UltimateAdvancementAPI {
                         try {
                             if (plugin.isEnabled())
                                 action.accept(b);
-                        } catch (Throwable t) {
+                        } catch (Exception t) {
                             new RuntimeException("An exception occurred while calling " + plugin.getName() + "'s Consumer:", t).printStackTrace();
                         } finally {
                             ds.unloadOfflinePlayer(uuid, plugin);
@@ -914,7 +914,7 @@ public final class UltimateAdvancementAPI {
                     CompletableFuture<T> c;
                     try {
                         c = internalAction.apply(ds);
-                    } catch (Throwable t) {
+                    } catch (Exception t) {
                         new RuntimeException("An exception occurred while calling API method:", t).printStackTrace();
                         ds.unloadOfflinePlayer(uuid1, plugin);
                         ds.unloadOfflinePlayer(uuid2, plugin);
@@ -926,7 +926,7 @@ public final class UltimateAdvancementAPI {
                                 try {
                                     if (plugin.isEnabled())
                                         action.accept(b);
-                                } catch (Throwable t) {
+                                } catch (Exception t) {
                                     new RuntimeException("An exception occurred while calling " + plugin.getName() + "'s Consumer:", t).printStackTrace();
                                 } finally {
                                     ds.unloadOfflinePlayer(uuid1, plugin);

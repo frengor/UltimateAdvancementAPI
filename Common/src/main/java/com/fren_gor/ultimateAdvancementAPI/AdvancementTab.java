@@ -623,7 +623,7 @@ public final class AdvancementTab {
                 a.onDispose();
                 // Trigger AdvancementDisposedEvent
                 pluginManager.callEvent(new AdvancementDisposedEvent(a.getKey()));
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

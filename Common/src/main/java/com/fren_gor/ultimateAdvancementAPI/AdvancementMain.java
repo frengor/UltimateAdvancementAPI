@@ -227,7 +227,7 @@ public final class AdvancementMain {
                     tab.dispose();
                 }
                 it.remove();
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 t.printStackTrace();
             }
         }
