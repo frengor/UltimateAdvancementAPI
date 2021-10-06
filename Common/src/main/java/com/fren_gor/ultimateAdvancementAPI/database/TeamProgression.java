@@ -1,10 +1,10 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import lombok.Getter;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -19,20 +19,37 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteria;
 
+/**
+ * The {@code TeamProgression} class stores information about a team and its advancement progressions.
+ * <p>{@code TeamProgression} is used to cache team information by the caching system.
+ * <p>This class is thread safe.
+ */
 public final class TeamProgression {
 
-    @Getter
+    final AtomicBoolean inCache = new AtomicBoolean(false);
     private final int teamId;
     private final Set<UUID> players;
     private final Map<AdvancementKey, Integer> advancements;
 
+    /**
+     * Creates a new TeamProgression for a team with one player in it.
+     * <p><strong>Note:</strong> TeamProgression should be instantiated only by database-related classes.
+     * Any illegal instantiation will throw an {@link IllegalOperationException}.
+     *
+     * @param teamId The team id.
+     * @param member The member of the team.
+     * @throws IllegalOperationException If this constructor is called by a class not in the
+     *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
+     */
     public TeamProgression(int teamId, @NotNull UUID member) {
+        CallerClassUtil.validateConstructorCallingClass();
         Validate.notNull(member, "Member is null.");
         this.advancements = new ConcurrentHashMap<>();
         this.teamId = teamId;
@@ -40,7 +57,19 @@ public final class TeamProgression {
         players.add(member);
     }
 
+    /**
+     * Creates a new TeamProgression for a team with more than one player in it.
+     * <p><strong>Note:</strong> TeamProgression should be instantiated only by database-related classes.
+     * Any illegal instantiation will throw an {@link IllegalOperationException}.
+     *
+     * @param advancements All the advancement keys with their progression.
+     * @param teamId The team id.
+     * @param members A collection of team members.
+     * @throws IllegalOperationException If this constructor is called by a class not in the
+     *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
+     */
     public TeamProgression(@NotNull Map<AdvancementKey, Integer> advancements, int teamId, @NotNull Collection<UUID> members) {
+        CallerClassUtil.validateConstructorCallingClass();
         Validate.notNull(advancements, "Advancements is null.");
         Validate.notNull(members, "Members is null.");
         this.advancements = new ConcurrentHashMap<>(advancements);
@@ -49,6 +78,12 @@ public final class TeamProgression {
         players.addAll(members);
     }
 
+    /**
+     * Gets the progression of the provided advancement for the team.
+     *
+     * @param advancement The advancement.
+     * @return The current progression of the team for the provided advancement.
+     */
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int getCriteria(@NotNull Advancement advancement) {
         Validate.notNull(advancement, "Advancement is null.");
@@ -64,11 +99,23 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Returns whether the provided player is part of the team.
+     *
+     * @param player The player.
+     * @return Whether the provided player is part of the team.
+     */
     @Contract(pure = true)
     public boolean contains(@NotNull Player player) {
         return contains(uuidFromPlayer(player));
     }
 
+    /**
+     * Returns whether the provided player is part of the team.
+     *
+     * @param uuid The {@link UUID} of the player.
+     * @return Whether the provided player is part of the team.
+     */
     @Contract(pure = true, value = "null -> false")
     public boolean contains(UUID uuid) {
         synchronized (players) {
@@ -76,6 +123,11 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Returns a modifiable copy of the team members set.
+     *
+     * @return A modifiable copy of the team members set.
+     */
     @Contract(pure = true, value = "-> new")
     public Set<@NotNull UUID> getMembersCopy() {
         synchronized (players) {
@@ -83,6 +135,11 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Returns the team members count.
+     *
+     * @return The team members count.
+     */
     @Contract(pure = true)
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int getSize() {
@@ -91,6 +148,11 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Runs the provided {@link Consumer} for each member of the team.
+     *
+     * @param action The {@link Consumer} to run for each member.
+     */
     public void forEachMember(@NotNull Consumer<UUID> action) {
         Validate.notNull(action, "Consumer is null.");
         synchronized (players) {
@@ -100,6 +162,13 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Returns whether every member of the team matches the provided {@link Predicate}.
+     * <p>This method may not call the {@link Predicate} for every team member, since it stops on the first non-matching one.
+     *
+     * @param action The {@link Predicate} to run.
+     * @return Whether the {@link Predicate} returns {@code true} for every member, or {@code true} if the team is empty.
+     */
     public boolean everyMemberMatch(@NotNull Predicate<UUID> action) {
         Validate.notNull(action, "Predicate is null.");
         synchronized (players) {
@@ -112,6 +181,13 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Returns whether any member of the team matches the provided {@link Predicate}.
+     * <p>This method may not call the {@link Predicate} for every team member, since it stops on the first matching one.
+     *
+     * @param action The {@link Predicate} to run.
+     * @return Whether the {@link Predicate} returns {@code true} for at least one member, or {@code false} if the team is empty.
+     */
     public boolean anyMemberMatch(@NotNull Predicate<UUID> action) {
         Validate.notNull(action, "Predicate is null.");
         synchronized (players) {
@@ -124,6 +200,13 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Returns whether no member of the team matches the provided {@link Predicate}.
+     * <p>This method may not call the {@link Predicate} for every team member, since it stops on the first matching one.
+     *
+     * @param action The {@link Predicate} to run.
+     * @return Whether the {@link Predicate} returns {@code false} for every member, or {@code true} if the team is empty.
+     */
     public boolean noMemberMatch(@NotNull Predicate<UUID> action) {
         Validate.notNull(action, "Predicate is null.");
         synchronized (players) {
@@ -136,25 +219,59 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Gets whether the current TeamProgression object is valid. A TeamProgression object is valid if and only if
+     * it is stored into the caching system (see {@link DatabaseManager}).
+     *
+     * @return Whether the current TeamProgression object is valid.
+     * @since 1.0.2
+     */
+    public boolean isValid() {
+        return inCache.get();
+    }
+
+    /**
+     * Sets the criteria progression of the provided advancement for the team.
+     *
+     * @param key The key of the advancement.
+     * @param criteria The new criteria progression to be set.
+     * @return The previous criteria progression.
+     */
     int updateCriteria(@NotNull AdvancementKey key, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
         validateCriteria(criteria);
         Integer i = advancements.put(key, criteria);
         return i == null ? 0 : i;
     }
 
+    /**
+     * Removes the provided player from the team.
+     *
+     * @param uuid The {@link UUID} of the player to be removed.
+     */
     void removeMember(UUID uuid) {
         synchronized (players) {
             players.remove(uuid);
         }
     }
 
-    boolean addMember(@NotNull UUID uuid) {
+    /**
+     * Adds the provided player to the team if it's not already part of it.
+     *
+     * @param uuid The {@link UUID} of the player to be added.
+     */
+    void addMember(@NotNull UUID uuid) {
         Validate.notNull(uuid, "UUID is null.");
         synchronized (players) {
-            return players.add(uuid);
+            players.add(uuid);
         }
     }
 
+    /**
+     * Returns the {@link UUID} of a team member. No particular player is preferred by this operation and
+     * the returned member may change from invocation to invocation.
+     *
+     * @return The {@link UUID} of a team member, or {@code null} if the team is empty.
+     */
     @Nullable
     public UUID getAMember() {
         synchronized (players) {
@@ -162,6 +279,12 @@ public final class TeamProgression {
         }
     }
 
+    /**
+     * Returns an online team member, if possible.
+     *
+     * @param manager The database manager.
+     * @return An online team member, or {@code null} if there are none.
+     */
     @Nullable
     public Player getAnOnlineMember(@NotNull DatabaseManager manager) {
         Validate.notNull(manager, "DatabaseManager is null.");
@@ -195,5 +318,32 @@ public final class TeamProgression {
     @Override
     public int hashCode() {
         return teamId;
+    }
+
+    /**
+     * Returns the team unique id.
+     *
+     * @return The team unique id.
+     */
+    public int getTeamId() {
+        return teamId;
+    }
+
+    private static final class CallerClassUtil extends SecurityManager {
+
+        private static final CallerClassUtil INSTANCE = new CallerClassUtil();
+
+        public static void validateConstructorCallingClass() throws IllegalOperationException {
+            if (!INSTANCE.getCallingClasses()[3].getPackage().getName().startsWith("com.fren_gor.ultimateAdvancementAPI.database")) {
+                throw new IllegalOperationException("TeamProgression can be instantiated only by classes inside the com.fren_gor.ultimateAdvancementAPI.database package or its sub-packages.");
+            }
+        }
+
+        private CallerClassUtil() {
+        }
+
+        private Class<?>[] getCallingClasses() {
+            return getClassContext();
+        }
     }
 }

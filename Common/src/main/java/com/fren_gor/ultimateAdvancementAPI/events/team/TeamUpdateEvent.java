@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.events.team;
 
-import lombok.Data;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -9,11 +9,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * Called when a team member joins or leaves a team.
+ */
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class TeamUpdateEvent extends Event {
 
-    // Leave before update
+    /**
+     * The action that occurred.
+     * <p>When a player moves in another team, an {@link Action#LEAVE} is always called before an {@link Action#JOIN}.
+     */
     public enum Action {
         JOIN, LEAVE;
     }

@@ -16,7 +16,6 @@ import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import lombok.Getter;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
 import net.minecraft.server.v1_15_R1.PacketPlayOutAdvancements;
@@ -49,26 +48,30 @@ import java.util.UUID;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey.checkNamespace;
 
+/**
+ * The {@code AdvancementTab} class represents a tab in the advancement GUI.
+ * <p>Every advancement tab is represented by a unique namespace (not visible in the advancement GUI) and has only one {@link RootAdvancement}.
+ * <p>An instance can be obtained using {@link UltimateAdvancementAPI#createAdvancementTab(String)}.
+ * The returned instance is not initialised, that is it doesn't contain any advancement yet.
+ */
 public final class AdvancementTab {
 
-    @Getter
     private final Plugin owningPlugin;
-    @Getter
+
     private final EventManager eventManager;
-    @Getter
+
     private final String namespace;
-    @NotNull
     private final Map<AdvancementKey, Advancement> advancements = new HashMap<>();
     private RootAdvancement rootAdvancement;
-    @Getter
+
     private final DatabaseManager databaseManager;
-    @Getter
+
     private boolean initialised = false, disposed = false;
     private final Map<Player, Set<MinecraftKey>> players = new HashMap<>();
     private Collection<String> advNamespacedKeys;
     private Collection<BaseAdvancement> advsWithoutRoot;
 
-    protected AdvancementTab(@NotNull Plugin owningPlugin, @NotNull DatabaseManager databaseManager, @NotNull String namespace) {
+    AdvancementTab(@NotNull Plugin owningPlugin, @NotNull DatabaseManager databaseManager, @NotNull String namespace) {
         checkNamespace(namespace);
         this.namespace = Objects.requireNonNull(namespace);
         this.owningPlugin = Objects.requireNonNull(owningPlugin);
@@ -78,14 +81,21 @@ public final class AdvancementTab {
     }
 
     /**
-     * Gets whether the tab is initialised and not disposed.
+     * Returns whether the tab is initialised and not disposed.
      *
-     * @return true iff this tab is initialised and not disposed, false otherwise.
+     * @return Whether the tab is initialised and not disposed.
      */
     public boolean isActive() {
         return initialised && !disposed;
     }
 
+    /**
+     * Returns the root advancement of this tab.
+     *
+     * @return The root advancement of this tab.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     @NotNull
     @Contract(pure = true)
     public RootAdvancement getRootAdvancement() {
@@ -93,6 +103,13 @@ public final class AdvancementTab {
         return rootAdvancement;
     }
 
+    /**
+     * Gets an unmodifiable {@link Collection} of all the tab's advancements.
+     *
+     * @return An unmodifiable {@link Collection} of all the tab's advancements.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     @UnmodifiableView
     @NotNull
     @Contract(pure = true)
@@ -101,6 +118,13 @@ public final class AdvancementTab {
         return Collections.unmodifiableCollection(advancements.values());
     }
 
+    /**
+     * Gets an unmodifiable {@link Collection} of all the tab's advancements but the root.
+     *
+     * @return An unmodifiable {@link Collection} of all the tab's advancements but the root.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     @Unmodifiable
     @NotNull
     public Collection<@NotNull BaseAdvancement> getAdvancementsWithoutRoot() {
@@ -118,21 +142,35 @@ public final class AdvancementTab {
         }
     }
 
+    /**
+     * Gets an unmodifiable {@link Collection} of all the tab's advancements
+     * that are an instance of the provided class or any of its subclasses.
+     * <p>If the provided class is {@code null}, then an empty {@link Collection} is returned.
+     *
+     * @param filterClass The filter class.
+     * @return An unmodifiable {@link Collection} of all the tab's advancements
+     *         that are an instance of the provided class or any of its subclasses.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     @Unmodifiable
     @NotNull
     @Contract(pure = true)
     public Collection<@NotNull Advancement> getAdvancementsByClass(Class<? extends Advancement> filterClass) {
         checkInitialisation();
-        if (filterClass == null || filterClass == Advancement.class) {
+        if (filterClass == null) {
+            return Collections.emptyList();
+        }
+        if (filterClass == Advancement.class) {
             return Collections.unmodifiableCollection(advancements.values());
         }
-        if (filterClass.isAssignableFrom(RootAdvancement.class)) {
+        if (rootAdvancement.getClass().isInstance(filterClass)) {
             return Collections.singletonList(rootAdvancement);
         }
-        if (filterClass.isAssignableFrom(BaseAdvancement.class)) {
+        if (filterClass.isInstance(BaseAdvancement.class)) {
             Collection<Advancement> coll = new ArrayList<>(advancements.size());
             for (Advancement a : advancements.values()) {
-                if (a.getClass().isAssignableFrom(filterClass)) {
+                if (a.getClass().isInstance(filterClass)) {
                     coll.add(a);
                 }
             }
@@ -141,6 +179,13 @@ public final class AdvancementTab {
         return Collections.emptyList();
     }
 
+    /**
+     * Gets an unmodifiable {@link Set} of the {@link AdvancementKey}s of all the tab's advancements.
+     *
+     * @return An unmodifiable {@link Set} of the {@link AdvancementKey}s of all the tab's advancements.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     @UnmodifiableView
     @NotNull
     @Contract(pure = true)
@@ -149,6 +194,14 @@ public final class AdvancementTab {
         return Collections.unmodifiableSet(advancements.keySet());
     }
 
+    /**
+     * Returns whether the provided advancement belongs to the tab.
+     *
+     * @param advancement The advancement.
+     * @return Whether the provided advancement belongs to the tab.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     @Contract(pure = true, value = "null -> false")
     public boolean hasAdvancement(Advancement advancement) {
         checkInitialisation();
@@ -157,12 +210,28 @@ public final class AdvancementTab {
         return advancements.containsKey(advancement.getKey());
     }
 
+    /**
+     * Returns whether an advancement with the provided {@link AdvancementKey} belongs to the tab.
+     *
+     * @param namespacedKey The {@link AdvancementKey} of the advancement.
+     * @return Whether an advancement with the provided {@link AdvancementKey} belongs to the tab.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     @Contract(pure = true, value = "null -> false")
     public boolean hasAdvancement(AdvancementKey namespacedKey) {
         checkInitialisation();
         return advancements.containsKey(namespacedKey);
     }
 
+    /**
+     * Gets the advancement of the tab with the provided {@link AdvancementKey}.
+     *
+     * @param namespacedKey The {@link AdvancementKey} of the wanted advancement of this tab.
+     * @return The advancement of the tab with the provided {@link AdvancementKey}, or {@code null} if there's not.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     @Nullable
     @Contract(pure = true, value = "null -> null")
     public Advancement getAdvancement(AdvancementKey namespacedKey) {
@@ -170,6 +239,13 @@ public final class AdvancementTab {
         return advancements.get(namespacedKey);
     }
 
+    /**
+     * Returns an unmodifiable {@link Set} of the players the tab is currently shown to.
+     *
+     * @return An unmodifiable {@link Set} of the players the tab is currently shown to.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     @UnmodifiableView
     @NotNull
     @Contract(pure = true)
@@ -178,34 +254,85 @@ public final class AdvancementTab {
         return Collections.unmodifiableSet(players.keySet());
     }
 
+    /**
+     * Grants the root advancement of the tab to the specified player giving rewards.
+     *
+     * @param player The player who is completing the root advancement.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     public void grantRootAdvancement(@NotNull Player player) {
         checkInitialisation();
         rootAdvancement.setCriteriaTeamProgression(player, rootAdvancement.getMaxCriteria());
     }
 
+    /**
+     * Grants the root advancement of the tab to the specified player giving rewards.
+     *
+     * @param uuid The {@link UUID} of the player who is completing the root advancement.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     public void grantRootAdvancement(@NotNull UUID uuid) {
         checkInitialisation();
         rootAdvancement.setCriteriaTeamProgression(uuid, rootAdvancement.getMaxCriteria());
     }
 
+    /**
+     * Grants the root advancement of the tab to the specified player.
+     *
+     * @param player The player who is completing the root advancement.
+     * @param giveRewards Whether to give rewards.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     public void grantRootAdvancement(@NotNull Player player, boolean giveRewards) {
         checkInitialisation();
         rootAdvancement.setCriteriaTeamProgression(player, rootAdvancement.getMaxCriteria(), giveRewards);
     }
 
+    /**
+     * Grants the root advancement of the tab to the specified player.
+     *
+     * @param uuid The {@link UUID} of the player who is completing the root advancement.
+     * @param giveRewards Whether to give rewards.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     public void grantRootAdvancement(@NotNull UUID uuid, boolean giveRewards) {
         checkInitialisation();
         rootAdvancement.setCriteriaTeamProgression(uuid, rootAdvancement.getMaxCriteria(), giveRewards);
     }
 
+    /**
+     * Sends or updates the advancements of the tab to the provided player's team members.
+     *
+     * @param player The player.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     public void updateAdvancementsToTeam(@NotNull Player player) {
         updateAdvancementsToTeam(AdvancementUtils.uuidFromPlayer(player));
     }
 
+    /**
+     * Sends or updates the advancements of the tab to the provided player's team members.
+     *
+     * @param uuid A {@link UUID} of the player.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     public void updateAdvancementsToTeam(@NotNull UUID uuid) {
         updateAdvancementsToTeam(databaseManager.getProgression(uuid));
     }
 
+    /**
+     * Sends or updates the advancements of the tab to the provided team members.
+     *
+     * @param pro The {@link TeamProgression} of the team.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     public void updateAdvancementsToTeam(@NotNull TeamProgression pro) {
         checkInitialisation();
         Validate.notNull(pro, "TeamProgression is null.");
@@ -242,12 +369,19 @@ public final class AdvancementTab {
                 //    @Override
                 //    public void run() {
                 connection.sendPacket(thisTab);
-                ///    }
+                //     }
                 //}.runTaskLaterAsynchronously(AdvancementMain.getInstance(), 5);
             }
         });
     }
 
+    /**
+     * Sends or updates the advancements of the tab to the provided player.
+     *
+     * @param player The player.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     public void updateEveryAdvancement(@NotNull Player player) {
         checkInitialisation();
         Validate.notNull(player, "Player is null.");
@@ -290,6 +424,8 @@ public final class AdvancementTab {
      *
      * @param rootAdvancement The root of this tab.
      * @param advancements The advancements of this tab. Cannot include any {@code null} advancement or {@link RootAdvancement}.
+     * @throws IllegalStateException If the tab is already initialised.
+     * @throws DisposedException If the tab is disposed.
      */
     public void registerAdvancements(@NotNull RootAdvancement rootAdvancement, @NotNull BaseAdvancement... advancements) {
         registerAdvancements(rootAdvancement, Sets.newHashSet(advancements));
@@ -300,6 +436,8 @@ public final class AdvancementTab {
      *
      * @param rootAdvancement The root of this tab.
      * @param advancements The advancements of this tab. Cannot include any {@code null} advancement or {@link RootAdvancement}.
+     * @throws IllegalStateException If the tab is already initialised.
+     * @throws DisposedException If the tab is disposed.
      */
     public void registerAdvancements(@NotNull RootAdvancement rootAdvancement, @NotNull Set<BaseAdvancement> advancements) {
         if (disposed) {
@@ -389,19 +527,33 @@ public final class AdvancementTab {
         rootAdvancement = null;
     }
 
+    /**
+     * Shows the tab to the provided players and sends them the advancements of the tab.
+     *
+     * @param players The players the tab will be shown to.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     public void showTab(@NotNull Player... players) {
         checkInitialisation();
         Validate.notNull(players, "Player[] is null.");
         for (Player p : players) {
             try {
                 showTab(p);
-            } catch (NullPointerException e) {
+            } catch (Exception e) {
                 // Add other players anyway
                 e.printStackTrace();
             }
         }
     }
 
+    /**
+     * Shows the tab to the provided player and sends them the advancements of the tab.
+     *
+     * @param player The player the tab will be shown to.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     public void showTab(@NotNull Player player) {
         checkInitialisation();
         Validate.notNull(player, "Player is null.");
@@ -411,6 +563,34 @@ public final class AdvancementTab {
         }
     }
 
+    /**
+     * Hides the tab and its advancements to the provided players.
+     *
+     * @param players The players the tab will be hid to.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     * @since 1.0.2
+     */
+    public void hideTab(@NotNull Player... players) {
+        checkInitialisation();
+        Validate.notNull(players, "Player[] is null.");
+        for (Player p : players) {
+            try {
+                hideTab(p);
+            } catch (Exception e) {
+                // Add other players anyway
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Hides the tab and its advancements to the provided player.
+     *
+     * @param player The player the tab will be hid to.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     public void hideTab(@NotNull Player player) {
         checkInitialisation();
         Validate.notNull(player, "Player is null.");
@@ -438,12 +618,22 @@ public final class AdvancementTab {
         for (Advancement a : advancements.values()) {
             try {
                 // Trigger AdvancementDisposeEvent
-                pluginManager.callEvent(new AdvancementDisposeEvent(a));
+                try {
+                    pluginManager.callEvent(new AdvancementDisposeEvent(a));
+                } catch (IllegalStateException e) {
+                    System.err.println("An exception has occurred while calling AdvancementDisposeEvent for " + a);
+                    e.printStackTrace();
+                }
                 // Dispose the advancement
                 a.onDispose();
                 // Trigger AdvancementDisposedEvent
-                pluginManager.callEvent(new AdvancementDisposedEvent(a.getKey()));
-            } catch (Throwable e) {
+                try {
+                    pluginManager.callEvent(new AdvancementDisposedEvent(a.getKey()));
+                } catch (IllegalStateException e) {
+                    System.err.println("An exception has occurred while calling AdvancementDisposedEvent for " + a);
+                    e.printStackTrace();
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -453,12 +643,27 @@ public final class AdvancementTab {
         advsWithoutRoot = null;
     }
 
+    /**
+     * Returns whether the tab is shown to the specified player.
+     *
+     * @param player The player.
+     * @return Whether the tab is shown to the specified player.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     @Contract(pure = true, value = "null -> false")
     public boolean isShownTo(Player player) {
         checkInitialisation();
         return players.containsKey(player);
     }
 
+    /**
+     * Returns an unmodifiable {@link Collection} of all the advancement's keys of this tab as {@link String}s.
+     *
+     * @return An unmodifiable {@link Collection} of all the advancement's keys of this tab as {@link String}s.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     */
     @Unmodifiable
     @NotNull
     public Collection<@NotNull String> getAdvancementsAsStrings() {
@@ -474,6 +679,12 @@ public final class AdvancementTab {
         }
     }
 
+    /**
+     * Returns whether the namespace of the specified advancement's key is equals to this tab namespace.
+     *
+     * @param advancement The advancement.
+     * @return Whether the namespace of the specified advancement's key is equals to this tab namespace.
+     */
     @Contract(pure = true)
     public boolean isOwnedByThisTab(@NotNull Advancement advancement) {
         Validate.notNull(advancement, "Advancement is null.");
@@ -492,6 +703,12 @@ public final class AdvancementTab {
             throw new IllegalArgumentException("Tab isn't shown to " + (player == null ? "null" : player.getName()));
     }
 
+    /**
+     * Returns the namespace of the tab.
+     *
+     * @return The namespace of the tab.
+     */
+    @NotNull
     @Override
     public String toString() {
         return namespace;
@@ -510,5 +727,63 @@ public final class AdvancementTab {
     @Override
     public int hashCode() {
         return namespace.hashCode();
+    }
+
+    /**
+     * Gets the plugin that created this advancement tab.
+     *
+     * @return The plugin that created this advancement tab.
+     */
+    @NotNull
+    public Plugin getOwningPlugin() {
+        return owningPlugin;
+    }
+
+    /**
+     * Gets the {@link EventManager} of this tab.
+     *
+     * @return The {@link EventManager} of this tab.
+     */
+    @NotNull
+    public EventManager getEventManager() {
+        return eventManager;
+    }
+
+    /**
+     * Gets the unique namespace of this tab.
+     *
+     * @return The unique namespace of this tab.
+     */
+    @NotNull
+    public String getNamespace() {
+        return namespace;
+    }
+
+    /**
+     * Gets the {@link DatabaseManager} of this tab.
+     *
+     * @return The {@link DatabaseManager} of this tab.
+     */
+    @NotNull
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
+    }
+
+    /**
+     * Gets whether the tab is initialized.
+     *
+     * @return Whether the tab is initialized.
+     */
+    public boolean isInitialised() {
+        return initialised;
+    }
+
+    /**
+     * Returns whether the tab is disposed.
+     *
+     * @return Whether the tab is disposed.
+     */
+    public boolean isDisposed() {
+        return disposed;
     }
 }

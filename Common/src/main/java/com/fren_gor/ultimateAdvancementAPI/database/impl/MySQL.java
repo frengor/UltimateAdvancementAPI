@@ -8,6 +8,7 @@ import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import net.byteflux.libby.Library;
 import net.byteflux.libby.LibraryManager;
 import net.byteflux.libby.classloader.IsolatedClassLoader;
+import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -29,6 +30,9 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+/**
+ * Class used to establish a connection to a MySQL database.
+ */
 public class MySQL implements IDatabase {
 
     private final Logger logger;
@@ -36,48 +40,75 @@ public class MySQL implements IDatabase {
     private final DataSource dataSource;
     private final Method close;
 
-    public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, int port, int poolSize, long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws SQLException {
+    /**
+     * Creates the MySQL connection.
+     *
+     * @param username The username.
+     * @param password The password.
+     * @param databaseName The name of the database.
+     * @param host The MySQL host.
+     * @param port The MySQL port. Must be greater than zero.
+     * @param poolSize The pool size. Must be greater than zero.
+     * @param connectionTimeout The connection timeout. Must be greater or equal to 250.
+     * @param logger The plugin {@link Logger}.
+     * @param manager The {@link LibraryManager}.
+     * @throws Exception If anything goes wrong.
+     */
+    public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws Exception {
+        Validate.notNull(username, "Username is null.");
+        Validate.notNull(password, "Password is null.");
+        Validate.notNull(databaseName, "Database name is null.");
+        Validate.notNull(host, "Host is null.");
+        Validate.isTrue(port > 0, "Port must be greater than zero.");
+        Validate.isTrue(poolSize > 0, "Pool size must be greater than zero.");
+        Validate.isTrue(connectionTimeout >= 250, "Connection timeout must be greater or equals to 250.");
+        Validate.notNull(logger, "Logger is null.");
+        Validate.notNull(manager, "LibraryManager is null.");
+
         classLoader = new IsolatedClassLoader();
         classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.31").checksum("zahiqmloOsBy7ir9C5PQcM6rKR71uFfTGLJMFZWza4o=").build()));
         classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-simple").version("1.7.31").checksum("AHwNOZ4Tefv4YkfDCkLRDWGAlBRo9Ky+mu4Uu2Qqwdw=").build()));
         classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("com.zaxxer").artifactId("HikariCP").version("4.0.3").checksum("fAJK7/HBBjV210RTUT+d5kR9jmJNF/jifzCi6XaIxsk=").build()));
 
-        try {
-            Class<?> hikariConfig = classLoader.loadClass("com.zaxxer.hikari.HikariConfig");
-            Class<?> hikariDataSource = classLoader.loadClass("com.zaxxer.hikari.HikariDataSource");
+        Class<?> hikariConfig = classLoader.loadClass("com.zaxxer.hikari.HikariConfig");
+        Class<?> hikariDataSource = classLoader.loadClass("com.zaxxer.hikari.HikariDataSource");
 
-            close = hikariDataSource.getDeclaredMethod("close");
+        close = hikariDataSource.getDeclaredMethod("close");
 
-            Properties props = new Properties();
-            props.put("jdbcUrl", "jdbc:mysql://" + host + ":" + port + '/' + databaseName);
-            props.put("driverClassName", "com.mysql.jdbc.Driver");
-            props.put("username", username);
-            props.put("password", password);
-            props.put("minimumIdle", poolSize);
-            props.put("maximumPoolSize", poolSize);
-            props.put("connectionTimeout", connectionTimeout);
-            props.put("dataSource.useSSL", false);
-            props.put("dataSource.cachePrepStmts", true);
-            props.put("dataSource.prepStmtCacheSize", 250);
-            props.put("dataSource.prepStmtCacheSqlLimit", 2048);
-            props.put("dataSource.useServerPrepStmts", true);
-            props.put("dataSource.useLocalSessionState", true);
-            props.put("dataSource.rewriteBatchedStatements", true);
-            props.put("dataSource.cacheResultSetMetadata", true);
-            props.put("dataSource.cacheServerConfiguration", true);
-            props.put("dataSource.maintainTimeStats", false);
+        Properties props = new Properties();
+        props.put("jdbcUrl", "jdbc:mysql://" + host + ":" + port + '/' + databaseName);
+        props.put("driverClassName", "com.mysql.jdbc.Driver");
+        props.put("username", username);
+        props.put("password", password);
+        props.put("minimumIdle", poolSize);
+        props.put("maximumPoolSize", poolSize);
+        props.put("connectionTimeout", connectionTimeout);
+        props.put("poolName", "UltimateAdvancementAPI");
+        props.put("dataSource.useSSL", false);
+        props.put("dataSource.cachePrepStmts", true);
+        props.put("dataSource.prepStmtCacheSize", 250);
+        props.put("dataSource.prepStmtCacheSqlLimit", 2048);
+        props.put("dataSource.useServerPrepStmts", true);
+        props.put("dataSource.useLocalSessionState", true);
+        props.put("dataSource.rewriteBatchedStatements", true);
+        props.put("dataSource.cacheResultSetMetadata", true);
+        props.put("dataSource.cacheServerConfiguration", true);
+        props.put("dataSource.maintainTimeStats", false);
 
-            Object config = hikariConfig.getConstructor(Properties.class).newInstance(props);
-            this.dataSource = (DataSource) hikariDataSource.getConstructor(hikariConfig).newInstance(config);
-            // Test connection
-            try (Connection conn = openConnection()) {
-            }
-        } catch (Throwable e) {
-            throw new SQLException("Couldn't set up database.", e);
+        Object config = hikariConfig.getConstructor(Properties.class).newInstance(props);
+        this.dataSource = (DataSource) hikariDataSource.getConstructor(hikariConfig).newInstance(config);
+        // Test connection
+        // noinspection EmptyTryBlock - disable intellij warning
+        try (Connection ignored = openConnection()) {
+        } catch (SQLException e) {
+            throw new SQLException("An exception occurred while testing the established connection.", e);
         }
         this.logger = logger;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setUp() throws SQLException {
         try (Connection conn = openConnection(); Statement statement = conn.createStatement()) {
@@ -89,11 +120,17 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Connection openConnection() throws SQLException {
         return dataSource.getConnection();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void close() throws SQLException {
         try {
@@ -108,6 +145,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getTeamId(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `TeamID` FROM `Players` WHERE `UUID`=?;")) {
@@ -121,6 +161,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<UUID> getTeamMembers(int teamId) throws SQLException {
         try (Connection conn = openConnection()) {
@@ -140,6 +183,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Map<AdvancementKey, Integer> getTeamAdvancements(int teamId) throws SQLException {
         try (Connection conn = openConnection()) {
@@ -166,6 +212,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @NotNull String name) throws SQLException {
         int teamId;
@@ -199,6 +248,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public TeamProgression loadUUID(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         int teamID = Integer.MIN_VALUE;
@@ -236,6 +288,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updateAdvancement(@NotNull AdvancementKey key, int teamId, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) throws SQLException {
         try (Connection conn = openConnection()) {
@@ -258,6 +313,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `Namespace`, `Key`, `GiveRewards` FROM `Unredeemed` WHERE `TeamID`=?;")) {
@@ -278,6 +336,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, int teamId) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("INSERT IGNORE INTO `Unredeemed` (`Namespace`, `Key`, `TeamID`, `GiveRewards`) VALUES (?, ?, ?, ?);")) {
@@ -289,6 +350,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isUnredeemed(@NotNull AdvancementKey key, int teamId) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT Count(*) FROM `Unredeemed` WHERE `Namespace`=? AND `Key`=? AND `TeamID`=?;")) {
@@ -300,6 +364,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unsetUnredeemed(@NotNull AdvancementKey key, int teamId) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("DELETE FROM `Unredeemed` WHERE `Namespace`=? AND `Key`=? AND `TeamID`=?;")) {
@@ -310,6 +377,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unsetUnredeemed(@NotNull List<Entry<AdvancementKey, Boolean>> keyList, int teamId) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("DELETE FROM `Unredeemed` WHERE `Namespace`=? AND `Key`=? AND `TeamID`=?;")) {
@@ -322,6 +392,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unregisterPlayer(@NotNull UUID uuid) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement stDelete = conn.prepareStatement("DELETE FROM `Players` WHERE `UUID`=?;")) {
@@ -330,6 +403,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void movePlayer(@NotNull UUID uuid, int newTeamId) throws SQLException {
         try (Connection conn = openConnection()) {
@@ -345,6 +421,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public TeamProgression movePlayerInNewTeam(@NotNull UUID uuid) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement psInsert = conn.prepareStatement("INSERT INTO `Teams` () VALUES ();")) {
@@ -359,6 +438,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<UUID> getPlayersByName(@NotNull String name) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `UUID` FROM `Players` WHERE `Name`=?;")) {
@@ -372,6 +454,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getPlayerName(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `Name` FROM `Players` WHERE `UUID`=? LIMIT 1;")) {
@@ -384,6 +469,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updatePlayerName(@NotNull UUID uuid, @NotNull String name) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("UPDATE `Players` SET `Name`=? WHERE `UUID`=?;")) {
@@ -393,6 +481,9 @@ public class MySQL implements IDatabase {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void clearUpTeams() throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("DELETE FROM `Teams` WHERE `ID` NOT IN (SELECT `TeamID` FROM `Players` GROUP BY `TeamID`);")) {

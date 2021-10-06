@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.util;
 
+import com.fren_gor.ultimateAdvancementAPI.UltimateAdvancementAPI;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
@@ -91,6 +92,15 @@ public class AdvancementUtils {
         PROGRESSIONS.put(NOTIFICATION_KEY, ADV_PROGRESS);
     }
 
+    /**
+     * Displays a custom toast to a player.
+     *
+     * @param player A player to show the toast.
+     * @param icon The displayed item of the toast.
+     * @param title The displayed title of the toast.
+     * @param frame The {@link AdvancementFrameType} of the toast.
+     * @see UltimateAdvancementAPI#displayCustomToast(Player, ItemStack, String, AdvancementFrameType)
+     */
     public static void displayToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame) {
         Validate.notNull(player, "Player is null.");
         Validate.notNull(icon, "Icon is null.");
@@ -216,6 +226,12 @@ public class AdvancementUtils {
         return advPrg;
     }
 
+    /**
+     * Disable vanilla advancement.
+     *
+     * @throws Exception Exception wrapper for vanilla advancement disablement.
+     * @see UltimateAdvancementAPI#disableVanillaAdvancements()
+     */
     @SuppressWarnings("unchecked")
     public static void disableVanillaAdvancements() throws Exception {
         Advancements registry = ((CraftServer) Bukkit.getServer()).getServer().getAdvancementData().REGISTRY;
@@ -312,6 +328,11 @@ public class AdvancementUtils {
         if (increment <= 0) {
             throw new IllegalArgumentException("Increment cannot be zero or less.");
         }
+    }
+
+    public static void validateTeamProgression(TeamProgression pro) {
+        Validate.notNull(pro, "TeamProgression is null.");
+        Validate.isTrue(pro.isValid(), "Invalid TeamProgression.");
     }
 
     public static void checkTeamProgressionNotNull(TeamProgression progression) {

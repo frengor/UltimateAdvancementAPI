@@ -11,6 +11,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Scanner;
+
 public class AdvancementPlugin extends JavaPlugin {
 
     /**
@@ -74,6 +78,7 @@ public class AdvancementPlugin extends JavaPlugin {
         }
 
         BStats.init(this);
+        checkForUpdates();
     }
 
     @Override
@@ -83,5 +88,24 @@ public class AdvancementPlugin extends JavaPlugin {
         }
         main.disable();
         main = null;
+    }
+
+    private void checkForUpdates() {
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+            try (InputStream inputStream = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + RESOURCE_ID).openStream();
+                 Scanner scanner = new Scanner(inputStream)) {
+                if (scanner.hasNextLine()) {
+                    if (!this.getDescription().getVersion().equalsIgnoreCase(scanner.next())) {
+                        AdvancementUtils.runSync(this, () -> {
+                            this.getLogger().info("A new version of " + this.getDescription().getName() + " is out! Download it at https://www.spigotmc.org/resources/" + RESOURCE_ID);
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                AdvancementUtils.runSync(this, () -> {
+                    this.getLogger().info("Cannot look for updates: " + e.getMessage());
+                });
+            }
+        });
     }
 }

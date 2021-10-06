@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskCriteriaUpdateException;
@@ -24,6 +24,10 @@ import java.util.Set;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
 
+/**
+ * An implementation of {@link AbstractMultiTasksAdvancement}. {@link TaskAdvancement}s have to be registered
+ * using {@link #registerTasks(Set)} in order to initialise an instance of this class.
+ */
 public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
 
     /**
@@ -40,18 +44,44 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      */
     public boolean DISABLE_EXCEPTION_ON_ARBITRARY_SET_TEAM_CRITERIA = false;
 
+    /**
+     * The tasks of this advancement.
+     */
     protected final Set<TaskAdvancement> tasks = new HashSet<>();
-    protected final Map<Integer, Integer> criteriaCache = new HashMap<>();
-    protected boolean initialised = false, doReloads = true;
 
+    /**
+     * The cache for the criteria per team (the key is the team unique id).
+     */
+    protected final Map<Integer, Integer> criteriaCache = new HashMap<>();
+
+    private boolean initialised = false, doReloads = true;
+
+    /**
+     * Creates a new {@code MultiTasksAdvancement}.
+     *
+     * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     * @param display The display information of this advancement.
+     * @param parent The parent of this advancement.
+     * @param maxCriteria The sum of the maximum criteria of all the tasks that will be registered.
+     */
     public MultiTasksAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
         super(key, display, parent, maxCriteria);
     }
 
+    /**
+     * Register the tasks for this multi-task advancement, initializing it. Thus, it cannot be called twice.
+     *
+     * @param tasks The tasks to register. Cannot include any {@code null} task.
+     */
     public void registerTasks(@NotNull TaskAdvancement... tasks) {
         registerTasks(Sets.newHashSet(Objects.requireNonNull(tasks)));
     }
 
+    /**
+     * Register the tasks for this multi-task advancement, initializing it. Thus, it cannot be called twice.
+     *
+     * @param tasks The tasks to register. Cannot include any {@code null} task.
+     */
     public void registerTasks(@NotNull Set<TaskAdvancement> tasks) {
         if (initialised) {
             throw new IllegalStateException("MultiTaskAdvancement is already initialised.");
@@ -79,6 +109,12 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         initialised = true;
     }
 
+    /**
+     * Gets an unmodifiable {@link Set} of the registered tasks.
+     *
+     * @return An unmodifiable {@link Set} of the registered tasks.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
     @NotNull
     @UnmodifiableView
     public Set<@NotNull TaskAdvancement> getTasks() {
@@ -86,6 +122,11 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         return Collections.unmodifiableSet(tasks);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
     @Override
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int getTeamCriteria(@NotNull TeamProgression progression) {
@@ -104,6 +145,11 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
     @Override
     public boolean isGranted(@NotNull TeamProgression pro) {
         checkInitialisation();
@@ -124,6 +170,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * @param criteria The criteria to set. Must be between 0 and {@link MultiTasksAdvancement#maxCriteria}.
      * @param giveRewards Whether to give rewards to player if criteria reaches {@link MultiTasksAdvancement#maxCriteria}.
      * @throws ArbitraryMultiTaskCriteriaUpdateException When criteria is not {@code 0} or {@link MultiTasksAdvancement#maxCriteria} and either {@link MultiTasksAdvancement#ENABLE_ARBITRARY_SET_TEAM_CRITERIA} or {@link MultiTasksAdvancement#DISABLE_EXCEPTION_ON_ARBITRARY_SET_TEAM_CRITERIA} are not set to {@code true}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
      */
     @Override
     protected void setCriteriaTeamProgression(@NotNull TeamProgression progression, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) throws ArbitraryMultiTaskCriteriaUpdateException {
@@ -182,8 +229,14 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         handlePlayer(progression, player, criteria, current, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
     @Override
     protected void reloadTasks(@NotNull TeamProgression progression, @Nullable Player player, boolean giveRewards) {
+        checkInitialisation();
         if (doReloads) { // Skip reloads when update comes from ourselves
             Validate.notNull(progression, "TeamProgression is null.");
 
@@ -196,15 +249,29 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         }
     }
 
+    /**
+     * Resets the team criteria cache for every team.
+     */
     public void resetCriteriaCache() {
         criteriaCache.clear();
     }
 
+    /**
+     * Resets the team criteria cache for the provided team.
+     *
+     * @param pro The team to remove from the cache.
+     */
     public void resetTeamCriteriaCache(@NotNull TeamProgression pro) {
         Validate.notNull(pro, "TeamProgression is null.");
         criteriaCache.remove(pro.getTeamId());
     }
 
+    /**
+     * Updates the team criteria cache for the provided team.
+     *
+     * @param pro The team to update.
+     * @param criteria The new criteria to store in cache.
+     */
     protected void updateTeamCriteriaCache(@NotNull TeamProgression pro, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
         Validate.notNull(pro, "TeamProgression is null.");
         validateCriteriaStrict(criteria, maxCriteria);
@@ -217,6 +284,9 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void validateRegister() throws InvalidAdvancementException {
         if (!initialised) {
@@ -224,11 +294,26 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
     @Override
     public void onDispose() {
+        checkInitialisation();
         for (TaskAdvancement t : tasks) {
             t.onDispose();
         }
         super.onDispose();
+    }
+
+    /**
+     * Returns whether the multi-task advancement is initialised.
+     *
+     * @return Whether the multi-task advancement is initialised.
+     */
+    public boolean isInitialised() {
+        return initialised;
     }
 }

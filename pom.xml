@@ -40,7 +40,7 @@
 
     <properties>
         <!-- Project Properties -->
-        <apiVersion>1.0.1</apiVersion> <!-- Change also in Versions class -->
+        <apiVersion>1.0.2</apiVersion> <!-- Change also in Versions class -->
         <mcVersion>1.15.2</mcVersion>
         <projectEncoding>UTF-8</projectEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -101,7 +101,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.16</version>
+            <version>1.18.20</version>
             <scope>provided</scope>
         </dependency>
 
@@ -109,7 +109,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
-            <version>3.5.10</version>
+            <version>3.12.4</version>
             <scope>test</scope>
         </dependency>
 
@@ -117,7 +117,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.1</version>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

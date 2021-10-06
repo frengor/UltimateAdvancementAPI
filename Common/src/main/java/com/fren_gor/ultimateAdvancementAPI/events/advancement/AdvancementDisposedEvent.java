@@ -7,6 +7,9 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Called after an advancement has been disposed.
+ */
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class AdvancementDisposedEvent extends Event {

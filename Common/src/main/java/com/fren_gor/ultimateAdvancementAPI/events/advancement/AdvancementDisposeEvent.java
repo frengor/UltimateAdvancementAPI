@@ -7,8 +7,12 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Called just before an advancement is being disposed.
+ * <p>Note that the {@link Advancement#onDispose()} method has not been already called.
+ */
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class AdvancementDisposeEvent extends Event {
 
     @NotNull
