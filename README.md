@@ -1,5 +1,6 @@
 # UltimateAdvancementAPI
-[![Build Status](https://jenkins.frengor.com/job/UltimateAdvancementAPI/badge/icon)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
+[![Build Status main Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/badge/icon?subject=main)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/)
+[![Build Status dev Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/badge/icon?subject=dev)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/)
 [![License](https://img.shields.io/badge/license-LGPL--3.0-orange)](https://github.com/frengor/UltimateAdvancementAPI/blob/main/LGPL)
 [![Version](https://frengor.com/UltimateAdvancementAPI/last-release.php)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
 [![Issues](https://img.shields.io/github/issues/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/issues)
