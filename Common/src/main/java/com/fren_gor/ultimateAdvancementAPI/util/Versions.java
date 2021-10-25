@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.util;
 
+import com.fren_gor.ultimateAdvancementAPI.nms.ReflectionUtil;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Contract;
@@ -21,7 +22,6 @@ import java.util.Objects;
 public class Versions {
 
     private static final String API_VERSION = "1.0.2";
-    private static String nmsVersion = null;
 
     private static final List<String> SUPPORTED_VERSIONS = Collections.unmodifiableList(Arrays.asList("1.15", "1.15.1", "1.15.2"));
 
@@ -52,10 +52,7 @@ public class Versions {
      */
     @NotNull
     public static String getNMSVersion() {
-        if (nmsVersion != null) {
-            return nmsVersion;
-        }
-        return nmsVersion = Bukkit.getServer().getClass().getName().split("\\.")[3];
+        return ReflectionUtil.COMPLETE_VERSION;
     }
 
     /**

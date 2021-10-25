@@ -1,4 +1,4 @@
-package org.bukkit.craftbukkit.server_version;
+package org.bukkit.craftbukkit.serverVersion1_17_R1;
 
 import org.bukkit.BanList;
 import org.bukkit.GameMode;
