@@ -1,14 +1,15 @@
 package com.fren_gor.ultimateAdvancementAPI.util;
 
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalKeyException;
+import com.fren_gor.ultimateAdvancementAPI.nms.MinecraftKeyWrapper;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
-import net.minecraft.server.v1_15_R1.ResourceKeyInvalidException;
 import org.apache.commons.lang.Validate;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.IllegalFormatException;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -20,7 +21,7 @@ import java.util.Objects;
 public final class AdvancementKey implements Comparable<AdvancementKey> {
 
     @NotNull
-    private final MinecraftKey minecraftKey;
+    private final MinecraftKeyWrapper minecraftKey;
 
     /**
      * Creates a new {@code AdvancementKey} with the provided plugin's (lowercased) name as namespace and the specified key.
@@ -43,9 +44,11 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
         checkNamespace(namespace);
         checkKey(key);
         try {
-            this.minecraftKey = new MinecraftKey(namespace, key);
-        } catch (ResourceKeyInvalidException e) {
-            throw new IllegalKeyException(e.getMessage(), e);
+            this.minecraftKey = MinecraftKeyWrapper.craft(namespace, key);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalKeyException(e.getMessage());
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -64,7 +67,8 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
      * @param key The {@code MinecraftKey}.
      * @throws IllegalKeyException If the namespace or the key is not valid. See {@link #AdvancementKey(String, String)}.
      */
-    public AdvancementKey(@NotNull MinecraftKey key) throws IllegalKeyException {
+    public AdvancementKey(@NotNull MinecraftKeyWrapper key) throws IllegalKeyException {
+        // This way namespace and key checks are performed
         this(Objects.requireNonNull(key, "MinecraftKey is null.").getNamespace(), key.getKey());
     }
 
@@ -95,7 +99,7 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
      */
     @NotNull
     public MinecraftKey toMinecraftKey() {
-        return minecraftKey;
+        return new MinecraftKey(minecraftKey.getKey(), minecraftKey.getNamespace());
     }
 
     /**
