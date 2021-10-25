@@ -7,52 +7,91 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-distribution</artifactId>
-        <version>1.15.2-parent-SNAPSHOT</version>
+        <version>parent-SNAPSHOT</version>
     </parent>
 
     <artifactId>ultimateadvancementapi</artifactId>
     <name>UltimateAdvancementAPI</name>
-    <version>${mcVersion}-${apiVersion}</version>
+    <version>${apiVersion}</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
-
-    <properties>
-        <dependencyArtifact>com.frengor:ultimateadvancementapi-plugin:${project.version}:jar</dependencyArtifact>
-        <dependencyName>ultimateadvancementapi-plugin</dependencyName>
-    </properties>
-
-    <!--<dependencies>
-        <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-plugin</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.frengor</groupId>
-                    <artifactId>ultimateadvancementapi-common</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.frengor</groupId>
-                    <artifactId>eventmanagerapi</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.byteflux</groupId>
-                    <artifactId>libby-bukkit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>dev.jorel</groupId>
-                    <artifactId>commandapi-shade</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-    </dependencies>-->
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>jar</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.frengor</groupId>
+                                    <artifactId>ultimateadvancementapi-common</artifactId>
+                                    <version>${apiVersion}</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.frengor</groupId>
+                                    <artifactId>ultimateadvancementapi-nms-common</artifactId>
+                                    <version>${apiVersion}</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${outputDirectoryClasses}</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.frengor</groupId>
+                                    <artifactId>ultimateadvancementapi-common</artifactId>
+                                    <version>${apiVersion}</version>
+                                    <type>jar</type>
+                                    <classifier>sources</classifier>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.frengor</groupId>
+                                    <artifactId>ultimateadvancementapi-nms-common</artifactId>
+                                    <version>${apiVersion}</version>
+                                    <type>jar</type>
+                                    <classifier>sources</classifier>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${outputDirectorySources}</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>javadoc</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.frengor</groupId>
+                                    <artifactId>ultimateadvancementapi-common</artifactId>
+                                    <version>${apiVersion}</version>
+                                    <type>jar</type>
+                                    <classifier>javadoc</classifier>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${outputDirectoryJavadocJar}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -61,6 +100,10 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

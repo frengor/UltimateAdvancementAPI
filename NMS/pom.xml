@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>ultimateadvancementapi-parent</artifactId>
+        <groupId>com.frengor</groupId>
+        <version>parent-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ultimateadvancementapi-nms-parent</artifactId>
+    <name>UltimateAdvancementAPI-NMS-Parent</name>
+    <url>${parent.url}</url>
+    <packaging>pom</packaging>
+
+    <properties>
+        <!-- Skip deploy -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
+    <modules>
+        <module>Common</module>
+        <module>1_16_R1</module>
+        <module>1_16_R2</module>
+        <module>1_16_R3</module>
+        <module>1_17_R1</module>
+        <module>Distribution</module>
+    </modules>
+</project>
