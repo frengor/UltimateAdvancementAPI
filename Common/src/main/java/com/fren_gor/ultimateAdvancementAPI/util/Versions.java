@@ -2,15 +2,11 @@ package com.fren_gor.ultimateAdvancementAPI.util;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.ReflectionUtil;
 import lombok.experimental.UtilityClass;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,25 +19,27 @@ public class Versions {
 
     private static final String API_VERSION = "1.0.2";
 
-    private static final List<String> SUPPORTED_VERSIONS = Collections.unmodifiableList(Arrays.asList("1.15", "1.15.1", "1.15.2"));
+    private static final List<String> SUPPORTED_NMS_VERSIONS = List.of("v1_15_R1", "v1_16_R1", "v1_16_R2", "v1_16_R3", "v1_17_R1");
 
-    private static final List<String> SUPPORTED_NMS_VERSIONS = Collections.unmodifiableList(Arrays.asList("v1_15_R1"));
+    private static final Map<String, List<String>> NMS_TO_VERSIONS = Map.of(
+            "v1_15_R1", List.of("1.15", "1.15.1", "1.15.2"),
+            "v1_16_R1", List.of("1.16", "1.16.1", "1.16.2"),
+            "v1_16_R2", List.of("1.16.3", "1.16.4"),
+            "v1_16_R3", List.of("1.16.5"),
+            "v1_17_R1", List.of("1.17", "1.17.1")
+    );
 
-    private static final Map<String, List<String>> NMS_TO_VERSIONS;
+    private static final Map<String, String> NMS_TO_FANCY = Map.of(
+            "v1_15_R1", "1.15-1.15.2",
+            "v1_16_R1", "1.16-1.16.2",
+            "v1_16_R2", "1.16.3-1.16.4",
+            "v1_16_R3", "1.16.5",
+            "v1_17_R1", "1.17-1.17.1"
+    );
 
-    static {
-        Map<String, List<String>> map = new HashMap<>();
-        map.put("v1_15_R1", Collections.unmodifiableList(Arrays.asList("1.15", "1.15.1", "1.15.2")));
-        NMS_TO_VERSIONS = Collections.unmodifiableMap(map);
-    }
-
-    private static final Map<String, String> NMS_TO_FANCY;
-
-    static {
-        Map<String, String> map = new HashMap<>();
-        map.put("v1_15_R1", "1.15-1.15.2");
-        NMS_TO_FANCY = Collections.unmodifiableMap(map);
-    }
+    private static final List<String> SUPPORTED_VERSIONS = SUPPORTED_NMS_VERSIONS.stream()
+            .flatMap(s -> NMS_TO_VERSIONS.get(s).stream())
+            .toList();
 
     /**
      * Gets the NMS version of the current server.
