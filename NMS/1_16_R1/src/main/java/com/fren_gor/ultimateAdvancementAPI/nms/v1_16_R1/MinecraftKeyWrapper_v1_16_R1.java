@@ -10,10 +10,7 @@ public class MinecraftKeyWrapper_v1_16_R1 extends MinecraftKeyWrapper {
     private final MinecraftKey key;
 
     public MinecraftKeyWrapper_v1_16_R1(@NotNull Object key) {
-        if (key instanceof MinecraftKey m) {
-            this.key = m;
-        }
-        throw new ClassCastException(key.getClass().getName() + " is not an instance of " + MinecraftKey.class.getName());
+        this.key = (MinecraftKey) key;
     }
 
     public MinecraftKeyWrapper_v1_16_R1(@NotNull String namespace, @NotNull String key) {
@@ -37,10 +34,7 @@ public class MinecraftKeyWrapper_v1_16_R1 extends MinecraftKeyWrapper {
     }
 
     @Override
-    public int compareTo(@NotNull MinecraftKeyWrapper o) {
-        if (o instanceof MinecraftKeyWrapper_v1_16_R1 obj) {
-            return key.compareTo(obj.key);
-        }
-        throw new ClassCastException();
+    public int compareTo(@NotNull MinecraftKeyWrapper obj) {
+        return key.compareTo(((MinecraftKeyWrapper_v1_16_R1) obj).key);
     }
 }

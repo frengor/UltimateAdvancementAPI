@@ -35,7 +35,7 @@ public abstract class MinecraftKeyWrapper implements Comparable<MinecraftKeyWrap
      * @throws ClassCastException If the provided object is not a NMS {@code MinecraftKey}.
      */
     @NotNull
-    public static MinecraftKeyWrapper craft(@NotNull Object minecraftKey) throws ReflectiveOperationException {
+    public static MinecraftKeyWrapper craft(@NotNull Object minecraftKey) throws ReflectiveOperationException, ClassCastException {
         return (MinecraftKeyWrapper) minecraftKeyConstructor.newInstance(minecraftKey);
     }
 
