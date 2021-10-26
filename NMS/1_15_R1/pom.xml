@@ -10,54 +10,27 @@
         <version>parent-SNAPSHOT</version>
     </parent>
 
-    <artifactId>ultimateadvancementapi-nms-distribution</artifactId>
-    <name>UltimateAdvancementAPI-NMS-Distribution</name>
+    <artifactId>ultimateadvancementapi-nms-1_15_R1</artifactId>
+    <name>UltimateAdvancementAPI-NMS-1_15_R1</name>
     <version>${apiVersion}</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
     <dependencies>
-        <!-- NMS Modules -->
-        <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-nms-1_15_R1</artifactId>
-            <version>${apiVersion}</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-nms-1_16_R1</artifactId>
-            <version>${apiVersion}</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-nms-1_16_R2</artifactId>
-            <version>${apiVersion}</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-nms-1_16_R3</artifactId>
-            <version>${apiVersion}</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-nms-1_17_R1</artifactId>
-            <version>${apiVersion}</version>
-            <scope>compile</scope>
-        </dependency>
-
+        <!-- NMS Common Module -->
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-nms-common</artifactId>
             <version>${apiVersion}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Spigot -->
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>1.15.2-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -76,10 +49,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
             <plugin>
@@ -92,4 +61,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>
