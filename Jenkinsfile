@@ -5,6 +5,7 @@ pipeline {
     options {
         skipDefaultCheckout(true)
         timeout(time: 5, activity: true, unit: 'MINUTES')
+        sidebarLinks([[displayName: 'Javadoc', iconFileName: 'help.png', urlName: "https://frengor.com/javadocs/UltimateAdvancementAPI/build-server/${BRANCH_NAME}"]])
     }
     tools {
         maven 'Maven'
@@ -37,7 +38,7 @@ pipeline {
             archiveArtifacts artifacts: "Distribution/Shadeable/target/*.jar", excludes: '**/original-*.jar'
             archiveArtifacts artifacts: "Plugin/target/*.jar", excludes: '**/original-*.jar'
             echo 'Archiving javadoc...'
-            javadoc javadocDir: "Common/target/apidocs", keepAll: false
+            //javadoc javadocDir: "Common/target/apidocs", keepAll: false
             configFileProvider([configFile(fileId: archiveFileScriptId, variable: 'JAVADOC_SCRIPT')]) {
                 sh "/bin/bash +x $JAVADOC_SCRIPT ${BRANCH_NAME}"
             }
