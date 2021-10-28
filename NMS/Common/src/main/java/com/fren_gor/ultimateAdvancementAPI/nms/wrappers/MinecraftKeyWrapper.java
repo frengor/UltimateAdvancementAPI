@@ -1,5 +1,6 @@
-package com.fren_gor.ultimateAdvancementAPI.nms;
+package com.fren_gor.ultimateAdvancementAPI.nms.wrappers;
 
+import com.fren_gor.ultimateAdvancementAPI.nms.ReflectionUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
@@ -9,10 +10,10 @@ import java.lang.reflect.Constructor;
  */
 public abstract class MinecraftKeyWrapper implements Comparable<MinecraftKeyWrapper> {
 
-    private static Constructor<?> minecraftKeyConstructor, namespacedKeyConstructor;
+    private static Constructor<? extends MinecraftKeyWrapper> minecraftKeyConstructor, namespacedKeyConstructor;
 
     static {
-        Class<?> clazz = ReflectionUtil.getWrapperClass(MinecraftKeyWrapper.class);
+        var clazz = ReflectionUtil.getWrapperClass(MinecraftKeyWrapper.class);
         assert clazz != null : "Wrapper class is null.";
         try {
             minecraftKeyConstructor = clazz.getConstructor(Object.class);
@@ -36,7 +37,7 @@ public abstract class MinecraftKeyWrapper implements Comparable<MinecraftKeyWrap
      */
     @NotNull
     public static MinecraftKeyWrapper craft(@NotNull Object minecraftKey) throws ReflectiveOperationException, ClassCastException {
-        return (MinecraftKeyWrapper) minecraftKeyConstructor.newInstance(minecraftKey);
+        return minecraftKeyConstructor.newInstance(minecraftKey);
     }
 
     /**
@@ -52,7 +53,7 @@ public abstract class MinecraftKeyWrapper implements Comparable<MinecraftKeyWrap
      */
     @NotNull
     public static MinecraftKeyWrapper craft(@NotNull String namespace, @NotNull String key) throws ReflectiveOperationException, IllegalArgumentException {
-        return (MinecraftKeyWrapper) namespacedKeyConstructor.newInstance(namespace, key);
+        return namespacedKeyConstructor.newInstance(namespace, key);
     }
 
     /**
@@ -70,4 +71,7 @@ public abstract class MinecraftKeyWrapper implements Comparable<MinecraftKeyWrap
      */
     @NotNull
     public abstract String getKey();
+
+    @NotNull
+    public abstract Object getNMSKey();
 }

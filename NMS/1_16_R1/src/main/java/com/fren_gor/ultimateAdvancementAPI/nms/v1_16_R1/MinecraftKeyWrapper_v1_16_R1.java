@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_16_R1;
 
-import com.fren_gor.ultimateAdvancementAPI.nms.MinecraftKeyWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import net.minecraft.server.v1_16_R1.MinecraftKey;
 import net.minecraft.server.v1_16_R1.ResourceKeyInvalidException;
 import org.jetbrains.annotations.NotNull;
@@ -36,5 +36,11 @@ public class MinecraftKeyWrapper_v1_16_R1 extends MinecraftKeyWrapper {
     @Override
     public int compareTo(@NotNull MinecraftKeyWrapper obj) {
         return key.compareTo(((MinecraftKeyWrapper_v1_16_R1) obj).key);
+    }
+
+    @Override
+    @NotNull
+    public MinecraftKey getNMSKey() {
+        return key;
     }
 }
