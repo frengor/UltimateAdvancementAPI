@@ -8,9 +8,9 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.IllegalFormatException;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
  * A wrapper for NMS {@code MinecraftKey}.
@@ -18,6 +18,21 @@ import java.util.Objects;
  * {@code [a-z0-9_.-]{1,127}:[a-z0-9_.-/]{1,127}}.
  */
 public final class AdvancementKey implements Comparable<AdvancementKey> {
+
+    /**
+     * Pattern every valid advancement key should match.
+     */
+    public static final Pattern VALID_ADVANCEMENT_KEY = Pattern.compile("[a-z0-9_.-]{1,127}:[a-z0-9_.-/]{1,127}");
+
+    /**
+     * Pattern every valid namespace should match.
+     */
+    public static final Pattern VALID_NAMESPACE = Pattern.compile("[a-z0-9_.-]{1,127}");
+
+    /**
+     * Pattern every valid key should match.
+     */
+    public static final Pattern VALID_KEY = Pattern.compile("[a-z0-9_.-/]{1,127}");
 
     @NotNull
     private final MinecraftKeyWrapper minecraftKey;
