@@ -19,6 +19,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdv
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutSelectAdvancementTabWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.Validate;
@@ -67,7 +68,9 @@ public final class AdvancementTab {
 
     private boolean initialised = false, disposed = false;
     private final Map<Player, Set<MinecraftKeyWrapper>> players = new HashMap<>();
+    @LazyValue
     private Collection<String> advNamespacedKeys;
+    @LazyValue
     private Collection<BaseAdvancement> advsWithoutRoot;
 
     AdvancementTab(@NotNull Plugin owningPlugin, @NotNull DatabaseManager databaseManager, @NotNull String namespace) {

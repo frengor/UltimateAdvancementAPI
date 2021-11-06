@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -20,6 +21,7 @@ public class BaseAdvancement extends Advancement {
     @NotNull
     protected final Advancement parent;
 
+    @LazyValue
     private AdvancementWrapper wrapper;
 
     /**

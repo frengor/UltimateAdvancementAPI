@@ -7,6 +7,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.Validate;
@@ -28,6 +29,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     // Every parent goes here. Ignoring the parent in BaseAdvancement
     private final Map<BaseAdvancement, FakeAdvancement> parents;
 
+    @LazyValue
     private PreparedAdvancementWrapper wrapper;
 
     /**

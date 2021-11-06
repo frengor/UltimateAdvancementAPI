@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,7 @@ public class RootAdvancement extends Advancement {
     @NotNull
     private final String backgroundTexture;
 
+    @LazyValue
     private AdvancementWrapper wrapper;
 
     /**
