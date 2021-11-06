@@ -26,7 +26,7 @@
         <dependency>
             <groupId>net.byteflux</groupId>
             <artifactId>libby-bukkit</artifactId>
-            <version>1.1.1</version>
+            <version>${libbyVersion}</version>
             <scope>compile</scope>
         </dependency>
 
