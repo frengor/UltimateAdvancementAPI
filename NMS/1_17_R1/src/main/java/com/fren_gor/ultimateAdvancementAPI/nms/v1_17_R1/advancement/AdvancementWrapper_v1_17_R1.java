@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.resources.ResourceLocation;
@@ -23,7 +24,7 @@ public class AdvancementWrapper_v1_17_R1 extends AdvancementWrapper {
 
     public AdvancementWrapper_v1_17_R1(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
         Map<String, Criterion> advCriteria = Util.getAdvancementCriteria(maxCriteria);
-        this.advancement = new Advancement((ResourceLocation) key.getNMSKey(), null, (DisplayInfo) display.getNMSDisplay(), Util.ADV_REWARDS, advCriteria, Util.getAdvancementRequirements(advCriteria));
+        this.advancement = new Advancement((ResourceLocation) key.toNMS(), null, (DisplayInfo) display.toNMS(), AdvancementRewards.EMPTY, advCriteria, Util.getAdvancementRequirements(advCriteria));
         this.key = key;
         this.parent = null;
         this.display = display;
@@ -31,7 +32,21 @@ public class AdvancementWrapper_v1_17_R1 extends AdvancementWrapper {
 
     public AdvancementWrapper_v1_17_R1(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementWrapper parent, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
         Map<String, Criterion> advCriteria = Util.getAdvancementCriteria(maxCriteria);
-        this.advancement = new Advancement((ResourceLocation) key.getNMSKey(), (Advancement) parent.getNMSAdvancement(), (DisplayInfo) display.getNMSDisplay(), Util.ADV_REWARDS, advCriteria, Util.getAdvancementRequirements(advCriteria));
+        this.advancement = new Advancement((ResourceLocation) key.toNMS(), (Advancement) parent.toNMS(), (DisplayInfo) display.toNMS(), AdvancementRewards.EMPTY, advCriteria, Util.getAdvancementRequirements(advCriteria));
+        this.key = key;
+        this.parent = parent;
+        this.display = display;
+    }
+
+    protected AdvancementWrapper_v1_17_R1(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @NotNull Map<String, Criterion> advCriteria, @NotNull String[][] advRequirements) {
+        this.advancement = new Advancement((ResourceLocation) key.toNMS(), null, (DisplayInfo) display.toNMS(), AdvancementRewards.EMPTY, advCriteria, advRequirements);
+        this.key = key;
+        this.parent = null;
+        this.display = display;
+    }
+
+    protected AdvancementWrapper_v1_17_R1(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementWrapper parent, @NotNull AdvancementDisplayWrapper display, @NotNull Map<String, Criterion> advCriteria, @NotNull String[][] advRequirements) {
+        this.advancement = new Advancement((ResourceLocation) key.toNMS(), (Advancement) parent.toNMS(), (DisplayInfo) display.toNMS(), AdvancementRewards.EMPTY, advCriteria, advRequirements);
         this.key = key;
         this.parent = parent;
         this.display = display;
@@ -59,7 +74,7 @@ public class AdvancementWrapper_v1_17_R1 extends AdvancementWrapper {
 
     @Override
     @NotNull
-    public Advancement getNMSAdvancement() {
+    public Advancement toNMS() {
         return advancement;
     }
 }

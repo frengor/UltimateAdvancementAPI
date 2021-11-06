@@ -2,62 +2,19 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v1_15_R1;
 
 import com.google.common.collect.Maps;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
-import net.minecraft.server.v1_15_R1.AdvancementRewards;
-import net.minecraft.server.v1_15_R1.Advancements;
-import net.minecraft.server.v1_15_R1.Blocks;
-import net.minecraft.server.v1_15_R1.ChatComponentText;
 import net.minecraft.server.v1_15_R1.Criterion;
 import net.minecraft.server.v1_15_R1.CriterionProgress;
 import net.minecraft.server.v1_15_R1.CriterionTriggerImpossible;
-import net.minecraft.server.v1_15_R1.MinecraftKey;
+import net.minecraft.server.v1_15_R1.Packet;
 import org.apache.commons.lang.Validate;
+import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
-import java.lang.reflect.Field;
 import java.util.Map;
 
 public class Util {
-
-    private static final Field advancementRoots, advancementTasks;
-
-    static {
-        Field c = null, d = null;
-        try {
-            c = Advancements.class.getDeclaredField("c");
-            c.setAccessible(true);
-            d = Advancements.class.getDeclaredField("d");
-            d.setAccessible(true);
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-        }
-        advancementRoots = c;
-        advancementTasks = d;
-    }
-
-    public static final MinecraftKey IMPOSSIBLE = new MinecraftKey("minecraft", "impossible");
-    public static final MinecraftKey NOTIFICATION_KEY = new MinecraftKey("com.fren_gor", "notification"), ROOT_KEY = new MinecraftKey("com.fren_gor", "root");
-    public static final AdvancementRewards ADV_REWARDS = AdvancementRewards.a;
-    private static final ChatComponentText ADV_DESCRIPTION = new ChatComponentText("\n§7A notification.");
-    private static final Map<String, Criterion> ADV_CRITERIA_MAP = Map.of("criterion", new Criterion(new CriterionTriggerImpossible.a()));
-    private static final String[][] ADV_REQUIREMENTS = {{"criterion"}};
-    private static final AdvancementProgress ADV_PROGRESS = new AdvancementProgress();
-    private static final net.minecraft.server.v1_15_R1.Advancement ROOT;
-    private static final Map<MinecraftKey, AdvancementProgress> PROGRESSIONS;
-
-    static {
-        ADV_PROGRESS.a(ADV_CRITERIA_MAP, ADV_REQUIREMENTS);
-        CriterionProgress criterion = ADV_PROGRESS.getCriterionProgress("criterion");
-        assert criterion != null;
-        criterion.b();
-        net.minecraft.server.v1_15_R1.AdvancementDisplay display = new net.minecraft.server.v1_15_R1.AdvancementDisplay(new net.minecraft.server.v1_15_R1.ItemStack(Blocks.GRASS_BLOCK.getItem()), new ChatComponentText("§f§lNotifications§1§2§3§4§5§6§7§8§9§0"), new ChatComponentText("§7Notification page.\n§7Close and reopen advancements to hide."), new MinecraftKey("textures/block/stone.png"), net.minecraft.server.v1_15_R1.AdvancementFrameType.TASK, false, false, false);
-        ROOT = new net.minecraft.server.v1_15_R1.Advancement(ROOT_KEY, null, display, ADV_REWARDS, ADV_CRITERIA_MAP, ADV_REQUIREMENTS);
-
-        PROGRESSIONS = Map.of(
-                ROOT_KEY, ADV_PROGRESS,
-                NOTIFICATION_KEY, ADV_PROGRESS
-        );
-    }
 
     @NotNull
     public static Map<String, Criterion> getAdvancementCriteria(@Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
@@ -100,6 +57,12 @@ public class Util {
         }
 
         return advPrg;
+    }
+
+    public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {
+        Validate.notNull(player, "Player is null.");
+        Validate.notNull(packet, "Packet is null.");
+        ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
     }
 
     private Util() {

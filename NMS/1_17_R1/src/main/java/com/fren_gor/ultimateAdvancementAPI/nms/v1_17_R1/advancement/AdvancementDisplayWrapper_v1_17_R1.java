@@ -16,9 +16,9 @@ public class AdvancementDisplayWrapper_v1_17_R1 extends AdvancementDisplayWrappe
     private final DisplayInfo display;
     private final AdvancementFrameTypeWrapper frameType;
 
-    public AdvancementDisplayWrapper_v1_17_R1(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean hidden, @Nullable String backgroundTexture) {
+    public AdvancementDisplayWrapper_v1_17_R1(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
         ResourceLocation background = backgroundTexture == null ? null : new ResourceLocation(backgroundTexture);
-        this.display = new DisplayInfo(CraftItemStack.asNMSCopy(icon), new TextComponent(title), new TextComponent(description), background, (FrameType) frameType.getNMSFrameType(), false, false, hidden);
+        this.display = new DisplayInfo(CraftItemStack.asNMSCopy(icon), new TextComponent(title), new TextComponent(description), background, (FrameType) frameType.toNMS(), showToast, announceChat, hidden);
         this.display.setLocation(x, y);
         this.frameType = frameType;
     }
@@ -58,6 +58,16 @@ public class AdvancementDisplayWrapper_v1_17_R1 extends AdvancementDisplayWrappe
     }
 
     @Override
+    public boolean doesShowToast() {
+        return display.shouldShowToast();
+    }
+
+    @Override
+    public boolean doesAnnounceToChat() {
+        return display.shouldAnnounceChat();
+    }
+
+    @Override
     public boolean isHidden() {
         return display.isHidden();
     }
@@ -71,7 +81,7 @@ public class AdvancementDisplayWrapper_v1_17_R1 extends AdvancementDisplayWrappe
 
     @Override
     @NotNull
-    public DisplayInfo getNMSDisplay() {
+    public DisplayInfo toNMS() {
         return display;
     }
 }

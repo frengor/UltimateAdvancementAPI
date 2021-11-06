@@ -15,7 +15,7 @@ import java.lang.reflect.Field;
 
 public class AdvancementDisplayWrapper_v1_16_R1 extends AdvancementDisplayWrapper {
 
-    private static Field iconField, xField, yField, keyField;
+    private static Field iconField, xField, yField, keyField, showToastField;
 
     static {
         try {
@@ -42,14 +42,20 @@ public class AdvancementDisplayWrapper_v1_16_R1 extends AdvancementDisplayWrappe
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
+        try {
+            showToastField = AdvancementDisplay.class.getDeclaredField("f");
+            showToastField.setAccessible(true);
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
     }
 
     private final AdvancementDisplay display;
     private final AdvancementFrameTypeWrapper frameType;
 
-    public AdvancementDisplayWrapper_v1_16_R1(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean hidden, @Nullable String backgroundTexture) {
+    public AdvancementDisplayWrapper_v1_16_R1(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
         MinecraftKey background = backgroundTexture == null ? null : new MinecraftKey(backgroundTexture);
-        this.display = new AdvancementDisplay(CraftItemStack.asNMSCopy(icon), new ChatComponentText(title), new ChatComponentText(description), background, (AdvancementFrameType) frameType.getNMSFrameType(), false, false, hidden);
+        this.display = new AdvancementDisplay(CraftItemStack.asNMSCopy(icon), new ChatComponentText(title), new ChatComponentText(description), background, (AdvancementFrameType) frameType.toNMS(), showToast, announceChat, hidden);
         this.display.a(x, y);
         this.frameType = frameType;
     }
@@ -102,6 +108,20 @@ public class AdvancementDisplayWrapper_v1_16_R1 extends AdvancementDisplayWrappe
     }
 
     @Override
+    public boolean doesShowToast() {
+        try {
+            return showToastField.getBoolean(display);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean doesAnnounceToChat() {
+        return display.i();
+    }
+
+    @Override
     public boolean isHidden() {
         return display.j();
     }
@@ -119,7 +139,7 @@ public class AdvancementDisplayWrapper_v1_16_R1 extends AdvancementDisplayWrappe
 
     @Override
     @NotNull
-    public AdvancementDisplay getNMSDisplay() {
+    public AdvancementDisplay toNMS() {
         return display;
     }
 }

@@ -3,19 +3,14 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import net.minecraft.server.v1_15_R1.Criterion;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.ADV_REWARDS;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementCriteria;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementRequirements;
 
 /**
  * The first advancement of an advancement tree.
@@ -30,7 +25,7 @@ public class RootAdvancement extends Advancement {
     @NotNull
     private final String backgroundTexture;
 
-    private net.minecraft.server.v1_15_R1.Advancement mcAdvancement;
+    private AdvancementWrapper wrapper;
 
     /**
      * Creates a new {@code RootAdvancement} with a maximum criteria of {@code 1}.
@@ -62,13 +57,16 @@ public class RootAdvancement extends Advancement {
      * {@inheritDoc}
      */
     @NotNull
-    public net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement() {
-        if (mcAdvancement != null) {
-            return mcAdvancement;
+    public AdvancementWrapper getNMSWrapper() {
+        if (wrapper != null) {
+            return wrapper;
         }
 
-        Map<String, Criterion> advCrit = getAdvancementCriteria(maxCriteria);
-        return mcAdvancement = new net.minecraft.server.v1_15_R1.Advancement(getMinecraftKey(), null, display.getMinecraftDisplay(this), ADV_REWARDS, advCrit, getAdvancementRequirements(advCrit));
+        try {
+            return wrapper = AdvancementWrapper.craftRootAdvancement(key.getNMSWrapper(), display.getNMSWrapper(this), maxCriteria);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

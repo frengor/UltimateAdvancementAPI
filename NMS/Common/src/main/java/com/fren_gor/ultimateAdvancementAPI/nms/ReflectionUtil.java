@@ -76,7 +76,7 @@ public class ReflectionUtil {
     @Nullable
     public static <T> Class<? extends T> getWrapperClass(@NotNull Class<T> clazz) {
         String name = clazz.getName();
-        String validPackage = "com.fren_gor.ultimateAdvancementAPI.nms.wrappers";
+        String validPackage = "com.fren_gor.ultimateAdvancementAPI.nms.wrappers.";
         if (!name.startsWith(validPackage)) {
             throw new IllegalArgumentException("Invalid class " + name + '.');
         }

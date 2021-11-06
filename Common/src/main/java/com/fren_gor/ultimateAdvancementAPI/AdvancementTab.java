@@ -12,18 +12,17 @@ import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementRegistr
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.ISendable;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdvancementsWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutSelectAdvancementTabWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import net.minecraft.server.v1_15_R1.AdvancementProgress;
-import net.minecraft.server.v1_15_R1.MinecraftKey;
-import net.minecraft.server.v1_15_R1.PacketPlayOutAdvancements;
-import net.minecraft.server.v1_15_R1.PacketPlayOutSelectAdvancementTab;
-import net.minecraft.server.v1_15_R1.PlayerConnection;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
@@ -67,7 +66,7 @@ public final class AdvancementTab {
     private final DatabaseManager databaseManager;
 
     private boolean initialised = false, disposed = false;
-    private final Map<Player, Set<MinecraftKey>> players = new HashMap<>();
+    private final Map<Player, Set<MinecraftKeyWrapper>> players = new HashMap<>();
     private Collection<String> advNamespacedKeys;
     private Collection<BaseAdvancement> advsWithoutRoot;
 
@@ -338,39 +337,42 @@ public final class AdvancementTab {
         Validate.notNull(pro, "TeamProgression is null.");
 
         final int best = advancements.size() + 16;
-
-        final Set<MinecraftKey> toRemove = Sets.newHashSetWithExpectedSize(best);
-
-        final Set<net.minecraft.server.v1_15_R1.Advancement> advs = Sets.newHashSetWithExpectedSize(best);
-        final Map<MinecraftKey, AdvancementProgress> progs = Maps.newHashMapWithExpectedSize(best);
+        final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(best);
+        final Map<AdvancementWrapper, Integer> advs = Maps.newHashMapWithExpectedSize(best);
 
         for (Advancement advancement : advancements.values()) {
-            advancement.onUpdate(pro, advs, progs, toRemove);
+            advancement.onUpdate(pro, advs);
+            keys.add(advancement.getKey().getNMSWrapper());
         }
 
-        PacketPlayOutAdvancements sendPacket = new PacketPlayOutAdvancements(false, advs, Collections.emptySet(), progs);
-
-        PacketPlayOutSelectAdvancementTab noTab = new PacketPlayOutSelectAdvancementTab(), thisTab = new PacketPlayOutSelectAdvancementTab(rootAdvancement.getMinecraftKey());
+        ISendable sendPacket, noTab, thisTab;
+        try {
+            sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(advs);
+            noTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelectNone();
+            thisTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelect(rootAdvancement.getKey().getNMSWrapper());
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+            return;
+        }
 
         pro.forEachMember(u -> {
             Player player = Bukkit.getPlayer(u);
             if (player != null) {
-                PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
-                connection.sendPacket(noTab);
+                noTab.sendTo(player);
 
-                @Nullable Set<MinecraftKey> set = players.put(player, toRemove);
+                @Nullable Set<MinecraftKeyWrapper> set = players.put(player, keys);
                 if (set != null && !set.isEmpty()) {
-                    PacketPlayOutAdvancements removePacket = new PacketPlayOutAdvancements(false, Collections.emptySet(), set, Collections.emptyMap());
-                    connection.sendPacket(removePacket);
+                    try {
+                        PacketPlayOutAdvancementsWrapper.craftRemovePacket(keys).sendTo(player);
+                    } catch (ReflectiveOperationException e) {
+                        e.printStackTrace();
+                        thisTab.sendTo(player);
+                        return; // TODO Check
+                    }
                 }
 
-                connection.sendPacket(sendPacket);
-                //new BukkitRunnable() {
-                //    @Override
-                //    public void run() {
-                connection.sendPacket(thisTab);
-                //     }
-                //}.runTaskLaterAsynchronously(AdvancementMain.getInstance(), 5);
+                sendPacket.sendTo(player);
+                thisTab.sendTo(player);
             }
         });
     }
@@ -389,34 +391,39 @@ public final class AdvancementTab {
         TeamProgression pro = databaseManager.getProgression(player);
 
         final int best = advancements.size() + 16;
-
-        final Set<MinecraftKey> toRemove = Sets.newHashSetWithExpectedSize(best);
-        final Set<net.minecraft.server.v1_15_R1.Advancement> advs = Sets.newHashSetWithExpectedSize(best);
-        final Map<MinecraftKey, AdvancementProgress> progs = Maps.newHashMapWithExpectedSize(best);
+        final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(best);
+        final Map<AdvancementWrapper, Integer> advs = Maps.newHashMapWithExpectedSize(best);
 
         for (Advancement advancement : advancements.values()) {
-            advancement.onUpdate(pro, advs, progs, toRemove);
+            advancement.onUpdate(pro, advs);
+            keys.add(advancement.getKey().getNMSWrapper());
         }
 
-        PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
+        ISendable sendPacket, noTab, thisTab;
+        try {
+            sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(advs);
+            noTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelectNone();
+            thisTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelect(rootAdvancement.getKey().getNMSWrapper());
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+            return;
+        }
 
-        PacketPlayOutSelectAdvancementTab noTab = new PacketPlayOutSelectAdvancementTab(), thisTab = new PacketPlayOutSelectAdvancementTab(rootAdvancement.getMinecraftKey());
-        connection.sendPacket(noTab);
+        noTab.sendTo(player);
 
-        @Nullable Set<MinecraftKey> set = players.put(player, toRemove);
+        @Nullable Set<MinecraftKeyWrapper> set = players.put(player, keys);
         if (set != null && !set.isEmpty()) {
-            PacketPlayOutAdvancements removePacket = new PacketPlayOutAdvancements(false, Collections.emptySet(), set, Collections.emptyMap());
-            connection.sendPacket(removePacket);
+            try {
+                PacketPlayOutAdvancementsWrapper.craftRemovePacket(keys).sendTo(player);
+            } catch (ReflectiveOperationException e) {
+                e.printStackTrace();
+                thisTab.sendTo(player);
+                return; // TODO Check
+            }
         }
 
-        PacketPlayOutAdvancements sendPacket = new PacketPlayOutAdvancements(false, advs, Collections.emptySet(), progs);
-        connection.sendPacket(sendPacket);
-        //new BukkitRunnable() {
-        //    @Override
-        //    public void run() {*/
-        connection.sendPacket(thisTab);
-        //    }
-        //}.runTaskLaterAsynchronously(AdvancementMain.getInstance(), 5);*/
+        sendPacket.sendTo(player);
+        thisTab.sendTo(player);
     }
 
     /**
@@ -463,7 +470,7 @@ public final class AdvancementTab {
         this.rootAdvancement = rootAdvancement;
         this.advancements.put(rootAdvancement.getKey(), rootAdvancement);
 
-        PluginManager pluginManager = Bukkit.getPluginManager();
+        final PluginManager pluginManager = Bukkit.getPluginManager();
 
         callOnRegister(rootAdvancement);
 
@@ -599,18 +606,21 @@ public final class AdvancementTab {
         removePlayer(player, players.remove(player));
     }
 
-    private void removePlayer(@NotNull Player player, @NotNull Set<MinecraftKey> keys) {
-        PacketPlayOutAdvancements packet = new PacketPlayOutAdvancements(false, Collections.emptySet(), keys, Collections.emptyMap());
-        ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
+    private void removePlayer(@NotNull Player player, @NotNull Set<MinecraftKeyWrapper> keys) {
+        try {
+            PacketPlayOutAdvancementsWrapper.craftRemovePacket(keys).sendTo(player);
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
     }
 
     void dispose() {
         checkInitialisation();
         disposed = true;
         eventManager.disable();
-        Iterator<Entry<Player, Set<MinecraftKey>>> it = players.entrySet().iterator();
+        Iterator<Entry<Player, Set<MinecraftKeyWrapper>>> it = players.entrySet().iterator();
         while (it.hasNext()) {
-            Entry<Player, Set<MinecraftKey>> e = it.next();
+            Entry<Player, Set<MinecraftKeyWrapper>> e = it.next();
             removePlayer(e.getKey(), e.getValue());
             it.remove();
         }

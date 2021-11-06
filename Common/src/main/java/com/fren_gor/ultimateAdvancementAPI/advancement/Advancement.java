@@ -8,6 +8,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementCriteriaUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
@@ -18,8 +19,6 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.HoverEvent.Action;
-import net.minecraft.server.v1_15_R1.AdvancementProgress;
-import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -37,7 +36,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementProgress;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromUUID;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
@@ -48,7 +46,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 /**
  * The {@code Advancement} class is the parent class of every advancement.
  * It provides the basic methods and fields to work with advancements.
- * It is extended only by RootAdvancement and BaseAdvancement. It cannot be extended by any other class.
+ * <p>It is extended only by RootAdvancement and BaseAdvancement. It cannot be extended by any other class, which should extends
  */
 public abstract class Advancement {
 
@@ -71,14 +69,14 @@ public abstract class Advancement {
     @NotNull
     protected final AdvancementDisplay display;
 
-    @Nullable
-    private final Method iVisibilityMethod;
-
     /**
      * The maximum criteria of the advancement.
      */
-    @Range(from = 0, to = Integer.MAX_VALUE)
+    @Range(from = 1, to = Integer.MAX_VALUE)
     protected final int maxCriteria;
+
+    @Nullable
+    private final Method iVisibilityMethod;
 
     private Advancement() {
         throw new UnsupportedOperationException("Private constructor.");
@@ -142,18 +140,6 @@ public abstract class Advancement {
     @NotNull
     public final AdvancementTab getAdvancementTab() {
         return advancementTab;
-    }
-
-    /**
-     * Gets the MinecraftKey of the advancement.
-     *
-     * @return The advancement MinecraftKey.
-     * @deprecated Use {@code getKey().toMinecraftKey()} instead.
-     */
-    @NotNull
-    @Deprecated
-    public final MinecraftKey getMinecraftKey() {
-        return key.toMinecraftKey();
     }
 
     /**
@@ -634,19 +620,16 @@ public abstract class Advancement {
 
     /**
      * Handles the serialisation of the advancement into the update packet.
+     * <p>Advancement(s) to be sent have to be added to the provided {@link Map}, which contains the {@link AdvancementWrapper}s paired
+     * with the advancements criteria progression of the provided team.
      *
-     * @param teamProgression The {@link TeamProgression} of the team.
-     * @param advancementList THe advancement list.
-     * @param progresses The progressions.
-     * @param added The advancement added to advancementList.
+     * @param teamProgression The {@link TeamProgression} of the team of the player(s).
+     * @param addedAdvancements The {@link Map} in which the advancements to be sent are added as keys.
+     *         The values are the current criteria progression of the team.
      */
-    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
         if (isVisible(teamProgression)) {
-            net.minecraft.server.v1_15_R1.Advancement mcAdv = getMinecraftAdvancement();
-            advancementList.add(mcAdv);
-            MinecraftKey key = getMinecraftKey();
-            added.add(key);
-            progresses.put(key, getAdvancementProgress(mcAdv, getTeamCriteria(teamProgression)));
+            addedAdvancements.put(getNMSWrapper(), getTeamCriteria(teamProgression));
         }
     }
 
@@ -701,12 +684,13 @@ public abstract class Advancement {
     }
 
     /**
-     * Returns the NMS advancement of this advancement.
-     * Should craft the NMS advancement once and returns it henceforth.
+     * Returns the NMS wrapper of this advancement.
+     * Should craft the NMS wrapper once and returns it henceforth.
      *
-     * @return The NMS advancement representing this advancement.
+     * @return The NMS wrapper of this advancement.
      */
-    public abstract @NotNull net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement();
+    @NotNull
+    public abstract AdvancementWrapper getNMSWrapper();
 
     /**
      * Registers the provided event into the tab {@link EventManager}.
@@ -766,7 +750,6 @@ public abstract class Advancement {
      */
     @Nullable
     private Method getIVisibilityMethod(Class<? extends Advancement> clazz) {
-
         for (Class<?> i : clazz.getInterfaces()) {
             if (i != IVisibility.class && IVisibility.class.isAssignableFrom(i)) {
                 try {
@@ -791,6 +774,7 @@ public abstract class Advancement {
      *
      * @return The {@link AdvancementDisplay} of this advancement.
      */
+    @NotNull
     public AdvancementDisplay getDisplay() {
         return display;
     }

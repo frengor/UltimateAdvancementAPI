@@ -8,7 +8,7 @@ import java.lang.reflect.Constructor;
 /**
  * Wrapper class for NMS {@code MinecraftKey}.
  */
-public abstract class MinecraftKeyWrapper implements Comparable<MinecraftKeyWrapper> {
+public abstract class MinecraftKeyWrapper extends AbstractWrapper implements Comparable<MinecraftKeyWrapper> {
 
     private static Constructor<? extends MinecraftKeyWrapper> minecraftKeyConstructor, namespacedKeyConstructor;
 
@@ -16,12 +16,12 @@ public abstract class MinecraftKeyWrapper implements Comparable<MinecraftKeyWrap
         var clazz = ReflectionUtil.getWrapperClass(MinecraftKeyWrapper.class);
         assert clazz != null : "Wrapper class is null.";
         try {
-            minecraftKeyConstructor = clazz.getConstructor(Object.class);
+            minecraftKeyConstructor = clazz.getDeclaredConstructor(Object.class);
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
         try {
-            namespacedKeyConstructor = clazz.getConstructor(String.class, String.class);
+            namespacedKeyConstructor = clazz.getDeclaredConstructor(String.class, String.class);
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
@@ -72,6 +72,26 @@ public abstract class MinecraftKeyWrapper implements Comparable<MinecraftKeyWrap
     @NotNull
     public abstract String getKey();
 
-    @NotNull
-    public abstract Object getNMSKey();
+    @Override
+    public String toString() {
+        return getNamespace() + ':' + getKey();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MinecraftKeyWrapper that = (MinecraftKeyWrapper) o;
+
+        if (!getNamespace().equals(that.getNamespace())) return false;
+        return getKey().equals(that.getKey());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getNamespace().hashCode();
+        result = 31 * result + getKey().hashCode();
+        return result;
+    }
 }

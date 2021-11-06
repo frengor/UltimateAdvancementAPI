@@ -35,12 +35,12 @@ public class MinecraftKeyWrapper_v1_15_R1 extends MinecraftKeyWrapper {
 
     @Override
     public int compareTo(@NotNull MinecraftKeyWrapper obj) {
-        return key.compareTo(((MinecraftKeyWrapper_v1_15_R1) obj).key);
+        return key.compareTo((MinecraftKey) obj.toNMS());
     }
 
     @Override
     @NotNull
-    public MinecraftKey getNMSKey() {
+    public MinecraftKey toNMS() {
         return key;
     }
 }
