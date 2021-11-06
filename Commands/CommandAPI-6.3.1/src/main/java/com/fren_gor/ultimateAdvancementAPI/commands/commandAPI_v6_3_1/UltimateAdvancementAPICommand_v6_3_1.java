@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_3_1;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
@@ -14,8 +14,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_3_1.AdvancementArgument_v6_3_1.getAdvancementArgument;
+import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_3_1.AdvancementTabArgument_v6_3_1.getAdvancementTabArgument;
+
 @RequiredArgsConstructor
-public class UltimateAdvancementAPICommand {
+public class UltimateAdvancementAPICommand_v6_3_1 {
 
     public static final String PERMISSION_MAIN = "ultimateadvancementapi.command";
     public static final String PERMISSION_CRITERIA = "ultimateadvancementapi.criteria";
@@ -52,18 +55,18 @@ public class UltimateAdvancementAPICommand {
         }).executes((sender, args) -> {
             sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi grant tab <advancementTab> <player> [giveRewards]");
         }));
-        grant.withSubcommand(new CommandAPICommand("tab").withPermission(PERMISSION_GRANT_TAB).withArguments(new AdvancementTabArgument(main, "advancementTab")).executesPlayer((Player player, Object[] args) -> grantTab(player, (AdvancementTab) args[0], player, true)));
-        grant.withSubcommand(new CommandAPICommand("tab").withPermission(PERMISSION_GRANT_TAB).withArguments(new AdvancementTabArgument(main, "advancementTab"), new PlayerArgument("player")).executes((CommandSender sender, Object[] args) -> grantTab(sender, (AdvancementTab) args[0], (Player) args[1], true)));
-        grant.withSubcommand(new CommandAPICommand("tab").withPermission(PERMISSION_GRANT_TAB).withArguments(new AdvancementTabArgument(main, "advancementTab"), new PlayerArgument("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, Object[] args) -> grantTab(sender, (AdvancementTab) args[0], (Player) args[1], (boolean) args[2])));
+        grant.withSubcommand(new CommandAPICommand("tab").withPermission(PERMISSION_GRANT_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab")).executesPlayer((Player player, Object[] args) -> grantTab(player, (AdvancementTab) args[0], player, true)));
+        grant.withSubcommand(new CommandAPICommand("tab").withPermission(PERMISSION_GRANT_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab"), new PlayerArgument("player")).executes((CommandSender sender, Object[] args) -> grantTab(sender, (AdvancementTab) args[0], (Player) args[1], true)));
+        grant.withSubcommand(new CommandAPICommand("tab").withPermission(PERMISSION_GRANT_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab"), new PlayerArgument("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, Object[] args) -> grantTab(sender, (AdvancementTab) args[0], (Player) args[1], (boolean) args[2])));
 
         grant.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).executesPlayer((player, args) -> {
             player.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi grant one <advancement> [player] [giveRewards]");
         }).executes((sender, args) -> {
             sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi grant one <advancement> <player> [giveRewards]");
         }));
-        grant.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).withArguments(new AdvancementArgument(main, "advancement")).executesPlayer((Player player, Object[] args) -> grantOne(player, (Advancement) args[0], player, true)));
-        grant.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).withArguments(new AdvancementArgument(main, "advancement"), new PlayerArgument("player")).executes((CommandSender sender, Object[] args) -> grantOne(sender, (Advancement) args[0], (Player) args[1], true)));
-        grant.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).withArguments(new AdvancementArgument(main, "advancement"), new PlayerArgument("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, Object[] args) -> grantOne(sender, (Advancement) args[0], (Player) args[1], (boolean) args[2])));
+        grant.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).withArguments(getAdvancementArgument(main, "advancement")).executesPlayer((Player player, Object[] args) -> grantOne(player, (Advancement) args[0], player, true)));
+        grant.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).withArguments(getAdvancementArgument(main, "advancement"), new PlayerArgument("player")).executes((CommandSender sender, Object[] args) -> grantOne(sender, (Advancement) args[0], (Player) args[1], true)));
+        grant.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).withArguments(getAdvancementArgument(main, "advancement"), new PlayerArgument("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, Object[] args) -> grantOne(sender, (Advancement) args[0], (Player) args[1], (boolean) args[2])));
 
         CommandAPICommand revoke = new CommandAPICommand("revoke").withPermission(PERMISSION_REVOKE).executes((sender, args) -> {
             sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi revoke <all|tab|one> ...");
@@ -80,17 +83,17 @@ public class UltimateAdvancementAPICommand {
         }).executes((sender, args) -> {
             sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi revoke tab <advancementTab> <player> [hideTab]");
         }));
-        revoke.withSubcommand(new CommandAPICommand("tab").withPermission(PERMISSION_REVOKE_TAB).withArguments(new AdvancementTabArgument(main, "advancementTab")).executesPlayer((Player player, Object[] args) -> revokeTab(player, (AdvancementTab) args[0], player, false)));
-        revoke.withSubcommand(new CommandAPICommand("tab").withPermission(PERMISSION_REVOKE_TAB).withArguments(new AdvancementTabArgument(main, "advancementTab"), new PlayerArgument("player")).executes((CommandSender sender, Object[] args) -> revokeTab(sender, (AdvancementTab) args[0], (Player) args[1], false)));
-        revoke.withSubcommand(new CommandAPICommand("tab").withPermission(PERMISSION_REVOKE_TAB).withArguments(new AdvancementTabArgument(main, "advancementTab"), new PlayerArgument("player"), new BooleanArgument("hideTab")).executes((CommandSender sender, Object[] args) -> revokeTab(sender, (AdvancementTab) args[0], (Player) args[1], (boolean) args[2])));
+        revoke.withSubcommand(new CommandAPICommand("tab").withPermission(PERMISSION_REVOKE_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab")).executesPlayer((Player player, Object[] args) -> revokeTab(player, (AdvancementTab) args[0], player, false)));
+        revoke.withSubcommand(new CommandAPICommand("tab").withPermission(PERMISSION_REVOKE_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab"), new PlayerArgument("player")).executes((CommandSender sender, Object[] args) -> revokeTab(sender, (AdvancementTab) args[0], (Player) args[1], false)));
+        revoke.withSubcommand(new CommandAPICommand("tab").withPermission(PERMISSION_REVOKE_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab"), new PlayerArgument("player"), new BooleanArgument("hideTab")).executes((CommandSender sender, Object[] args) -> revokeTab(sender, (AdvancementTab) args[0], (Player) args[1], (boolean) args[2])));
 
         revoke.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_REVOKE_ONE).executesPlayer((player, args) -> {
             player.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi revoke one <advancement> [player]");
         }).executes((sender, args) -> {
             sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi revoke one <advancement> <player>");
         }));
-        revoke.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_REVOKE_ONE).withArguments(new AdvancementArgument(main, "advancement")).executesPlayer((Player player, Object[] args) -> revokeOne(player, (Advancement) args[0], player)));
-        revoke.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_REVOKE_ONE).withArguments(new AdvancementArgument(main, "advancement"), new PlayerArgument("player")).executes((CommandSender sender, Object[] args) -> revokeOne(sender, (Advancement) args[0], (Player) args[1])));
+        revoke.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_REVOKE_ONE).withArguments(getAdvancementArgument(main, "advancement")).executesPlayer((Player player, Object[] args) -> revokeOne(player, (Advancement) args[0], player)));
+        revoke.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_REVOKE_ONE).withArguments(getAdvancementArgument(main, "advancement"), new PlayerArgument("player")).executes((CommandSender sender, Object[] args) -> revokeOne(sender, (Advancement) args[0], (Player) args[1])));
 
         CommandAPICommand criteria = new CommandAPICommand("criteria").withPermission(PERMISSION_CRITERIA).executes((sender, args) -> {
             sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi criteria <get|set> ...");
@@ -101,17 +104,17 @@ public class UltimateAdvancementAPICommand {
         }).executes((sender, args) -> {
             sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi criteria get <advancement> <player>");
         }));
-        criteria.withSubcommand(new CommandAPICommand("get").withPermission(PERMISSION_CRITERIA_GET).withArguments(new AdvancementArgument(main, "advancement")).executesPlayer((Player player, Object[] args) -> getCriteria(player, (Advancement) args[0], player)));
-        criteria.withSubcommand(new CommandAPICommand("get").withPermission(PERMISSION_CRITERIA_GET).withArguments(new AdvancementArgument(main, "advancement"), new PlayerArgument("player")).executes((CommandSender sender, Object[] args) -> getCriteria(sender, (Advancement) args[0], (Player) args[1])));
+        criteria.withSubcommand(new CommandAPICommand("get").withPermission(PERMISSION_CRITERIA_GET).withArguments(getAdvancementArgument(main, "advancement")).executesPlayer((Player player, Object[] args) -> getCriteria(player, (Advancement) args[0], player)));
+        criteria.withSubcommand(new CommandAPICommand("get").withPermission(PERMISSION_CRITERIA_GET).withArguments(getAdvancementArgument(main, "advancement"), new PlayerArgument("player")).executes((CommandSender sender, Object[] args) -> getCriteria(sender, (Advancement) args[0], (Player) args[1])));
 
         criteria.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_CRITERIA_SET).executesPlayer((player, args) -> {
             player.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi criteria set <advancement> <criteria> [player] [giveRewards]");
         }).executes((sender, args) -> {
             sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi criteria set <advancement> <criteria> <player> [giveRewards]");
         }));
-        criteria.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_CRITERIA_SET).withArguments(new AdvancementArgument(main, "advancement"), new IntegerArgument("criteria", 0)).executesPlayer((Player player, Object[] args) -> setCriteria(player, (Advancement) args[0], (int) args[1], player, true)));
-        criteria.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_CRITERIA_SET).withArguments(new AdvancementArgument(main, "advancement"), new IntegerArgument("criteria", 0), new PlayerArgument("player")).executes((CommandSender sender, Object[] args) -> setCriteria(sender, (Advancement) args[0], (int) args[1], (Player) args[2], true)));
-        criteria.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_CRITERIA_SET).withArguments(new AdvancementArgument(main, "advancement"), new IntegerArgument("criteria", 0), new PlayerArgument("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, Object[] args) -> setCriteria(sender, (Advancement) args[0], (int) args[1], (Player) args[2], (boolean) args[3])));
+        criteria.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_CRITERIA_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("criteria", 0)).executesPlayer((Player player, Object[] args) -> setCriteria(player, (Advancement) args[0], (int) args[1], player, true)));
+        criteria.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_CRITERIA_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("criteria", 0), new PlayerArgument("player")).executes((CommandSender sender, Object[] args) -> setCriteria(sender, (Advancement) args[0], (int) args[1], (Player) args[2], true)));
+        criteria.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_CRITERIA_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("criteria", 0), new PlayerArgument("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, Object[] args) -> setCriteria(sender, (Advancement) args[0], (int) args[1], (Player) args[2], (boolean) args[3])));
 
         mainCommand.withSubcommand(criteria);
         mainCommand.withSubcommand(grant);

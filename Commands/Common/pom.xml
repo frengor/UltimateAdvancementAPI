@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>ultimateadvancementapi-commands-parent</artifactId>
+        <groupId>com.frengor</groupId>
+        <version>parent-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ultimateadvancementapi-commands-common</artifactId>
+    <name>UltimateAdvancementAPI-Commands-Common</name>
+    <version>${apiVersion}</version>
+    <url>${parent.url}</url>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- Libby -->
+        <dependency>
+            <groupId>net.byteflux</groupId>
+            <artifactId>libby-bukkit</artifactId>
+            <version>${libbyVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <filtering>false</filtering>
+                <directory>../..</directory>
+                <includes>
+                    <include>LICENSE</include>
+                    <include>LGPL</include>
+                    <include>NOTICE</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

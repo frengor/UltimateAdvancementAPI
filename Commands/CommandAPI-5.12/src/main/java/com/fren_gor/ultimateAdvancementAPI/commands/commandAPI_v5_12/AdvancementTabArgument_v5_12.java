@@ -1,13 +1,13 @@
-package com.fren_gor.ultimateAdvancementAPI.commands;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v5_12;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import dev.jorel.commandapi.arguments.CustomArgument;
 import org.jetbrains.annotations.Nullable;
 
-public class AdvancementTabArgument extends CustomArgument<AdvancementTab> {
+public class AdvancementTabArgument_v5_12 extends CustomArgument<AdvancementTab> {
 
-    public AdvancementTabArgument(AdvancementMain main, String nodeName) {
+    public AdvancementTabArgument_v5_12(AdvancementMain main, String nodeName) {
         super(nodeName, input -> {
             @Nullable AdvancementTab adv = main.getAdvancementTab(input);
             if (adv == null) {
@@ -18,5 +18,4 @@ public class AdvancementTabArgument extends CustomArgument<AdvancementTab> {
         });
         overrideSuggestions(sender -> main.getAdvancementTabNamespaces().toArray(new String[0]));
     }
-
 }

@@ -1,15 +1,17 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
-import com.fren_gor.ultimateAdvancementAPI.commands.UltimateAdvancementAPICommand;
+import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager;
+import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.ILoadable;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.metrics.BStats;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
-import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.CommandAPIConfig;
 import lombok.Getter;
+import net.byteflux.libby.LibraryManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -27,6 +29,8 @@ public class AdvancementPlugin extends JavaPlugin {
     @Getter
     private AdvancementMain main;
     private boolean correctVersion = true;
+    @Nullable
+    private ILoadable commandAPIManager;
 
     @Override
     public void onLoad() {
@@ -49,10 +53,10 @@ public class AdvancementPlugin extends JavaPlugin {
             correctVersion = false;
             return;
         }
-        CommandAPIConfig config = new CommandAPIConfig();
-        config.setVerboseOutput(false);
-        CommandAPI.onLoad(config);
-        new UltimateAdvancementAPICommand(main).register();
+
+        commandAPIManager = CommandAPIManager.loadManager((LibraryManager) ((Object) main.getLibbyManager())); // Necessary cast to avoid compilation failure
+        if (commandAPIManager != null) // In case commands couldn't be loaded
+            commandAPIManager.onLoad(main);
     }
 
     @Override
@@ -61,7 +65,8 @@ public class AdvancementPlugin extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
-        CommandAPI.onEnable(this);
+        if (commandAPIManager != null) // In case commands couldn't be loaded
+            commandAPIManager.onEnable(this);
 
         ConfigManager configManager = new ConfigManager(this);
         configManager.saveDefault(false);
@@ -69,12 +74,17 @@ public class AdvancementPlugin extends JavaPlugin {
         configManager.enable(main);
 
         if (configManager.getDisableVanillaAdvancements()) {
-            try {
-                AdvancementUtils.disableVanillaAdvancements();
-            } catch (Exception e) {
-                System.out.println("Couldn't disable vanilla advancements:");
-                e.printStackTrace();
-            }
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    try {
+                        AdvancementUtils.disableVanillaAdvancements();
+                    } catch (Exception e) {
+                        System.out.println("Couldn't disable vanilla advancements:");
+                        e.printStackTrace();
+                    }
+                }
+            }.runTaskLater(this, 20);
         }
 
         BStats.init(this);

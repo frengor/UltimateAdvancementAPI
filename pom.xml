@@ -37,6 +37,7 @@
         <module>NMS</module>
         <module>Common</module>
         <module>Distribution</module>
+        <module>Commands</module>
         <module>Plugin</module>
     </modules>
 
