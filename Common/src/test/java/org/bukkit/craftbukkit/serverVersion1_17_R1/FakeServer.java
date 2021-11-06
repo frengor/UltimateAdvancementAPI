@@ -44,6 +44,7 @@ import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.structure.StructureManager;
 import org.bukkit.util.CachedServerIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,23 +61,27 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public class FakeServer implements Server {
+    @NotNull
     @Override
-    public @NotNull String getName() {
+    public String getName() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull String getVersion() {
+    public String getVersion() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull String getBukkitVersion() {
+    public String getBukkitVersion() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull Collection<? extends Player> getOnlinePlayers() {
+    public Collection<? extends Player> getOnlinePlayers() {
         return null;
     }
 
@@ -95,19 +100,26 @@ public class FakeServer implements Server {
         return 0;
     }
 
+    @NotNull
     @Override
-    public @NotNull String getIp() {
+    public String getIp() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull String getWorldType() {
+    public String getWorldType() {
         return null;
     }
 
     @Override
     public boolean getGenerateStructures() {
         return false;
+    }
+
+    @Override
+    public int getMaxWorldSize() {
+        return 0;
     }
 
     @Override
@@ -131,7 +143,18 @@ public class FakeServer implements Server {
     }
 
     @Override
-    public @NotNull Set<OfflinePlayer> getWhitelistedPlayers() {
+    public boolean isWhitelistEnforced() {
+        return false;
+    }
+
+    @Override
+    public void setWhitelistEnforced(boolean b) {
+
+    }
+
+    @NotNull
+    @Override
+    public Set<OfflinePlayer> getWhitelistedPlayers() {
         return null;
     }
 
@@ -145,13 +168,15 @@ public class FakeServer implements Server {
         return 0;
     }
 
+    @NotNull
     @Override
-    public @NotNull String getUpdateFolder() {
+    public String getUpdateFolder() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull File getUpdateFolderFile() {
+    public File getUpdateFolderFile() {
         return null;
     }
 
@@ -176,52 +201,66 @@ public class FakeServer implements Server {
     }
 
     @Override
-    public int getTicksPerAmbientSpawns() {
+    public int getTicksPerWaterAmbientSpawns() {
         return 0;
     }
 
     @Override
-    public @Nullable Player getPlayer(@NotNull String s) {
+    public int getTicksPerAmbientSpawns() {
+        return 0;
+    }
+
+    @Nullable
+    @Override
+    public Player getPlayer(@NotNull String s) {
         return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable Player getPlayerExact(@NotNull String s) {
+    public Player getPlayerExact(@NotNull String s) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull List<Player> matchPlayer(@NotNull String s) {
+    public List<Player> matchPlayer(@NotNull String s) {
         return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable Player getPlayer(@NotNull UUID uuid) {
+    public Player getPlayer(@NotNull UUID uuid) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull PluginManager getPluginManager() {
+    public PluginManager getPluginManager() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull BukkitScheduler getScheduler() {
+    public BukkitScheduler getScheduler() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull ServicesManager getServicesManager() {
+    public ServicesManager getServicesManager() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull List<World> getWorlds() {
+    public List<World> getWorlds() {
         return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable World createWorld(@NotNull WorldCreator worldCreator) {
+    public World createWorld(@NotNull WorldCreator worldCreator) {
         return null;
     }
 
@@ -235,33 +274,39 @@ public class FakeServer implements Server {
         return false;
     }
 
+    @Nullable
     @Override
-    public @Nullable World getWorld(@NotNull String s) {
+    public World getWorld(@NotNull String s) {
         return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable World getWorld(@NotNull UUID uuid) {
+    public World getWorld(@NotNull UUID uuid) {
         return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable MapView getMap(int i) {
+    public MapView getMap(int i) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull MapView createMap(@NotNull World world) {
+    public MapView createMap(@NotNull World world) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull ItemStack createExplorerMap(@NotNull World world, @NotNull Location location, @NotNull StructureType structureType) {
+    public ItemStack createExplorerMap(@NotNull World world, @NotNull Location location, @NotNull StructureType structureType) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull ItemStack createExplorerMap(@NotNull World world, @NotNull Location location, @NotNull StructureType structureType, int i, boolean b) {
+    public ItemStack createExplorerMap(@NotNull World world, @NotNull Location location, @NotNull StructureType structureType, int i, boolean b) {
         return null;
     }
 
@@ -275,13 +320,15 @@ public class FakeServer implements Server {
 
     }
 
+    @NotNull
     @Override
-    public @NotNull Logger getLogger() {
+    public Logger getLogger() {
         return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable PluginCommand getPluginCommand(@NotNull String s) {
+    public PluginCommand getPluginCommand(@NotNull String s) {
         return null;
     }
 
@@ -300,13 +347,33 @@ public class FakeServer implements Server {
         return false;
     }
 
+    @NotNull
     @Override
-    public @NotNull List<Recipe> getRecipesFor(@NotNull ItemStack itemStack) {
+    public List<Recipe> getRecipesFor(@NotNull ItemStack itemStack) {
         return null;
     }
 
+    @Nullable
     @Override
-    public @NotNull Iterator<Recipe> recipeIterator() {
+    public Recipe getRecipe(@NotNull NamespacedKey namespacedKey) {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public Recipe getCraftingRecipe(@NotNull ItemStack[] itemStacks, @NotNull World world) {
+        return null;
+    }
+
+    @NotNull
+    @Override
+    public ItemStack craftItem(@NotNull ItemStack[] itemStacks, @NotNull World world, @NotNull Player player) {
+        return null;
+    }
+
+    @NotNull
+    @Override
+    public Iterator<Recipe> recipeIterator() {
         return null;
     }
 
@@ -325,8 +392,9 @@ public class FakeServer implements Server {
         return false;
     }
 
+    @NotNull
     @Override
-    public @NotNull Map<String, String[]> getCommandAliases() {
+    public Map<String, String[]> getCommandAliases() {
         return null;
     }
 
@@ -365,18 +433,21 @@ public class FakeServer implements Server {
         return 0;
     }
 
+    @NotNull
     @Override
-    public @NotNull OfflinePlayer getOfflinePlayer(@NotNull String s) {
+    public OfflinePlayer getOfflinePlayer(@NotNull String s) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull OfflinePlayer getOfflinePlayer(@NotNull UUID uuid) {
+    public OfflinePlayer getOfflinePlayer(@NotNull UUID uuid) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull Set<String> getIPBans() {
+    public Set<String> getIPBans() {
         return null;
     }
 
@@ -390,23 +461,27 @@ public class FakeServer implements Server {
 
     }
 
+    @NotNull
     @Override
-    public @NotNull Set<OfflinePlayer> getBannedPlayers() {
+    public Set<OfflinePlayer> getBannedPlayers() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull BanList getBanList(@NotNull BanList.Type type) {
+    public BanList getBanList(@NotNull BanList.Type type) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull Set<OfflinePlayer> getOperators() {
+    public Set<OfflinePlayer> getOperators() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull GameMode getDefaultGameMode() {
+    public GameMode getDefaultGameMode() {
         return null;
     }
 
@@ -415,53 +490,63 @@ public class FakeServer implements Server {
 
     }
 
+    @NotNull
     @Override
-    public @NotNull ConsoleCommandSender getConsoleSender() {
+    public ConsoleCommandSender getConsoleSender() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull File getWorldContainer() {
+    public File getWorldContainer() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull OfflinePlayer[] getOfflinePlayers() {
+    public OfflinePlayer[] getOfflinePlayers() {
         return new OfflinePlayer[0];
     }
 
+    @NotNull
     @Override
-    public @NotNull Messenger getMessenger() {
+    public Messenger getMessenger() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull HelpMap getHelpMap() {
+    public HelpMap getHelpMap() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull Inventory createInventory(@Nullable InventoryHolder inventoryHolder, @NotNull InventoryType inventoryType) {
+    public Inventory createInventory(@Nullable InventoryHolder inventoryHolder, @NotNull InventoryType inventoryType) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull Inventory createInventory(@Nullable InventoryHolder inventoryHolder, @NotNull InventoryType inventoryType, @NotNull String s) {
+    public Inventory createInventory(@Nullable InventoryHolder inventoryHolder, @NotNull InventoryType inventoryType, @NotNull String s) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull Inventory createInventory(@Nullable InventoryHolder inventoryHolder, int i) throws IllegalArgumentException {
+    public Inventory createInventory(@Nullable InventoryHolder inventoryHolder, int i) throws IllegalArgumentException {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull Inventory createInventory(@Nullable InventoryHolder inventoryHolder, int i, @NotNull String s) throws IllegalArgumentException {
+    public Inventory createInventory(@Nullable InventoryHolder inventoryHolder, int i, @NotNull String s) throws IllegalArgumentException {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull Merchant createMerchant(@Nullable String s) {
+    public Merchant createMerchant(@Nullable String s) {
         return null;
     }
 
@@ -481,6 +566,11 @@ public class FakeServer implements Server {
     }
 
     @Override
+    public int getWaterAmbientSpawnLimit() {
+        return 0;
+    }
+
+    @Override
     public int getAmbientSpawnLimit() {
         return 0;
     }
@@ -490,43 +580,51 @@ public class FakeServer implements Server {
         return false;
     }
 
+    @NotNull
     @Override
-    public @NotNull String getMotd() {
+    public String getMotd() {
         return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable String getShutdownMessage() {
+    public String getShutdownMessage() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull Warning.WarningState getWarningState() {
+    public Warning.WarningState getWarningState() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull ItemFactory getItemFactory() {
+    public ItemFactory getItemFactory() {
         return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable ScoreboardManager getScoreboardManager() {
+    public ScoreboardManager getScoreboardManager() {
         return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable CachedServerIcon getServerIcon() {
+    public CachedServerIcon getServerIcon() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull CachedServerIcon loadServerIcon(@NotNull File file) throws IllegalArgumentException, Exception {
+    public CachedServerIcon loadServerIcon(@NotNull File file) throws IllegalArgumentException, Exception {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull CachedServerIcon loadServerIcon(@NotNull BufferedImage bufferedImage) throws IllegalArgumentException, Exception {
+    public CachedServerIcon loadServerIcon(@NotNull BufferedImage bufferedImage) throws IllegalArgumentException, Exception {
         return null;
     }
 
@@ -540,28 +638,33 @@ public class FakeServer implements Server {
         return 0;
     }
 
+    @NotNull
     @Override
-    public @NotNull ChunkGenerator.ChunkData createChunkData(@NotNull World world) {
+    public ChunkGenerator.ChunkData createChunkData(@NotNull World world) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull BossBar createBossBar(@Nullable String s, @NotNull BarColor barColor, @NotNull BarStyle barStyle, @NotNull BarFlag... barFlags) {
+    public BossBar createBossBar(@Nullable String s, @NotNull BarColor barColor, @NotNull BarStyle barStyle, @NotNull BarFlag... barFlags) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull KeyedBossBar createBossBar(@NotNull NamespacedKey namespacedKey, @Nullable String s, @NotNull BarColor barColor, @NotNull BarStyle barStyle, @NotNull BarFlag... barFlags) {
+    public KeyedBossBar createBossBar(@NotNull NamespacedKey namespacedKey, @Nullable String s, @NotNull BarColor barColor, @NotNull BarStyle barStyle, @NotNull BarFlag... barFlags) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull Iterator<KeyedBossBar> getBossBars() {
+    public Iterator<KeyedBossBar> getBossBars() {
         return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable KeyedBossBar getBossBar(@NotNull NamespacedKey namespacedKey) {
+    public KeyedBossBar getBossBar(@NotNull NamespacedKey namespacedKey) {
         return null;
     }
 
@@ -570,68 +673,81 @@ public class FakeServer implements Server {
         return false;
     }
 
+    @Nullable
     @Override
-    public @Nullable Entity getEntity(@NotNull UUID uuid) {
+    public Entity getEntity(@NotNull UUID uuid) {
         return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable Advancement getAdvancement(@NotNull NamespacedKey namespacedKey) {
+    public Advancement getAdvancement(@NotNull NamespacedKey namespacedKey) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull Iterator<Advancement> advancementIterator() {
+    public Iterator<Advancement> advancementIterator() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull BlockData createBlockData(@NotNull Material material) {
+    public BlockData createBlockData(@NotNull Material material) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull BlockData createBlockData(@NotNull Material material, @Nullable Consumer<BlockData> consumer) {
+    public BlockData createBlockData(@NotNull Material material, @Nullable Consumer<BlockData> consumer) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull BlockData createBlockData(@NotNull String s) throws IllegalArgumentException {
+    public BlockData createBlockData(@NotNull String s) throws IllegalArgumentException {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull BlockData createBlockData(@Nullable Material material, @Nullable String s) throws IllegalArgumentException {
+    public BlockData createBlockData(@Nullable Material material, @Nullable String s) throws IllegalArgumentException {
         return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable <T extends Keyed> Tag<T> getTag(@NotNull String s, @NotNull NamespacedKey namespacedKey, @NotNull Class<T> aClass) {
+    public <T extends Keyed> Tag<T> getTag(@NotNull String s, @NotNull NamespacedKey namespacedKey, @NotNull Class<T> aClass) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull <T extends Keyed> Iterable<Tag<T>> getTags(@NotNull String s, @NotNull Class<T> aClass) {
+    public <T extends Keyed> Iterable<Tag<T>> getTags(@NotNull String s, @NotNull Class<T> aClass) {
         return null;
     }
 
+    @Nullable
     @Override
-    public @Nullable LootTable getLootTable(@NotNull NamespacedKey namespacedKey) {
+    public LootTable getLootTable(@NotNull NamespacedKey namespacedKey) {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull List<Entity> selectEntities(@NotNull CommandSender commandSender, @NotNull String s) throws IllegalArgumentException {
+    public List<Entity> selectEntities(@NotNull CommandSender commandSender, @NotNull String s) throws IllegalArgumentException {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull UnsafeValues getUnsafe() {
+    public UnsafeValues getUnsafe() {
         return null;
     }
 
+    @NotNull
     @Override
-    public @NotNull Spigot spigot() {
+    public Spigot spigot() {
         return null;
     }
 
@@ -640,8 +756,25 @@ public class FakeServer implements Server {
 
     }
 
+    @NotNull
     @Override
-    public @NotNull Set<String> getListeningPluginChannels() {
+    public Set<String> getListeningPluginChannels() {
+        return null;
+    }
+
+    @Override
+    public int getTicksPerWaterUndergroundCreatureSpawns() {
+        return 0;
+    }
+
+    @Override
+    public int getWaterUndergroundCreatureSpawnLimit() {
+        return 0;
+    }
+
+    @NotNull
+    @Override
+    public StructureManager getStructureManager() {
         return null;
     }
 }
