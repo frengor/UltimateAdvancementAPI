@@ -1,5 +1,8 @@
 package com.fren_gor.ultimateAdvancementAPI.exceptions;
 
+/**
+ * This exception is thrown when an operation couldn't be done since an advancement is not granted for a team or player.
+ */
 public class NotGrantedException extends RuntimeException {
 
     public NotGrantedException() {

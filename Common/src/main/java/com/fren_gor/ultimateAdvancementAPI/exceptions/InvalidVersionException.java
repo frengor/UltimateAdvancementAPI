@@ -3,6 +3,9 @@ package com.fren_gor.ultimateAdvancementAPI.exceptions;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * This exception is thrown when an invalid version is detected.
+ */
 public class InvalidVersionException extends RuntimeException {
 
     @Getter
@@ -29,31 +32,69 @@ public class InvalidVersionException extends RuntimeException {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 
-    public InvalidVersionException(String expected, String found) {
+    /**
+     * Creates a new {@code InvalidVersionException}.
+     *
+     * @param expected The expected version.
+     * @param found The real version.
+     */
+    public InvalidVersionException(@Nullable String expected, @Nullable String found) {
         super();
         this.expected = expected;
         this.found = found;
     }
 
-    public InvalidVersionException(String expected, String found, String message) {
+    /**
+     * Creates a new {@code InvalidVersionException}.
+     *
+     * @param expected The expected version.
+     * @param found The real version.
+     * @param message See {@link RuntimeException#RuntimeException(String)}.
+     */
+    public InvalidVersionException(@Nullable String expected, @Nullable String found, String message) {
         super(message);
         this.expected = expected;
         this.found = found;
     }
 
-    public InvalidVersionException(String expected, String found, String message, Throwable cause) {
+    /**
+     * Creates a new {@code InvalidVersionException}.
+     *
+     * @param expected The expected version.
+     * @param found The real version.
+     * @param message See {@link RuntimeException#RuntimeException(String, Throwable)}.
+     * @param cause See {@link RuntimeException#RuntimeException(String, Throwable)}.
+     */
+    public InvalidVersionException(@Nullable String expected, @Nullable String found, String message, Throwable cause) {
         super(message, cause);
         this.expected = expected;
         this.found = found;
     }
 
-    public InvalidVersionException(String expected, String found, Throwable cause) {
+    /**
+     * Creates a new {@code InvalidVersionException}.
+     *
+     * @param expected The expected version.
+     * @param found The real version.
+     * @param cause See {@link RuntimeException#RuntimeException(Throwable)}.
+     */
+    public InvalidVersionException(@Nullable String expected, @Nullable String found, Throwable cause) {
         super(cause);
         this.expected = expected;
         this.found = found;
     }
 
-    protected InvalidVersionException(String expected, String found, String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    /**
+     * Creates a new {@code InvalidVersionException}.
+     *
+     * @param expected The expected version.
+     * @param found The real version.
+     * @param message See {@link RuntimeException#RuntimeException(String, Throwable, boolean, boolean)}.
+     * @param cause See {@link RuntimeException#RuntimeException(String, Throwable, boolean, boolean)}.
+     * @param enableSuppression See {@link RuntimeException#RuntimeException(String, Throwable, boolean, boolean)}.
+     * @param writableStackTrace See {@link RuntimeException#RuntimeException(String, Throwable, boolean, boolean)}.
+     */
+    protected InvalidVersionException(@Nullable String expected, @Nullable String found, String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
         this.expected = expected;
         this.found = found;

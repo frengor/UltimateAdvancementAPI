@@ -1,5 +1,8 @@
 package com.fren_gor.ultimateAdvancementAPI.exceptions;
 
+/**
+ * This exception is thrown when some {@link Object} is registered twice but duplicates are not admitted.
+ */
 public class DuplicatedException extends RuntimeException {
 
     public DuplicatedException() {

@@ -2,6 +2,9 @@ package com.fren_gor.ultimateAdvancementAPI.exceptions;
 
 import java.util.UUID;
 
+/**
+ * This exception is thrown when the requested user is not loaded into the caching system.
+ */
 public class UserNotLoadedException extends RuntimeException {
 
     public UserNotLoadedException() {

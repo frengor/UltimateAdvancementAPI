@@ -1,5 +1,8 @@
 package com.fren_gor.ultimateAdvancementAPI.exceptions;
 
+/**
+ * This exception is thrown when an arbitrary criteria update is made while it is not admitted.
+ */
 public class ArbitraryMultiTaskCriteriaUpdateException extends RuntimeException {
 
     public ArbitraryMultiTaskCriteriaUpdateException() {
