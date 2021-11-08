@@ -59,6 +59,12 @@
             <url>https://nexus.frengor.com/repository/public/</url>
         </repository>
 
+        <!-- Spigot -->
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+        </repository>
+
         <!-- CommandAPI -->
         <repository>
             <id>jitpack.io</id>
