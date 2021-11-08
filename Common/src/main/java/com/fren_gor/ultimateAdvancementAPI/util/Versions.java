@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.util;
 
-import com.fren_gor.ultimateAdvancementAPI.nms.ReflectionUtil;
+import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

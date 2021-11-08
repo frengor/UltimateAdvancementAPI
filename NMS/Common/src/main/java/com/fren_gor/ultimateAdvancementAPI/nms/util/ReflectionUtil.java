@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.nms;
+package com.fren_gor.ultimateAdvancementAPI.nms.util;
 
 import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;

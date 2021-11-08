@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement;
 
-import com.fren_gor.ultimateAdvancementAPI.nms.ReflectionUtil;
+import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.AbstractWrapper;
 import org.jetbrains.annotations.NotNull;
 

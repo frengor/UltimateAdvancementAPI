@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.wrappers;
 
-import com.fren_gor.ultimateAdvancementAPI.nms.ReflectionUtil;
+import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import org.apache.commons.lang.Validate;
 
 import java.lang.reflect.Method;
