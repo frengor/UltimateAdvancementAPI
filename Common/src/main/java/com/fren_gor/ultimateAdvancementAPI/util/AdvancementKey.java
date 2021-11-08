@@ -13,8 +13,8 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * A wrapper for NMS {@code MinecraftKey}.
- * <p>The namespaced key represented by this class matches the following pattern:
+ * The {@code AdvancementKey} class represents a valid advancement namespaced key.
+ * <p>The namespaced keys represented by this class match the following pattern:
  * {@code [a-z0-9_.-]{1,127}:[a-z0-9_.-/]{1,127}}.
  */
 public final class AdvancementKey implements Comparable<AdvancementKey> {

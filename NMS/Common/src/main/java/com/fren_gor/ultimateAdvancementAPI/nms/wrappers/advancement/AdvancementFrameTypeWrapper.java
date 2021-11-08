@@ -6,19 +6,22 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
 
+/**
+ * Wrapper class for NMS {@code FrameType}.
+ */
 public abstract class AdvancementFrameTypeWrapper extends AbstractWrapper {
     /**
-     * A frame with squared shape.
+     * A frame wrapper with squared shape.
      */
     public static AdvancementFrameTypeWrapper TASK;
 
     /**
-     * A frame with rounded top and bottom.
+     * A frame wrapper with rounded top and bottom.
      */
     public static AdvancementFrameTypeWrapper GOAL;
 
     /**
-     * A frame with thorns at the corners.
+     * A frame wrapper with thorns at the corners.
      */
     public static AdvancementFrameTypeWrapper CHALLENGE;
 
@@ -35,6 +38,11 @@ public abstract class AdvancementFrameTypeWrapper extends AbstractWrapper {
         }
     }
 
+    /**
+     * Gets the {@link FrameType} of this frame wrapper.
+     *
+     * @return The {@link FrameType} of this frame wrapper.
+     */
     @NotNull
     public abstract FrameType getFrameType();
 
@@ -44,7 +52,21 @@ public abstract class AdvancementFrameTypeWrapper extends AbstractWrapper {
         return getFrameType().name();
     }
 
+    /**
+     * Enumeration that represents the frame type of {@link AdvancementFrameTypeWrapper}s.
+     */
     public enum FrameType {
-        TASK, GOAL, CHALLENGE;
+        /**
+         * A frame with squared shape.
+         */
+        TASK,
+        /**
+         * A frame with rounded top and bottom.
+         */
+        GOAL,
+        /**
+         * A frame with thorns at the corners.
+         */
+        CHALLENGE;
     }
 }

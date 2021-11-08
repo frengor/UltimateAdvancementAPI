@@ -9,6 +9,9 @@ import org.jetbrains.annotations.Range;
 
 import java.lang.reflect.Constructor;
 
+/**
+ * Wrapper class for NMS {@code Advancement}.
+ */
 public abstract class AdvancementWrapper extends AbstractWrapper {
 
     private static Constructor<? extends AdvancementWrapper> rootAdvancementWrapperConstructor, baseAdvancementWrapperConstructor;
@@ -29,25 +32,64 @@ public abstract class AdvancementWrapper extends AbstractWrapper {
         }
     }
 
+    /**
+     * Creates a new {@code AdvancementWrapper} for a root advancement.
+     *
+     * @param key The namespaced key wrapper of the advancement.
+     * @param display The display wrapper of the advancement.
+     * @param maxCriteria The maximum criteria of the advancement.
+     * @return A new {@code AdvancementWrapper} for a RootAdvancement.
+     * @throws ReflectiveOperationException If reflections goes wrong.
+     */
     @NotNull
     public static AdvancementWrapper craftRootAdvancement(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) throws ReflectiveOperationException {
         return rootAdvancementWrapperConstructor.newInstance(key, display, maxCriteria);
     }
 
+    /**
+     * Creates a new {@code AdvancementWrapper} for a base advancement.
+     *
+     * @param key The namespaced key wrapper of the advancement.
+     * @param parent The wrapper of the parent advancement.
+     * @param display The display wrapper of the advancement.
+     * @param maxCriteria The maximum criteria of the advancement.
+     * @return A new {@code AdvancementWrapper} for a BaseAdvancement.
+     * @throws ReflectiveOperationException If reflections goes wrong.
+     */
     @NotNull
     public static AdvancementWrapper craftBaseAdvancement(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementWrapper parent, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) throws ReflectiveOperationException {
         return baseAdvancementWrapperConstructor.newInstance(key, parent, display, maxCriteria);
     }
 
+    /**
+     * Gets the namespaced key wrapper of this advancement.
+     *
+     * @return The namespaced key wrapper of this advancement.
+     */
     @NotNull
     public abstract MinecraftKeyWrapper getKey();
 
+    /**
+     * Gets the parent advancement wrapper of this advancement. Returns {@code null} if this advancement is a root advancement.
+     *
+     * @return The parent advancement wrapper of this advancement, or {@code null} if this advancement is a root advancement.
+     */
     @Nullable
     public abstract AdvancementWrapper getParent();
 
+    /**
+     * Gets the display wrapper of this advancement.
+     *
+     * @return The display wrapper of this advancement.
+     */
     @NotNull
     public abstract AdvancementDisplayWrapper getDisplay();
 
+    /**
+     * Gets the maximum criteria of this advancement.
+     *
+     * @return The maximum criteria of this advancement.
+     */
     @Range(from = 1, to = Integer.MAX_VALUE)
     public abstract int getMaxCriteria();
 
