@@ -49,7 +49,7 @@ public final class TeamProgression {
      *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
      */
     public TeamProgression(int teamId, @NotNull UUID member) {
-        CallerClassUtil.validateConstructorCallingClass();
+        validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         Validate.notNull(member, "Member is null.");
         this.advancements = new ConcurrentHashMap<>();
         this.teamId = teamId;
@@ -69,13 +69,19 @@ public final class TeamProgression {
      *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
      */
     public TeamProgression(@NotNull Map<AdvancementKey, Integer> advancements, int teamId, @NotNull Collection<UUID> members) {
-        CallerClassUtil.validateConstructorCallingClass();
+        validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         Validate.notNull(advancements, "Advancements is null.");
         Validate.notNull(members, "Members is null.");
         this.advancements = new ConcurrentHashMap<>(advancements);
         this.teamId = teamId;
         players = Sets.newHashSetWithExpectedSize(members.size() + 4);
         players.addAll(members);
+    }
+
+    private void validateCaller(@NotNull Class<?> caller) throws IllegalOperationException {
+        if (!caller.getPackage().getName().startsWith("com.fren_gor.ultimateAdvancementAPI.database")) {
+            throw new IllegalOperationException("TeamProgression can be instantiated only by classes inside the com.fren_gor.ultimateAdvancementAPI.database package or its sub-packages.");
+        }
     }
 
     /**
@@ -327,23 +333,5 @@ public final class TeamProgression {
      */
     public int getTeamId() {
         return teamId;
-    }
-
-    private static final class CallerClassUtil extends SecurityManager {
-
-        private static final CallerClassUtil INSTANCE = new CallerClassUtil();
-
-        public static void validateConstructorCallingClass() throws IllegalOperationException {
-            if (!INSTANCE.getCallingClasses()[3].getPackage().getName().startsWith("com.fren_gor.ultimateAdvancementAPI.database")) {
-                throw new IllegalOperationException("TeamProgression can be instantiated only by classes inside the com.fren_gor.ultimateAdvancementAPI.database package or its sub-packages.");
-            }
-        }
-
-        private CallerClassUtil() {
-        }
-
-        private Class<?>[] getCallingClasses() {
-            return getClassContext();
-        }
     }
 }
