@@ -10,8 +10,18 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * <a href="https://github.com/JorelAli/CommandAPI">CommandAPI</a> manager, which loads the correct version of the API
+ * and the correct implementation of the commands.
+ */
 public class CommandAPIManager {
 
+    /**
+     * Loads the correct version of the API and the correct implementation of the commands.
+     *
+     * @param libbyManager The {@link LibraryManager} lo load the <a href="https://github.com/JorelAli/CommandAPI">CommandAPI</a>.
+     * @return The {@link ILoadable} to be loaded and enabled, or {@code null} if the NMS version is not supported.
+     */
     @Nullable
     public static ILoadable loadManager(LibraryManager libbyManager) {
         CommandAPIVersion ver = CommandAPIVersion.getVersionToLoad(Versions.getNMSVersion());
@@ -54,10 +64,23 @@ public class CommandAPIManager {
         }
     }
 
+    /**
+     * Interface implemented by loadable object.
+     */
     public interface ILoadable {
 
+        /**
+         * Loads the loadable object. Should be called into {@link Plugin#onLoad()}.
+         *
+         * @param main Already loaded {@link AdvancementMain} instance.
+         */
         void onLoad(@NotNull AdvancementMain main);
 
+        /**
+         * Enables the loadable object. Should be called into {@link Plugin#onEnable()}.
+         *
+         * @param plugin The plugin that loaded the {@link AdvancementMain} passed to {@link #onLoad(AdvancementMain)}.
+         */
         void onEnable(@NotNull Plugin plugin);
     }
 
