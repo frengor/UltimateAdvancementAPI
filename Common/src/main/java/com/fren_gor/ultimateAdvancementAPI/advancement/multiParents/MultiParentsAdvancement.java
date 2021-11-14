@@ -5,11 +5,11 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.FakeAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import net.minecraft.server.v1_15_R1.AdvancementProgress;
-import net.minecraft.server.v1_15_R1.Criterion;
-import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -21,11 +21,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.ADV_REWARDS;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementCriteria;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementProgress;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementRequirements;
-
 /**
  * An implementation of {@link AbstractMultiParentsAdvancement}.
  */
@@ -33,9 +28,9 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
 
     // Every parent goes here. Ignoring the parent in BaseAdvancement
     private final Map<BaseAdvancement, FakeAdvancement> parents;
-    private final Map<String, Criterion> advCriteria = getAdvancementCriteria(maxCriteria);
-    private final String[][] advRequirements = getAdvancementRequirements(advCriteria);
-    private final net.minecraft.server.v1_15_R1.AdvancementDisplay mcDisplay;
+
+    @LazyValue
+    private PreparedAdvancementWrapper wrapper;
 
     /**
      * Creates a new {@code MultiParentsAdvancement}.
@@ -96,14 +91,13 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
             FakeAdvancement adv = new FakeAdvancement(advancement, display.getX(), display.getY());
             this.parents.put(advancement, adv);
         }
-        mcDisplay = display.getMinecraftDisplay(this);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
         if (isVisible(teamProgression)) {
             BaseAdvancement tmp = null;
             for (Entry<BaseAdvancement, FakeAdvancement> e : parents.entrySet()) {
@@ -111,17 +105,13 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
                     if (tmp == null)
                         tmp = e.getKey();
                     else
-                        e.getValue().onUpdate(teamProgression, advancementList, progresses, added);
+                        e.getValue().onUpdate(teamProgression, addedAdvancements);
                 }
             }
             if (tmp == null) {
                 tmp = getParent();
             }
-            net.minecraft.server.v1_15_R1.Advancement mcAdv = getMinecraftAdvancement(tmp);
-            advancementList.add(mcAdv);
-            MinecraftKey key = getMinecraftKey();
-            added.add(key);
-            progresses.put(key, getAdvancementProgress(mcAdv, getTeamCriteria(teamProgression)));
+            addedAdvancements.put(getNMSWrapper(tmp), getTeamCriteria(teamProgression));
         }
     }
 
@@ -275,30 +265,42 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     }
 
     /**
-     * Returns the NMS advancement of this advancement.
+     * Returns the NMS wrapper of this advancement.
      * <p><strong>Calls to this method results in an undefined behaviour</strong>, since there is more than one parent
-     * and the NMS advancement has only one advancement.
-     * <p>Use when you don't need an exact parent in the NMS advancement.
-     * <p>Use {@link #getMinecraftAdvancement(BaseAdvancement)} instead.
+     * and the NMS wrapper can contain only one.
+     * <p>Use when you don't need the NMS wrapper of an exact parent.
+     * <p>Use {@link #getNMSWrapper(BaseAdvancement)} instead.
      *
-     * @return The NMS advancement.
-     * @see #getMinecraftAdvancement(BaseAdvancement)
+     * @return The NMS wrapper of this advancement.
+     * @see #getNMSWrapper(BaseAdvancement)
      */
     @NotNull
     @Override
-    public net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement() {
-        return super.getMinecraftAdvancement();
+    public AdvancementWrapper getNMSWrapper() {
+        setUpWrapper();
+        return wrapper.toBaseAdvancementWrapper(parent.getNMSWrapper());
     }
 
     /**
-     * Returns the NMS advancement of this advancement.
-     * The parent of the returned NMS advancement is the NMS advancement of the provided one.
+     * Returns the NMS wrapper of this advancement.
+     * The parent of the returned advancement wrapper is the (NMS wrapper of the) provided one.
      *
-     * @param advancement The parent advancement used as parent of the NMS advancement.
-     * @return The NMS advancement.
+     * @param advancement The parent advancement used as the parent of the NMS wrapper.
+     * @return The NMS wrapper of this advancement.
      */
     @NotNull
-    protected net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement(@NotNull BaseAdvancement advancement) {
-        return new net.minecraft.server.v1_15_R1.Advancement(getMinecraftKey(), advancement.getMinecraftAdvancement(), mcDisplay, ADV_REWARDS, advCriteria, advRequirements);
+    protected AdvancementWrapper getNMSWrapper(@NotNull BaseAdvancement advancement) {
+        setUpWrapper();
+        return wrapper.toBaseAdvancementWrapper(advancement.getNMSWrapper());
+    }
+
+    private void setUpWrapper() {
+        if (wrapper == null) {
+            try {
+                wrapper = PreparedAdvancementWrapper.craft(this.key.getNMSWrapper(), this.display.getNMSWrapper(this), maxCriteria);
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

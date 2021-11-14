@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>ultimateadvancementapi-commands-parent</artifactId>
+        <groupId>com.frengor</groupId>
+        <version>parent-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ultimateadvancementapi-commands-distribution</artifactId>
+    <name>UltimateAdvancementAPI-Commands-Distribution</name>
+    <version>${apiVersion}</version>
+    <url>${parent.url}</url>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- Commands Common Module -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-common</artifactId>
+            <version>${apiVersion}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Commands Modules -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-commandapi-5-12</artifactId>
+            <version>${apiVersion}</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>dev.jorel.CommandAPI</groupId>
+                    <artifactId>commandapi-shade</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-commandapi-6-3-1</artifactId>
+            <version>${apiVersion}</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>dev.jorel.CommandAPI</groupId>
+                    <artifactId>commandapi-shade</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <filtering>false</filtering>
+                <directory>../..</directory>
+                <includes>
+                    <include>LICENSE</include>
+                    <include>LGPL</include>
+                    <include>NOTICE</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

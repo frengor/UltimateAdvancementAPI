@@ -1,5 +1,6 @@
-package com.fren_gor.ultimateAdvancementAPI.nms;
+package com.fren_gor.ultimateAdvancementAPI.nms.wrappers;
 
+import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
@@ -7,20 +8,20 @@ import java.lang.reflect.Constructor;
 /**
  * Wrapper class for NMS {@code MinecraftKey}.
  */
-public abstract class MinecraftKeyWrapper implements Comparable<MinecraftKeyWrapper> {
+public abstract class MinecraftKeyWrapper extends AbstractWrapper implements Comparable<MinecraftKeyWrapper> {
 
-    private static Constructor<?> minecraftKeyConstructor, namespacedKeyConstructor;
+    private static Constructor<? extends MinecraftKeyWrapper> minecraftKeyConstructor, namespacedKeyConstructor;
 
     static {
-        Class<?> clazz = ReflectionUtil.getWrapperClass(MinecraftKeyWrapper.class);
+        var clazz = ReflectionUtil.getWrapperClass(MinecraftKeyWrapper.class);
         assert clazz != null : "Wrapper class is null.";
         try {
-            minecraftKeyConstructor = clazz.getConstructor(Object.class);
+            minecraftKeyConstructor = clazz.getDeclaredConstructor(Object.class);
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
         try {
-            namespacedKeyConstructor = clazz.getConstructor(String.class, String.class);
+            namespacedKeyConstructor = clazz.getDeclaredConstructor(String.class, String.class);
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
@@ -35,8 +36,8 @@ public abstract class MinecraftKeyWrapper implements Comparable<MinecraftKeyWrap
      * @throws ClassCastException If the provided object is not a NMS {@code MinecraftKey}.
      */
     @NotNull
-    public static MinecraftKeyWrapper craft(@NotNull Object minecraftKey) throws ReflectiveOperationException {
-        return (MinecraftKeyWrapper) minecraftKeyConstructor.newInstance(minecraftKey);
+    public static MinecraftKeyWrapper craft(@NotNull Object minecraftKey) throws ReflectiveOperationException, ClassCastException {
+        return minecraftKeyConstructor.newInstance(minecraftKey);
     }
 
     /**
@@ -52,7 +53,7 @@ public abstract class MinecraftKeyWrapper implements Comparable<MinecraftKeyWrap
      */
     @NotNull
     public static MinecraftKeyWrapper craft(@NotNull String namespace, @NotNull String key) throws ReflectiveOperationException, IllegalArgumentException {
-        return (MinecraftKeyWrapper) namespacedKeyConstructor.newInstance(namespace, key);
+        return namespacedKeyConstructor.newInstance(namespace, key);
     }
 
     /**
@@ -70,4 +71,27 @@ public abstract class MinecraftKeyWrapper implements Comparable<MinecraftKeyWrap
      */
     @NotNull
     public abstract String getKey();
+
+    @Override
+    public String toString() {
+        return getNamespace() + ':' + getKey();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MinecraftKeyWrapper that = (MinecraftKeyWrapper) o;
+
+        if (!getNamespace().equals(that.getNamespace())) return false;
+        return getKey().equals(that.getKey());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getNamespace().hashCode();
+        result = 31 * result + getKey().hashCode();
+        return result;
+    }
 }

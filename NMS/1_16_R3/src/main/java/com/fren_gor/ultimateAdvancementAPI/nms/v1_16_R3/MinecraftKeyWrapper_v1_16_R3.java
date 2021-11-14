@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_16_R3;
 
-import com.fren_gor.ultimateAdvancementAPI.nms.MinecraftKeyWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import net.minecraft.server.v1_16_R3.MinecraftKey;
 import net.minecraft.server.v1_16_R3.ResourceKeyInvalidException;
 import org.jetbrains.annotations.NotNull;
@@ -10,10 +10,7 @@ public class MinecraftKeyWrapper_v1_16_R3 extends MinecraftKeyWrapper {
     private final MinecraftKey key;
 
     public MinecraftKeyWrapper_v1_16_R3(@NotNull Object key) {
-        if (key instanceof MinecraftKey m) {
-            this.key = m;
-        }
-        throw new ClassCastException(key.getClass().getName() + " is not an instance of " + MinecraftKey.class.getName());
+        this.key = (MinecraftKey) key;
     }
 
     public MinecraftKeyWrapper_v1_16_R3(@NotNull String namespace, @NotNull String key) {
@@ -37,10 +34,13 @@ public class MinecraftKeyWrapper_v1_16_R3 extends MinecraftKeyWrapper {
     }
 
     @Override
-    public int compareTo(@NotNull MinecraftKeyWrapper o) {
-        if (o instanceof MinecraftKeyWrapper_v1_16_R3 obj) {
-            return key.compareTo(obj.key);
-        }
-        throw new ClassCastException();
+    public int compareTo(@NotNull MinecraftKeyWrapper obj) {
+        return key.compareTo((MinecraftKey) obj.toNMS());
+    }
+
+    @Override
+    @NotNull
+    public MinecraftKey toNMS() {
+        return key;
     }
 }

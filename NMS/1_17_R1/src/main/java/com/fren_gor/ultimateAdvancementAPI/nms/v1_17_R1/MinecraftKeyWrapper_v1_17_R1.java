@@ -1,25 +1,22 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_17_R1;
 
-import com.fren_gor.ultimateAdvancementAPI.nms.MinecraftKeyWrapper;
-import net.minecraft.ResourceKeyInvalidException;
-import net.minecraft.resources.MinecraftKey;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
+import net.minecraft.ResourceLocationException;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 public class MinecraftKeyWrapper_v1_17_R1 extends MinecraftKeyWrapper {
 
-    private final MinecraftKey key;
+    private final ResourceLocation key;
 
     public MinecraftKeyWrapper_v1_17_R1(@NotNull Object key) {
-        if (key instanceof MinecraftKey m) {
-            this.key = m;
-        }
-        throw new ClassCastException(key.getClass().getName() + " is not an instance of " + MinecraftKey.class.getName());
+        this.key = (ResourceLocation) key;
     }
 
     public MinecraftKeyWrapper_v1_17_R1(@NotNull String namespace, @NotNull String key) {
         try {
-            this.key = new MinecraftKey(namespace, key);
-        } catch (ResourceKeyInvalidException e) {
+            this.key = new ResourceLocation(namespace, key);
+        } catch (ResourceLocationException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
@@ -33,14 +30,17 @@ public class MinecraftKeyWrapper_v1_17_R1 extends MinecraftKeyWrapper {
     @Override
     @NotNull
     public String getKey() {
-        return key.getKey();
+        return key.getPath();
     }
 
     @Override
-    public int compareTo(@NotNull MinecraftKeyWrapper o) {
-        if (o instanceof MinecraftKeyWrapper_v1_17_R1 obj) {
-            return key.compareTo(obj.key);
-        }
-        throw new ClassCastException();
+    public int compareTo(@NotNull MinecraftKeyWrapper obj) {
+        return key.compareTo((ResourceLocation) obj.toNMS());
+    }
+
+    @Override
+    @NotNull
+    public ResourceLocation toNMS() {
+        return key;
     }
 }

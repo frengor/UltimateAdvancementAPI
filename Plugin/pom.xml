@@ -27,15 +27,15 @@
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-shadeable</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
+            <scope>runtime</scope>
         </dependency>
 
-        <!-- To make code visible to Intellij -->
+        <!-- UltimateAdvancementAPI Commands -->
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-common</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
+            <artifactId>ultimateadvancementapi-commands-distribution</artifactId>
+            <version>${apiVersion}</version>
+            <scope>compile</scope>
         </dependency>
 
         <!-- bStats -->
@@ -46,12 +46,12 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- CommandAPI -->
+        <!-- To make code visible to Intellij -->
         <dependency>
-            <groupId>dev.jorel.CommandAPI</groupId>
-            <artifactId>commandapi-shade</artifactId>
-            <version>5.12</version>
-            <scope>compile</scope>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-common</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -83,10 +83,6 @@
                 <configuration>
                     <relocations>
                         <relocation>
-                            <pattern>dev.jorel.commandapi</pattern>
-                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
-                        </relocation>
-                        <relocation>
                             <pattern>org.bstats</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.org.bstats</shadedPattern>
                         </relocation>
@@ -95,6 +91,10 @@
                         <relocation>
                             <pattern>net.byteflux.libby</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>dev.jorel.commandapi</pattern>
+                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>com.fren_gor.eventManagerAPI</pattern>

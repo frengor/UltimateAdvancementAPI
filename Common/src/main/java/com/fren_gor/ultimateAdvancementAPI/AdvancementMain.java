@@ -99,6 +99,9 @@ public final class AdvancementMain {
             String fancy = Versions.getSupportedNMSVersions().stream().map(Versions::getNMSVersionsRange).collect(Collectors.joining(", ", "[", "]"));
             throw new InvalidVersionException(fancy, actual, "Invalid minecraft version, couldn't load UltimateAdvancementAPI. Supported versions are " + fancy + '.');
         }
+
+        libbyManager = new BukkitLibraryManager(owningPlugin, libFolder);
+        libbyManager.addMavenCentral();
     }
 
     /**
@@ -167,8 +170,8 @@ public final class AdvancementMain {
             throw new IllegalStateException("UltimateAdvancementAPI is getting enabled twice.");
         }
 
-        libbyManager = new BukkitLibraryManager(owningPlugin, libFolder);
-        libbyManager.addMavenCentral();
+        //libbyManager = new BukkitLibraryManager(owningPlugin, libFolder);
+        //libbyManager.addMavenCentral();
 
         eventManager = new EventManager(owningPlugin);
 

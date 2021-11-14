@@ -66,9 +66,9 @@ public class MySQL implements IDatabase {
         Validate.notNull(manager, "LibraryManager is null.");
 
         classLoader = new IsolatedClassLoader();
-        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.31").checksum("zahiqmloOsBy7ir9C5PQcM6rKR71uFfTGLJMFZWza4o=").build()));
-        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-simple").version("1.7.31").checksum("AHwNOZ4Tefv4YkfDCkLRDWGAlBRo9Ky+mu4Uu2Qqwdw=").build()));
-        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("com.zaxxer").artifactId("HikariCP").version("4.0.3").checksum("fAJK7/HBBjV210RTUT+d5kR9jmJNF/jifzCi6XaIxsk=").build()));
+        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.30").checksum("zboHlk0btAoHYUhcax6ML4/Z6x0ZxTkorA1/lRAQXFc=").build()));
+        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-simple").version("1.7.30").checksum("i5J5y/9rn4hZTvrjzwIDm2mVAw7sAj7UOSh0jEFnD+4=").build()));
+        classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("com.zaxxer").artifactId("HikariCP").version("5.0.0").checksum("z6uFwE/LWQrkz9vhseh8/XJ3xLo3gilCLY6Lzpial9Y=").build()));
 
         Class<?> hikariConfig = classLoader.loadClass("com.zaxxer.hikari.HikariConfig");
         Class<?> hikariDataSource = classLoader.loadClass("com.zaxxer.hikari.HikariDataSource");

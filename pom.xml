@@ -37,12 +37,14 @@
         <module>NMS</module>
         <module>Common</module>
         <module>Distribution</module>
+        <module>Commands</module>
         <module>Plugin</module>
     </modules>
 
     <properties>
         <!-- Project Properties -->
         <apiVersion>1.0.2</apiVersion> <!-- Change also in Versions class -->
+        <libbyVersion>1.1.2</libbyVersion>
         <projectEncoding>UTF-8</projectEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -55,6 +57,12 @@
         <repository>
             <id>fren_gor</id>
             <url>https://nexus.frengor.com/repository/public/</url>
+        </repository>
+
+        <!-- Spigot -->
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
 
         <!-- CommandAPI -->

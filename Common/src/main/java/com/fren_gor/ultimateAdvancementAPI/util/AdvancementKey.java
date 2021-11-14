@@ -1,24 +1,38 @@
 package com.fren_gor.ultimateAdvancementAPI.util;
 
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalKeyException;
-import com.fren_gor.ultimateAdvancementAPI.nms.MinecraftKeyWrapper;
-import net.minecraft.server.v1_15_R1.MinecraftKey;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import org.apache.commons.lang.Validate;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.IllegalFormatException;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
- * A wrapper for NMS {@code MinecraftKey}.
- * <p>The namespaced key represented by this class matches the following pattern:
+ * The {@code AdvancementKey} class represents a valid advancement namespaced key.
+ * <p>The namespaced keys represented by this class match the following pattern:
  * {@code [a-z0-9_.-]{1,127}:[a-z0-9_.-/]{1,127}}.
  */
 public final class AdvancementKey implements Comparable<AdvancementKey> {
+
+    /**
+     * Pattern every valid advancement key should match.
+     */
+    public static final Pattern VALID_ADVANCEMENT_KEY = Pattern.compile("[a-z0-9_.-]{1,127}:[a-z0-9_.-/]{1,127}");
+
+    /**
+     * Pattern every valid namespace should match.
+     */
+    public static final Pattern VALID_NAMESPACE = Pattern.compile("[a-z0-9_.-]{1,127}");
+
+    /**
+     * Pattern every valid key should match.
+     */
+    public static final Pattern VALID_KEY = Pattern.compile("[a-z0-9_.-/]{1,127}");
 
     @NotNull
     private final MinecraftKeyWrapper minecraftKey;
@@ -93,13 +107,13 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
     }
 
     /**
-     * Gets a NMS {@code MinecraftKey} with the same namespace and key of this namespaced key.
+     * Gets the NMS wrapper of this {@code AdvancementKey} with the same namespace and key of this namespaced key.
      *
-     * @return This namespaced key as a {@code MinecraftKey}.
+     * @return The NMS wrapper of this {@code AdvancementKey}
      */
     @NotNull
-    public MinecraftKey toMinecraftKey() {
-        return new MinecraftKey(minecraftKey.getKey(), minecraftKey.getNamespace());
+    public MinecraftKeyWrapper getNMSWrapper() {
+        return minecraftKey;
     }
 
     /**
@@ -121,8 +135,8 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
      * @throws IllegalKeyException If provided string is not a valid namespace key.
      */
     public static AdvancementKey fromString(@NotNull String string) throws IllegalKeyException {
-        int colon = string.indexOf(':');
-        if (colon <= 0 || colon == string.length() - 1) {
+        int colon;
+        if (string == null || string.isEmpty() || (colon = string.indexOf(':')) <= 0 || colon == string.length() - 1) {
             throw new IllegalKeyException("Illegal key '" + string + "'");
         }
         return new AdvancementKey(string.substring(0, colon), string.substring(colon + 1));
@@ -177,7 +191,7 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
      */
     @Override
     public String toString() {
-        return minecraftKey.toString();
+        return minecraftKey.getNamespace() + ':' + minecraftKey.getKey();
     }
 
     @Override
