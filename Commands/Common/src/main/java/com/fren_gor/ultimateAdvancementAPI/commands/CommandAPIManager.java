@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import net.byteflux.libby.Library;
 import net.byteflux.libby.LibraryManager;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +47,7 @@ public class CommandAPIManager {
         }
 
         try {
-            return (ILoadable) clazz.getDeclaredConstructor().newInstance();
+            return new CommonLoadable((ILoadable) clazz.getDeclaredConstructor().newInstance());
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
             return null;
@@ -58,5 +59,33 @@ public class CommandAPIManager {
         void onLoad(@NotNull AdvancementMain main);
 
         void onEnable(@NotNull Plugin plugin);
+    }
+
+    private static final class CommonLoadable implements ILoadable {
+
+        private final ILoadable loadable;
+        private Plugin advancementMainOwner;
+
+        public CommonLoadable(@NotNull ILoadable loadable) {
+            Validate.notNull(loadable, "ILoadable is null.");
+            this.loadable = loadable;
+        }
+
+        @Override
+        public void onLoad(@NotNull AdvancementMain main) {
+            Validate.isTrue(AdvancementMain.isLoaded(), "AdvancementMain is not loaded.");
+            this.advancementMainOwner = main.getOwningPlugin();
+            loadable.onLoad(main);
+        }
+
+        @Override
+        public void onEnable(@NotNull Plugin plugin) {
+            if (advancementMainOwner == null) {
+                throw new IllegalStateException("Not loaded.");
+            }
+            Validate.isTrue(plugin == advancementMainOwner, "AdvancementMain owning plugin isn't the provided Plugin.");
+            Validate.isTrue(plugin.isEnabled(), "Plugin isn't enabled.");
+            loadable.onEnable(plugin);
+        }
     }
 }
