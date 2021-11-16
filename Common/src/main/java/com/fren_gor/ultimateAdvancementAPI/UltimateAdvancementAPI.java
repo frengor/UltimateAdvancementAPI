@@ -276,8 +276,8 @@ public final class UltimateAdvancementAPI {
      *         For more information about the caching system see {@link DatabaseManager}.
      */
     @NotNull
-    public TeamProgression getProgression(@NotNull Player player) throws UserNotLoadedException {
-        return getMain().getDatabaseManager().getProgression(player);
+    public TeamProgression getTeamProgression(@NotNull Player player) throws UserNotLoadedException {
+        return getMain().getDatabaseManager().getTeamProgression(player);
     }
 
     /**
@@ -289,8 +289,8 @@ public final class UltimateAdvancementAPI {
      *         For more information about the caching system see {@link DatabaseManager}.
      */
     @NotNull
-    public TeamProgression getProgression(@NotNull UUID uuid) throws UserNotLoadedException {
-        return getMain().getDatabaseManager().getProgression(uuid);
+    public TeamProgression getTeamProgression(@NotNull UUID uuid) throws UserNotLoadedException {
+        return getMain().getDatabaseManager().getTeamProgression(uuid);
     }
 
     /**

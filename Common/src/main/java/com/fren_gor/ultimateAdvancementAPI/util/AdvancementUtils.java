@@ -275,7 +275,7 @@ public class AdvancementUtils {
     @NotNull
     public static TeamProgression progressionFromUUID(@NotNull UUID uuid, @NotNull AdvancementTab tab) {
         Validate.notNull(uuid, "UUID is null.");
-        return tab.getDatabaseManager().getProgression(uuid);
+        return tab.getDatabaseManager().getTeamProgression(uuid);
     }
 
     private AdvancementUtils() {

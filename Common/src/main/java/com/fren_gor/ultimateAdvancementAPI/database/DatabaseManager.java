@@ -52,7 +52,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFrom
  * The database manager. It handles the connection to the database and caches the requested values to improve performances.
  * <p>The caching system caches teams using {@link TeamProgression}s and keeps a link between each online player and the
  * associated {@link TeamProgression}. Two players who are part of the same team will always be associated to the same {@link TeamProgression} object.
- * More formally, the object returned by {@link #getProgression(Player)} is the same if and only the players are members of the same team:
+ * More formally, the object returned by {@link #getTeamProgression(Player)} is the same if and only the players are members of the same team:
  * <blockquote><pre>
  * TeamProgression teamP1 = getProgression(playerOne);
  * TeamProgression teamP2 = getProgression(playerTwo);
@@ -349,7 +349,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<Result> updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player otherTeamMember) throws UserNotLoadedException {
-        return updatePlayerTeam(playerToMove, getProgression(otherTeamMember));
+        return updatePlayerTeam(playerToMove, getTeamProgression(otherTeamMember));
     }
 
     /**
@@ -363,7 +363,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<Result> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID otherTeamMember) throws UserNotLoadedException {
-        return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), getProgression(otherTeamMember));
+        return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), getTeamProgression(otherTeamMember));
     }
 
     /**
@@ -583,7 +583,7 @@ public final class DatabaseManager {
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     public int updateCriteria(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) throws UserNotLoadedException {
-        return updateCriteria(key, getProgression(uuid), criteria);
+        return updateCriteria(key, getTeamProgression(uuid), criteria);
     }
 
     /**
@@ -623,7 +623,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public Entry<Integer, CompletableFuture<Result>> updateCriteriaWithCompletable(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) throws UserNotLoadedException {
-        return updateCriteriaWithCompletable(key, getProgression(uuid), criteria);
+        return updateCriteriaWithCompletable(key, getTeamProgression(uuid), criteria);
     }
 
     /**
@@ -672,11 +672,11 @@ public final class DatabaseManager {
      * @param player The player.
      * @return The {@link TeamProgression} of the player's team.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
-     * @see UltimateAdvancementAPI#getProgression(Player)
+     * @see UltimateAdvancementAPI#getTeamProgression(Player)
      */
     @NotNull
-    public TeamProgression getProgression(@NotNull Player player) throws UserNotLoadedException {
-        return getProgression(uuidFromPlayer(player));
+    public TeamProgression getTeamProgression(@NotNull Player player) throws UserNotLoadedException {
+        return getTeamProgression(uuidFromPlayer(player));
     }
 
     /**
@@ -685,10 +685,10 @@ public final class DatabaseManager {
      * @param uuid The {@link UUID} of the player.
      * @return The {@link TeamProgression} of the player's team.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
-     * @see UltimateAdvancementAPI#getProgression(UUID)
+     * @see UltimateAdvancementAPI#getTeamProgression(UUID)
      */
     @NotNull
-    public synchronized TeamProgression getProgression(@NotNull UUID uuid) throws UserNotLoadedException {
+    public synchronized TeamProgression getTeamProgression(@NotNull UUID uuid) throws UserNotLoadedException {
         Validate.notNull(uuid, "UUID is null.");
         TeamProgression pro = progressionCache.get(uuid);
         AdvancementUtils.checkTeamProgressionNotNull(pro, uuid);
@@ -802,7 +802,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<ObjectResult<@NotNull Boolean>> isUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid) throws UserNotLoadedException {
-        return isUnredeemed(key, getProgression(uuid));
+        return isUnredeemed(key, getTeamProgression(uuid));
     }
 
     /**
@@ -843,7 +843,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<Result> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull UUID uuid) throws UserNotLoadedException {
-        return setUnredeemed(key, giveRewards, getProgression(uuid));
+        return setUnredeemed(key, giveRewards, getTeamProgression(uuid));
     }
 
     /**
@@ -883,7 +883,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<Result> unsetUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid) throws UserNotLoadedException {
-        return unsetUnredeemed(key, getProgression(uuid));
+        return unsetUnredeemed(key, getTeamProgression(uuid));
     }
 
     /**

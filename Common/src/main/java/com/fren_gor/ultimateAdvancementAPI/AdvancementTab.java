@@ -325,7 +325,7 @@ public final class AdvancementTab {
      * @throws DisposedException If the tab is disposed.
      */
     public void updateAdvancementsToTeam(@NotNull UUID uuid) {
-        updateAdvancementsToTeam(databaseManager.getProgression(uuid));
+        updateAdvancementsToTeam(databaseManager.getTeamProgression(uuid));
     }
 
     /**
@@ -391,7 +391,7 @@ public final class AdvancementTab {
         checkInitialisation();
         Validate.notNull(player, "Player is null.");
 
-        TeamProgression pro = databaseManager.getProgression(player);
+        TeamProgression pro = databaseManager.getTeamProgression(player);
 
         final int best = advancements.size() + 16;
         final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(best);
