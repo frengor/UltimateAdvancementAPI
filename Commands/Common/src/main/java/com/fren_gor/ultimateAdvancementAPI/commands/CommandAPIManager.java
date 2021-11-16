@@ -23,7 +23,8 @@ public class CommandAPIManager {
      * @return The {@link ILoadable} to be loaded and enabled, or {@code null} if the NMS version is not supported.
      */
     @Nullable
-    public static ILoadable loadManager(LibraryManager libbyManager) {
+    public static ILoadable loadManager(@NotNull LibraryManager libbyManager) {
+        Validate.notNull(libbyManager, "LibraryManager is null.");
         CommandAPIVersion ver = CommandAPIVersion.getVersionToLoad(Versions.getNMSVersion());
         if (ver == null) {
             // Skip code down below if nms version is invalid
