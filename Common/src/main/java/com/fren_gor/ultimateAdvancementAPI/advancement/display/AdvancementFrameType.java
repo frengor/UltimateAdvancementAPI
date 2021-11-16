@@ -2,7 +2,6 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
-import lombok.RequiredArgsConstructor;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
  * Describes which shape of an advancement frame in the advancement GUI.
  * <p>The frame also contains the default title and description colors and the message that should be sent when the advancement is granted.
  */
-@RequiredArgsConstructor
 public enum AdvancementFrameType {
 
     /**
@@ -44,6 +42,12 @@ public enum AdvancementFrameType {
      * @see Advancement#getAnnounceMessage(Player)
      */
     private final String chatText;
+
+    AdvancementFrameType(@NotNull AdvancementFrameTypeWrapper wrapper, @NotNull ChatColor color, @NotNull String chatText) {
+        this.wrapper = wrapper;
+        this.color = color;
+        this.chatText = chatText;
+    }
 
     /**
      * Returns the appropriate {@link AdvancementFrameType} for the provided NMS wrapper {@link AdvancementFrameTypeWrapper}.

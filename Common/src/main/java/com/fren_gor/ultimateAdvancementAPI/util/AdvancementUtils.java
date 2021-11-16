@@ -14,7 +14,6 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementD
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdvancementsWrapper;
-import lombok.experimental.UtilityClass;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
@@ -26,6 +25,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-@UtilityClass
 public class AdvancementUtils {
 
     public static final MinecraftKeyWrapper ROOT_KEY, NOTIFICATION_KEY;
@@ -184,10 +183,12 @@ public class AdvancementUtils {
         return false;
     }
 
-    public static void validateCriteria(int criteria) {
+    @Contract("_ -> param1")
+    public static int validateCriteria(int criteria) {
         if (criteria < 0) {
             throw new IllegalArgumentException("Criteria cannot be < 0");
         }
+        return criteria;
     }
 
     public static void validateCriteriaStrict(int criteria, int maxCriteria) {
@@ -203,9 +204,11 @@ public class AdvancementUtils {
         }
     }
 
-    public static void validateTeamProgression(TeamProgression pro) {
+    @Contract("null -> fail; !null -> param1")
+    public static TeamProgression validateTeamProgression(TeamProgression pro) {
         Validate.notNull(pro, "TeamProgression is null.");
         Validate.isTrue(pro.isValid(), "Invalid TeamProgression.");
+        return pro;
     }
 
     public static void checkTeamProgressionNotNull(TeamProgression progression) {
@@ -275,4 +278,7 @@ public class AdvancementUtils {
         return tab.getDatabaseManager().getProgression(uuid);
     }
 
+    private AdvancementUtils() {
+        throw new UnsupportedOperationException("Utility class.");
+    }
 }

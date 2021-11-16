@@ -106,14 +106,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.22</version>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- Mockito -->
         <dependency>
             <groupId>org.mockito</groupId>
@@ -155,20 +147,6 @@
                         <createSourcesJar>true</createSourcesJar>
                         <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
                         <shadeSourcesContent>true</shadeSourcesContent>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
-                    <configuration>
-                        <annotationProcessorPaths>
-                            <path>
-                                <groupId>org.projectlombok</groupId>
-                                <artifactId>lombok</artifactId>
-                                <version>1.18.22</version>
-                            </path>
-                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
                 <plugin>

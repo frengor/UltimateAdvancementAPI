@@ -1,6 +1,5 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.util;
 
-import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -8,7 +7,6 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Reflection utility class.
  */
-@UtilityClass
 public class ReflectionUtil {
 
     /**
@@ -87,5 +85,9 @@ public class ReflectionUtil {
             Bukkit.getLogger().info("[UltimateAdvancementAPI] Can't find Wrapper Class! (" + wrapper + ")");
             return null;
         }
+    }
+
+    private ReflectionUtil() {
+        throw new UnsupportedOperationException("Utility class.");
     }
 }

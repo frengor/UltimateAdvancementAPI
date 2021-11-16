@@ -15,8 +15,6 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.NotGrantedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.Validate;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -43,7 +41,6 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFrom
  * Class for making requests to the API.
  */
 @SuppressWarnings("unused")
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class UltimateAdvancementAPI {
 
     /**
@@ -76,6 +73,10 @@ public final class UltimateAdvancementAPI {
     }
 
     private final Plugin plugin;
+
+    private UltimateAdvancementAPI(@NotNull Plugin plugin) {
+        this.plugin = plugin;
+    }
 
     /**
      * Creates a new {@link AdvancementTab} with the provided namespace. The namespace must be unique.

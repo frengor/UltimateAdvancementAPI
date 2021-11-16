@@ -105,7 +105,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             throw new IllegalArgumentException("Expected max criteria (" + maxCriteria + ") doesn't match the tasks' total one (" + criteria + ").");
         }
         this.tasks.addAll(tasks);
-        registerEvent(TeamUnloadEvent.class, e -> criteriaCache.remove(e.getTeam().getTeamId()));
+        registerEvent(TeamUnloadEvent.class, e -> criteriaCache.remove(e.getTeamProgression().getTeamId()));
         initialised = true;
     }
 
