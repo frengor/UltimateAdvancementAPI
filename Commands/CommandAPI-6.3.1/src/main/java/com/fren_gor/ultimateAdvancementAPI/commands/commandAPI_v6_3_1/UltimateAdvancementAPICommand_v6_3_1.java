@@ -10,7 +10,6 @@ import dev.jorel.commandapi.arguments.EntitySelectorArgument;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument.EntitySelector;
 import dev.jorel.commandapi.arguments.IntegerArgument;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
-import lombok.RequiredArgsConstructor;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -18,11 +17,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_3_1.AdvancementArgument_v6_3_1.getAdvancementArgument;
 import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_3_1.AdvancementTabArgument_v6_3_1.getAdvancementTabArgument;
 
-@RequiredArgsConstructor
 public class UltimateAdvancementAPICommand_v6_3_1 {
 
     public static final String PERMISSION_MAIN = "ultimateadvancementapi.command";
@@ -39,6 +38,10 @@ public class UltimateAdvancementAPICommand_v6_3_1 {
     public static final String PERMISSION_REVOKE_ONE = "ultimateadvancementapi.revoke.one";
 
     private final AdvancementMain main;
+
+    protected UltimateAdvancementAPICommand_v6_3_1(@NotNull AdvancementMain main) {
+        this.main = Objects.requireNonNull(main, "AdvancementMain is null.");
+    }
 
     @SuppressWarnings("unchecked")
     public void register() {

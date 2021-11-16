@@ -1,7 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.util;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
-import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +13,6 @@ import java.util.Objects;
 /**
  * Utility class for handling UltimateAdvancementAPI versions.
  */
-@UtilityClass
 public class Versions {
 
     private static final String API_VERSION = "1.0.2";
@@ -161,5 +159,9 @@ public class Versions {
     @Contract("null -> null; !null -> !null")
     public static String removeInitialV(String string) {
         return string == null || string.isEmpty() || string.charAt(0) != 'v' ? string : string.substring(1);
+    }
+
+    private Versions() {
+        throw new UnsupportedOperationException("Utility class.");
     }
 }

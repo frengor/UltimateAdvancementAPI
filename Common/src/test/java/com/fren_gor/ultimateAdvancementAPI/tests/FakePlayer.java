@@ -1,6 +1,5 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
-import lombok.RequiredArgsConstructor;
 import org.bukkit.DyeColor;
 import org.bukkit.Effect;
 import org.bukkit.EntityEffect;
@@ -69,10 +68,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-@RequiredArgsConstructor
 public class FakePlayer implements Player {
 
-    final UUID uuid;
+    private final UUID uuid;
+
+    public FakePlayer(@NotNull UUID uuid) {
+        this.uuid = Objects.requireNonNull(uuid, "UUID is null.");
+    }
 
     @Override
     public String toString() {

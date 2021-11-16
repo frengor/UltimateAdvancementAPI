@@ -17,7 +17,6 @@ import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent.Action;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
-import lombok.ToString;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -1065,7 +1064,6 @@ public final class DatabaseManager {
         Validate.isTrue(pro.isValid(), "TeamProgression is not valid (this means it is not present in cache).");
     }
 
-    @ToString
     private static final class TempUserMetadata {
 
         // Integer format: first 16 bits for automatic requests count and 16 bits for plugin requests count
@@ -1137,6 +1135,14 @@ public final class DatabaseManager {
         private int removeManual(int i) {
             char tmp = (char) (i & 0xFFFF);
             return tmp == 0 ? (i & 0xFFFF0000) : (tmp - 1) | (i & 0xFFFF0000);
+        }
+
+        @Override
+        public String toString() {
+            return "TempUserMetadata{" +
+                    "pluginRequests=" + pluginRequests +
+                    ", isOnline=" + isOnline +
+                    '}';
         }
     }
 }

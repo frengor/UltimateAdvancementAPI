@@ -1,6 +1,5 @@
 package com.fren_gor.ultimateAdvancementAPI.exceptions;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -8,7 +7,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class InvalidVersionException extends RuntimeException {
 
-    @Getter
     @Nullable
     private String expected, found;
 
@@ -98,5 +96,25 @@ public class InvalidVersionException extends RuntimeException {
         super(message, cause, enableSuppression, writableStackTrace);
         this.expected = expected;
         this.found = found;
+    }
+
+    /**
+     * Gets the expected version.
+     *
+     * @return The expected version. Might be {@code null}.
+     */
+    @Nullable
+    public String getExpected() {
+        return expected;
+    }
+
+    /**
+     * Gets the real version.
+     *
+     * @return The real version. Might be {@code null}.
+     */
+    @Nullable
+    public String getFound() {
+        return found;
     }
 }

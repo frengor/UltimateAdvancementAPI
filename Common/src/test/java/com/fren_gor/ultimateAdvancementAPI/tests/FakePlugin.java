@@ -15,14 +15,15 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 public class FakePlugin implements Plugin {
     private final Logger logger;
     private final String name;
 
-    public FakePlugin(String name) {
-        this.name = name;
+    public FakePlugin(@NotNull String name) {
+        this.name = Objects.requireNonNull(name, "Name is null.");
         this.logger = Logger.getLogger(name);
     }
 

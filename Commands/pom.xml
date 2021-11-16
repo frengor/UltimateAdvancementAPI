@@ -59,6 +59,10 @@
                                 <pattern>dev.jorel.commandapi</pattern>
                                 <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
                             </relocation>
+                            <relocation>
+                                <pattern>com.fren_gor.eventManagerAPI</pattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.events</shadedPattern>
+                            </relocation>
                         </relocations>
                     </configuration>
                 </plugin>

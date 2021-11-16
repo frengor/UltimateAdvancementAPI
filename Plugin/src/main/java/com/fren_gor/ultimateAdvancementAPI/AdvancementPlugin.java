@@ -5,7 +5,6 @@ import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.ILoadable;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.metrics.BStats;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
-import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,9 +22,8 @@ public class AdvancementPlugin extends JavaPlugin {
      */
     private static final int RESOURCE_ID = 95585;
 
-    @Getter
     private static AdvancementPlugin instance;
-    @Getter
+
     private AdvancementMain main;
     private boolean correctVersion = true;
     @Nullable
@@ -116,5 +114,13 @@ public class AdvancementPlugin extends JavaPlugin {
                 });
             }
         });
+    }
+
+    public static AdvancementPlugin getInstance() {
+        return instance;
+    }
+
+    public AdvancementMain getMain() {
+        return main;
     }
 }

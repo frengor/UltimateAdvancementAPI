@@ -1,6 +1,5 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
-import lombok.Getter;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
