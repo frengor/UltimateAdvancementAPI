@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>ultimateadvancementapi-parent</artifactId>
         <groupId>com.frengor</groupId>
+        <artifactId>ultimateadvancementapi-parent</artifactId>
         <version>parent-SNAPSHOT</version>
     </parent>
 
@@ -18,6 +18,7 @@
     <modules>
         <module>API</module>
         <module>Shadeable</module>
+        <module>Commands</module>
     </modules>
 
     <properties>

@@ -8,6 +8,7 @@
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-parent</artifactId>
         <version>parent-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>ultimateadvancementapi-plugin</artifactId>
@@ -22,20 +23,20 @@
     </properties>
 
     <dependencies>
-        <!-- UltimateAdvancementAPI Shadeable -->
+        <!-- UltimateAdvancementAPI Common - for IntelliJ -->
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-shadeable</artifactId>
+            <artifactId>ultimateadvancementapi-common</artifactId>
             <version>${project.version}</version>
-            <scope>runtime</scope>
+            <scope>provided</scope>
         </dependency>
 
-        <!-- UltimateAdvancementAPI Commands -->
+        <!-- UltimateAdvancementAPI Commands - for IntelliJ -->
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-distribution</artifactId>
-            <version>${apiVersion}</version>
-            <scope>compile</scope>
+            <artifactId>ultimateadvancementapi-commands-common</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- bStats -->
@@ -46,12 +47,19 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- To make code visible to Intellij -->
+        <!-- Compiled dependencies -->
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-common</artifactId>
+            <artifactId>ultimateadvancementapi-shadeable</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
 
@@ -86,15 +94,9 @@
                             <pattern>org.bstats</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.org.bstats</shadedPattern>
                         </relocation>
-
-                        <!-- Duplicate relocations in order to make code compatible with Intellij -->
                         <relocation>
                             <pattern>net.byteflux.libby</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>dev.jorel.commandapi</pattern>
-                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>com.fren_gor.eventManagerAPI</pattern>

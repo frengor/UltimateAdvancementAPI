@@ -6,7 +6,6 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.metrics.BStats;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import lombok.Getter;
-import net.byteflux.libby.LibraryManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -54,7 +53,7 @@ public class AdvancementPlugin extends JavaPlugin {
             return;
         }
 
-        commandAPIManager = CommandAPIManager.loadManager((LibraryManager) ((Object) main.getLibbyManager())); // Necessary cast to avoid compilation failure
+        commandAPIManager = CommandAPIManager.loadManager(main.getLibbyManager());
         if (commandAPIManager != null) // In case commands couldn't be loaded
             commandAPIManager.onLoad(main);
     }

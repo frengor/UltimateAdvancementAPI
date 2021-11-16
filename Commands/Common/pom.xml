@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>ultimateadvancementapi-commands-parent</artifactId>
         <groupId>com.frengor</groupId>
+        <artifactId>ultimateadvancementapi-commands-parent</artifactId>
         <version>parent-SNAPSHOT</version>
     </parent>
 
@@ -15,6 +15,11 @@
     <version>${apiVersion}</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
+
+    <properties>
+        <!-- Skip deploy -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
 
     <dependencies>
         <!-- Libby -->
@@ -41,7 +46,18 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <dependencySourceIncludes>${project.groupId}:${project.artifactId}</dependencySourceIncludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
