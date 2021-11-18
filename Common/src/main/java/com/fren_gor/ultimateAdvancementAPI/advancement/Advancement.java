@@ -159,8 +159,8 @@ public abstract class Advancement {
      * @return The current criteria of the provided player's team.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int getTeamCriteria(@NotNull Player player) {
-        return getTeamCriteria(uuidFromPlayer(player));
+    public int getCriteriaProgression(@NotNull Player player) {
+        return getCriteriaProgression(uuidFromPlayer(player));
     }
 
     /**
@@ -170,8 +170,8 @@ public abstract class Advancement {
      * @return The current criteria of the provided player's team.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int getTeamCriteria(@NotNull UUID uuid) {
-        return getTeamCriteria(progressionFromUUID(uuid, this));
+    public int getCriteriaProgression(@NotNull UUID uuid) {
+        return getCriteriaProgression(progressionFromUUID(uuid, this));
     }
 
     /**
@@ -181,7 +181,7 @@ public abstract class Advancement {
      * @return The current criteria of the team.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int getTeamCriteria(@NotNull TeamProgression progression) {
+    public int getCriteriaProgression(@NotNull TeamProgression progression) {
         Validate.notNull(progression, "TeamProgression is null.");
         return progression.getCriteria(this);
     }
@@ -214,7 +214,7 @@ public abstract class Advancement {
      */
     public boolean isGranted(@NotNull TeamProgression progression) {
         Validate.notNull(progression, "TeamProgression is null.");
-        return getTeamCriteria(progression) >= maxCriteria;
+        return getCriteriaProgression(progression) >= maxCriteria;
     }
 
     /**
@@ -251,8 +251,8 @@ public abstract class Advancement {
      * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull Player player) {
-        return incrementTeamCriteria(player, true);
+    public int incrementCriteriaProgression(@NotNull Player player) {
+        return incrementCriteriaProgression(player, true);
     }
 
     /**
@@ -263,8 +263,8 @@ public abstract class Advancement {
      * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull Player player, boolean giveReward) {
-        return incrementTeamCriteria(player, 1, giveReward);
+    public int incrementCriteriaProgression(@NotNull Player player, boolean giveReward) {
+        return incrementCriteriaProgression(player, 1, giveReward);
     }
 
     /**
@@ -276,8 +276,8 @@ public abstract class Advancement {
      * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
-        return incrementTeamCriteria(player, increment, true);
+    public int incrementCriteriaProgression(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
+        return incrementCriteriaProgression(player, increment, true);
     }
 
     /**
@@ -289,8 +289,8 @@ public abstract class Advancement {
      * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
-        return incrementTeamCriteria(progressionFromPlayer(player, this), player, increment, giveReward);
+    public int incrementCriteriaProgression(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+        return incrementCriteriaProgression(progressionFromPlayer(player, this), player, increment, giveReward);
     }
 
     /**
@@ -302,8 +302,8 @@ public abstract class Advancement {
      * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull UUID uuid) {
-        return incrementTeamCriteria(uuid, true);
+    public int incrementCriteriaProgression(@NotNull UUID uuid) {
+        return incrementCriteriaProgression(uuid, true);
     }
 
     /**
@@ -315,8 +315,8 @@ public abstract class Advancement {
      * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull UUID uuid, boolean giveReward) {
-        return incrementTeamCriteria(uuid, 1, giveReward);
+    public int incrementCriteriaProgression(@NotNull UUID uuid, boolean giveReward) {
+        return incrementCriteriaProgression(uuid, 1, giveReward);
     }
 
     /**
@@ -329,8 +329,8 @@ public abstract class Advancement {
      * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
-        return incrementTeamCriteria(uuid, increment, true);
+    public int incrementCriteriaProgression(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
+        return incrementCriteriaProgression(uuid, increment, true);
     }
 
     /**
@@ -343,8 +343,8 @@ public abstract class Advancement {
      * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
-        return incrementTeamCriteria(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), increment, giveReward);
+    public int incrementCriteriaProgression(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+        return incrementCriteriaProgression(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), increment, giveReward);
     }
 
     /**
@@ -360,11 +360,11 @@ public abstract class Advancement {
      * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    protected int incrementTeamCriteria(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
+    protected int incrementCriteriaProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
         Validate.notNull(pro, "TeamProgression is null.");
         validateIncrement(increment);
 
-        int crit = getTeamCriteria(pro);
+        int crit = getCriteriaProgression(pro);
         if (crit >= maxCriteria) {
             return crit;
         }
@@ -372,7 +372,7 @@ public abstract class Advancement {
         if (newCriteria > maxCriteria) {
             newCriteria = maxCriteria;
         }
-        setCriteriaTeamProgression(pro, player, newCriteria, giveRewards);
+        setCriteriaProgression(pro, player, newCriteria, giveRewards);
         return newCriteria;
     }
 
@@ -383,8 +383,8 @@ public abstract class Advancement {
      * @param player The player who is responsible for the criteria update.
      * @param criteria The new non-negative criteria progression to set.
      */
-    public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
-        setCriteriaTeamProgression(player, criteria, true);
+    public void setCriteriaProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
+        setCriteriaProgression(player, criteria, true);
     }
 
     /**
@@ -394,8 +394,8 @@ public abstract class Advancement {
      * @param criteria The new non-negative criteria progression to set.
      * @param giveReward Whether to give rewards if the advancement gets completed.
      */
-    public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
-        setCriteriaTeamProgression(progressionFromPlayer(player, this), player, criteria, giveReward);
+    public void setCriteriaProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
+        setCriteriaProgression(progressionFromPlayer(player, this), player, criteria, giveReward);
     }
 
     /**
@@ -406,8 +406,8 @@ public abstract class Advancement {
      *         online member of the same team if there are any, or it will be set unredeemed.
      * @param criteria The new non-negative criteria progression to set.
      */
-    public void setCriteriaTeamProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
-        setCriteriaTeamProgression(uuid, criteria, true);
+    public void setCriteriaProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
+        setCriteriaProgression(uuid, criteria, true);
     }
 
     /**
@@ -418,8 +418,8 @@ public abstract class Advancement {
      * @param criteria The new non-negative criteria progression to set.
      * @param giveReward Whether to give rewards if the advancement gets completed.
      */
-    public void setCriteriaTeamProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
-        setCriteriaTeamProgression(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), criteria, giveReward);
+    public void setCriteriaProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
+        setCriteriaProgression(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), criteria, giveReward);
     }
 
     /**
@@ -433,7 +433,7 @@ public abstract class Advancement {
      * @param criteria The new non-negative criteria progression to set.
      * @param giveRewards Whether to give rewards if the advancement gets completed.
      */
-    protected void setCriteriaTeamProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
+    protected void setCriteriaProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
         Validate.notNull(pro, "TeamProgression is null.");
         validateCriteriaStrict(criteria, maxCriteria);
 
@@ -605,7 +605,7 @@ public abstract class Advancement {
      */
     public void grant(@NotNull Player player, boolean giveRewards) {
         Validate.notNull(player, "Player is null.");
-        setCriteriaTeamProgression(player, maxCriteria, giveRewards);
+        setCriteriaProgression(player, maxCriteria, giveRewards);
     }
 
     /**
@@ -615,7 +615,7 @@ public abstract class Advancement {
      */
     public void revoke(@NotNull Player player) {
         Validate.notNull(player, "Player is null.");
-        setCriteriaTeamProgression(player, 0, false);
+        setCriteriaProgression(player, 0, false);
     }
 
     /**
@@ -629,7 +629,7 @@ public abstract class Advancement {
      */
     public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
         if (isVisible(teamProgression)) {
-            addedAdvancements.put(getNMSWrapper(), getTeamCriteria(teamProgression));
+            addedAdvancements.put(getNMSWrapper(), getCriteriaProgression(teamProgression));
         }
     }
 

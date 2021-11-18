@@ -111,7 +111,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
             if (tmp == null) {
                 tmp = getParent();
             }
-            addedAdvancements.put(getNMSWrapper(tmp), getTeamCriteria(teamProgression));
+            addedAdvancements.put(getNMSWrapper(tmp), getCriteriaProgression(teamProgression));
         }
     }
 

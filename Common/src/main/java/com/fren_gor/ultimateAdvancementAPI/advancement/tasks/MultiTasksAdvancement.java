@@ -31,16 +31,16 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
 
     /**
-     * Whether to enable arbitrary criteria in {@link MultiTasksAdvancement#setCriteriaTeamProgression(TeamProgression, Player, int, boolean)}.
+     * Whether to enable arbitrary criteria in {@link MultiTasksAdvancement#setCriteriaProgression(TeamProgression, Player, int, boolean)}.
      *
-     * @see MultiTasksAdvancement#setCriteriaTeamProgression(TeamProgression, Player, int, boolean)
+     * @see MultiTasksAdvancement#setCriteriaProgression(TeamProgression, Player, int, boolean)
      */
     public boolean ENABLE_ARBITRARY_SET_TEAM_CRITERIA = false;
     /**
-     * Whether to disable {@link ArbitraryMultiTaskCriteriaUpdateException} in {@link MultiTasksAdvancement#setCriteriaTeamProgression(TeamProgression, Player, int, boolean)}.
+     * Whether to disable {@link ArbitraryMultiTaskCriteriaUpdateException} in {@link MultiTasksAdvancement#setCriteriaProgression(TeamProgression, Player, int, boolean)}.
      * <p>Ignored when {@link #ENABLE_ARBITRARY_SET_TEAM_CRITERIA} is set to {@code true}.
      *
-     * @see MultiTasksAdvancement#setCriteriaTeamProgression(TeamProgression, Player, int, boolean)
+     * @see MultiTasksAdvancement#setCriteriaProgression(TeamProgression, Player, int, boolean)
      */
     public boolean DISABLE_EXCEPTION_ON_ARBITRARY_SET_TEAM_CRITERIA = false;
 
@@ -129,7 +129,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      */
     @Override
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int getTeamCriteria(@NotNull TeamProgression progression) {
+    public int getCriteriaProgression(@NotNull TeamProgression progression) {
         checkInitialisation();
         Validate.notNull(progression, "TeamProgression is null.");
         Integer criteria = criteriaCache.get(progression.getTeamId());
@@ -154,7 +154,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     public boolean isGranted(@NotNull TeamProgression pro) {
         checkInitialisation();
         Validate.notNull(pro, "TeamProgression is null.");
-        return getTeamCriteria(pro) >= maxCriteria;
+        return getCriteriaProgression(pro) >= maxCriteria;
     }
 
     /**
@@ -173,12 +173,12 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * @throws IllegalStateException If the multi-task advancement is not initialised.
      */
     @Override
-    protected void setCriteriaTeamProgression(@NotNull TeamProgression progression, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) throws ArbitraryMultiTaskCriteriaUpdateException {
+    protected void setCriteriaProgression(@NotNull TeamProgression progression, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) throws ArbitraryMultiTaskCriteriaUpdateException {
         checkInitialisation();
         Validate.notNull(progression, "TeamProgression is null.");
         validateCriteriaStrict(criteria, maxCriteria);
 
-        int current = getTeamCriteria(progression);
+        int current = getCriteriaProgression(progression);
         if (current == criteria) {
             return; // Unnecessary update
         }
@@ -187,31 +187,31 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         try {
             if (criteria == maxCriteria) {
                 for (TaskAdvancement t : tasks) {
-                    t.setCriteriaTeamProgression(progression, player, t.getMaxCriteria(), giveRewards);
+                    t.setCriteriaProgression(progression, player, t.getMaxCriteria(), giveRewards);
                 }
             } else if (criteria == 0) {
                 for (TaskAdvancement t : tasks) {
-                    t.setCriteriaTeamProgression(progression, player, 0, giveRewards);
+                    t.setCriteriaProgression(progression, player, 0, giveRewards);
                 }
             } else if (ENABLE_ARBITRARY_SET_TEAM_CRITERIA) {
                 if (criteria < current) {
                     for (TaskAdvancement t : tasks) {
-                        int tc = t.getTeamCriteria(progression);
+                        int tc = t.getCriteriaProgression(progression);
                         if (current - tc > criteria) {
-                            t.setCriteriaTeamProgression(progression, player, 0, false);
+                            t.setCriteriaProgression(progression, player, 0, false);
                         } else if (current - tc <= criteria) {
-                            t.setCriteriaTeamProgression(progression, player, tc + criteria - current, false);
+                            t.setCriteriaProgression(progression, player, tc + criteria - current, false);
                             break;
                         }
                     }
                 } else /*if (criteria > current)*/ {
                     for (TaskAdvancement t : tasks) {
-                        int ta = t.getTeamCriteria(progression);
+                        int ta = t.getCriteriaProgression(progression);
                         int tc = t.getMaxCriteria() - ta;
                         if (current + tc < criteria) {
-                            t.setCriteriaTeamProgression(progression, player, t.getMaxCriteria(), giveRewards);
+                            t.setCriteriaProgression(progression, player, t.getMaxCriteria(), giveRewards);
                         } else if (current + tc >= criteria) {
-                            t.setCriteriaTeamProgression(progression, player, ta + criteria - current, giveRewards);
+                            t.setCriteriaProgression(progression, player, ta + criteria - current, giveRewards);
                             break;
                         }
                     }
@@ -240,12 +240,12 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         if (doReloads) { // Skip reloads when update comes from ourselves
             Validate.notNull(progression, "TeamProgression is null.");
 
-            int current = getTeamCriteria(progression);
+            int current = getCriteriaProgression(progression);
             resetTeamCriteriaCache(progression);
 
             // Update MultiTasksAdvancement to players since a task has been updated
             // Note that the return of getTeamCriteria should be changed from the previous call
-            handlePlayer(progression, player, getTeamCriteria(progression), current, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+            handlePlayer(progression, player, getCriteriaProgression(progression), current, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
         }
     }
 

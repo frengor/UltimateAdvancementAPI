@@ -239,7 +239,7 @@ public class UltimateAdvancementAPICommand_v6_3_1 {
         validatePlayerArgument(players);
         int criteria = 0;
         for (Player p : players) {
-            criteria = advancement.getTeamCriteria(p);
+            criteria = advancement.getCriteriaProgression(p);
             sender.sendMessage(ChatColor.YELLOW + p.getName() + ChatColor.GREEN + " criteria is " + ChatColor.YELLOW + criteria + '/' + advancement.getMaxCriteria());
         }
         return criteria;
@@ -253,7 +253,7 @@ public class UltimateAdvancementAPICommand_v6_3_1 {
         validatePlayerArgument(players);
         for (Player p : players) {
             criteria = Math.min(advancement.getMaxCriteria(), criteria);
-            advancement.setCriteriaTeamProgression(p, criteria, giveRewards);
+            advancement.setCriteriaProgression(p, criteria, giveRewards);
             sender.sendMessage(ChatColor.GREEN + "Set criteria " + ChatColor.YELLOW + criteria + '/' + advancement.getMaxCriteria() + ChatColor.GREEN + " for " + ChatColor.YELLOW + p.getName());
         }
     }

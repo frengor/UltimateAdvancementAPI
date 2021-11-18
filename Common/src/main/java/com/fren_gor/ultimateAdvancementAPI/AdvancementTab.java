@@ -265,7 +265,7 @@ public final class AdvancementTab {
      */
     public void grantRootAdvancement(@NotNull Player player) {
         checkInitialisation();
-        rootAdvancement.setCriteriaTeamProgression(player, rootAdvancement.getMaxCriteria());
+        rootAdvancement.setCriteriaProgression(player, rootAdvancement.getMaxCriteria());
     }
 
     /**
@@ -277,7 +277,7 @@ public final class AdvancementTab {
      */
     public void grantRootAdvancement(@NotNull UUID uuid) {
         checkInitialisation();
-        rootAdvancement.setCriteriaTeamProgression(uuid, rootAdvancement.getMaxCriteria());
+        rootAdvancement.setCriteriaProgression(uuid, rootAdvancement.getMaxCriteria());
     }
 
     /**
@@ -290,7 +290,7 @@ public final class AdvancementTab {
      */
     public void grantRootAdvancement(@NotNull Player player, boolean giveRewards) {
         checkInitialisation();
-        rootAdvancement.setCriteriaTeamProgression(player, rootAdvancement.getMaxCriteria(), giveRewards);
+        rootAdvancement.setCriteriaProgression(player, rootAdvancement.getMaxCriteria(), giveRewards);
     }
 
     /**
@@ -303,7 +303,7 @@ public final class AdvancementTab {
      */
     public void grantRootAdvancement(@NotNull UUID uuid, boolean giveRewards) {
         checkInitialisation();
-        rootAdvancement.setCriteriaTeamProgression(uuid, rootAdvancement.getMaxCriteria(), giveRewards);
+        rootAdvancement.setCriteriaProgression(uuid, rootAdvancement.getMaxCriteria(), giveRewards);
     }
 
     /**

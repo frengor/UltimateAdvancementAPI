@@ -22,6 +22,6 @@ public interface HiddenVisibility extends IVisibility {
     default boolean isVisible(@NotNull Advancement advancement, @NotNull TeamProgression progression) {
         Validate.notNull(advancement, "Advancement is null.");
         Validate.notNull(progression, "TeamProgression is null.");
-        return advancement.getTeamCriteria(progression) > 0;
+        return advancement.getCriteriaProgression(progression) > 0;
     }
 }

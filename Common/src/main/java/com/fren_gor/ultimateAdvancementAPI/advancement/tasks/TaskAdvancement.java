@@ -95,7 +95,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * {@inheritDoc}
      */
     @Override
-    protected void setCriteriaTeamProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
+    protected void setCriteriaProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
         Validate.notNull(pro, "TeamProgression is null.");
         validateCriteriaStrict(criteria, maxCriteria);
 

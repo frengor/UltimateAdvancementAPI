@@ -15,7 +15,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 
 /**
  * Called when the criteria progression of an advancement changes.
- * <p>This event differs from {@link CriteriaUpdateEvent} because it is called by {@link Advancement#setCriteriaTeamProgression(TeamProgression, Player, int, boolean)}.
+ * <p>This event differs from {@link CriteriaUpdateEvent} because it is called by {@link Advancement#setCriteriaProgression(TeamProgression, Player, int, boolean)}.
  */
 public class AdvancementCriteriaUpdateEvent extends Event {
 
