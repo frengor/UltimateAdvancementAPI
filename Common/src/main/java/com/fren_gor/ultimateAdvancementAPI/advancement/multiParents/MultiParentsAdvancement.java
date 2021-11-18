@@ -33,7 +33,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     private PreparedAdvancementWrapper wrapper;
 
     /**
-     * Creates a new {@code MultiParentsAdvancement}.
+     * Creates a new {@code MultiParentsAdvancement} with a maximum progression of {@code 1}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
@@ -48,15 +48,15 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
-     * @param maxCriteria The maximum advancement criteria.
+     * @param maxProgression The maximum advancement progression.
      * @param parents The advancement parents. There must be at least one.
      */
-    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria, @NotNull BaseAdvancement... parents) {
-        this(key, display, maxCriteria, Sets.newHashSet(Objects.requireNonNull(parents)));
+    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull BaseAdvancement... parents) {
+        this(key, display, maxProgression, Sets.newHashSet(Objects.requireNonNull(parents)));
     }
 
     /**
-     * Creates a new {@code MultiParentsAdvancement}.
+     * Creates a new {@code MultiParentsAdvancement} with a maximum progression of {@code 1}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
@@ -71,11 +71,11 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
-     * @param maxCriteria The maximum advancement criteria.
+     * @param maxProgression The maximum advancement progression.
      * @param parents The advancement parents. There must be at least one.
      */
-    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria, @NotNull Set<BaseAdvancement> parents) {
-        super(key, display, validateAndGetFirst(parents), maxCriteria);
+    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull Set<BaseAdvancement> parents) {
+        super(key, display, validateAndGetFirst(parents), maxProgression);
 
         this.parents = Maps.newHashMapWithExpectedSize(parents.size());
 
@@ -111,7 +111,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
             if (tmp == null) {
                 tmp = getParent();
             }
-            addedAdvancements.put(getNMSWrapper(tmp), getCriteriaProgression(teamProgression));
+            addedAdvancements.put(getNMSWrapper(tmp), getProgression(teamProgression));
         }
     }
 
@@ -202,7 +202,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
         Validate.notNull(pro, "TeamProgression cannot be null.");
 
         for (BaseAdvancement advancement : parents.keySet()) {
-            if (advancement.getTeamCriteria(pro) > 0) {
+            if (advancement.getProgression(pro) > 0) {
                 return true;
             }
         }
@@ -213,7 +213,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
         Validate.notNull(pro, "TeamProgression cannot be null.");
 
         for (BaseAdvancement advancement : parents.keySet()) {
-            if (advancement.getTeamCriteria(pro) > 0 || isParentStarted(pro, advancement)) {
+            if (advancement.getProgression(pro) > 0 || isParentStarted(pro, advancement)) {
                 return true;
             }
         }
@@ -226,7 +226,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
             if (((AbstractMultiParentsAdvancement) adv).isAnyParentStarted(pro))
                 return true;
         } else
-            return adv.getParent().getTeamCriteria(pro) > 0;
+            return adv.getParent().getProgression(pro) > 0;
     }*/
 
     /**
@@ -297,7 +297,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     private void setUpWrapper() {
         if (wrapper == null) {
             try {
-                wrapper = PreparedAdvancementWrapper.craft(this.key.getNMSWrapper(), this.display.getNMSWrapper(this), maxCriteria);
+                wrapper = PreparedAdvancementWrapper.craft(this.key.getNMSWrapper(), this.display.getNMSWrapper(this), maxProgression);
             } catch (ReflectiveOperationException e) {
                 throw new RuntimeException(e);
             }

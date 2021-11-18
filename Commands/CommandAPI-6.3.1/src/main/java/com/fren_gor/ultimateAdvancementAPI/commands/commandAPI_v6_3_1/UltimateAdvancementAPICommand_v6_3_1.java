@@ -19,23 +19,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import static com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.*;
 import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_3_1.AdvancementArgument_v6_3_1.getAdvancementArgument;
 import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_3_1.AdvancementTabArgument_v6_3_1.getAdvancementTabArgument;
 
 public class UltimateAdvancementAPICommand_v6_3_1 {
-
-    public static final String PERMISSION_MAIN = "ultimateadvancementapi.command";
-    public static final String PERMISSION_CRITERIA = "ultimateadvancementapi.criteria";
-    public static final String PERMISSION_CRITERIA_GET = "ultimateadvancementapi.criteria.get";
-    public static final String PERMISSION_CRITERIA_SET = "ultimateadvancementapi.criteria.set";
-    public static final String PERMISSION_GRANT = "ultimateadvancementapi.grant";
-    public static final String PERMISSION_GRANT_ALL = "ultimateadvancementapi.grant.all";
-    public static final String PERMISSION_GRANT_TAB = "ultimateadvancementapi.grant.tab";
-    public static final String PERMISSION_GRANT_ONE = "ultimateadvancementapi.grant.one";
-    public static final String PERMISSION_REVOKE = "ultimateadvancementapi.revoke";
-    public static final String PERMISSION_REVOKE_ALL = "ultimateadvancementapi.revoke.all";
-    public static final String PERMISSION_REVOKE_TAB = "ultimateadvancementapi.revoke.tab";
-    public static final String PERMISSION_REVOKE_ONE = "ultimateadvancementapi.revoke.one";
 
     private final AdvancementMain main;
 
@@ -45,8 +33,8 @@ public class UltimateAdvancementAPICommand_v6_3_1 {
 
     @SuppressWarnings("unchecked")
     public void register() {
-        CommandAPICommand mainCommand = new CommandAPICommand("ultimateadvancementapi").withPermission(PERMISSION_MAIN).withAliases("uladvapi", "uladv", "uaapi").executes((sender, args) -> {
-            sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi <criteria|grant|revoke> ...");
+        CommandAPICommand mainCommand = new CommandAPICommand("ultimateadvancementapi").withPermission(PERMISSION_MAIN_COMMAND).withAliases("uladvapi", "uladv", "uaapi").executes((sender, args) -> {
+            sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi <progression|grant|revoke> ...");
         });
 
         CommandAPICommand grant = new CommandAPICommand("grant").withPermission(PERMISSION_GRANT).executes((sender, args) -> {
@@ -104,28 +92,28 @@ public class UltimateAdvancementAPICommand_v6_3_1 {
         revoke.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_REVOKE_ONE).withArguments(getAdvancementArgument(main, "advancement")).executesPlayer((Player player, Object[] args) -> revokeOne(player, (Advancement) args[0], player)));
         revoke.withSubcommand(new CommandAPICommand("one").withPermission(PERMISSION_REVOKE_ONE).withArguments(getAdvancementArgument(main, "advancement"), new EntitySelectorArgument("player", EntitySelector.MANY_PLAYERS)).executes((CommandSender sender, Object[] args) -> revokeOne(sender, (Advancement) args[0], (Collection<Player>) args[1])));
 
-        CommandAPICommand criteria = new CommandAPICommand("criteria").withPermission(PERMISSION_CRITERIA).executes((sender, args) -> {
-            sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi criteria <get|set> ...");
+        CommandAPICommand progression = new CommandAPICommand("progression").withPermission(PERMISSION_PROGRESSION).executes((sender, args) -> {
+            sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi progression <get|set> ...");
         });
 
-        criteria.withSubcommand(new CommandAPICommand("get").withPermission(PERMISSION_CRITERIA_GET).executesPlayer((player, args) -> {
-            player.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi criteria get <advancement> [player]");
+        progression.withSubcommand(new CommandAPICommand("get").withPermission(PERMISSION_PROGRESSION_GET).executesPlayer((player, args) -> {
+            player.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi progression get <advancement> [player]");
         }).executes((sender, args) -> {
-            sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi criteria get <advancement> <player>");
+            sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi progression get <advancement> <player>");
         }));
-        criteria.withSubcommand(new CommandAPICommand("get").withPermission(PERMISSION_CRITERIA_GET).withArguments(getAdvancementArgument(main, "advancement")).executesPlayer((Player player, Object[] args) -> getCriteria(player, (Advancement) args[0], player)));
-        criteria.withSubcommand(new CommandAPICommand("get").withPermission(PERMISSION_CRITERIA_GET).withArguments(getAdvancementArgument(main, "advancement"), new EntitySelectorArgument("player", EntitySelector.MANY_PLAYERS)).executes((CommandSender sender, Object[] args) -> getCriteria(sender, (Advancement) args[0], (Collection<Player>) args[1])));
+        progression.withSubcommand(new CommandAPICommand("get").withPermission(PERMISSION_PROGRESSION_GET).withArguments(getAdvancementArgument(main, "advancement")).executesPlayer((Player player, Object[] args) -> getProgression(player, (Advancement) args[0], player)));
+        progression.withSubcommand(new CommandAPICommand("get").withPermission(PERMISSION_PROGRESSION_GET).withArguments(getAdvancementArgument(main, "advancement"), new EntitySelectorArgument("player", EntitySelector.MANY_PLAYERS)).executes((CommandSender sender, Object[] args) -> getProgression(sender, (Advancement) args[0], (Collection<Player>) args[1])));
 
-        criteria.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_CRITERIA_SET).executesPlayer((player, args) -> {
-            player.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi criteria set <advancement> <criteria> [player] [giveRewards]");
+        progression.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_PROGRESSION_SET).executesPlayer((player, args) -> {
+            player.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi progression set <advancement> <progression> [player] [giveRewards]");
         }).executes((sender, args) -> {
-            sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi criteria set <advancement> <criteria> <player> [giveRewards]");
+            sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi progression set <advancement> <progression> <player> [giveRewards]");
         }));
-        criteria.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_CRITERIA_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("criteria", 0)).executesPlayer((Player player, Object[] args) -> setCriteria(player, (Advancement) args[0], (int) args[1], player, true)));
-        criteria.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_CRITERIA_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("criteria", 0), new EntitySelectorArgument("player", EntitySelector.MANY_PLAYERS)).executes((CommandSender sender, Object[] args) -> setCriteria(sender, (Advancement) args[0], (int) args[1], (Collection<Player>) args[2], true)));
-        criteria.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_CRITERIA_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("criteria", 0), new EntitySelectorArgument("player", EntitySelector.MANY_PLAYERS), new BooleanArgument("giveRewards")).executes((CommandSender sender, Object[] args) -> setCriteria(sender, (Advancement) args[0], (int) args[1], (Collection<Player>) args[2], (boolean) args[3])));
+        progression.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_PROGRESSION_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("progression", 0)).executesPlayer((Player player, Object[] args) -> setProgression(player, (Advancement) args[0], (int) args[1], player, true)));
+        progression.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_PROGRESSION_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("progression", 0), new EntitySelectorArgument("player", EntitySelector.MANY_PLAYERS)).executes((CommandSender sender, Object[] args) -> setProgression(sender, (Advancement) args[0], (int) args[1], (Collection<Player>) args[2], true)));
+        progression.withSubcommand(new CommandAPICommand("set").withPermission(PERMISSION_PROGRESSION_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("progression", 0), new EntitySelectorArgument("player", EntitySelector.MANY_PLAYERS), new BooleanArgument("giveRewards")).executes((CommandSender sender, Object[] args) -> setProgression(sender, (Advancement) args[0], (int) args[1], (Collection<Player>) args[2], (boolean) args[3])));
 
-        mainCommand.withSubcommand(criteria);
+        mainCommand.withSubcommand(progression);
         mainCommand.withSubcommand(grant);
         mainCommand.withSubcommand(revoke);
         mainCommand.register();
@@ -231,30 +219,30 @@ public class UltimateAdvancementAPICommand_v6_3_1 {
         }
     }
 
-    private int getCriteria(CommandSender sender, Advancement advancement, Player player) throws WrapperCommandSyntaxException {
-        return getCriteria(sender, advancement, List.of(player));
+    private int getProgression(CommandSender sender, Advancement advancement, Player player) throws WrapperCommandSyntaxException {
+        return getProgression(sender, advancement, List.of(player));
     }
 
-    private int getCriteria(CommandSender sender, Advancement advancement, Collection<Player> players) throws WrapperCommandSyntaxException {
+    private int getProgression(CommandSender sender, Advancement advancement, Collection<Player> players) throws WrapperCommandSyntaxException {
         validatePlayerArgument(players);
-        int criteria = 0;
+        int progression = 0;
         for (Player p : players) {
-            criteria = advancement.getCriteriaProgression(p);
-            sender.sendMessage(ChatColor.YELLOW + p.getName() + ChatColor.GREEN + " criteria is " + ChatColor.YELLOW + criteria + '/' + advancement.getMaxCriteria());
+            progression = advancement.getProgression(p);
+            sender.sendMessage(ChatColor.YELLOW + p.getName() + ChatColor.GREEN + " progression is " + ChatColor.YELLOW + progression + '/' + advancement.getMaxProgression());
         }
-        return criteria;
+        return progression;
     }
 
-    private void setCriteria(CommandSender sender, Advancement advancement, int criteria, Player player, boolean giveRewards) throws WrapperCommandSyntaxException {
-        setCriteria(sender, advancement, criteria, List.of(player), giveRewards);
+    private void setProgression(CommandSender sender, Advancement advancement, int progression, Player player, boolean giveRewards) throws WrapperCommandSyntaxException {
+        setProgression(sender, advancement, progression, List.of(player), giveRewards);
     }
 
-    private void setCriteria(CommandSender sender, Advancement advancement, int criteria, Collection<Player> players, boolean giveRewards) throws WrapperCommandSyntaxException {
+    private void setProgression(CommandSender sender, Advancement advancement, int progression, Collection<Player> players, boolean giveRewards) throws WrapperCommandSyntaxException {
         validatePlayerArgument(players);
         for (Player p : players) {
-            criteria = Math.min(advancement.getMaxCriteria(), criteria);
-            advancement.setCriteriaProgression(p, criteria, giveRewards);
-            sender.sendMessage(ChatColor.GREEN + "Set criteria " + ChatColor.YELLOW + criteria + '/' + advancement.getMaxCriteria() + ChatColor.GREEN + " for " + ChatColor.YELLOW + p.getName());
+            progression = Math.min(advancement.getMaxProgression(), progression);
+            advancement.setProgression(p, progression, giveRewards);
+            sender.sendMessage(ChatColor.GREEN + "Set " + ChatColor.YELLOW + p.getName() + ChatColor.GREEN + " progression to " + ChatColor.YELLOW + progression + '/' + advancement.getMaxProgression());
         }
     }
 

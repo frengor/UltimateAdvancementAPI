@@ -23,7 +23,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFrom
 public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
 
     /**
-     * Creates a new {@code AbstractMultiParentsAdvancement}.
+     * Creates a new {@code AbstractMultiParentsAdvancement} with a maximum progression of {@code 1}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
@@ -39,10 +39,10 @@ public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
      * @param aParent One of the parents of this advancement.
-     * @param maxCriteria The maximum criteria of the task.
+     * @param maxProgression The maximum progression of the task.
      */
-    public AbstractMultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull BaseAdvancement aParent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        super(key, display, aParent, maxCriteria);
+    public AbstractMultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull BaseAdvancement aParent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+        super(key, display, aParent, maxProgression);
     }
 
     /**

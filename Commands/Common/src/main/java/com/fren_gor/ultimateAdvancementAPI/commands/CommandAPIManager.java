@@ -16,6 +16,19 @@ import org.jetbrains.annotations.Nullable;
  */
 public class CommandAPIManager {
 
+    public static final String PERMISSION_MAIN_COMMAND = "ultimateadvancementapi.command";
+    public static final String PERMISSION_PROGRESSION = "ultimateadvancementapi.criteria";
+    public static final String PERMISSION_PROGRESSION_GET = "ultimateadvancementapi.criteria.get";
+    public static final String PERMISSION_PROGRESSION_SET = "ultimateadvancementapi.criteria.set";
+    public static final String PERMISSION_GRANT = "ultimateadvancementapi.grant";
+    public static final String PERMISSION_GRANT_ALL = "ultimateadvancementapi.grant.all";
+    public static final String PERMISSION_GRANT_TAB = "ultimateadvancementapi.grant.tab";
+    public static final String PERMISSION_GRANT_ONE = "ultimateadvancementapi.grant.one";
+    public static final String PERMISSION_REVOKE = "ultimateadvancementapi.revoke";
+    public static final String PERMISSION_REVOKE_ALL = "ultimateadvancementapi.revoke.all";
+    public static final String PERMISSION_REVOKE_TAB = "ultimateadvancementapi.revoke.tab";
+    public static final String PERMISSION_REVOKE_ONE = "ultimateadvancementapi.revoke.one";
+
     /**
      * Loads the correct version of the API and the correct implementation of the commands.
      *

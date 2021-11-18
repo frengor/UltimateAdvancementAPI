@@ -78,7 +78,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @return Always {@code 0}.
      */
     @Override
-    public int getCriteriaProgression(@NotNull Player player) {
+    public int getProgression(@NotNull Player player) {
         return 0;
     }
 
@@ -89,7 +89,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @return Always {@code 0}.
      */
     @Override
-    public int getCriteriaProgression(@NotNull UUID uuid) {
+    public int getProgression(@NotNull UUID uuid) {
         return 0;
     }
 
@@ -100,7 +100,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @return Always {@code 0}.
      */
     @Override
-    public int getCriteriaProgression(@NotNull TeamProgression progression) {
+    public int getProgression(@NotNull TeamProgression progression) {
         return 0;
     }
 
@@ -249,7 +249,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementCriteriaProgression(@NotNull UUID uuid) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull UUID uuid) {
         throw new UnsupportedOperationException();
     }
 
@@ -260,7 +260,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementCriteriaProgression(@NotNull UUID uuid, boolean giveReward) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull UUID uuid, boolean giveReward) {
         throw new UnsupportedOperationException();
     }
 
@@ -271,7 +271,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementCriteriaProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
         throw new UnsupportedOperationException();
     }
 
@@ -282,7 +282,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementCriteriaProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
         throw new UnsupportedOperationException();
     }
 
@@ -293,7 +293,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementCriteriaProgression(@NotNull Player player) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull Player player) {
         throw new UnsupportedOperationException();
     }
 
@@ -304,7 +304,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementCriteriaProgression(@NotNull Player player, boolean giveReward) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull Player player, boolean giveReward) {
         throw new UnsupportedOperationException();
     }
 
@@ -315,7 +315,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementCriteriaProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
         throw new UnsupportedOperationException();
     }
 
@@ -326,7 +326,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementCriteriaProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
         throw new UnsupportedOperationException();
     }
 
@@ -337,7 +337,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    protected @Range(from = 0, to = Integer.MAX_VALUE) int incrementCriteriaProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
+    protected @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
         throw new UnsupportedOperationException();
     }
 
@@ -348,7 +348,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public void setCriteriaProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
+    public void setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
         throw new UnsupportedOperationException();
     }
 
@@ -359,7 +359,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public void setCriteriaProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
+    public void setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
         throw new UnsupportedOperationException();
     }
 
@@ -370,7 +370,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public void setCriteriaProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
+    public void setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
         throw new UnsupportedOperationException();
     }
 
@@ -381,7 +381,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public void setCriteriaProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
+    public void setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
         throw new UnsupportedOperationException();
     }
 
@@ -392,7 +392,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    protected void setCriteriaProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
+    protected void setProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveRewards) {
         throw new UnsupportedOperationException();
     }
 
@@ -403,7 +403,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int criteria, int old, boolean giveRewards, @Nullable AfterHandle afterHandle) {
+    protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int newProgression, int oldProgression, boolean giveRewards, @Nullable AfterHandle afterHandle) {
         throw new UnsupportedOperationException();
     }
 

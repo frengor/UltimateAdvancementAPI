@@ -114,7 +114,7 @@ public class MySQL implements IDatabase {
         try (Connection conn = openConnection(); Statement statement = conn.createStatement()) {
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Teams` (`ID` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT) DEFAULT CHARSET = utf8mb4;");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Players` (`UUID` VARCHAR(36) NOT NULL, `Name` VARCHAR(16) NOT NULL, `TeamID` INTEGER NOT NULL, PRIMARY KEY(`UUID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
-            statement.addBatch("CREATE TABLE IF NOT EXISTS `Advancements` (`Namespace` VARCHAR(127) NOT NULL, `Key` VARCHAR(127) NOT NULL, `TeamID` INTEGER NOT NULL, `Criteria` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
+            statement.addBatch("CREATE TABLE IF NOT EXISTS `Advancements` (`Namespace` VARCHAR(127) NOT NULL, `Key` VARCHAR(127) NOT NULL, `TeamID` INTEGER NOT NULL, `Progression` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Unredeemed` (`Namespace` VARCHAR(127) NOT NULL, `Key` VARCHAR(127) NOT NULL, `TeamID` INTEGER NOT NULL, `GiveRewards` INTEGER NOT NULL, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`Namespace`, `Key`, `TeamID`) REFERENCES `Advancements`(`Namespace`, `Key`, `TeamID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
             statement.executeBatch();
         }
@@ -194,16 +194,16 @@ public class MySQL implements IDatabase {
     }
 
     private Map<AdvancementKey, Integer> getTeamAdvancements(Connection connection, int teamId) throws SQLException {
-        try (PreparedStatement ps = connection.prepareStatement("SELECT `Namespace`,`Key`,`Criteria` FROM `Advancements` WHERE `TeamID`=?;")) {
+        try (PreparedStatement ps = connection.prepareStatement("SELECT `Namespace`,`Key`,`Progression` FROM `Advancements` WHERE `TeamID`=?;")) {
             ps.setInt(1, teamId);
             ResultSet r = ps.executeQuery();
             Map<AdvancementKey, Integer> map = new HashMap<>();
             while (r.next()) {
                 String namespace = r.getString(1);
                 String key = r.getString(2);
-                int criteria = r.getInt(3);
+                int progression = r.getInt(3);
                 try {
-                    map.put(new AdvancementKey(namespace, key), criteria);
+                    map.put(new AdvancementKey(namespace, key), progression);
                 } catch (IllegalKeyException e) {
                     logger.warning("Invalid AdvancementKey (" + namespace + ':' + key + ") encountered while reading Advancements table: " + e.getMessage());
                 }
@@ -269,16 +269,16 @@ public class MySQL implements IDatabase {
             if (teamID == Integer.MIN_VALUE)
                 throw new UserNotRegisteredException("No user " + uuid + " has been found.");
 
-            try (PreparedStatement psAdv = conn.prepareStatement("SELECT `Namespace`, `Key`, `Criteria` FROM `Advancements` WHERE `TeamID`=?;")) {
+            try (PreparedStatement psAdv = conn.prepareStatement("SELECT `Namespace`, `Key`, `Progression` FROM `Advancements` WHERE `TeamID`=?;")) {
                 Map<AdvancementKey, Integer> map = new HashMap<>();
                 psAdv.setInt(1, teamID);
                 ResultSet r = psAdv.executeQuery();
                 while (r.next()) {
                     String namespace = r.getString(1);
                     String key = r.getString(2);
-                    int criteria = r.getInt(3);
+                    int progression = r.getInt(3);
                     try {
-                        map.put(new AdvancementKey(namespace, key), criteria);
+                        map.put(new AdvancementKey(namespace, key), progression);
                     } catch (IllegalKeyException e) {
                         logger.warning("Invalid AdvancementKey (" + namespace + ':' + key + ") encountered while reading Advancements table: " + e.getMessage());
                     }
@@ -292,9 +292,9 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
-    public void updateAdvancement(@NotNull AdvancementKey key, int teamId, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) throws SQLException {
+    public void updateAdvancement(@NotNull AdvancementKey key, int teamId, @Range(from = 0, to = Integer.MAX_VALUE) int progression) throws SQLException {
         try (Connection conn = openConnection()) {
-            if (criteria <= 0) {
+            if (progression <= 0) {
                 try (PreparedStatement ps = conn.prepareStatement("DELETE FROM `Advancements` WHERE `Namespace`=? AND `Key`=? AND `TeamID`=?;")) {
                     ps.setString(1, key.getNamespace());
                     ps.setString(2, key.getKey());
@@ -302,11 +302,11 @@ public class MySQL implements IDatabase {
                     ps.execute();
                 }
             } else {
-                try (PreparedStatement ps = conn.prepareStatement("INSERT INTO `Advancements` (`Namespace`, `Key`, `TeamID`, `Criteria`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `Criteria`=VALUES(`Criteria`);")) {
+                try (PreparedStatement ps = conn.prepareStatement("INSERT INTO `Advancements` (`Namespace`, `Key`, `TeamID`, `Progression`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `Progression`=VALUES(`Progression`);")) {
                     ps.setString(1, key.getNamespace());
                     ps.setString(2, key.getKey());
                     ps.setInt(3, teamId);
-                    ps.setInt(4, criteria);
+                    ps.setInt(4, progression);
                     ps.execute();
                 }
             }

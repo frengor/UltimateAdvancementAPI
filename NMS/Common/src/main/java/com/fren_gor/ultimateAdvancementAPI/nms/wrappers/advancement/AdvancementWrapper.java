@@ -37,13 +37,13 @@ public abstract class AdvancementWrapper extends AbstractWrapper {
      *
      * @param key The namespaced key wrapper of the advancement.
      * @param display The display wrapper of the advancement.
-     * @param maxCriteria The maximum criteria of the advancement.
+     * @param maxProgression The maximum progression of the advancement.
      * @return A new {@code AdvancementWrapper} for a RootAdvancement.
      * @throws ReflectiveOperationException If reflections goes wrong.
      */
     @NotNull
-    public static AdvancementWrapper craftRootAdvancement(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) throws ReflectiveOperationException {
-        return rootAdvancementWrapperConstructor.newInstance(key, display, maxCriteria);
+    public static AdvancementWrapper craftRootAdvancement(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) throws ReflectiveOperationException {
+        return rootAdvancementWrapperConstructor.newInstance(key, display, maxProgression);
     }
 
     /**
@@ -52,13 +52,13 @@ public abstract class AdvancementWrapper extends AbstractWrapper {
      * @param key The namespaced key wrapper of the advancement.
      * @param parent The wrapper of the parent advancement.
      * @param display The display wrapper of the advancement.
-     * @param maxCriteria The maximum criteria of the advancement.
+     * @param maxProgression The maximum progression of the advancement.
      * @return A new {@code AdvancementWrapper} for a BaseAdvancement.
      * @throws ReflectiveOperationException If reflections goes wrong.
      */
     @NotNull
-    public static AdvancementWrapper craftBaseAdvancement(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementWrapper parent, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) throws ReflectiveOperationException {
-        return baseAdvancementWrapperConstructor.newInstance(key, parent, display, maxCriteria);
+    public static AdvancementWrapper craftBaseAdvancement(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementWrapper parent, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) throws ReflectiveOperationException {
+        return baseAdvancementWrapperConstructor.newInstance(key, parent, display, maxProgression);
     }
 
     /**
@@ -86,12 +86,12 @@ public abstract class AdvancementWrapper extends AbstractWrapper {
     public abstract AdvancementDisplayWrapper getDisplay();
 
     /**
-     * Gets the maximum criteria of this advancement.
+     * Gets the maximum progression of this advancement.
      *
-     * @return The maximum criteria of this advancement.
+     * @return The maximum progression of this advancement.
      */
     @Range(from = 1, to = Integer.MAX_VALUE)
-    public abstract int getMaxCriteria();
+    public abstract int getMaxProgression();
 
     @Override
     public String toString() {

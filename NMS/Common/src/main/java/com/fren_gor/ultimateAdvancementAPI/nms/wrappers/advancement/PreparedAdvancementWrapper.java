@@ -30,13 +30,13 @@ public abstract class PreparedAdvancementWrapper {
      *
      * @param key The namespaced key wrapper of the advancement.
      * @param display The display wrapper of the advancement.
-     * @param maxCriteria The maximum criteria of the advancement.
+     * @param maxProgression The maximum progression of the advancement.
      * @return A new {@code PreparedAdvancementWrapper}.
      * @throws ReflectiveOperationException If reflections goes wrong.
      */
     @NotNull
-    public static PreparedAdvancementWrapper craft(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) throws ReflectiveOperationException {
-        return constructor.newInstance(key, display, maxCriteria);
+    public static PreparedAdvancementWrapper craft(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) throws ReflectiveOperationException {
+        return constructor.newInstance(key, display, maxProgression);
     }
 
     /**
@@ -56,12 +56,12 @@ public abstract class PreparedAdvancementWrapper {
     public abstract AdvancementDisplayWrapper getDisplay();
 
     /**
-     * Gets the maximum criteria of the advancement.
+     * Gets the maximum progression of the advancement.
      *
-     * @return The maximum criteria of the advancement.
+     * @return The maximum progression of the advancement.
      */
     @Range(from = 1, to = Integer.MAX_VALUE)
-    public abstract int getMaxCriteria();
+    public abstract int getMaxProgression();
 
     /**
      * Converts this {@code PreparedAdvancementWrapper} into an {@link AdvancementWrapper} without a parent advancement.

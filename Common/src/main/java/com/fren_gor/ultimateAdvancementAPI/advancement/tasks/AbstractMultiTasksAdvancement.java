@@ -25,7 +25,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progress
 public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
 
     /**
-     * Creates an {@code AbstractMultiTasksAdvancement}.
+     * Creates an {@code AbstractMultiTasksAdvancement} with maximum progression of {@code 1}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
@@ -41,18 +41,18 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
      * @param parent The parent of this advancement.
-     * @param maxCriteria The maximum criteria of the task.
+     * @param maxProgression The maximum progression of the task.
      */
-    public AbstractMultiTasksAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        super(key, display, parent, maxCriteria);
+    public AbstractMultiTasksAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+        super(key, display, parent, maxProgression);
     }
 
     /**
      * Reloads and updates the tasks to the provided player's team members.
-     * <p>This method should be invoked when the criteria of a task changes.
+     * <p>This method should be invoked when the progression of a task changes.
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
-     * @param player The player responsible for the task's criteria increment.
+     * @param player The player responsible for the task's progression update.
      */
     public void reloadTasks(@NotNull Player player) {
         reloadTasks(player, true);
@@ -60,10 +60,10 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
 
     /**
      * Reloads and updates the tasks to the provided player's team members.
-     * <p>This method should be invoked when the criteria of a task changes.
+     * <p>This method should be invoked when the progression of a task changes.
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
-     * @param uuid The {@link UUID} of the player responsible for the task's criteria increment.
+     * @param uuid The {@link UUID} of the player responsible for the task's progression update.
      */
     public void reloadTasks(@NotNull UUID uuid) {
         reloadTasks(uuid, true);
@@ -71,9 +71,9 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
 
     /**
      * Reloads and updates the tasks to the provided player's team members.
-     * <p>This method should be invoked when the criteria of a task changes.
+     * <p>This method should be invoked when the progression of a task changes.
      *
-     * @param player The player responsible for the task's criteria increment.
+     * @param player The player responsible for the task's progression update.
      * @param giveRewards Whether to give the player the advancement rewards if the advancement gets completed.
      */
     public void reloadTasks(@NotNull Player player, boolean giveRewards) {
@@ -82,9 +82,9 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
 
     /**
      * Reloads and updates the tasks to the provided player's team members.
-     * <p>This method should be invoked when the criteria of a task changes.
+     * <p>This method should be invoked when the progression of a task changes.
      *
-     * @param uuid The {@link UUID} of the player responsible for the task's criteria increment.
+     * @param uuid The {@link UUID} of the player responsible for the task's progression update.
      * @param giveRewards Whether to give the player the advancement rewards if the advancement gets completed.
      */
     public void reloadTasks(@NotNull UUID uuid, boolean giveRewards) {
@@ -93,10 +93,10 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
 
     /**
      * Reloads and updates the tasks to the provided team members.
-     * <p>This method should be invoked when the criteria of a task changes.
+     * <p>This method should be invoked when the progression of a task changes.
      *
      * @param progression The {@link TeamProgression} of the team.
-     * @param player The player responsible for the task's criteria increment, or {@code null} if there's not.
+     * @param player The player responsible for the task's progression update, or {@code null} if there's not.
      *         In this case, the implementation can choose a random online member.
      */
     protected abstract void reloadTasks(@NotNull TeamProgression progression, @Nullable Player player, boolean giveRewards);
