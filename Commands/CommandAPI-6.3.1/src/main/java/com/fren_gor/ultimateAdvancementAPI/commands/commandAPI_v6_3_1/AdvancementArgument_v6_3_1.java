@@ -24,7 +24,7 @@ public class AdvancementArgument_v6_3_1 {
                     return adv;
                 }
             } catch (IllegalArgumentException e) {
-                throw new CustomArgumentException(new MessageBuilder("Invalid advancement: ").appendArgInput().appendHere());
+                throw new CustomArgumentException(new MessageBuilder("Illegal advancement: ").appendArgInput());
             }
         }, true).replaceSuggestions(sender -> main.filterNamespaces(null).toArray(new String[0]));
     }
