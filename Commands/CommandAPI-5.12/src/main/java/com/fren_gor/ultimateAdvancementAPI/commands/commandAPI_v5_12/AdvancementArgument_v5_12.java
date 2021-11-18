@@ -13,6 +13,8 @@ public class AdvancementArgument_v5_12 extends CustomArgument<Advancement> {
                 @Nullable Advancement adv = main.getAdvancement(input);
                 if (adv == null) {
                     throw new CustomArgumentException(new MessageBuilder("Unknown advancement: ").appendArgInput());
+                } else if (!adv.isValid()) {
+                    throw new CustomArgumentException(new MessageBuilder("Invalid advancement: ").appendArgInput());
                 } else {
                     return adv;
                 }

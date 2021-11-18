@@ -12,6 +12,8 @@ public class AdvancementTabArgument_v5_12 extends CustomArgument<AdvancementTab>
             @Nullable AdvancementTab adv = main.getAdvancementTab(input);
             if (adv == null) {
                 throw new CustomArgumentException(new MessageBuilder("Unknown advancement tab: ").appendArgInput());
+            } else if (!adv.isActive()) {
+                throw new CustomArgumentException(new MessageBuilder("Invalid advancement tab: ").appendArgInput());
             } else {
                 return adv;
             }
