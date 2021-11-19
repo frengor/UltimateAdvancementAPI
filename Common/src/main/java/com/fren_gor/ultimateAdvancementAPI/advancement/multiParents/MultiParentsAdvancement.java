@@ -166,8 +166,8 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
 
         for (BaseAdvancement advancement : parents.keySet()) {
             if (!advancement.isGranted(pro)) { // If it is granted then continue to check the other parents
-                if (advancement instanceof AbstractMultiParentsAdvancement) {
-                    if (!((AbstractMultiParentsAdvancement) advancement).isEveryParentGranted(pro))
+                if (advancement instanceof AbstractMultiParentsAdvancement multiParent) {
+                    if (!multiParent.isEveryParentGranted(pro))
                         return false;
                 } else if (!advancement.getParent().isGranted(pro)) {
                     return false;
@@ -187,8 +187,8 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
         for (BaseAdvancement advancement : parents.keySet()) {
             if (advancement.isGranted(pro)) {
                 return true;
-            } else if (advancement instanceof AbstractMultiParentsAdvancement) {
-                if (((AbstractMultiParentsAdvancement) advancement).isAnyParentGranted(pro))
+            } else if (advancement instanceof AbstractMultiParentsAdvancement multiParent) {
+                if (multiParent.isAnyParentGranted(pro))
                     return true;
             } else if (advancement.getParent().isGranted(pro)) {
                 return true;
@@ -222,8 +222,8 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
 
     private boolean isParentStarted(@NotNull TeamProgression pro, @NotNull BaseAdvancement adv) {
         // Avoid merging if to improve readability
-        if (adv instanceof AbstractMultiParentsAdvancement) {
-            if (((AbstractMultiParentsAdvancement) adv).isAnyParentStarted(pro))
+        if (adv instanceof AbstractMultiParentsAdvancement multiParent) {
+            if (multiParent.isAnyParentStarted(pro))
                 return true;
         } else
             return adv.getParent().getProgression(pro) > 0;
