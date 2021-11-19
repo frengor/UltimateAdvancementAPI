@@ -780,14 +780,11 @@ public final class DatabaseManager {
         if (t == null) {
             return 0;
         }
-        switch (type) {
-            case AUTOMATIC:
-                return t.getAuto(plugin);
-            case MANUAL:
-                return t.getManual(plugin);
-            default:
-                return 0;
-        }
+        return switch (type) {
+            case AUTOMATIC -> t.getAuto(plugin);
+            case MANUAL -> t.getManual(plugin);
+            default -> 0;
+        };
     }
 
     /**
@@ -984,13 +981,11 @@ public final class DatabaseManager {
 
     private void handleCacheFreeingOption(@NotNull UUID uuid, @Nullable TeamProgression pro, @NotNull CacheFreeingOption option) {
         switch (option.option) {
-            case AUTOMATIC:
+            case AUTOMATIC -> {
                 runSync(main, option.ticks, () -> internalUnloadOfflinePlayer(uuid, option.requester, true));
                 addCachingRequest(uuid, pro, option, true);
-                break;
-            case MANUAL:
-                addCachingRequest(uuid, pro, option, false);
-                break;
+            }
+            case MANUAL -> addCachingRequest(uuid, pro, option, false);
         }
     }
 

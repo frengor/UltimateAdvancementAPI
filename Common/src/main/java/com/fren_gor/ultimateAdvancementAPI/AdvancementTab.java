@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -57,17 +56,14 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey.checkNames
 public final class AdvancementTab {
 
     private final Plugin owningPlugin;
-
     private final EventManager eventManager;
-
     private final String namespace;
-    private final Map<AdvancementKey, Advancement> advancements = new HashMap<>();
-    private RootAdvancement rootAdvancement;
-
     private final DatabaseManager databaseManager;
-
-    private boolean initialised = false, disposed = false;
+    private final Map<AdvancementKey, Advancement> advancements = new HashMap<>();
     private final Map<Player, Set<MinecraftKeyWrapper>> players = new HashMap<>();
+
+    private RootAdvancement rootAdvancement;
+    private boolean initialised = false, disposed = false;
     @LazyValue
     private Collection<String> advNamespacedKeys;
     @LazyValue
@@ -136,8 +132,8 @@ public final class AdvancementTab {
         } else {
             List<BaseAdvancement> list = new ArrayList<>(advancements.size());
             for (Advancement a : advancements.values()) {
-                if (!(a instanceof RootAdvancement)) {
-                    list.add((BaseAdvancement) a);
+                if (a instanceof BaseAdvancement base) {
+                    list.add(base);
                 }
             }
             return advsWithoutRoot = Collections.unmodifiableList(list);
@@ -621,7 +617,7 @@ public final class AdvancementTab {
         checkInitialisation();
         disposed = true;
         eventManager.disable();
-        Iterator<Entry<Player, Set<MinecraftKeyWrapper>>> it = players.entrySet().iterator();
+        var it = players.entrySet().iterator();
         while (it.hasNext()) {
             Entry<Player, Set<MinecraftKeyWrapper>> e = it.next();
             removePlayer(e.getKey(), e.getValue());

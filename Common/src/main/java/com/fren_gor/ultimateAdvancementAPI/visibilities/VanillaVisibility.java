@@ -27,19 +27,19 @@ public interface VanillaVisibility extends IVisibility {
         if (advancement.getProgression(progression) > 0)
             return true;
 
-        if (advancement instanceof AbstractMultiParentsAdvancement) {
-            return ((AbstractMultiParentsAdvancement) advancement).isAnyGrandparentGranted(progression);
-        } else if (advancement instanceof BaseAdvancement) {
+        if (advancement instanceof AbstractMultiParentsAdvancement multiParent) {
+            return multiParent.isAnyGrandparentGranted(progression);
+        } else if (advancement instanceof BaseAdvancement base) {
 
-            Advancement parent = ((BaseAdvancement) advancement).getParent();
+            Advancement parent = base.getParent();
 
             if (parent.isGranted(progression)) {
                 return true;
             }
-            if (parent instanceof AbstractMultiParentsAdvancement) {
-                return ((AbstractMultiParentsAdvancement) parent).isAnyParentGranted(progression);
-            } else if (parent instanceof BaseAdvancement) {
-                return ((BaseAdvancement) parent).getParent().isGranted(progression);
+            if (parent instanceof AbstractMultiParentsAdvancement multiParent) {
+                return multiParent.isAnyParentGranted(progression);
+            } else if (parent instanceof BaseAdvancement baseA) {
+                return baseA.getParent().isGranted(progression);
             }
             return false;
         }
