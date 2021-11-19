@@ -17,9 +17,9 @@ import org.jetbrains.annotations.Nullable;
 public class CommandAPIManager {
 
     public static final String PERMISSION_MAIN_COMMAND = "ultimateadvancementapi.command";
-    public static final String PERMISSION_PROGRESSION = "ultimateadvancementapi.criteria";
-    public static final String PERMISSION_PROGRESSION_GET = "ultimateadvancementapi.criteria.get";
-    public static final String PERMISSION_PROGRESSION_SET = "ultimateadvancementapi.criteria.set";
+    public static final String PERMISSION_PROGRESSION = "ultimateadvancementapi.progression";
+    public static final String PERMISSION_PROGRESSION_GET = "ultimateadvancementapi.progression.get";
+    public static final String PERMISSION_PROGRESSION_SET = "ultimateadvancementapi.progression.set";
     public static final String PERMISSION_GRANT = "ultimateadvancementapi.grant";
     public static final String PERMISSION_GRANT_ALL = "ultimateadvancementapi.grant.all";
     public static final String PERMISSION_GRANT_TAB = "ultimateadvancementapi.grant.tab";
