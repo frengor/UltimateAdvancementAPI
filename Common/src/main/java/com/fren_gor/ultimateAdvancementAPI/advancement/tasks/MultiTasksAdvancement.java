@@ -35,14 +35,15 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      *
      * @see MultiTasksAdvancement#setProgression(TeamProgression, Player, int, boolean)
      */
-    public boolean ENABLE_ARBITRARY_SET_PROGRESSION = false;
+    protected boolean ENABLE_ARBITRARY_SET_PROGRESSION = false;
+
     /**
      * Whether to disable {@link ArbitraryMultiTaskProgressionUpdateException} in {@link MultiTasksAdvancement#setProgression(TeamProgression, Player, int, boolean)}.
      * <p>Ignored when {@link #ENABLE_ARBITRARY_SET_PROGRESSION} is set to {@code true}.
      *
      * @see MultiTasksAdvancement#setProgression(TeamProgression, Player, int, boolean)
      */
-    public boolean DISABLE_EXCEPTION_ON_ARBITRARY_SET_PROGRESSION = false;
+    protected boolean DISABLE_EXCEPTION_ON_ARBITRARY_SET_PROGRESSION = false;
 
     /**
      * The tasks of this advancement.
