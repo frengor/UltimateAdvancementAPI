@@ -17,11 +17,11 @@ import java.util.Map;
 public class Util {
 
     @NotNull
-    public static Map<String, Criterion> getAdvancementCriteria(@Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        Validate.isTrue(maxCriteria >= 1, "Max criteria must be >= 1.");
+    public static Map<String, Criterion> getAdvancementCriteria(@Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+        Validate.isTrue(maxProgression >= 1, "Max progression must be >= 1.");
 
-        Map<String, Criterion> advCriteria = Maps.newHashMapWithExpectedSize(maxCriteria);
-        for (int i = 0; i < maxCriteria; i++) {
+        Map<String, Criterion> advCriteria = Maps.newHashMapWithExpectedSize(maxProgression);
+        for (int i = 0; i < maxProgression; i++) {
             advCriteria.put(String.valueOf(i), new Criterion(new CriterionTriggerImpossible.a()));
         }
 
@@ -42,14 +42,14 @@ public class Util {
     }
 
     @NotNull
-    public static net.minecraft.server.v1_16_R3.AdvancementProgress getAdvancementProgress(@NotNull net.minecraft.server.v1_16_R3.Advancement mcAdv, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
+    public static net.minecraft.server.v1_16_R3.AdvancementProgress getAdvancementProgress(@NotNull net.minecraft.server.v1_16_R3.Advancement mcAdv, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
         Validate.notNull(mcAdv, "NMS Advancement is null.");
-        Validate.isTrue(criteria >= 0, "Criteria must be >= 0.");
+        Validate.isTrue(progression >= 0, "Progression must be >= 0.");
 
         AdvancementProgress advPrg = new AdvancementProgress();
         advPrg.a(mcAdv.getCriteria(), mcAdv.i());
 
-        for (int i = 0; i < criteria; i++) {
+        for (int i = 0; i < progression; i++) {
             CriterionProgress criteriaPrg = advPrg.getCriterionProgress(String.valueOf(i));
             if (criteriaPrg != null) {
                 criteriaPrg.b();

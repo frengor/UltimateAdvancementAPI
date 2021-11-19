@@ -24,7 +24,7 @@ public interface ParentGrantedVisibility extends IVisibility {
     default boolean isVisible(@NotNull Advancement advancement, @NotNull TeamProgression progression) {
         Validate.notNull(advancement, "Advancement is null.");
         Validate.notNull(progression, "TeamProgression is null.");
-        if (advancement.getTeamCriteria(progression) > 0)
+        if (advancement.getProgression(progression) > 0)
             return true;
 
         if (advancement instanceof AbstractMultiParentsAdvancement) {

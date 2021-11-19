@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteria;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValue;
 
 /**
  * The {@code TeamProgression} class stores information about a team and its advancement progressions.
@@ -91,15 +91,15 @@ public final class TeamProgression {
      * @return The current progression of the team for the provided advancement.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int getCriteria(@NotNull Advancement advancement) {
+    public int getProgression(@NotNull Advancement advancement) {
         Validate.notNull(advancement, "Advancement is null.");
         Integer progression = advancements.get(advancement.getKey());
 
         if (progression != null) {
-            if (progression <= advancement.getMaxCriteria())
+            if (progression <= advancement.getMaxProgression())
                 return progression;
             else
-                return advancement.getMaxCriteria();
+                return advancement.getMaxProgression();
         } else {
             return 0;
         }
@@ -237,15 +237,15 @@ public final class TeamProgression {
     }
 
     /**
-     * Sets the criteria progression of the provided advancement for the team.
+     * Sets the progression of the provided advancement for the team.
      *
      * @param key The key of the advancement.
-     * @param criteria The new criteria progression to be set.
-     * @return The previous criteria progression.
+     * @param progression The new progression to be set.
+     * @return The previous progression.
      */
-    int updateCriteria(@NotNull AdvancementKey key, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
-        validateCriteria(criteria);
-        Integer i = advancements.put(key, criteria);
+    int updateProgression(@NotNull AdvancementKey key, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
+        validateProgressionValue(progression);
+        Integer i = advancements.put(key, progression);
         return i == null ? 0 : i;
     }
 

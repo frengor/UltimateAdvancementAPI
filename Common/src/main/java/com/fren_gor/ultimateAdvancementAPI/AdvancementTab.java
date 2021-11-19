@@ -265,7 +265,7 @@ public final class AdvancementTab {
      */
     public void grantRootAdvancement(@NotNull Player player) {
         checkInitialisation();
-        rootAdvancement.setCriteriaTeamProgression(player, rootAdvancement.getMaxCriteria());
+        rootAdvancement.setProgression(player, rootAdvancement.getMaxProgression());
     }
 
     /**
@@ -277,7 +277,7 @@ public final class AdvancementTab {
      */
     public void grantRootAdvancement(@NotNull UUID uuid) {
         checkInitialisation();
-        rootAdvancement.setCriteriaTeamProgression(uuid, rootAdvancement.getMaxCriteria());
+        rootAdvancement.setProgression(uuid, rootAdvancement.getMaxProgression());
     }
 
     /**
@@ -290,7 +290,7 @@ public final class AdvancementTab {
      */
     public void grantRootAdvancement(@NotNull Player player, boolean giveRewards) {
         checkInitialisation();
-        rootAdvancement.setCriteriaTeamProgression(player, rootAdvancement.getMaxCriteria(), giveRewards);
+        rootAdvancement.setProgression(player, rootAdvancement.getMaxProgression(), giveRewards);
     }
 
     /**
@@ -303,7 +303,7 @@ public final class AdvancementTab {
      */
     public void grantRootAdvancement(@NotNull UUID uuid, boolean giveRewards) {
         checkInitialisation();
-        rootAdvancement.setCriteriaTeamProgression(uuid, rootAdvancement.getMaxCriteria(), giveRewards);
+        rootAdvancement.setProgression(uuid, rootAdvancement.getMaxProgression(), giveRewards);
     }
 
     /**
@@ -325,7 +325,7 @@ public final class AdvancementTab {
      * @throws DisposedException If the tab is disposed.
      */
     public void updateAdvancementsToTeam(@NotNull UUID uuid) {
-        updateAdvancementsToTeam(databaseManager.getProgression(uuid));
+        updateAdvancementsToTeam(databaseManager.getTeamProgression(uuid));
     }
 
     /**
@@ -391,7 +391,7 @@ public final class AdvancementTab {
         checkInitialisation();
         Validate.notNull(player, "Player is null.");
 
-        TeamProgression pro = databaseManager.getProgression(player);
+        TeamProgression pro = databaseManager.getTeamProgression(player);
 
         final int best = advancements.size() + 16;
         final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(best);

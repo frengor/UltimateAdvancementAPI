@@ -9,7 +9,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.SQLite;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.CriteriaUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent;
@@ -52,7 +52,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFrom
  * The database manager. It handles the connection to the database and caches the requested values to improve performances.
  * <p>The caching system caches teams using {@link TeamProgression}s and keeps a link between each online player and the
  * associated {@link TeamProgression}. Two players who are part of the same team will always be associated to the same {@link TeamProgression} object.
- * More formally, the object returned by {@link #getProgression(Player)} is the same if and only the players are members of the same team:
+ * More formally, the object returned by {@link #getTeamProgression(Player)} is the same if and only the players are members of the same team:
  * <blockquote><pre>
  * TeamProgression teamP1 = getProgression(playerOne);
  * TeamProgression teamP2 = getProgression(playerTwo);
@@ -234,7 +234,7 @@ public final class DatabaseManager {
             return new SimpleEntry<>(pro, false);
         }
 
-        pro = searchProgressionDeeplyInCache(uuid);
+        pro = searchTeamProgressionDeeply(uuid);
         if (pro != null) {
             progressionCache.put(uuid, pro); // Direct caching
             updatePlayerName(player);
@@ -257,7 +257,7 @@ public final class DatabaseManager {
      * @return The player team if found, {@code null} otherwise.
      */
     @Nullable
-    private synchronized TeamProgression searchProgressionDeeplyInCache(@NotNull UUID uuid) {
+    private synchronized TeamProgression searchTeamProgressionDeeply(@NotNull UUID uuid) {
         for (TeamProgression progression : progressionCache.values()) {
             if (progression.contains(uuid)) {
                 return progression;
@@ -349,7 +349,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<Result> updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player otherTeamMember) throws UserNotLoadedException {
-        return updatePlayerTeam(playerToMove, getProgression(otherTeamMember));
+        return updatePlayerTeam(playerToMove, getTeamProgression(otherTeamMember));
     }
 
     /**
@@ -363,7 +363,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<Result> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID otherTeamMember) throws UserNotLoadedException {
-        return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), getProgression(otherTeamMember));
+        return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), getTeamProgression(otherTeamMember));
     }
 
     /**
@@ -561,98 +561,98 @@ public final class DatabaseManager {
     }
 
     /**
-     * Updates the criteria of the specified advancement.
+     * Updates the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param player The player who made the advancement.
-     * @param criteria The new criteria progression.
-     * @return The old criteria progression.
+     * @param newProgression The new progression.
+     * @return The old progression.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
-    public int updateCriteria(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) throws UserNotLoadedException {
-        return updateCriteria(key, uuidFromPlayer(player), criteria);
+    public int updateProgression(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+        return updateProgression(key, uuidFromPlayer(player), newProgression);
     }
 
     /**
-     * Updates the criteria of the specified advancement.
+     * Updates the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player who made the advancement.
-     * @param criteria The new criteria progression.
-     * @return The old criteria progression.
+     * @param newProgression The new progression.
+     * @return The old progression.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
-    public int updateCriteria(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) throws UserNotLoadedException {
-        return updateCriteria(key, getProgression(uuid), criteria);
+    public int updateProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+        return updateProgression(key, getTeamProgression(uuid), newProgression);
     }
 
     /**
-     * Updates the criteria of the specified advancement.
+     * Updates the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
-     * @param criteria The new criteria progression.
-     * @return The old criteria progression.
+     * @param newProgression The new progression.
+     * @return The old progression.
      */
-    public int updateCriteria(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
-        return updateCriteriaWithCompletable(key, progression, criteria).getKey();
+    public int updateProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
+        return updateProgressionWithCompletable(key, progression, newProgression).getKey();
     }
 
     /**
-     * Updates the criteria of the specified advancement.
+     * Updates the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param player The player who made the advancement.
-     * @param criteria The new criteria progression.
-     * @return A pair containing the old criteria progression and a {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @param newProgression The new progression.
+     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the {@link Result} of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     @NotNull
-    public Entry<Integer, CompletableFuture<Result>> updateCriteriaWithCompletable(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) throws UserNotLoadedException {
-        return updateCriteriaWithCompletable(key, uuidFromPlayer(player), criteria);
+    public Entry<Integer, CompletableFuture<Result>> updateProgressionWithCompletable(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+        return updateProgressionWithCompletable(key, uuidFromPlayer(player), newProgression);
     }
 
     /**
-     * Updates the criteria of the specified advancement.
+     * Updates the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player who made the advancement.
-     * @param criteria The new criteria progression.
-     * @return A pair containing the old criteria progression and a {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @param newProgression The new progression.
+     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the {@link Result} of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     @NotNull
-    public Entry<Integer, CompletableFuture<Result>> updateCriteriaWithCompletable(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) throws UserNotLoadedException {
-        return updateCriteriaWithCompletable(key, getProgression(uuid), criteria);
+    public Entry<Integer, CompletableFuture<Result>> updateProgressionWithCompletable(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+        return updateProgressionWithCompletable(key, getTeamProgression(uuid), newProgression);
     }
 
     /**
-     * Updates the criteria of the specified advancement.
+     * Updates the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
-     * @param criteria The new criteria progression.
-     * @return A pair containing the old criteria progression and a {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @param newProgression The new progression.
+     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the {@link Result} of the operation.
      */
     @NotNull
-    public Entry<Integer, CompletableFuture<Result>> updateCriteriaWithCompletable(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
+    public Entry<Integer, CompletableFuture<Result>> updateProgressionWithCompletable(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
         Validate.notNull(key, "Key is null.");
         validateTeamProgression(progression);
         Validate.isTrue(progression.getSize() > 0, "TeamProgression doesn't contain any player.");
         AdvancementUtils.checkSync();
 
-        int old = progression.updateCriteria(key, criteria);
+        int old = progression.updateProgression(key, newProgression);
 
-        if (old != criteria) { // Don't update if criteria isn't being changed
+        if (old != newProgression) { // Don't update if the progression isn't being changed
             try {
-                Bukkit.getPluginManager().callEvent(new CriteriaUpdateEvent(progression, old, criteria, key));
+                Bukkit.getPluginManager().callEvent(new ProgressionUpdateEvent(progression, old, newProgression, key));
             } catch (IllegalStateException e) {
                 e.printStackTrace();
             }
 
             return new SimpleEntry<>(old, CompletableFuture.supplyAsync(() -> {
                 try {
-                    database.updateAdvancement(key, progression.getTeamId(), criteria);
+                    database.updateAdvancement(key, progression.getTeamId(), newProgression);
                 } catch (SQLException e) {
                     System.err.println("Cannot update advancement " + key + " to team " + progression.getTeamId() + ':');
                     e.printStackTrace();
@@ -672,11 +672,11 @@ public final class DatabaseManager {
      * @param player The player.
      * @return The {@link TeamProgression} of the player's team.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
-     * @see UltimateAdvancementAPI#getProgression(Player)
+     * @see UltimateAdvancementAPI#getTeamProgression(Player)
      */
     @NotNull
-    public TeamProgression getProgression(@NotNull Player player) throws UserNotLoadedException {
-        return getProgression(uuidFromPlayer(player));
+    public TeamProgression getTeamProgression(@NotNull Player player) throws UserNotLoadedException {
+        return getTeamProgression(uuidFromPlayer(player));
     }
 
     /**
@@ -685,10 +685,10 @@ public final class DatabaseManager {
      * @param uuid The {@link UUID} of the player.
      * @return The {@link TeamProgression} of the player's team.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
-     * @see UltimateAdvancementAPI#getProgression(UUID)
+     * @see UltimateAdvancementAPI#getTeamProgression(UUID)
      */
     @NotNull
-    public synchronized TeamProgression getProgression(@NotNull UUID uuid) throws UserNotLoadedException {
+    public synchronized TeamProgression getTeamProgression(@NotNull UUID uuid) throws UserNotLoadedException {
         Validate.notNull(uuid, "UUID is null.");
         TeamProgression pro = progressionCache.get(uuid);
         AdvancementUtils.checkTeamProgressionNotNull(pro, uuid);
@@ -802,7 +802,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<ObjectResult<@NotNull Boolean>> isUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid) throws UserNotLoadedException {
-        return isUnredeemed(key, getProgression(uuid));
+        return isUnredeemed(key, getTeamProgression(uuid));
     }
 
     /**
@@ -843,7 +843,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<Result> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull UUID uuid) throws UserNotLoadedException {
-        return setUnredeemed(key, giveRewards, getProgression(uuid));
+        return setUnredeemed(key, giveRewards, getTeamProgression(uuid));
     }
 
     /**
@@ -883,7 +883,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<Result> unsetUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid) throws UserNotLoadedException {
-        return unsetUnredeemed(key, getProgression(uuid));
+        return unsetUnredeemed(key, getTeamProgression(uuid));
     }
 
     /**
@@ -957,7 +957,7 @@ public final class DatabaseManager {
             handleCacheFreeingOption(uuid, null, option); // Handle requests
             return CompletableFuture.completedFuture(new ObjectResult<>(pro));
         }
-        pro = searchProgressionDeeplyInCache(uuid);
+        pro = searchTeamProgressionDeeply(uuid);
         if (pro != null) {
             handleCacheFreeingOption(uuid, pro, option); // Direct caching and handle requests
             return CompletableFuture.completedFuture(new ObjectResult<>(pro));

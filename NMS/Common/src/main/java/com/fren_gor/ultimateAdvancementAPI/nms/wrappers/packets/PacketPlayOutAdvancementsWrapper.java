@@ -50,7 +50,7 @@ public abstract class PacketPlayOutAdvancementsWrapper implements ISendable {
     /**
      * Creates a new {@code PacketPlayOutAdvancementsWrapper} which adds some advancements to the advancement GUI.
      *
-     * @param toSend The {@link Map} of the advancement to send paired with their respective criteria progression to display.
+     * @param toSend The {@link Map} of the advancement to send paired with their respective progressions to display.
      * @return A new {@code PacketPlayOutAdvancementsWrapper} which adds some advancements to the advancement GUI.
      * @throws ReflectiveOperationException If reflections goes wrong.
      */

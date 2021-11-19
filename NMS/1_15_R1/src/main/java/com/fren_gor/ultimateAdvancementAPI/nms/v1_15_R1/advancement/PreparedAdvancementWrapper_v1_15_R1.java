@@ -18,10 +18,10 @@ public class PreparedAdvancementWrapper_v1_15_R1 extends PreparedAdvancementWrap
     private final Map<String, Criterion> advCriteria;
     private final String[][] advRequirements;
 
-    public PreparedAdvancementWrapper_v1_15_R1(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
+    public PreparedAdvancementWrapper_v1_15_R1(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         this.key = key;
         this.display = display;
-        this.advCriteria = Util.getAdvancementCriteria(maxCriteria);
+        this.advCriteria = Util.getAdvancementCriteria(maxProgression);
         this.advRequirements = Util.getAdvancementRequirements(advCriteria);
     }
 
@@ -35,8 +35,9 @@ public class PreparedAdvancementWrapper_v1_15_R1 extends PreparedAdvancementWrap
         return display;
     }
 
+    @Override
     @Range(from = 1, to = Integer.MAX_VALUE)
-    public int getMaxCriteria() {
+    public int getMaxProgression() {
         return advRequirements.length;
     }
 

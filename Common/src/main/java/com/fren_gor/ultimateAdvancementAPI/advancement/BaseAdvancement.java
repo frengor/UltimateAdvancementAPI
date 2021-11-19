@@ -25,7 +25,7 @@ public class BaseAdvancement extends Advancement {
     private AdvancementWrapper wrapper;
 
     /**
-     * Creates a new {@code BaseAdvancement} with a maximum criteria of {@code 1}.
+     * Creates a new {@code BaseAdvancement} with a maximum progression of {@code 1}.
      * <p>The tab of this advancement will be the parent one.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
@@ -43,10 +43,10 @@ public class BaseAdvancement extends Advancement {
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
      * @param parent The parent of this advancement.
-     * @param maxCriteria The maximum advancement criteria.
+     * @param maxProgression The maximum advancement progression.
      */
-    public BaseAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        super(Objects.requireNonNull(parent, "Parent advancement is null.").advancementTab, key, display, maxCriteria);
+    public BaseAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+        super(Objects.requireNonNull(parent, "Parent advancement is null.").advancementTab, key, display, maxProgression);
         this.parent = parent;
     }
 
@@ -70,7 +70,7 @@ public class BaseAdvancement extends Advancement {
         }
 
         try {
-            return wrapper = AdvancementWrapper.craftBaseAdvancement(key.getNMSWrapper(), parent.getNMSWrapper(), display.getNMSWrapper(this), maxCriteria);
+            return wrapper = AdvancementWrapper.craftBaseAdvancement(key.getNMSWrapper(), parent.getNMSWrapper(), display.getNMSWrapper(this), maxProgression);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }

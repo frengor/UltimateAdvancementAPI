@@ -22,16 +22,16 @@ public class AdvancementWrapper_v1_17_R1 extends AdvancementWrapper {
     private final AdvancementWrapper parent;
     private final AdvancementDisplayWrapper display;
 
-    public AdvancementWrapper_v1_17_R1(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        Map<String, Criterion> advCriteria = Util.getAdvancementCriteria(maxCriteria);
+    public AdvancementWrapper_v1_17_R1(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+        Map<String, Criterion> advCriteria = Util.getAdvancementCriteria(maxProgression);
         this.advancement = new Advancement((ResourceLocation) key.toNMS(), null, (DisplayInfo) display.toNMS(), AdvancementRewards.EMPTY, advCriteria, Util.getAdvancementRequirements(advCriteria));
         this.key = key;
         this.parent = null;
         this.display = display;
     }
 
-    public AdvancementWrapper_v1_17_R1(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementWrapper parent, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        Map<String, Criterion> advCriteria = Util.getAdvancementCriteria(maxCriteria);
+    public AdvancementWrapper_v1_17_R1(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementWrapper parent, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+        Map<String, Criterion> advCriteria = Util.getAdvancementCriteria(maxProgression);
         this.advancement = new Advancement((ResourceLocation) key.toNMS(), (Advancement) parent.toNMS(), (DisplayInfo) display.toNMS(), AdvancementRewards.EMPTY, advCriteria, Util.getAdvancementRequirements(advCriteria));
         this.key = key;
         this.parent = parent;
@@ -67,8 +67,9 @@ public class AdvancementWrapper_v1_17_R1 extends AdvancementWrapper {
         return display;
     }
 
+    @Override
     @Range(from = 1, to = Integer.MAX_VALUE)
-    public int getMaxCriteria() {
+    public int getMaxProgression() {
         return this.advancement.getRequirements().length;
     }
 

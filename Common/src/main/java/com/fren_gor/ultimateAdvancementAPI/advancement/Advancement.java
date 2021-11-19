@@ -5,7 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementCriteriaUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
@@ -40,7 +40,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progress
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromUUID;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateIncrement;
 
 /**
@@ -70,10 +70,10 @@ public abstract class Advancement {
     protected final AdvancementDisplay display;
 
     /**
-     * The maximum criteria of the advancement.
+     * The maximum progression of the advancement.
      */
     @Range(from = 1, to = Integer.MAX_VALUE)
-    protected final int maxCriteria;
+    protected final int maxProgression;
 
     @Nullable
     private final Method iVisibilityMethod;
@@ -83,7 +83,7 @@ public abstract class Advancement {
     }
 
     /**
-     * Creates a new {@code Advancement} with a maximum criteria of {@code 1}.
+     * Creates a new {@code Advancement} with a maximum progression of {@code 1}.
      *
      * @param advancementTab The advancement tab.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
@@ -99,22 +99,22 @@ public abstract class Advancement {
      * @param advancementTab The advancement tab.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
-     * @param maxCriteria The maximum advancement criteria.
+     * @param maxProgression The maximum advancement progression.
      */
-    Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
+    Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         // Validate class inheritance: Advancement can be extended only by RootAdvancement and BaseAdvancement
         // This makes sure no reflection is being used to make an invalid Advancement
         // The instanceOfs order provides max speed in most cases (there is usually one root for many base advancements)
         if (!(this instanceof BaseAdvancement || this instanceof RootAdvancement)) {
             throw new IllegalOperationException(getClass().getName() + " is neither an instance of RootAdvancement nor BaseAdvancement.");
         }
-        Validate.isTrue(maxCriteria > 0, "Max criteria cannot be <= 0");
+        Validate.isTrue(maxProgression > 0, "Maximum progression cannot be <= 0");
         this.advancementTab = Objects.requireNonNull(advancementTab, "AdvancementTab is null.");
         Validate.isTrue(!advancementTab.isInitialised(), "AdvancementTab is already initialised.");
         Validate.isTrue(!advancementTab.isDisposed(), "AdvancementTab is disposed.");
         this.key = new AdvancementKey(advancementTab.getNamespace(), key);
         this.display = Objects.requireNonNull(display, "Display is null.");
-        this.maxCriteria = maxCriteria;
+        this.maxProgression = maxProgression;
         if (this instanceof IVisibility) {
             this.iVisibilityMethod = getIVisibilityMethod(getClass());
         } else {
@@ -143,47 +143,47 @@ public abstract class Advancement {
     }
 
     /**
-     * Gets the maximum criteria of the advancement.
+     * Gets the maximum progression of the advancement.
      *
-     * @return The maximum criteria of the advancement.
+     * @return The maximum progression of the advancement.
      */
     @Range(from = 1, to = Integer.MAX_VALUE)
-    public final int getMaxCriteria() {
-        return maxCriteria;
+    public final int getMaxProgression() {
+        return maxProgression;
     }
 
     /**
-     * Gets the current criteria of the provided player's team.
+     * Gets the current progression of the provided player's team.
      *
      * @param player The player.
-     * @return The current criteria of the provided player's team.
+     * @return The current progression of the provided player's team.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int getTeamCriteria(@NotNull Player player) {
-        return getTeamCriteria(uuidFromPlayer(player));
+    public int getProgression(@NotNull Player player) {
+        return getProgression(uuidFromPlayer(player));
     }
 
     /**
-     * Gets the current criteria of the provided player's team.
+     * Gets the current progression of the provided player's team.
      *
      * @param uuid The {@link UUID} of the player.
-     * @return The current criteria of the provided player's team.
+     * @return The current progression of the provided player's team.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int getTeamCriteria(@NotNull UUID uuid) {
-        return getTeamCriteria(progressionFromUUID(uuid, this));
+    public int getProgression(@NotNull UUID uuid) {
+        return getProgression(progressionFromUUID(uuid, this));
     }
 
     /**
-     * Gets the current criteria of the provided team.
+     * Gets the current progression of the provided team.
      *
      * @param progression The {@link TeamProgression} of the team.
-     * @return The current criteria of the team.
+     * @return The current progression of the team.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int getTeamCriteria(@NotNull TeamProgression progression) {
+    public int getProgression(@NotNull TeamProgression progression) {
         Validate.notNull(progression, "TeamProgression is null.");
-        return progression.getCriteria(this);
+        return progression.getProgression(this);
     }
 
     /**
@@ -214,7 +214,7 @@ public abstract class Advancement {
      */
     public boolean isGranted(@NotNull TeamProgression progression) {
         Validate.notNull(progression, "TeamProgression is null.");
-        return getTeamCriteria(progression) >= maxCriteria;
+        return getProgression(progression) >= maxProgression;
     }
 
     /**
@@ -247,104 +247,104 @@ public abstract class Advancement {
      * Increases the progression of the provided player's team by one.
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
-     * @param player The player who is responsible for the criteria increment.
-     * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
+     * @param player The player who is responsible for the increment.
+     * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull Player player) {
-        return incrementTeamCriteria(player, true);
+    public int incrementProgression(@NotNull Player player) {
+        return incrementProgression(player, true);
     }
 
     /**
      * Increases the progression of the provided player's team by one.
      *
-     * @param player The player who is responsible for the criteria increment.
+     * @param player The player who is responsible for the increment.
      * @param giveReward Whether to give rewards if the advancement gets completed.
-     * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
+     * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull Player player, boolean giveReward) {
-        return incrementTeamCriteria(player, 1, giveReward);
+    public int incrementProgression(@NotNull Player player, boolean giveReward) {
+        return incrementProgression(player, 1, giveReward);
     }
 
     /**
      * Increases the progression of the provided player's team.
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
-     * @param player The player who is responsible for the criteria increment.
+     * @param player The player who is responsible for the increment.
      * @param increment The progression increment. Must be greater than {@code 0}.
-     * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
+     * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
-        return incrementTeamCriteria(player, increment, true);
+    public int incrementProgression(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
+        return incrementProgression(player, increment, true);
     }
 
     /**
      * Increases the progression of the provided player's team.
      *
-     * @param player The player who is responsible for the criteria increment.
+     * @param player The player who is responsible for the increment.
      * @param increment The progression increment. Must be greater than {@code 0}.
      * @param giveReward Whether to give rewards if the advancement gets completed.
-     * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
+     * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
-        return incrementTeamCriteria(progressionFromPlayer(player, this), player, increment, giveReward);
+    public int incrementProgression(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+        return incrementProgression(progressionFromPlayer(player, this), player, increment, giveReward);
     }
 
     /**
      * Increases the progression of the provided player's team by one.
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
-     * @param uuid The {@link UUID} of the player responsible for the criteria increment. If the player is not online, rewards will be given to a pseudorandom
+     * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
      *         online member of the same team if there are any, or it will be set unredeemed.
-     * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
+     * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull UUID uuid) {
-        return incrementTeamCriteria(uuid, true);
+    public int incrementProgression(@NotNull UUID uuid) {
+        return incrementProgression(uuid, true);
     }
 
     /**
      * Increases the progression of the provided player's team by one.
      *
-     * @param uuid The {@link UUID} of the player responsible for the criteria increment. If the player is not online, rewards will be given to a pseudorandom
+     * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
      *         online member of the same team if there are any, or it will be set unredeemed.
      * @param giveReward Whether to give rewards if the advancement gets completed.
-     * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
+     * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull UUID uuid, boolean giveReward) {
-        return incrementTeamCriteria(uuid, 1, giveReward);
+    public int incrementProgression(@NotNull UUID uuid, boolean giveReward) {
+        return incrementProgression(uuid, 1, giveReward);
     }
 
     /**
      * Increases the progression of the provided player's team.
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
-     * @param uuid The {@link UUID} of the player responsible for the criteria increment. If the player is not online, rewards will be given to a pseudorandom
+     * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
      *         online member of the same team if there are any, or it will be set unredeemed.
      * @param increment The progression increment. Must be greater than {@code 0}.
-     * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
+     * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
-        return incrementTeamCriteria(uuid, increment, true);
+    public int incrementProgression(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
+        return incrementProgression(uuid, increment, true);
     }
 
     /**
      * Increases the progression of the provided player's team.
      *
-     * @param uuid The {@link UUID} of the player responsible for the criteria increment. If the player is not online, rewards will be given to a pseudorandom
+     * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
      *         online member of the same team if there are any, or it will be set unredeemed.
      * @param increment The progression increment. Must be greater than {@code 0}.
      * @param giveReward Whether to give rewards if the advancement gets completed.
-     * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
+     * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementTeamCriteria(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
-        return incrementTeamCriteria(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), increment, giveReward);
+    public int incrementProgression(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+        return incrementProgression(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), increment, giveReward);
     }
 
     /**
@@ -354,119 +354,119 @@ public abstract class Advancement {
      * if there are any or the advancement will be set unredeemed.
      *
      * @param pro The {@link TeamProgression} of the team.
-     * @param player The team member responsible for the criteria increment. May be {@code null}.
+     * @param player The team member responsible for the increment. May be {@code null}.
      * @param increment The progression increment. Must be greater than {@code 0}.
      * @param giveRewards Whether to give rewards if the advancement gets completed.
-     * @return The new criteria progression. It is always less or equal to {@link #maxCriteria}.
+     * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    protected int incrementTeamCriteria(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
+    protected int incrementProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
         Validate.notNull(pro, "TeamProgression is null.");
         validateIncrement(increment);
 
-        int crit = getTeamCriteria(pro);
-        if (crit >= maxCriteria) {
-            return crit;
+        int progression = getProgression(pro);
+        if (progression >= maxProgression) {
+            return progression;
         }
-        int newCriteria = crit + increment;
-        if (newCriteria > maxCriteria) {
-            newCriteria = maxCriteria;
+        int newProgression = progression + increment;
+        if (newProgression > maxProgression) {
+            newProgression = maxProgression;
         }
-        setCriteriaTeamProgression(pro, player, newCriteria, giveRewards);
-        return newCriteria;
+        setProgression(pro, player, newProgression, giveRewards);
+        return newProgression;
     }
 
     /**
-     * Sets a criteria progression for the provided player's team.
+     * Sets a progression for the provided player's team.
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
-     * @param player The player who is responsible for the criteria update.
-     * @param criteria The new non-negative criteria progression to set.
+     * @param player The player who is responsible for the update.
+     * @param progression The new non-negative progression to set.
      */
-    public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
-        setCriteriaTeamProgression(player, criteria, true);
+    public void setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
+        setProgression(player, progression, true);
     }
 
     /**
-     * Sets a criteria progression for the provided player's team.
+     * Sets a progression for the provided player's team.
      *
-     * @param player The player who is responsible for the criteria update.
-     * @param criteria The new non-negative criteria progression to set.
+     * @param player The player who is responsible for the update.
+     * @param progression The new non-negative progression to set.
      * @param giveReward Whether to give rewards if the advancement gets completed.
      */
-    public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
-        setCriteriaTeamProgression(progressionFromPlayer(player, this), player, criteria, giveReward);
+    public void setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
+        setProgression(progressionFromPlayer(player, this), player, progression, giveReward);
     }
 
     /**
-     * Sets a criteria progression for the provided player's team.
+     * Sets a progression for the provided player's team.
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
-     * @param uuid The {@link UUID} of the player responsible for the criteria update. If the player is not online, rewards will be given to a pseudorandom
+     * @param uuid The {@link UUID} of the player responsible for the update. If the player is not online, rewards will be given to a pseudorandom
      *         online member of the same team if there are any, or it will be set unredeemed.
-     * @param criteria The new non-negative criteria progression to set.
+     * @param progression The new non-negative progression to set.
      */
-    public void setCriteriaTeamProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
-        setCriteriaTeamProgression(uuid, criteria, true);
+    public void setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
+        setProgression(uuid, progression, true);
     }
 
     /**
-     * Sets a criteria progression for the provided player's team.
+     * Sets a progression for the provided player's team.
      *
-     * @param uuid The {@link UUID} of the player responsible for the criteria update. If the player is not online, rewards will be given to a pseudorandom
+     * @param uuid The {@link UUID} of the player responsible for the update. If the player is not online, rewards will be given to a pseudorandom
      *         online member of the same team if there are any, or it will be set unredeemed.
-     * @param criteria The new non-negative criteria progression to set.
+     * @param progression The new non-negative progression to set.
      * @param giveReward Whether to give rewards if the advancement gets completed.
      */
-    public void setCriteriaTeamProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
-        setCriteriaTeamProgression(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), criteria, giveReward);
+    public void setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
+        setProgression(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), progression, giveReward);
     }
 
     /**
-     * Sets a criteria progression for the provided team.
+     * Sets a new progression for the provided team.
      * <p>The provided player must be an online member of the team. If no members are online or no particular player is
      * to be preferred, it can be put to {@code null}. In this case, rewards will be given to a pseudorandom online member
      * if there are any or the advancement will be set unredeemed.
      *
      * @param pro The {@link TeamProgression} that belongs to the team.
-     * @param player The team member responsible for the criteria update. May be {@code null}.
-     * @param criteria The new non-negative criteria progression to set.
+     * @param player The team member responsible for the update. May be {@code null}.
+     * @param progression The new non-negative progression to set.
      * @param giveRewards Whether to give rewards if the advancement gets completed.
      */
-    protected void setCriteriaTeamProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
+    protected void setProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveRewards) {
         Validate.notNull(pro, "TeamProgression is null.");
-        validateCriteriaStrict(criteria, maxCriteria);
+        validateProgressionValueStrict(progression, maxProgression);
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
-        int old = ds.updateCriteria(key, pro, criteria);
+        int old = ds.updateProgression(key, pro, progression);
 
         try {
-            Bukkit.getPluginManager().callEvent(new AdvancementCriteriaUpdateEvent(pro, old, criteria, this));
+            Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, old, progression, this));
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
 
-        handlePlayer(pro, player, criteria, old, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+        handlePlayer(pro, player, progression, old, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
     }
 
     /**
      * Handles the reward process of the advancement.
-     * <p>When the new criteria is greater or equal than {@link #maxCriteria} and the old criteria is less than {@link #maxCriteria} then
+     * <p>When the new progression is greater or equal than {@link #maxProgression} and the old progression is less than {@link #maxProgression} then
      * the advancement is being completed by the provided player. If the provided player is non-null, they will receive the rewards.
      * Otherwise, if there are online members in the team one of them will receive the advancement rewards.
      * If no member of the team are online, the advancement will be set unredeemed for that team.
      *
      * @param pro The {@link TeamProgression} of the team.
-     * @param player The team member responsible for the criteria update. May be {@code null}.
-     * @param criteria The new non-negative criteria progression that has been set.
-     * @param old The previous criteria progression of the team.
+     * @param player The team member responsible for the update. May be {@code null}.
+     * @param newProgression The new non-negative progression that has been set.
+     * @param oldProgression The previous progression of the team.
      * @param giveRewards Whether to give rewards if the advancement gets completed.
      * @param afterHandle The action to perform after the reward process, or {@code null} to don't do any action.
      *         The default action updates the tab's advancement to the team (see {@link AfterHandle#UPDATE_ADVANCEMENTS_TO_TEAM}).
      */
-    protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int criteria, int old, boolean giveRewards, @Nullable AfterHandle afterHandle) {
+    protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int newProgression, int oldProgression, boolean giveRewards, @Nullable AfterHandle afterHandle) {
         Validate.notNull(pro, "TeamProgression is null.");
-        if (criteria >= this.maxCriteria && old < this.maxCriteria) {
+        if (newProgression >= this.maxProgression && oldProgression < this.maxProgression) {
             if (player != null) {
                 onGrant(player, giveRewards);
             } else {
@@ -605,7 +605,7 @@ public abstract class Advancement {
      */
     public void grant(@NotNull Player player, boolean giveRewards) {
         Validate.notNull(player, "Player is null.");
-        setCriteriaTeamProgression(player, maxCriteria, giveRewards);
+        setProgression(player, maxProgression, giveRewards);
     }
 
     /**
@@ -615,21 +615,21 @@ public abstract class Advancement {
      */
     public void revoke(@NotNull Player player) {
         Validate.notNull(player, "Player is null.");
-        setCriteriaTeamProgression(player, 0, false);
+        setProgression(player, 0, false);
     }
 
     /**
      * Handles the serialisation of the advancement into the update packet.
      * <p>Advancement(s) to be sent have to be added to the provided {@link Map}, which contains the {@link AdvancementWrapper}s paired
-     * with the advancements criteria progression of the provided team.
+     * with the progression of the provided team.
      *
      * @param teamProgression The {@link TeamProgression} of the team of the player(s).
      * @param addedAdvancements The {@link Map} in which the advancements to be sent are added as keys.
-     *         The values are the current criteria progression of the team.
+     *         The values are the current progressions of the team.
      */
     public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
         if (isVisible(teamProgression)) {
-            addedAdvancements.put(getNMSWrapper(), getTeamCriteria(teamProgression));
+            addedAdvancements.put(getNMSWrapper(), getProgression(teamProgression));
         }
     }
 

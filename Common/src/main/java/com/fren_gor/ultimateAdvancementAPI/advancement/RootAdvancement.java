@@ -30,7 +30,7 @@ public class RootAdvancement extends Advancement {
     private AdvancementWrapper wrapper;
 
     /**
-     * Creates a new {@code RootAdvancement} with a maximum criteria of {@code 1}.
+     * Creates a new {@code RootAdvancement} with a maximum progression of {@code 1}.
      *
      * @param advancementTab The advancement tab of the advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
@@ -48,10 +48,10 @@ public class RootAdvancement extends Advancement {
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
      * @param backgroundTexture The path of the background texture image (like "textures/block/stone.png").
-     * @param maxCriteria The maximum advancement criteria.
+     * @param maxProgression The maximum advancement progression.
      */
-    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull String backgroundTexture, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        super(advancementTab, key, display, maxCriteria);
+    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull String backgroundTexture, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+        super(advancementTab, key, display, maxProgression);
         this.backgroundTexture = Objects.requireNonNull(backgroundTexture, "Background texture is null.");
     }
 
@@ -65,7 +65,7 @@ public class RootAdvancement extends Advancement {
         }
 
         try {
-            return wrapper = AdvancementWrapper.craftRootAdvancement(key.getNMSWrapper(), display.getNMSWrapper(this), maxCriteria);
+            return wrapper = AdvancementWrapper.craftRootAdvancement(key.getNMSWrapper(), display.getNMSWrapper(this), maxProgression);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }

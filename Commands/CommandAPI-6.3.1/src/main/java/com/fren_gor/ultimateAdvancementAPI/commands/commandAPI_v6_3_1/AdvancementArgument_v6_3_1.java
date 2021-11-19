@@ -18,11 +18,13 @@ public class AdvancementArgument_v6_3_1 {
                 @Nullable Advancement adv = main.getAdvancement(input.input());
                 if (adv == null) {
                     throw new CustomArgumentException(new MessageBuilder("Unknown advancement: ").appendArgInput());
+                } else if (!adv.isValid()) {
+                    throw new CustomArgumentException(new MessageBuilder("Invalid advancement: ").appendArgInput());
                 } else {
                     return adv;
                 }
             } catch (IllegalArgumentException e) {
-                throw new CustomArgumentException(new MessageBuilder("Invalid advancement: ").appendArgInput().appendHere());
+                throw new CustomArgumentException(new MessageBuilder("Illegal advancement: ").appendArgInput());
             }
         }, true).replaceSuggestions(sender -> main.filterNamespaces(null).toArray(new String[0]));
     }

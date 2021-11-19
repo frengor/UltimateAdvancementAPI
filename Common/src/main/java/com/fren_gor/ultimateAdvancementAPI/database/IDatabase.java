@@ -21,7 +21,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFrom
  * <ul>
  *     <li>The players name and {@link UUID};</li>
  *     <li>The team ids;</li>
- *     <li>The current criteria progression of every advancement for every team;</li>
+ *     <li>The current progression of every advancement for every team;</li>
  *     <li>The unredeemed advancements.</li>
  * </ul>
  * <p>The connection to the database should be opened in the constructor of the implementing class.
@@ -82,11 +82,11 @@ public interface IDatabase {
     List<UUID> getTeamMembers(int teamId) throws SQLException;
 
     /**
-     * Gets the team advancements mapped with their respective criteria.
+     * Gets the team advancements mapped with their respective progressions.
      * <p>The resulting map can contain keys of not-existent advancements that might exist in the database.
      *
      * @param teamId The team id.
-     * @return The team advancements mapped with their respective criteria.
+     * @return The team advancements mapped with their respective progressions.
      * @throws SQLException If an SQL exception occurs.
      */
     Map<AdvancementKey, Integer> getTeamAdvancements(int teamId) throws SQLException;
@@ -115,14 +115,14 @@ public interface IDatabase {
     TeamProgression loadUUID(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException;
 
     /**
-     * Updates the criteria progression for the provided advancement and the specified team.
+     * Updates the progression for the provided advancement and the specified team.
      *
      * @param key The advancement key.
      * @param teamId The team id.
-     * @param criteria The new criteria.
+     * @param progression The new progression.
      * @throws SQLException If an SQL exception occurs.
      */
-    void updateAdvancement(@NotNull AdvancementKey key, int teamId, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) throws SQLException;
+    void updateAdvancement(@NotNull AdvancementKey key, int teamId, @Range(from = 0, to = Integer.MAX_VALUE) int progression) throws SQLException;
 
     /**
      * Get the list of the unredeemed advancements of the provided team.
@@ -287,5 +287,4 @@ public interface IDatabase {
      * @throws SQLException If an SQL exception occurs.
      */
     void clearUpTeams() throws SQLException;
-
 }

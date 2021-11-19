@@ -10,34 +10,34 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
 
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteria;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValue;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
- * Called when the criteria progression of an advancement changes.
- * <p>This event differs from {@link CriteriaUpdateEvent} because it is called by {@link Advancement#setCriteriaTeamProgression(TeamProgression, Player, int, boolean)}.
+ * Called when a team's progression of an advancement changes.
+ * <p>This event differs from {@link ProgressionUpdateEvent} because it is called by {@link Advancement#setProgression(TeamProgression, Player, int, boolean)}.
  */
-public class AdvancementCriteriaUpdateEvent extends Event {
+public class AdvancementProgressionUpdateEvent extends Event {
 
     private final TeamProgression team;
 
     @Range(from = 0, to = Integer.MAX_VALUE)
-    private final int oldCriteria, newCriteria;
+    private final int oldProgression, newProgression;
 
     private final Advancement advancement;
 
     /**
-     * Creates a new {@code AdvancementCriteriaUpdateEvent}.
+     * Creates a new {@code AdvancementProgressionUpdateEvent}.
      *
      * @param team The {@link TeamProgression} of the updated team.
-     * @param oldCriteria The old criteria prior to the update.
-     * @param newCriteria The new criteria after the update.
+     * @param oldProgression The old progression prior to the update.
+     * @param newProgression The new progression after the update.
      * @param advancement The updated {@link Advancement}.
      */
-    public AdvancementCriteriaUpdateEvent(@NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldCriteria, @Range(from = 0, to = Integer.MAX_VALUE) int newCriteria, @NotNull Advancement advancement) {
+    public AdvancementProgressionUpdateEvent(@NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, @NotNull Advancement advancement) {
         this.team = validateTeamProgression(team);
-        this.oldCriteria = validateCriteria(oldCriteria);
-        this.newCriteria = validateCriteria(newCriteria);
+        this.oldProgression = validateProgressionValue(oldProgression);
+        this.newProgression = validateProgressionValue(newProgression);
         this.advancement = Objects.requireNonNull(advancement, "Advancement is null.");
     }
 
@@ -51,23 +51,23 @@ public class AdvancementCriteriaUpdateEvent extends Event {
     }
 
     /**
-     * Gets the old criteria prior to the update.
+     * Gets the old progression prior to the update.
      *
-     * @return The old criteria prior to the update.
+     * @return The old progression prior to the update.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int getOldCriteria() {
-        return oldCriteria;
+    public int getOldProgression() {
+        return oldProgression;
     }
 
     /**
-     * Gets the new criteria after the update.
+     * Gets the new progression after the update.
      *
-     * @return The new criteria after the update.
+     * @return The new progression after the update.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int getNewCriteria() {
-        return newCriteria;
+    public int getNewProgression() {
+        return newProgression;
     }
 
     /**
@@ -93,10 +93,10 @@ public class AdvancementCriteriaUpdateEvent extends Event {
 
     @Override
     public String toString() {
-        return "AdvancementCriteriaUpdateEvent{" +
+        return "AdvancementProgressionUpdateEvent{" +
                 "team=" + team +
-                ", oldCriteria=" + oldCriteria +
-                ", newCriteria=" + newCriteria +
+                ", oldProgression=" + oldProgression +
+                ", newProgression=" + newProgression +
                 ", advancement=" + advancement +
                 '}';
     }
@@ -106,10 +106,10 @@ public class AdvancementCriteriaUpdateEvent extends Event {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        AdvancementCriteriaUpdateEvent that = (AdvancementCriteriaUpdateEvent) o;
+        AdvancementProgressionUpdateEvent that = (AdvancementProgressionUpdateEvent) o;
 
-        if (oldCriteria != that.oldCriteria) return false;
-        if (newCriteria != that.newCriteria) return false;
+        if (oldProgression != that.oldProgression) return false;
+        if (newProgression != that.newProgression) return false;
         if (!team.equals(that.team)) return false;
         return advancement.equals(that.advancement);
     }
@@ -117,8 +117,8 @@ public class AdvancementCriteriaUpdateEvent extends Event {
     @Override
     public int hashCode() {
         int result = team.hashCode();
-        result = 31 * result + oldCriteria;
-        result = 31 * result + newCriteria;
+        result = 31 * result + oldProgression;
+        result = 31 * result + newProgression;
         result = 31 * result + advancement.hashCode();
         return result;
     }

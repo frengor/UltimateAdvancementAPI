@@ -184,17 +184,17 @@ public class AdvancementUtils {
     }
 
     @Contract("_ -> param1")
-    public static int validateCriteria(int criteria) {
-        if (criteria < 0) {
-            throw new IllegalArgumentException("Criteria cannot be < 0");
+    public static int validateProgressionValue(int progression) {
+        if (progression < 0) {
+            throw new IllegalArgumentException("Progression value cannot be < 0");
         }
-        return criteria;
+        return progression;
     }
 
-    public static void validateCriteriaStrict(int criteria, int maxCriteria) {
-        validateCriteria(criteria);
-        if (criteria > maxCriteria) {
-            throw new IllegalArgumentException("Criteria cannot be greater than the max criteria (" + maxCriteria + ')');
+    public static void validateProgressionValueStrict(int progression, int maxProgression) {
+        validateProgressionValue(progression);
+        if (progression > maxProgression) {
+            throw new IllegalArgumentException("Progression value cannot be greater than the maximum progression (" + maxProgression + ')');
         }
     }
 
@@ -275,7 +275,7 @@ public class AdvancementUtils {
     @NotNull
     public static TeamProgression progressionFromUUID(@NotNull UUID uuid, @NotNull AdvancementTab tab) {
         Validate.notNull(uuid, "UUID is null.");
-        return tab.getDatabaseManager().getProgression(uuid);
+        return tab.getDatabaseManager().getTeamProgression(uuid);
     }
 
     private AdvancementUtils() {
