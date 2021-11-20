@@ -7,21 +7,26 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-parent</artifactId>
-        <version>1.15.2-parent-SNAPSHOT</version>
+        <version>parent-SNAPSHOT</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-common</artifactId>
     <name>UltimateAdvancementAPI-Common</name>
-    <version>${mcVersion}-${apiVersion}</version>
+    <version>2.0.0</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
+
+    <properties>
+        <!-- Skip deploy -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
 
     <dependencies>
         <!-- Libby -->
         <dependency>
             <groupId>net.byteflux</groupId>
             <artifactId>libby-bukkit</artifactId>
-            <version>1.1.1</version>
+            <version>${libbyVersion}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -31,6 +36,22 @@
             <artifactId>eventmanagerapi</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
+        </dependency>
+
+        <!-- NMS Wrappers -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-common</artifactId>
+            <version>${apiVersion}</version>
+            <scope>provided</scope> <!-- ultimateadvancementapi-nms-distribution will be shaded into ultimateadvancementapi-shadeable module -->
+        </dependency>
+
+        <!-- SQLite is already bundled with Spigot, but not with SpigotAPI -->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.30.1</version> <!-- version bundled with Spigot, do not change -->
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -74,23 +95,23 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
+                <artifactId>maven-javadoc-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>templating-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>filter-test-sources</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -5,11 +5,10 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDispla
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementCriteriaUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.minecraft.server.v1_15_R1.AdvancementProgress;
-import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -21,23 +20,22 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
 
 /**
  * The {@code TaskAdvancement} class represents a task. It can be used by any {@link AbstractMultiTasksAdvancement} subclass
  * to separate an advancement progression into different progression (one per task).
  * <p>For example, the advancement "mine 5 blocks of every plank" can be made using a {@code TaskAdvancement}
- * for every plank (with a criteria of 5) and registering them into an {@link AbstractMultiTasksAdvancement}.
+ * for every plank (with a progression of 5) and registering them into an {@link AbstractMultiTasksAdvancement}.
  * <p>{@code TaskAdvancement}s are saved into the database, but they are never sent to players.
  * For this reason they cannot be registered in tabs either.
  */
 public class TaskAdvancement extends BaseAdvancement {
 
     /**
-     * Creates a new {@code TaskAdvancement}.
+     * Creates a new {@code TaskAdvancement} with a maximum progression of {@code 1}.
      *
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
@@ -51,14 +49,14 @@ public class TaskAdvancement extends BaseAdvancement {
      *
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
-     * @param maxCriteria The maximum criteria of the task.
+     * @param maxProgression The maximum progression of the task.
      */
-    public TaskAdvancement(@NotNull String key, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        this(key, new AdvancementDisplay(Material.GRASS_BLOCK, Objects.requireNonNull(key, "Key is null."), AdvancementFrameType.TASK, false, false, 0, 0), multitask, maxCriteria);
+    public TaskAdvancement(@NotNull String key, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+        this(key, new AdvancementDisplay(Material.GRASS_BLOCK, Objects.requireNonNull(key, "Key is null."), AdvancementFrameType.TASK, false, false, 0, 0), multitask, maxProgression);
     }
 
     /**
-     * Creates a new {@code TaskAdvancement}.
+     * Creates a new {@code TaskAdvancement} with a maximum progression of {@code 1}.
      *
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
      * @param display The display information of this task.
@@ -74,10 +72,10 @@ public class TaskAdvancement extends BaseAdvancement {
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
      * @param display The display information of this task.
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
-     * @param maxCriteria The maximum criteria of the task.
+     * @param maxProgression The maximum progression of the task.
      */
-    public TaskAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        super(key, display, Objects.requireNonNull(multitask, "AbstractMultiTasksAdvancement is null."), maxCriteria);
+    public TaskAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+        super(key, display, Objects.requireNonNull(multitask, "AbstractMultiTasksAdvancement is null."), maxProgression);
     }
 
     /**
@@ -97,20 +95,20 @@ public class TaskAdvancement extends BaseAdvancement {
      * {@inheritDoc}
      */
     @Override
-    protected void setCriteriaTeamProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
+    protected void setProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveRewards) {
         Validate.notNull(pro, "TeamProgression is null.");
-        validateCriteriaStrict(criteria, maxCriteria);
+        validateProgressionValueStrict(progression, maxProgression);
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
-        int old = ds.updateCriteria(key, pro, criteria);
+        int old = ds.updateProgression(key, pro, progression);
 
         try {
-            Bukkit.getPluginManager().callEvent(new AdvancementCriteriaUpdateEvent(pro, old, criteria, this));
+            Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, old, progression, this));
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
 
-        handlePlayer(pro, player, criteria, old, giveRewards, null);
+        handlePlayer(pro, player, progression, old, giveRewards, null);
         getMultiTasksAdvancement().reloadTasks(pro, player, giveRewards);
     }
 
@@ -202,7 +200,7 @@ public class TaskAdvancement extends BaseAdvancement {
      */
     @Override
     @NotNull
-    public final net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement() {
+    public final AdvancementWrapper getNMSWrapper() {
         throw new UnsupportedOperationException();
     }
 
@@ -235,7 +233,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Every time this method is called.
      */
     @Override
-    public void onUpdate(@NotNull TeamProgression pro, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
         throw new UnsupportedOperationException();
     }
 }

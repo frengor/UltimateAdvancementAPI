@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteria;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValue;
 
 /**
  * The {@code TeamProgression} class stores information about a team and its advancement progressions.
@@ -49,7 +49,7 @@ public final class TeamProgression {
      *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
      */
     public TeamProgression(int teamId, @NotNull UUID member) {
-        CallerClassUtil.validateConstructorCallingClass();
+        validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         Validate.notNull(member, "Member is null.");
         this.advancements = new ConcurrentHashMap<>();
         this.teamId = teamId;
@@ -69,13 +69,19 @@ public final class TeamProgression {
      *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
      */
     public TeamProgression(@NotNull Map<AdvancementKey, Integer> advancements, int teamId, @NotNull Collection<UUID> members) {
-        CallerClassUtil.validateConstructorCallingClass();
+        validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         Validate.notNull(advancements, "Advancements is null.");
         Validate.notNull(members, "Members is null.");
         this.advancements = new ConcurrentHashMap<>(advancements);
         this.teamId = teamId;
         players = Sets.newHashSetWithExpectedSize(members.size() + 4);
         players.addAll(members);
+    }
+
+    private void validateCaller(@NotNull Class<?> caller) throws IllegalOperationException {
+        if (!caller.getPackage().getName().startsWith("com.fren_gor.ultimateAdvancementAPI.database")) {
+            throw new IllegalOperationException("TeamProgression can be instantiated only by classes inside the com.fren_gor.ultimateAdvancementAPI.database package or its sub-packages.");
+        }
     }
 
     /**
@@ -85,15 +91,15 @@ public final class TeamProgression {
      * @return The current progression of the team for the provided advancement.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int getCriteria(@NotNull Advancement advancement) {
+    public int getProgression(@NotNull Advancement advancement) {
         Validate.notNull(advancement, "Advancement is null.");
         Integer progression = advancements.get(advancement.getKey());
 
         if (progression != null) {
-            if (progression <= advancement.getMaxCriteria())
+            if (progression <= advancement.getMaxProgression())
                 return progression;
             else
-                return advancement.getMaxCriteria();
+                return advancement.getMaxProgression();
         } else {
             return 0;
         }
@@ -231,15 +237,15 @@ public final class TeamProgression {
     }
 
     /**
-     * Sets the criteria progression of the provided advancement for the team.
+     * Sets the progression of the provided advancement for the team.
      *
      * @param key The key of the advancement.
-     * @param criteria The new criteria progression to be set.
-     * @return The previous criteria progression.
+     * @param progression The new progression to be set.
+     * @return The previous progression.
      */
-    int updateCriteria(@NotNull AdvancementKey key, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
-        validateCriteria(criteria);
-        Integer i = advancements.put(key, criteria);
+    int updateProgression(@NotNull AdvancementKey key, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
+        validateProgressionValue(progression);
+        Integer i = advancements.put(key, progression);
         return i == null ? 0 : i;
     }
 
@@ -327,23 +333,5 @@ public final class TeamProgression {
      */
     public int getTeamId() {
         return teamId;
-    }
-
-    private static final class CallerClassUtil extends SecurityManager {
-
-        private static final CallerClassUtil INSTANCE = new CallerClassUtil();
-
-        public static void validateConstructorCallingClass() throws IllegalOperationException {
-            if (!INSTANCE.getCallingClasses()[3].getPackage().getName().startsWith("com.fren_gor.ultimateAdvancementAPI.database")) {
-                throw new IllegalOperationException("TeamProgression can be instantiated only by classes inside the com.fren_gor.ultimateAdvancementAPI.database package or its sub-packages.");
-            }
-        }
-
-        private CallerClassUtil() {
-        }
-
-        private Class<?>[] getCallingClasses() {
-            return getClassContext();
-        }
     }
 }

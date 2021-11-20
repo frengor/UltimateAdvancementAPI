@@ -1,5 +1,8 @@
 package com.fren_gor.ultimateAdvancementAPI.exceptions;
 
+/**
+ * This exception is thrown when an operation is done on a disposed object.
+ */
 public class DisposedException extends RuntimeException {
 
     public DisposedException() {

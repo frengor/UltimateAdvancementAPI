@@ -2,16 +2,12 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
-import net.minecraft.server.v1_15_R1.Criterion;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
-import java.util.Map;
 import java.util.Objects;
-
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.ADV_REWARDS;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementCriteria;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementRequirements;
 
 /**
  * BaseAdvancement directly extends Advancement. It represents an advancement with a parent advancement.
@@ -25,10 +21,11 @@ public class BaseAdvancement extends Advancement {
     @NotNull
     protected final Advancement parent;
 
-    private net.minecraft.server.v1_15_R1.Advancement mcAdvancement;
+    @LazyValue
+    private AdvancementWrapper wrapper;
 
     /**
-     * Creates a new {@code BaseAdvancement} with a maximum criteria of {@code 1}.
+     * Creates a new {@code BaseAdvancement} with a maximum progression of {@code 1}.
      * <p>The tab of this advancement will be the parent one.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
@@ -46,10 +43,10 @@ public class BaseAdvancement extends Advancement {
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
      * @param parent The parent of this advancement.
-     * @param maxCriteria The maximum advancement criteria.
+     * @param maxProgression The maximum advancement progression.
      */
-    public BaseAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        super(Objects.requireNonNull(parent, "Parent advancement is null.").advancementTab, key, display, maxCriteria);
+    public BaseAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+        super(Objects.requireNonNull(parent, "Parent advancement is null.").advancementTab, key, display, maxProgression);
         this.parent = parent;
     }
 
@@ -67,13 +64,16 @@ public class BaseAdvancement extends Advancement {
      * {@inheritDoc}
      */
     @NotNull
-    public net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement() {
-        if (mcAdvancement != null) {
-            return mcAdvancement;
+    public AdvancementWrapper getNMSWrapper() {
+        if (wrapper != null) {
+            return wrapper;
         }
 
-        Map<String, Criterion> advCriteria = getAdvancementCriteria(maxCriteria);
-        return mcAdvancement = new net.minecraft.server.v1_15_R1.Advancement(getMinecraftKey(), parent.getMinecraftAdvancement(), display.getMinecraftDisplay(this), ADV_REWARDS, advCriteria, getAdvancementRequirements(advCriteria));
+        try {
+            return wrapper = AdvancementWrapper.craftBaseAdvancement(key.getNMSWrapper(), parent.getNMSWrapper(), display.getNMSWrapper(this), maxProgression);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

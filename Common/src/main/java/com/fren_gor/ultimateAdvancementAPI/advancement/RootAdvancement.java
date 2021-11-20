@@ -3,19 +3,15 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import net.minecraft.server.v1_15_R1.Criterion;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.ADV_REWARDS;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementCriteria;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementRequirements;
 
 /**
  * The first advancement of an advancement tree.
@@ -30,10 +26,11 @@ public class RootAdvancement extends Advancement {
     @NotNull
     private final String backgroundTexture;
 
-    private net.minecraft.server.v1_15_R1.Advancement mcAdvancement;
+    @LazyValue
+    private AdvancementWrapper wrapper;
 
     /**
-     * Creates a new {@code RootAdvancement} with a maximum criteria of {@code 1}.
+     * Creates a new {@code RootAdvancement} with a maximum progression of {@code 1}.
      *
      * @param advancementTab The advancement tab of the advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
@@ -51,10 +48,10 @@ public class RootAdvancement extends Advancement {
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
      * @param backgroundTexture The path of the background texture image (like "textures/block/stone.png").
-     * @param maxCriteria The maximum advancement criteria.
+     * @param maxProgression The maximum advancement progression.
      */
-    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull String backgroundTexture, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        super(advancementTab, key, display, maxCriteria);
+    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull String backgroundTexture, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+        super(advancementTab, key, display, maxProgression);
         this.backgroundTexture = Objects.requireNonNull(backgroundTexture, "Background texture is null.");
     }
 
@@ -62,13 +59,16 @@ public class RootAdvancement extends Advancement {
      * {@inheritDoc}
      */
     @NotNull
-    public net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement() {
-        if (mcAdvancement != null) {
-            return mcAdvancement;
+    public AdvancementWrapper getNMSWrapper() {
+        if (wrapper != null) {
+            return wrapper;
         }
 
-        Map<String, Criterion> advCrit = getAdvancementCriteria(maxCriteria);
-        return mcAdvancement = new net.minecraft.server.v1_15_R1.Advancement(getMinecraftKey(), null, display.getMinecraftDisplay(this), ADV_REWARDS, advCrit, getAdvancementRequirements(advCrit));
+        try {
+            return wrapper = AdvancementWrapper.craftRootAdvancement(key.getNMSWrapper(), display.getNMSWrapper(this), maxProgression);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

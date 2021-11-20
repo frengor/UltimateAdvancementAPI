@@ -1,6 +1,5 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
-import lombok.Getter;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -90,18 +89,15 @@ public class ConfigManager {
     }
 
     private String getOrDefault(@NotNull String path, @NotNull String def) {
-        Object obj = config.get(path);
-        return obj instanceof String ? (String) obj : def;
+        return config.get(path) instanceof String s ? s : def;
     }
 
     private Integer getOrDefault(@NotNull String path, @NotNull Integer def) {
-        Object obj = config.get(path);
-        return obj instanceof Integer ? (Integer) obj : def;
+        return config.get(path) instanceof Integer i ? i : def;
     }
 
     private Long getOrDefault(@NotNull String path, @NotNull Long def) {
-        Object obj = config.get(path);
-        return obj instanceof Long ? (Long) obj : def;
+        return config.get(path) instanceof Long l ? l : def;
     }
 
     public boolean getDisableVanillaAdvancements() {

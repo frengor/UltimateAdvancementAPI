@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>ultimateadvancementapi-parent</artifactId>
+        <groupId>com.frengor</groupId>
+        <version>parent-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ultimateadvancementapi-commands-parent</artifactId>
+    <name>UltimateAdvancementAPI-Commands-Parent</name>
+    <url>${parent.url}</url>
+    <packaging>pom</packaging>
+
+    <properties>
+        <!-- Skip deploy -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
+    <modules>
+        <module>Common</module>
+        <module>CommandAPI-5.12</module>
+        <module>CommandAPI-6.3.1</module>
+        <module>Distribution</module>
+    </modules>
+
+    <dependencies>
+        <!-- UltimateAdvancementAPI Common Module -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-common</artifactId>
+            <version>${apiVersion}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.frengor</groupId>
+                    <artifactId>eventmanagerapi</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <configuration>
+                        <relocations>
+                            <relocation>
+                                <pattern>net.byteflux.libby</pattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
+                            </relocation>
+                            <relocation>
+                                <pattern>dev.jorel.commandapi</pattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
+                            </relocation>
+                            <relocation>
+                                <pattern>com.fren_gor.eventManagerAPI</pattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.events</shadedPattern>
+                            </relocation>
+                        </relocations>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

@@ -4,7 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
-import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskCriteriaUpdateException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskProgressionUpdateException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.google.common.collect.Sets;
@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateCriteriaStrict;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
 
 /**
  * An implementation of {@link AbstractMultiTasksAdvancement}. {@link TaskAdvancement}s have to be registered
@@ -31,18 +31,19 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
 
     /**
-     * Whether to enable arbitrary criteria in {@link MultiTasksAdvancement#setCriteriaTeamProgression(TeamProgression, Player, int, boolean)}.
+     * Whether to enable arbitrary progression updates in {@link MultiTasksAdvancement#setProgression(TeamProgression, Player, int, boolean)}.
      *
-     * @see MultiTasksAdvancement#setCriteriaTeamProgression(TeamProgression, Player, int, boolean)
+     * @see MultiTasksAdvancement#setProgression(TeamProgression, Player, int, boolean)
      */
-    public boolean ENABLE_ARBITRARY_SET_TEAM_CRITERIA = false;
+    protected boolean ENABLE_ARBITRARY_SET_PROGRESSION = false;
+
     /**
-     * Whether to disable {@link ArbitraryMultiTaskCriteriaUpdateException} in {@link MultiTasksAdvancement#setCriteriaTeamProgression(TeamProgression, Player, int, boolean)}.
-     * <p>Ignored when {@link #ENABLE_ARBITRARY_SET_TEAM_CRITERIA} is set to {@code true}.
+     * Whether to disable {@link ArbitraryMultiTaskProgressionUpdateException} in {@link MultiTasksAdvancement#setProgression(TeamProgression, Player, int, boolean)}.
+     * <p>Ignored when {@link #ENABLE_ARBITRARY_SET_PROGRESSION} is set to {@code true}.
      *
-     * @see MultiTasksAdvancement#setCriteriaTeamProgression(TeamProgression, Player, int, boolean)
+     * @see MultiTasksAdvancement#setProgression(TeamProgression, Player, int, boolean)
      */
-    public boolean DISABLE_EXCEPTION_ON_ARBITRARY_SET_TEAM_CRITERIA = false;
+    protected boolean DISABLE_EXCEPTION_ON_ARBITRARY_SET_PROGRESSION = false;
 
     /**
      * The tasks of this advancement.
@@ -50,9 +51,9 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     protected final Set<TaskAdvancement> tasks = new HashSet<>();
 
     /**
-     * The cache for the criteria per team (the key is the team unique id).
+     * The cache for the team's progressions (the key is the team unique id).
      */
-    protected final Map<Integer, Integer> criteriaCache = new HashMap<>();
+    protected final Map<Integer, Integer> progressionsCache = new HashMap<>();
 
     private boolean initialised = false, doReloads = true;
 
@@ -62,10 +63,10 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
      * @param parent The parent of this advancement.
-     * @param maxCriteria The sum of the maximum criteria of all the tasks that will be registered.
+     * @param maxProgression The sum of the maximum progressions of all the tasks that will be registered.
      */
-    public MultiTasksAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxCriteria) {
-        super(key, display, parent, maxCriteria);
+    public MultiTasksAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+        super(key, display, parent, maxProgression);
     }
 
     /**
@@ -87,7 +88,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             throw new IllegalStateException("MultiTaskAdvancement is already initialised.");
         }
         Validate.notNull(tasks, "Set<TaskAdvancement> is null.");
-        int criteria = 0;
+        int progression = 0;
         for (TaskAdvancement t : tasks) {
             if (t == null) {
                 throw new IllegalArgumentException("A TaskAdvancement is null.");
@@ -99,13 +100,13 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             /*if (!advancementTab.isOwnedByThisTab(t)) {
                 throw new IllegalArgumentException("TaskAdvancement " + t.getKey() + " is not owned by this tab (" + advancementTab.getNamespace() + ").");
             }*/
-            criteria += t.getMaxCriteria();
+            progression += t.getMaxProgression();
         }
-        if (criteria != maxCriteria) {
-            throw new IllegalArgumentException("Expected max criteria (" + maxCriteria + ") doesn't match the tasks' total one (" + criteria + ").");
+        if (progression != maxProgression) {
+            throw new IllegalArgumentException("Expected max progression (" + maxProgression + ") doesn't match the tasks' total one (" + progression + ").");
         }
         this.tasks.addAll(tasks);
-        registerEvent(TeamUnloadEvent.class, e -> criteriaCache.remove(e.getTeam().getTeamId()));
+        registerEvent(TeamUnloadEvent.class, e -> progressionsCache.remove(e.getTeamProgression().getTeamId()));
         initialised = true;
     }
 
@@ -129,19 +130,19 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      */
     @Override
     @Range(from = 0, to = Integer.MAX_VALUE)
-    public int getTeamCriteria(@NotNull TeamProgression progression) {
+    public int getProgression(@NotNull TeamProgression progression) {
         checkInitialisation();
         Validate.notNull(progression, "TeamProgression is null.");
-        Integer criteria = criteriaCache.get(progression.getTeamId());
-        if (criteria == null) {
+        Integer progr = progressionsCache.get(progression.getTeamId());
+        if (progr == null) {
             int c = 0;
             for (TaskAdvancement t : tasks) {
-                c += progression.getCriteria(t);
+                c += progression.getProgression(t);
             }
-            criteriaCache.put(progression.getTeamId(), c);
+            progressionsCache.put(progression.getTeamId(), c);
             return c;
         } else {
-            return criteria;
+            return progr;
         }
     }
 
@@ -154,79 +155,79 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     public boolean isGranted(@NotNull TeamProgression pro) {
         checkInitialisation();
         Validate.notNull(pro, "TeamProgression is null.");
-        return getTeamCriteria(pro) >= maxCriteria;
+        return getProgression(pro) >= maxProgression;
     }
 
     /**
-     * Sets a criteria for this advancement. Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s,
-     * it is not possible (by default) to set any criteria, but {@code 0} or {@link MultiTasksAdvancement#maxCriteria}. Setting any criteria between these will result in an {@link ArbitraryMultiTaskCriteriaUpdateException}.
+     * Sets a progression for the provided player's team. Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s,
+     * it is not possible (by default) to set any progression, but {@code 0} or {@link MultiTasksAdvancement#maxProgression}. Setting any progression between those will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
      * <p>
-     * To enable arbitrary criteria, set {@link MultiTasksAdvancement#ENABLE_ARBITRARY_SET_TEAM_CRITERIA} to {@code true} ({@code false} by default).
-     * To disable the {@link ArbitraryMultiTaskCriteriaUpdateException} set {@link MultiTasksAdvancement#DISABLE_EXCEPTION_ON_ARBITRARY_SET_TEAM_CRITERIA} to {@code true}.
+     * To enable arbitrary progression updates, set {@link MultiTasksAdvancement#ENABLE_ARBITRARY_SET_PROGRESSION} to {@code true} ({@code false} by default).
+     * To prevent the throwing of {@link ArbitraryMultiTaskProgressionUpdateException}s set {@link MultiTasksAdvancement#DISABLE_EXCEPTION_ON_ARBITRARY_SET_PROGRESSION} to {@code true}.
      * </p>
      *
      * @param progression The {@link TeamProgression} of the player.
-     * @param player The player, null if it's not online. (Note: it must have been loaded into cache)
-     * @param criteria The criteria to set. Must be between 0 and {@link MultiTasksAdvancement#maxCriteria}.
-     * @param giveRewards Whether to give rewards to player if criteria reaches {@link MultiTasksAdvancement#maxCriteria}.
-     * @throws ArbitraryMultiTaskCriteriaUpdateException When criteria is not {@code 0} or {@link MultiTasksAdvancement#maxCriteria} and either {@link MultiTasksAdvancement#ENABLE_ARBITRARY_SET_TEAM_CRITERIA} or {@link MultiTasksAdvancement#DISABLE_EXCEPTION_ON_ARBITRARY_SET_TEAM_CRITERIA} are not set to {@code true}.
+     * @param player The player, {@code null} if it's not online. (Note: it must have been loaded into cache)
+     * @param newProgression The new progression to set. Must be between 0 and {@link MultiTasksAdvancement#maxProgression}.
+     * @param giveRewards Whether to give rewards to player if the team's progression reaches {@link MultiTasksAdvancement#maxProgression}.
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided new progression is not {@code 0} or {@link MultiTasksAdvancement#maxProgression} and either {@link MultiTasksAdvancement#ENABLE_ARBITRARY_SET_PROGRESSION} or {@link MultiTasksAdvancement#DISABLE_EXCEPTION_ON_ARBITRARY_SET_PROGRESSION} are not set to {@code true}.
      * @throws IllegalStateException If the multi-task advancement is not initialised.
      */
     @Override
-    protected void setCriteriaTeamProgression(@NotNull TeamProgression progression, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) throws ArbitraryMultiTaskCriteriaUpdateException {
+    protected void setProgression(@NotNull TeamProgression progression, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, boolean giveRewards) throws ArbitraryMultiTaskProgressionUpdateException {
         checkInitialisation();
         Validate.notNull(progression, "TeamProgression is null.");
-        validateCriteriaStrict(criteria, maxCriteria);
+        validateProgressionValueStrict(newProgression, maxProgression);
 
-        int current = getTeamCriteria(progression);
-        if (current == criteria) {
+        int current = getProgression(progression);
+        if (current == newProgression) {
             return; // Unnecessary update
         }
 
         doReloads = false;
         try {
-            if (criteria == maxCriteria) {
+            if (newProgression == maxProgression) {
                 for (TaskAdvancement t : tasks) {
-                    t.setCriteriaTeamProgression(progression, player, t.getMaxCriteria(), giveRewards);
+                    t.setProgression(progression, player, t.getMaxProgression(), giveRewards);
                 }
-            } else if (criteria == 0) {
+            } else if (newProgression == 0) {
                 for (TaskAdvancement t : tasks) {
-                    t.setCriteriaTeamProgression(progression, player, 0, giveRewards);
+                    t.setProgression(progression, player, 0, giveRewards);
                 }
-            } else if (ENABLE_ARBITRARY_SET_TEAM_CRITERIA) {
-                if (criteria < current) {
+            } else if (ENABLE_ARBITRARY_SET_PROGRESSION) {
+                if (newProgression < current) {
                     for (TaskAdvancement t : tasks) {
-                        int tc = t.getTeamCriteria(progression);
-                        if (current - tc > criteria) {
-                            t.setCriteriaTeamProgression(progression, player, 0, false);
-                        } else if (current - tc <= criteria) {
-                            t.setCriteriaTeamProgression(progression, player, tc + criteria - current, false);
+                        int tc = t.getProgression(progression);
+                        if (current - tc > newProgression) {
+                            t.setProgression(progression, player, 0, false);
+                        } else if (current - tc <= newProgression) {
+                            t.setProgression(progression, player, tc + newProgression - current, false);
                             break;
                         }
                     }
-                } else /*if (criteria > current)*/ {
+                } else /*if (newProgression > current)*/ {
                     for (TaskAdvancement t : tasks) {
-                        int ta = t.getTeamCriteria(progression);
-                        int tc = t.getMaxCriteria() - ta;
-                        if (current + tc < criteria) {
-                            t.setCriteriaTeamProgression(progression, player, t.getMaxCriteria(), giveRewards);
-                        } else if (current + tc >= criteria) {
-                            t.setCriteriaTeamProgression(progression, player, ta + criteria - current, giveRewards);
+                        int ta = t.getProgression(progression);
+                        int tc = t.getMaxProgression() - ta;
+                        if (current + tc < newProgression) {
+                            t.setProgression(progression, player, t.getMaxProgression(), giveRewards);
+                        } else if (current + tc >= newProgression) {
+                            t.setProgression(progression, player, ta + newProgression - current, giveRewards);
                             break;
                         }
                     }
                 }
             } else {
-                if (DISABLE_EXCEPTION_ON_ARBITRARY_SET_TEAM_CRITERIA)
+                if (DISABLE_EXCEPTION_ON_ARBITRARY_SET_PROGRESSION)
                     return;
-                throw new ArbitraryMultiTaskCriteriaUpdateException();
+                throw new ArbitraryMultiTaskProgressionUpdateException();
             }
         } finally {
             doReloads = true;
         }
-        updateTeamCriteriaCache(progression, criteria);
+        updateProgressionCache(progression, newProgression);
 
-        handlePlayer(progression, player, criteria, current, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+        handlePlayer(progression, player, newProgression, current, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
     }
 
     /**
@@ -240,42 +241,42 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         if (doReloads) { // Skip reloads when update comes from ourselves
             Validate.notNull(progression, "TeamProgression is null.");
 
-            int current = getTeamCriteria(progression);
-            resetTeamCriteriaCache(progression);
+            int current = getProgression(progression);
+            resetProgressionCache(progression);
 
             // Update MultiTasksAdvancement to players since a task has been updated
-            // Note that the return of getTeamCriteria should be changed from the previous call
-            handlePlayer(progression, player, getTeamCriteria(progression), current, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+            // Note that the return of getProgression should be changed from the previous call
+            handlePlayer(progression, player, getProgression(progression), current, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
         }
     }
 
     /**
-     * Resets the team criteria cache for every team.
+     * Resets the progression cache for every team.
      */
-    public void resetCriteriaCache() {
-        criteriaCache.clear();
+    public void resetProgressionCache() {
+        progressionsCache.clear();
     }
 
     /**
-     * Resets the team criteria cache for the provided team.
+     * Resets the progression cache for the provided team.
      *
      * @param pro The team to remove from the cache.
      */
-    public void resetTeamCriteriaCache(@NotNull TeamProgression pro) {
+    public void resetProgressionCache(@NotNull TeamProgression pro) {
         Validate.notNull(pro, "TeamProgression is null.");
-        criteriaCache.remove(pro.getTeamId());
+        progressionsCache.remove(pro.getTeamId());
     }
 
     /**
-     * Updates the team criteria cache for the provided team.
+     * Updates the progression cache for the provided team.
      *
      * @param pro The team to update.
-     * @param criteria The new criteria to store in cache.
+     * @param progression The new progression to store in cache.
      */
-    protected void updateTeamCriteriaCache(@NotNull TeamProgression pro, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
+    protected void updateProgressionCache(@NotNull TeamProgression pro, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
         Validate.notNull(pro, "TeamProgression is null.");
-        validateCriteriaStrict(criteria, maxCriteria);
-        criteriaCache.put(pro.getTeamId(), criteria);
+        validateProgressionValueStrict(progression, maxProgression);
+        progressionsCache.put(pro.getTeamId(), progression);
     }
 
     private void checkInitialisation() {

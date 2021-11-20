@@ -4,6 +4,7 @@ import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.generator.BiomeProvider;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -14,14 +15,15 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 public class FakePlugin implements Plugin {
     private final Logger logger;
     private final String name;
 
-    public FakePlugin(String name) {
-        this.name = name;
+    public FakePlugin(@NotNull String name) {
+        this.name = Objects.requireNonNull(name, "Name is null.");
         this.logger = Logger.getLogger(name);
     }
 
@@ -127,6 +129,12 @@ public class FakePlugin implements Plugin {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public BiomeProvider getDefaultBiomeProvider(@NotNull String s, @Nullable String s1) {
         return null;
     }
 }

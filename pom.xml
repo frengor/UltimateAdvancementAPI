@@ -6,7 +6,7 @@
 
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi-parent</artifactId>
-    <version>1.15.2-parent-SNAPSHOT</version>
+    <version>parent-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>UltimateAdvancementAPI-Parent</name>
@@ -27,26 +27,29 @@
 
     <licenses>
         <license>
-            <name>GNU Lesser General Public License</name>
+            <name>GNU Lesser General Public License v3.0 or later</name>
             <url>https://www.gnu.org/licenses/lgpl-3.0.txt</url>
+            <distribution>repo</distribution>
         </license>
     </licenses>
 
     <modules>
+        <module>NMS</module>
         <module>Common</module>
-        <module>Plugin</module>
+        <module>Commands</module>
         <module>Distribution</module>
+        <module>Plugin</module>
     </modules>
 
     <properties>
         <!-- Project Properties -->
-        <apiVersion>1.0.2</apiVersion> <!-- Change also in Versions class -->
-        <mcVersion>1.15.2</mcVersion>
+        <apiVersion>2.0.0</apiVersion> <!-- Change also in Versions class -->
+        <libbyVersion>1.1.3</libbyVersion>
         <projectEncoding>UTF-8</projectEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>16</maven.compiler.source>
+        <maven.compiler.target>16</maven.compiler.target>
     </properties>
 
     <repositories>
@@ -54,6 +57,12 @@
         <repository>
             <id>fren_gor</id>
             <url>https://nexus.frengor.com/repository/public/</url>
+        </repository>
+
+        <!-- Spigot -->
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
 
         <!-- CommandAPI -->
@@ -89,19 +98,11 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Spigot 1.15.5 -->
+        <!-- Spigot 1.17.1 -->
         <dependency>
             <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
-            <version>${mcVersion}-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.20</version>
+            <artifactId>spigot-api</artifactId>
+            <version>1.17.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
@@ -109,7 +110,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
-            <version>3.12.4</version>
+            <version>4.0.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -123,7 +124,7 @@
     </dependencies>
 
     <build>
-        <finalName>${project.name}-${mcVersion}-${apiVersion}</finalName>
+        <finalName>${project.name}-${apiVersion}</finalName>
         <defaultGoal>clean install</defaultGoal>
 
         <pluginManagement>
@@ -131,11 +132,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>3.1.0</version>
-                    <configuration>
-                        <createDependencyReducedPom>false</createDependencyReducedPom>
-                        <minimizeJar>false</minimizeJar>
-                    </configuration>
+                    <version>3.3.0-SNAPSHOT</version>
                     <executions>
                         <execution>
                             <phase>package</phase>
@@ -144,38 +141,13 @@
                             </goals>
                         </execution>
                     </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
                     <configuration>
-                        <annotationProcessorPaths>
-                            <path>
-                                <groupId>org.projectlombok</groupId>
-                                <artifactId>lombok</artifactId>
-                                <version>1.18.20</version>
-                            </path>
-                        </annotationProcessorPaths>
+                        <createDependencyReducedPom>false</createDependencyReducedPom>
+                        <minimizeJar>false</minimizeJar>
+                        <createSourcesJar>true</createSourcesJar>
+                        <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
+                        <shadeSourcesContent>true</shadeSourcesContent>
                     </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.projectlombok</groupId>
-                    <artifactId>lombok-maven-plugin</artifactId>
-                    <version>1.18.20.0</version>
-                    <executions>
-                        <execution>
-                            <phase>generate-sources</phase>
-                            <goals>
-                                <goal>delombok</goal>
-                            </goals>
-                            <configuration>
-                                <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
-                                <outputDirectory>${project.build.directory}/delombok</outputDirectory>
-                                <addOutputDirectory>false</addOutputDirectory>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -187,38 +159,6 @@
                             <goals>
                                 <goal>jar-no-fork</goal>
                             </goals>
-                            <configuration>
-                                <excludeResources>true</excludeResources>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-antrun-plugin</artifactId>
-                    <version>3.0.0</version>
-                    <executions>
-                        <execution>
-                            <id>update-sources</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>run</goal>
-                            </goals>
-                            <configuration>
-                                <target>
-                                    <copy todir="${project.build.directory}/delombok">
-                                        <fileset dir="${project.build.directory}/classes">
-                                            <include name="LGPL"/>
-                                            <include name="LICENSE"/>
-                                            <include name="NOTICE"/>
-                                        </fileset>
-                                    </copy>
-
-                                    <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar" update="true">
-                                        <zipfileset dir="${project.build.directory}/delombok/"/>
-                                    </jar>
-                                </target>
-                            </configuration>
                         </execution>
                     </executions>
                 </plugin>
@@ -227,39 +167,28 @@
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>3.3.0</version>
                     <executions>
-                        <!-- Create javadocs to catch any warnings -->
                         <execution>
-                            <phase>package</phase>
+                            <phase>prepare-package</phase>
                             <goals>
                                 <goal>jar</goal>
                             </goals>
-                            <configuration>
-                                <attach>false</attach>
-                                <doclint>all,-missing</doclint> <!-- To remove when javadoc is finished -->
-                                <failOnWarnings>true</failOnWarnings>
-                            </configuration>
-                        </execution>
-                        <!-- Then again with delombok -->
-                        <execution>
-                            <id>delombok</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>jar</goal>
-                            </goals>
-                            <configuration>
-                                <doclint>none</doclint>
-                                <sourcepath>${project.build.directory}/delombok</sourcepath>
-                                <links>
-                                    <link>https://frengor.com/javadocs/EventManagerAPI/build-server/</link>
-                                    <link>https://javadoc.io/doc/org.jetbrains/annotations/22.0.0/</link>
-                                    <link>https://javadoc.io/static/net.md-5/bungeecord-chat/1.16-R0.4/</link>
-                                    <link>https://hub.spigotmc.org/javadocs/spigot/</link>
-                                </links>
-                            </configuration>
                         </execution>
                     </executions>
                     <configuration>
                         <quiet>true</quiet>
+
+                        <doclint>all,-missing</doclint> <!-- To remove when javadoc is finished -->
+                        <failOnWarnings>true</failOnWarnings>
+                        <links>
+                            <link>https://frengor.com/javadocs/EventManagerAPI/build-server/</link>
+                            <link>https://javadoc.io/doc/org.jetbrains/annotations/22.0.0/</link>
+                            <link>https://javadoc.io/static/net.md-5/bungeecord-chat/1.16-R0.4/</link>
+                            <link>https://hub.spigotmc.org/javadocs/spigot/</link>
+                        </links>
+                        <dependencySourceIncludes>com.frengor:ultimateadvancementapi*</dependencySourceIncludes>
+                        <dependencySourceExcludes>com.frengor:ultimateadvancementapi-nms-1_*</dependencySourceExcludes>
+                        <includeDependencySources>true</includeDependencySources>
+
                         <bottom>
                             <!-- Hacky way to insert custom css without modifying the full css style file -->
                             <![CDATA[<style>main a[href*="://"]::after{content: none;}</style>Copyright &#169; {inceptionYear}&#x2013;{currentYear} fren_gor, EscanorTargaryen. All rights reserved.]]>
@@ -307,5 +236,13 @@
             </plugins>
         </pluginManagement>
     </build>
+
+    <!-- Maven repo for snapshot plugins -->
+    <pluginRepositories>
+        <pluginRepository>
+            <id>maven-snapshots</id>
+            <url>https://repository.apache.org/content/repositories/snapshots/</url>
+        </pluginRepository>
+    </pluginRepositories>
 
 </project>

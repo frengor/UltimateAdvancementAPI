@@ -7,34 +7,38 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-parent</artifactId>
-        <version>1.15.2-parent-SNAPSHOT</version>
+        <version>parent-SNAPSHOT</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-plugin</artifactId>
     <name>UltimateAdvancementAPI-Plugin</name>
-    <version>${mcVersion}-${apiVersion}</version>
+    <version>2.0.0</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
+    <properties>
+        <!-- Skip deploy -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <dependencies>
-        <!-- UltimateAdvancementAPI Shadeable -->
+        <!-- UltimateAdvancementAPI Common - for IntelliJ -->
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-common</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>net.byteflux</groupId>
-                    <artifactId>libby-bukkit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.frengor</groupId>
-                    <artifactId>eventmanagerapi</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${apiVersion}</version>
+            <scope>provided</scope>
         </dependency>
 
+        <!-- UltimateAdvancementAPI Commands - for IntelliJ -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-common</artifactId>
+            <version>${apiVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- bStats -->
         <dependency>
             <groupId>org.bstats</groupId>
             <artifactId>bstats-bukkit</artifactId>
@@ -42,28 +46,19 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- For JavaDoc Generation -->
-        <dependency>
-            <groupId>net.byteflux</groupId>
-            <artifactId>libby-bukkit</artifactId>
-            <version>1.1.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- For JavaDoc Generation -->
+        <!-- Compiled dependencies -->
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>eventmanagerapi</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>provided</scope>
+            <artifactId>ultimateadvancementapi-shadeable</artifactId>
+            <version>${apiVersion}</version>
+            <scope>runtime</scope>
         </dependency>
 
-        <!-- CommandAPI -->
         <dependency>
-            <groupId>dev.jorel.CommandAPI</groupId>
-            <artifactId>commandapi-shade</artifactId>
-            <version>5.12</version>
-            <scope>compile</scope>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands</artifactId>
+            <version>${apiVersion}</version>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
 
@@ -95,6 +90,10 @@
                 <configuration>
                     <relocations>
                         <relocation>
+                            <pattern>org.bstats</pattern>
+                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.org.bstats</shadedPattern>
+                        </relocation>
+                        <relocation>
                             <pattern>net.byteflux.libby</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
                         </relocation>
@@ -102,96 +101,10 @@
                             <pattern>com.fren_gor.eventManagerAPI</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.events</shadedPattern>
                         </relocation>
-                        <relocation>
-                            <pattern>dev.jorel.commandapi</pattern>
-                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>org.bstats</pattern>
-                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.org.bstats</shadedPattern>
-                        </relocation>
                     </relocations>
+                    <createSourcesJar>false</createSourcesJar>
+                    <shadeSourcesContent>false</shadeSourcesContent>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <id>unpack-dependencies</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>unpack-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <classifier>sources</classifier>
-                            <includeArtifactIds>ultimateadvancementapi-common</includeArtifactIds>
-                            <outputDirectory>${project.build.directory}/dependency-sources</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>process-sources</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <copy todir="${project.build.directory}/delombok">
-                                    <fileset dir="${project.build.directory}/dependency-sources">
-                                        <include name="**/*.java"/>
-                                    </fileset>
-                                </copy>
-                            </target>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>update-sources</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <copy todir="${project.build.directory}/delombok">
-                                    <fileset dir="${project.build.directory}/classes">
-                                        <include name="LGPL"/>
-                                        <include name="LICENSE"/>
-                                        <include name="NOTICE"/>
-                                        <include name="config.yml"/>
-                                        <include name="plugin.yml"/>
-                                    </fileset>
-                                </copy>
-
-                                <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar" update="true">
-                                    <zipfileset dir="${project.build.directory}/delombok/"/>
-                                </jar>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

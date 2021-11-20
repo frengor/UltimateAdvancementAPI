@@ -99,6 +99,9 @@ public final class AdvancementMain {
             String fancy = Versions.getSupportedNMSVersions().stream().map(Versions::getNMSVersionsRange).collect(Collectors.joining(", ", "[", "]"));
             throw new InvalidVersionException(fancy, actual, "Invalid minecraft version, couldn't load UltimateAdvancementAPI. Supported versions are " + fancy + '.');
         }
+
+        libbyManager = new BukkitLibraryManager(owningPlugin, libFolder);
+        libbyManager.addMavenCentral();
     }
 
     /**
@@ -167,8 +170,8 @@ public final class AdvancementMain {
             throw new IllegalStateException("UltimateAdvancementAPI is getting enabled twice.");
         }
 
-        libbyManager = new BukkitLibraryManager(owningPlugin, libFolder);
-        libbyManager.addMavenCentral();
+        //libbyManager = new BukkitLibraryManager(owningPlugin, libFolder);
+        //libbyManager.addMavenCentral();
 
         eventManager = new EventManager(owningPlugin);
 
@@ -344,6 +347,7 @@ public final class AdvancementMain {
      * @param namespacedKey The namespaced key of the advancement. It must be in the format {@code "namespace:key"}.
      * @return The advancement with the provided namespaced key., or {@code null} if it doesn't exist.
      * @throws IllegalStateException If the API is not enabled.
+     * @throws IllegalArgumentException If the namespaced key is malformed.
      * @see UltimateAdvancementAPI#getAdvancement(String)
      */
     @Nullable
@@ -351,7 +355,7 @@ public final class AdvancementMain {
         checkInitialisation();
         int colon = namespacedKey.indexOf(':');
         if (colon <= 0 || colon == namespacedKey.length() - 1) {
-            throw new IllegalArgumentException("Malformed NamespacedKey '" + namespacedKey + "'");
+            throw new IllegalArgumentException("Malformed namespaced key '" + namespacedKey + "'");
         }
         return getAdvancement(namespacedKey.substring(0, colon), namespacedKey.substring(colon + 1));
     }

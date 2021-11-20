@@ -3,12 +3,11 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.minecraft.server.v1_15_R1.AdvancementProgress;
-import net.minecraft.server.v1_15_R1.ChatComponentText;
-import net.minecraft.server.v1_15_R1.Criterion;
-import net.minecraft.server.v1_15_R1.MinecraftKey;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -19,13 +18,8 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.ADV_REWARDS;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementCriteria;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvancementRequirements;
 
 /**
  * The {@code FakeAdvancement} class is a non-saved and non-registrable invisible advancement.
@@ -37,8 +31,6 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.getAdvan
 public final class FakeAdvancement extends BaseAdvancement {
 
     private static final AtomicInteger FAKE_NUMBER = new AtomicInteger(1);
-
-    private net.minecraft.server.v1_15_R1.Advancement mcAdvancement;
 
     /**
      * Creates a new {@code FakeAdvancement}.
@@ -75,13 +67,8 @@ public final class FakeAdvancement extends BaseAdvancement {
      */
     @Override
     @NotNull
-    public net.minecraft.server.v1_15_R1.Advancement getMinecraftAdvancement() {
-        if (mcAdvancement != null) {
-            return mcAdvancement;
-        }
-
-        Map<String, Criterion> advCriteria = getAdvancementCriteria(maxCriteria);
-        return mcAdvancement = new net.minecraft.server.v1_15_R1.Advancement(getMinecraftKey(), parent.getMinecraftAdvancement(), display.getMinecraftDisplay(this), ADV_REWARDS, advCriteria, getAdvancementRequirements(advCriteria));
+    public AdvancementWrapper getNMSWrapper() {
+        return super.getNMSWrapper();
     }
 
     /**
@@ -91,7 +78,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @return Always {@code 0}.
      */
     @Override
-    public int getTeamCriteria(@NotNull Player player) {
+    public int getProgression(@NotNull Player player) {
         return 0;
     }
 
@@ -102,7 +89,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @return Always {@code 0}.
      */
     @Override
-    public int getTeamCriteria(@NotNull UUID uuid) {
+    public int getProgression(@NotNull UUID uuid) {
         return 0;
     }
 
@@ -113,7 +100,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @return Always {@code 0}.
      */
     @Override
-    public int getTeamCriteria(@NotNull TeamProgression progression) {
+    public int getProgression(@NotNull TeamProgression progression) {
         return 0;
     }
 
@@ -156,22 +143,9 @@ public final class FakeAdvancement extends BaseAdvancement {
     /**
      * {@inheritDoc}
      */
-    // Must be kept to avoid accidental inclusion in UnsupportedOperationException methods down below
     @Override
-    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Set<net.minecraft.server.v1_15_R1.Advancement> advancementList, @NotNull Map<MinecraftKey, AdvancementProgress> progresses, @NotNull Set<MinecraftKey> added) {
-        // Since isVisible() returns true for every input we can use the super method
-        super.onUpdate(teamProgression, advancementList, progresses, added);
-        // instead of this version down below
-        /*net.minecraft.server.v1_15_R1.Advancement adv = getMinecraftAdvancement();
-        advancementList.add(adv);
-
-        // Inlining of getAdvancementProgress()
-        AdvancementProgress advPrg = new AdvancementProgress();
-        advPrg.a(adv.getCriteria(), adv.i());
-
-        MinecraftKey key = getMinecraftKey();
-        added.add(key);
-        progresses.put(key, advPrg);*/
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
+        super.onUpdate(teamProgression, addedAdvancements);
     }
 
     /**
@@ -212,10 +186,13 @@ public final class FakeAdvancement extends BaseAdvancement {
          */
         @Override
         @NotNull
-        public net.minecraft.server.v1_15_R1.AdvancementDisplay getMinecraftDisplay(@NotNull Advancement advancement) {
-            net.minecraft.server.v1_15_R1.AdvancementDisplay advDisplay = new net.minecraft.server.v1_15_R1.AdvancementDisplay(getNMSIcon(), new ChatComponentText(title), new ChatComponentText(compactDescription), null, frame.getMinecraftFrameType(), false, false, true);
-            advDisplay.a(x, y);
-            return advDisplay;
+        public AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement) {
+            Validate.notNull(advancement, "Advancement is null.");
+            try {
+                return AdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y, false, false, true);
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -272,7 +249,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull UUID uuid) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull UUID uuid) {
         throw new UnsupportedOperationException();
     }
 
@@ -283,7 +260,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull UUID uuid, boolean giveReward) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull UUID uuid, boolean giveReward) {
         throw new UnsupportedOperationException();
     }
 
@@ -294,7 +271,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
         throw new UnsupportedOperationException();
     }
 
@@ -305,7 +282,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
         throw new UnsupportedOperationException();
     }
 
@@ -316,7 +293,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull Player player) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull Player player) {
         throw new UnsupportedOperationException();
     }
 
@@ -327,7 +304,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull Player player, boolean giveReward) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull Player player, boolean giveReward) {
         throw new UnsupportedOperationException();
     }
 
@@ -338,7 +315,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
         throw new UnsupportedOperationException();
     }
 
@@ -349,7 +326,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+    public @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
         throw new UnsupportedOperationException();
     }
 
@@ -360,7 +337,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    protected @Range(from = 0, to = Integer.MAX_VALUE) int incrementTeamCriteria(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
+    protected @Range(from = 0, to = Integer.MAX_VALUE) int incrementProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
         throw new UnsupportedOperationException();
     }
 
@@ -371,7 +348,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public void setCriteriaTeamProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
+    public void setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
         throw new UnsupportedOperationException();
     }
 
@@ -382,7 +359,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public void setCriteriaTeamProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
+    public void setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
         throw new UnsupportedOperationException();
     }
 
@@ -393,7 +370,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria) {
+    public void setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
         throw new UnsupportedOperationException();
     }
 
@@ -404,7 +381,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public void setCriteriaTeamProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveReward) {
+    public void setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
         throw new UnsupportedOperationException();
     }
 
@@ -415,7 +392,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    protected void setCriteriaTeamProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int criteria, boolean giveRewards) {
+    protected void setProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveRewards) {
         throw new UnsupportedOperationException();
     }
 
@@ -426,7 +403,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int criteria, int old, boolean giveRewards, @Nullable AfterHandle afterHandle) {
+    protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int newProgression, int oldProgression, boolean giveRewards, @Nullable AfterHandle afterHandle) {
         throw new UnsupportedOperationException();
     }
 

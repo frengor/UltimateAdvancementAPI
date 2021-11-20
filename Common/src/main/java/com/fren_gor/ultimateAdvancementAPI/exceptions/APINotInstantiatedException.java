@@ -1,5 +1,10 @@
 package com.fren_gor.ultimateAdvancementAPI.exceptions;
 
+import com.fren_gor.ultimateAdvancementAPI.UltimateAdvancementAPI;
+
+/**
+ * This exception is thrown when {@link UltimateAdvancementAPI} is used but the API has not yet been enabled.
+ */
 public class APINotInstantiatedException extends RuntimeException {
 
     public APINotInstantiatedException() {

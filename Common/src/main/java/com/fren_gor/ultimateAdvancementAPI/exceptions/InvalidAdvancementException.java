@@ -1,5 +1,10 @@
 package com.fren_gor.ultimateAdvancementAPI.exceptions;
 
+import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+
+/**
+ * This exception is thrown when an {@link Advancement} is invalid.
+ */
 public class InvalidAdvancementException extends Exception {
 
     public InvalidAdvancementException() {

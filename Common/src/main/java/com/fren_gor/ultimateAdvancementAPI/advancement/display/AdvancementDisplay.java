@@ -2,14 +2,12 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.minecraft.server.v1_15_R1.ChatComponentText;
-import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -302,32 +300,24 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Returns the NMS AdvancementDisplay, using the provided advancement for construction (when necessary).
+     * Returns the {@code AdvancementDisplay} NMS wrapper, using the provided advancement for construction (when necessary).
      *
-     * @param advancement The advancement used, when necessary, to create the NMS AdvancementDisplay. Must be not {@code null}.
-     * @return The NMS AdvancementDisplay.
+     * @param advancement The advancement used, when necessary, to create the NMS wrapper. Must be not {@code null}.
+     * @return The {@code AdvancementDisplay} NMS wrapper.
      */
     @NotNull
-    public net.minecraft.server.v1_15_R1.AdvancementDisplay getMinecraftDisplay(@NotNull Advancement advancement) {
+    public AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement) {
         Validate.notNull(advancement, "Advancement is null.");
-        MinecraftKey bg = null;
-        if (advancement instanceof RootAdvancement) {
-            bg = new MinecraftKey(((RootAdvancement) advancement).getBackgroundTexture());
+        AdvancementDisplayWrapper wrapper;
+        try {
+            if (advancement instanceof RootAdvancement root) {
+                return AdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y, root.getBackgroundTexture());
+            } else {
+                return AdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y);
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
         }
-
-        net.minecraft.server.v1_15_R1.AdvancementDisplay advDisplay = new net.minecraft.server.v1_15_R1.AdvancementDisplay(getNMSIcon(), new ChatComponentText(title), new ChatComponentText(compactDescription), bg, frame.getMinecraftFrameType(), false, false, false);
-        advDisplay.a(x, y);
-        return advDisplay;
-    }
-
-    /**
-     * Returns the NMS icon.
-     *
-     * @return The NMS icon.
-     */
-    @NotNull
-    public net.minecraft.server.v1_15_R1.ItemStack getNMSIcon() {
-        return CraftItemStack.asNMSCopy(icon);
     }
 
     /**
