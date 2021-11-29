@@ -24,11 +24,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Objects;
@@ -40,8 +43,8 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progress
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromUUID;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateIncrement;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
 
 /**
  * The {@code Advancement} class is the parent class of every advancement.
@@ -76,7 +79,7 @@ public abstract class Advancement {
     protected final int maxProgression;
 
     @Nullable
-    private final Method iVisibilityMethod;
+    private final MethodHandle iVisibilityMethod;
 
     private Advancement() {
         throw new UnsupportedOperationException("Private constructor.");
@@ -538,8 +541,8 @@ public abstract class Advancement {
         // Advancement visibility system
         if (iVisibilityMethod != null) {
             try {
-                return (boolean) iVisibilityMethod.invoke(this, this, progression);
-            } catch (Exception e) {
+                return (boolean) iVisibilityMethod.invokeWithArguments(this, progression);
+            } catch (Throwable e) {
                 e.printStackTrace();
             }
         }
@@ -746,18 +749,18 @@ public abstract class Advancement {
      * Gets the right {@link IVisibility} sub-interface method that will be used by the advancement visibility system.
      *
      * @param clazz The class to analyze.
-     * @return The right {@link IVisibility#isVisible(Advancement, TeamProgression)} method or {@code null}.
+     * @return The right {@link IVisibility#isVisible(Advancement, TeamProgression)} {@link MethodHandle} or {@code null}.
      */
-    @Nullable
-    private Method getIVisibilityMethod(Class<? extends Advancement> clazz) {
+    private MethodHandle getIVisibilityMethod(Class<? extends Advancement> clazz) {
         for (Class<?> i : clazz.getInterfaces()) {
             if (i != IVisibility.class && IVisibility.class.isAssignableFrom(i)) {
                 try {
                     final Method m = i.getDeclaredMethod("isVisible", Advancement.class, TeamProgression.class);
                     if (m.isDefault()) {
-                        return m;
+                        // Make sure the interface method is called instead of Advancement#isVisible(Advancement, TeamProgression)
+                        return MethodHandles.lookup().unreflectSpecial(m, i).bindTo(this);
                     }
-                } catch (NoSuchMethodException e) {
+                } catch (NoSuchMethodException | IllegalAccessException e) {
                     // No method found, continue
                 }
             }
@@ -777,5 +780,22 @@ public abstract class Advancement {
     @NotNull
     public AdvancementDisplay getDisplay() {
         return display;
+    }
+
+    /**
+     * <strong>This method should not be called at any time!</strong>
+     * <p>It is present <i>only</i> to avoid compilation errors when implementing more than one interface of the Advancement Visibility System,
+     * since every one of those interfaces implement the {@link IVisibility#isVisible(Advancement, TeamProgression)} method
+     * and the compiler cannot automatically choose the method to call between the ones of the different interfaces.
+     *
+     * @throws IllegalOperationException Every time it's called.
+     * @hidden
+     * @deprecated Use {@link Advancement#isVisible(TeamProgression)}.
+     */
+    @Deprecated
+    @Internal
+    @Contract("_, _ -> fail")
+    public final boolean isVisible(Advancement advancement, TeamProgression progression) {
+        throw new IllegalOperationException("This method cannot be called. Use Advancement#isVisible(TeamProgression).");
     }
 }
