@@ -10,7 +10,9 @@
 
 A powerful API to create custom advancements for your minecraft server.
 
-**Download Page:** <https://frengor.com/UltimateAdvancementAPI>  
+**Spigot Page:** <https://www.spigotmc.org/resources/95585/>  
+**Download Page:** <https://frengor.com/UltimateAdvancementAPI/>  
+**Official Wiki:** <https://github.com/frengor/UltimateAdvancementAPI/wiki/>  
 **Javadoc:** <https://frengor.com/javadocs/UltimateAdvancementAPI/latest/>  
 **Jenkins:** <https://jenkins.frengor.com/job/UltimateAdvancementAPI/>
 
@@ -27,14 +29,14 @@ A powerful API to create custom advancements for your minecraft server.
 <dependency>
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
     <scope>provided</scope>
 </dependency>
 ```
 
 #### Test Plugin:
 
-Test plugin can be found [here](https://github.com/frengor/UltimateAdvancementAPI-Tests).
+The plugin used for tests can be found [here](https://github.com/frengor/UltimateAdvancementAPI-Tests).
 
 ## Contributing
 
