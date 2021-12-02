@@ -9,6 +9,9 @@ import net.minecraft.network.protocol.game.ClientboundUpdateAdvancementsPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.PlayerAdvancements;
 import net.minecraft.server.ServerAdvancementManager;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.simple.SimpleLogger;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_18_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
@@ -22,14 +25,26 @@ import java.util.Set;
 
 public class VanillaAdvancementDisablerWrapper_v1_18_R1 extends VanillaAdvancementDisablerWrapper {
 
+    private static Logger LOGGER = null;
     private static Field listener, firstPacket;
 
     static {
         try {
             listener = Arrays.stream(AdvancementList.class.getDeclaredFields()).filter(f -> f.getType() == AdvancementList.Listener.class).findFirst().orElseThrow();
             listener.setAccessible(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
             firstPacket = Arrays.stream(PlayerAdvancements.class.getDeclaredFields()).filter(f -> f.getType() == boolean.class).findFirst().orElseThrow();
             firstPacket.setAccessible(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            Field logger = Arrays.stream(AdvancementList.class.getDeclaredFields()).filter(f -> f.getType() == Logger.class).findFirst().orElseThrow();
+            logger.setAccessible(true);
+            LOGGER = (Logger) logger.get(null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -43,55 +58,63 @@ public class VanillaAdvancementDisablerWrapper_v1_18_R1 extends VanillaAdvanceme
             return;
         }
 
-        Set<ResourceLocation> removed = Sets.newHashSetWithExpectedSize(registry.advancements.size());
+        final Set<ResourceLocation> removed = Sets.newHashSetWithExpectedSize(registry.advancements.size());
 
         // Inject advancement listener
-        AdvancementList.Listener old = (Listener) listener.get(registry);
-        listener.set(registry, new AdvancementList.Listener() {
-            @Override
-            public void onAddAdvancementRoot(Advancement advancement) {
-                if (old != null)
-                    old.onAddAdvancementRoot(advancement);
+        final AdvancementList.Listener old = (Listener) listener.get(registry);
+        try {
+            listener.set(registry, new AdvancementList.Listener() {
+                @Override
+                public void onAddAdvancementRoot(Advancement advancement) {
+                    if (old != null)
+                        old.onAddAdvancementRoot(advancement);
+                }
+
+                @Override
+                public void onRemoveAdvancementRoot(Advancement advancement) {
+                    removed.add(advancement.getId());
+                    if (old != null)
+                        old.onRemoveAdvancementRoot(advancement);
+                }
+
+                @Override
+                public void onAddAdvancementTask(Advancement advancement) {
+                    if (old != null)
+                        old.onAddAdvancementTask(advancement);
+                }
+
+                @Override
+                public void onRemoveAdvancementTask(Advancement advancement) {
+                    removed.add(advancement.getId());
+                    if (old != null)
+                        old.onRemoveAdvancementTask(advancement);
+                }
+
+                @Override
+                public void onAdvancementsCleared() {
+                    if (old != null)
+                        old.onAdvancementsCleared();
+                }
+            });
+
+            Set<ResourceLocation> locations = new HashSet<>();
+            for (Advancement root : registry.getRoots()) {
+                if (root.getId().getNamespace().equals("minecraft")) {
+                    locations.add(root.getId());
+                }
             }
 
-            @Override
-            public void onRemoveAdvancementRoot(Advancement advancement) {
-                removed.add(advancement.getId());
-                if (old != null)
-                    old.onRemoveAdvancementRoot(advancement);
+            final Level oldLevel = disableLogger();
+            try {
+                registry.remove(locations);
+            } finally {
+                // Always restore old logger
+                enableLogger(oldLevel);
             }
-
-            @Override
-            public void onAddAdvancementTask(Advancement advancement) {
-                if (old != null)
-                    old.onAddAdvancementTask(advancement);
-            }
-
-            @Override
-            public void onRemoveAdvancementTask(Advancement advancement) {
-                removed.add(advancement.getId());
-                if (old != null)
-                    old.onRemoveAdvancementTask(advancement);
-            }
-
-            @Override
-            public void onAdvancementsCleared() {
-                if (old != null)
-                    old.onAdvancementsCleared();
-            }
-        });
-
-        Set<ResourceLocation> locations = new HashSet<>();
-        for (Advancement root : registry.getRoots()) {
-            if (root.getId().getNamespace().equals("minecraft")) {
-                locations.add(root.getId());
-            }
+        } finally {
+            // Always uninject advancement listener
+            listener.set(registry, old);
         }
-
-        registry.remove(locations);
-
-        // Uninject advancement listener
-        listener.set(registry, old);
 
         // Remove advancements from players - let minecraft does it for us
         for (Player p : Bukkit.getOnlinePlayers()) {
@@ -101,6 +124,28 @@ public class VanillaAdvancementDisablerWrapper_v1_18_R1 extends VanillaAdvanceme
             firstPacket.set(advs, false); // Don't clear every client advancement
             ClientboundUpdateAdvancementsPacket removePacket = new ClientboundUpdateAdvancementsPacket(false, Collections.emptyList(), removed, Collections.emptyMap());
             mcPlayer.connection.send(removePacket);
+        }
+    }
+
+    private static Level disableLogger() {
+        Level old = LOGGER.getLevel();
+
+        // Method setLevel is not present in Logger interface
+        if (LOGGER instanceof org.apache.logging.log4j.core.Logger coreLogger) {
+            coreLogger.setLevel(Level.OFF);
+        } else if (LOGGER instanceof SimpleLogger simple) {
+            simple.setLevel(Level.OFF);
+        }
+
+        return old;
+    }
+
+    private static void enableLogger(Level toSet) {
+        // Method setLevel is not present in Logger interface
+        if (LOGGER instanceof org.apache.logging.log4j.core.Logger coreLogger) {
+            coreLogger.setLevel(toSet);
+        } else if (LOGGER instanceof SimpleLogger simple) {
+            simple.setLevel(toSet);
         }
     }
 
