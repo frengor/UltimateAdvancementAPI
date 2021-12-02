@@ -4,69 +4,103 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisabl
 import com.google.common.collect.Sets;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementList;
+import net.minecraft.advancements.AdvancementList.Listener;
 import net.minecraft.network.protocol.game.ClientboundUpdateAdvancementsPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.PlayerAdvancements;
+import net.minecraft.server.ServerAdvancementManager;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_18_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map.Entry;
+import java.util.HashSet;
 import java.util.Set;
 
 public class VanillaAdvancementDisablerWrapper_v1_18_R1 extends VanillaAdvancementDisablerWrapper {
 
-    private static Field advancementRoots, advancementTasks;
+    private static Field listener, firstPacket;
 
     static {
         try {
-            advancementRoots = AdvancementList.class.getDeclaredField("c");
-            advancementRoots.setAccessible(true);
-            advancementTasks = AdvancementList.class.getDeclaredField("d");
-            advancementTasks.setAccessible(true);
-        } catch (ReflectiveOperationException e) {
+            listener = Arrays.stream(PlayerAdvancements.class.getDeclaredFields()).filter(f -> f.getType() == AdvancementList.Listener.class).findFirst().orElseThrow();
+            listener.setAccessible(true);
+            firstPacket = Arrays.stream(PlayerAdvancements.class.getDeclaredFields()).filter(f -> f.getType() == boolean.class).findFirst().orElseThrow();
+            firstPacket.setAccessible(true);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static void disableVanillaAdvancements() throws Exception {
-        AdvancementList registry = ((CraftServer) Bukkit.getServer()).getServer().getAdvancements().advancements;
+        ServerAdvancementManager serverAdvancements = ((CraftServer) Bukkit.getServer()).getServer().getAdvancements();
+        AdvancementList registry = serverAdvancements.advancements;
 
         if (registry.advancements.isEmpty()) {
             return;
         }
 
-        final Set<Advancement> advRoots = (Set<Advancement>) advancementRoots.get(registry);
-        final Set<Advancement> advTasks = (Set<Advancement>) advancementTasks.get(registry);
-
         Set<ResourceLocation> removed = Sets.newHashSetWithExpectedSize(registry.advancements.size());
 
-        Iterator<Entry<ResourceLocation, Advancement>> it = registry.advancements.entrySet().iterator();
-        while (it.hasNext()) {
-            Entry<ResourceLocation, Advancement> e = it.next();
+        // Inject advancement listener
+        AdvancementList.Listener old = (Listener) listener.get(registry);
+        listener.set(registry, new AdvancementList.Listener() {
+            @Override
+            public void onAddAdvancementRoot(Advancement advancement) {
+                if (old != null)
+                    old.onAddAdvancementRoot(advancement);
+            }
 
-            if (e.getKey().getNamespace().equals("minecraft")) {
-                // Unregister it
-                Advancement adv = e.getValue();
-                if (adv.getParent() == null) {
-                    // If parent is null then the adv is root
-                    advRoots.remove(adv);
-                } else {
-                    advTasks.remove(adv);
-                }
-                it.remove();
-                removed.add(e.getKey());
+            @Override
+            public void onRemoveAdvancementRoot(Advancement advancement) {
+                removed.add(advancement.getId());
+                if (old != null)
+                    old.onRemoveAdvancementRoot(advancement);
+            }
+
+            @Override
+            public void onAddAdvancementTask(Advancement advancement) {
+                if (old != null)
+                    old.onAddAdvancementTask(advancement);
+            }
+
+            @Override
+            public void onRemoveAdvancementTask(Advancement advancement) {
+                removed.add(advancement.getId());
+                if (old != null)
+                    old.onRemoveAdvancementTask(advancement);
+            }
+
+            @Override
+            public void onAdvancementsCleared() {
+                if (old != null)
+                    old.onAdvancementsCleared();
+            }
+        });
+
+        Set<ResourceLocation> locations = new HashSet<>();
+        for (Advancement root : registry.getRoots()) {
+            if (root.getId().getNamespace().equals("minecraft")) {
+                locations.add(root.getId());
             }
         }
 
-        // Remove advancements from players
-        ClientboundUpdateAdvancementsPacket removePacket = new ClientboundUpdateAdvancementsPacket(false, Collections.emptyList(), removed, Collections.emptyMap());
+        registry.remove(locations);
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            Util.sendTo(player, removePacket);
+        // Uninject advancement listener
+        listener.set(registry, old);
+
+        // Remove advancements from players - let minecraft does it for us
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            var mcPlayer = ((CraftPlayer) p).getHandle();
+            var advs = mcPlayer.getAdvancements();
+            advs.reload(serverAdvancements);
+            firstPacket.set(advs, false); // Don't clear every client advancement
+            ClientboundUpdateAdvancementsPacket removePacket = new ClientboundUpdateAdvancementsPacket(false, Collections.emptyList(), removed, Collections.emptyMap());
+            mcPlayer.connection.send(removePacket);
         }
     }
 
