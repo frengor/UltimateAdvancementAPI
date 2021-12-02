@@ -3,11 +3,13 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v1_15_R1;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisablerWrapper;
 import com.google.common.collect.Sets;
 import net.minecraft.server.v1_15_R1.Advancement;
+import net.minecraft.server.v1_15_R1.AdvancementDataPlayer;
 import net.minecraft.server.v1_15_R1.Advancements;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
 import net.minecraft.server.v1_15_R1.PacketPlayOutAdvancements;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_15_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
@@ -18,14 +20,24 @@ import java.util.Set;
 
 public class VanillaAdvancementDisablerWrapper_v1_15_R1 extends VanillaAdvancementDisablerWrapper {
 
-    private static Field advancementRoots, advancementTasks;
+    private static Field advancementRoots, advancementTasks, firstPacket;
 
     static {
         try {
             advancementRoots = Advancements.class.getDeclaredField("c");
             advancementRoots.setAccessible(true);
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+        try {
             advancementTasks = Advancements.class.getDeclaredField("d");
             advancementTasks.setAccessible(true);
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+        try {
+            firstPacket = AdvancementDataPlayer.class.getDeclaredField("l");
+            firstPacket.setAccessible(true);
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
@@ -66,7 +78,11 @@ public class VanillaAdvancementDisablerWrapper_v1_15_R1 extends VanillaAdvanceme
         PacketPlayOutAdvancements removePacket = new PacketPlayOutAdvancements(false, Collections.emptySet(), removed, Collections.emptyMap());
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            Util.sendTo(player, removePacket);
+            var mcPlayer = ((CraftPlayer) player).getHandle();
+            var advs = mcPlayer.getAdvancementData();
+            advs.b();
+            firstPacket.setBoolean(advs, false); // Don't clear every client advancement
+            mcPlayer.playerConnection.sendPacket(removePacket);
         }
     }
 

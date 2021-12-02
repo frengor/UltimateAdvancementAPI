@@ -3,6 +3,8 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v1_16_R3;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisablerWrapper;
 import com.google.common.collect.Sets;
 import net.minecraft.server.v1_16_R3.Advancement;
+import net.minecraft.server.v1_16_R3.AdvancementDataPlayer;
+import net.minecraft.server.v1_16_R3.AdvancementDataWorld;
 import net.minecraft.server.v1_16_R3.Advancements;
 import net.minecraft.server.v1_16_R3.MinecraftKey;
 import net.minecraft.server.v1_16_R3.PacketPlayOutAdvancements;
@@ -19,14 +21,24 @@ import java.util.Set;
 
 public class VanillaAdvancementDisablerWrapper_v1_16_R3 extends VanillaAdvancementDisablerWrapper {
 
-    private static Field advancementRoots, advancementTasks;
+    private static Field advancementRoots, advancementTasks, firstPacket;
 
     static {
         try {
             advancementRoots = Advancements.class.getDeclaredField("c");
             advancementRoots.setAccessible(true);
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+        try {
             advancementTasks = Advancements.class.getDeclaredField("d");
             advancementTasks.setAccessible(true);
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+        try {
+            firstPacket = AdvancementDataPlayer.class.getDeclaredField("m");
+            firstPacket.setAccessible(true);
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
@@ -34,7 +46,8 @@ public class VanillaAdvancementDisablerWrapper_v1_16_R3 extends VanillaAdvanceme
 
     @SuppressWarnings("unchecked")
     public static void disableVanillaAdvancements() throws Exception {
-        Advancements registry = ((CraftServer) Bukkit.getServer()).getServer().getAdvancementData().REGISTRY;
+        AdvancementDataWorld serverAdvancements = ((CraftServer) Bukkit.getServer()).getServer().getAdvancementData();
+        Advancements registry = serverAdvancements.REGISTRY;
 
         if (registry.advancements.isEmpty()) {
             return;
@@ -63,11 +76,15 @@ public class VanillaAdvancementDisablerWrapper_v1_16_R3 extends VanillaAdvanceme
             }
         }
 
-        // Remove advancements from players
         PacketPlayOutAdvancements removePacket = new PacketPlayOutAdvancements(false, Collections.emptySet(), removed, Collections.emptyMap());
 
+        // Remove advancements from players
         for (Player player : Bukkit.getOnlinePlayers()) {
-            ((CraftPlayer) player).getHandle().playerConnection.sendPacket(removePacket);
+            var mcPlayer = ((CraftPlayer) player).getHandle();
+            var advs = mcPlayer.getAdvancementData();
+            advs.a(serverAdvancements);
+            firstPacket.setBoolean(advs, false); // Don't clear every client advancement
+            mcPlayer.playerConnection.sendPacket(removePacket);
         }
     }
 
