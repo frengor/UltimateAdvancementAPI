@@ -176,8 +176,7 @@
                     </executions>
                     <configuration>
                         <quiet>true</quiet>
-
-                        <doclint>all,-missing</doclint> <!-- To remove when javadoc is finished -->
+                        <doclint>all,-missing</doclint>
                         <failOnWarnings>true</failOnWarnings>
                         <links>
                             <link>https://frengor.com/javadocs/EventManagerAPI/build-server/</link>
@@ -185,9 +184,13 @@
                             <link>https://javadoc.io/static/net.md-5/bungeecord-chat/1.16-R0.4/</link>
                             <link>https://hub.spigotmc.org/javadocs/spigot/</link>
                         </links>
-                        <dependencySourceIncludes>com.frengor:ultimateadvancementapi*</dependencySourceIncludes>
-                        <dependencySourceExcludes>com.frengor:ultimateadvancementapi-nms-1_*</dependencySourceExcludes>
                         <includeDependencySources>true</includeDependencySources>
+                        <dependencySourceIncludes>
+                            <dependencySourceInclude>com.frengor:ultimateadvancementapi*</dependencySourceInclude>
+                        </dependencySourceIncludes>
+                        <dependencySourceExcludes>
+                            <dependencySourceExclude>com.frengor:ultimateadvancementapi-nms-1_*</dependencySourceExclude>
+                        </dependencySourceExcludes>
 
                         <bottom>
                             <!-- Hacky way to insert custom css without modifying the full css style file -->
