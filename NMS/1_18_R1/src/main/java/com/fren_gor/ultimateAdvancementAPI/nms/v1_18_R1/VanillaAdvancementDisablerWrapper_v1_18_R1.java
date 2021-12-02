@@ -26,7 +26,7 @@ public class VanillaAdvancementDisablerWrapper_v1_18_R1 extends VanillaAdvanceme
 
     static {
         try {
-            listener = Arrays.stream(PlayerAdvancements.class.getDeclaredFields()).filter(f -> f.getType() == AdvancementList.Listener.class).findFirst().orElseThrow();
+            listener = Arrays.stream(AdvancementList.class.getDeclaredFields()).filter(f -> f.getType() == AdvancementList.Listener.class).findFirst().orElseThrow();
             listener.setAccessible(true);
             firstPacket = Arrays.stream(PlayerAdvancements.class.getDeclaredFields()).filter(f -> f.getType() == boolean.class).findFirst().orElseThrow();
             firstPacket.setAccessible(true);
