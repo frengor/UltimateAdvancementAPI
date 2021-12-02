@@ -116,13 +116,14 @@ public class VanillaAdvancementDisablerWrapper_v1_18_R1 extends VanillaAdvanceme
             listener.set(registry, old);
         }
 
-        // Remove advancements from players - let minecraft does it for us
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            var mcPlayer = ((CraftPlayer) p).getHandle();
+        final var removePacket = new ClientboundUpdateAdvancementsPacket(false, Collections.emptyList(), removed, Collections.emptyMap());
+
+        // Remove advancements from players
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            var mcPlayer = ((CraftPlayer) player).getHandle();
             var advs = mcPlayer.getAdvancements();
             advs.reload(serverAdvancements);
-            firstPacket.set(advs, false); // Don't clear every client advancement
-            ClientboundUpdateAdvancementsPacket removePacket = new ClientboundUpdateAdvancementsPacket(false, Collections.emptyList(), removed, Collections.emptyMap());
+            firstPacket.setBoolean(advs, false); // Don't clear every client advancement
             mcPlayer.connection.send(removePacket);
         }
     }
