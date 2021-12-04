@@ -23,4 +23,9 @@ public class CommandAPIManager_v6_4_0 implements ILoadable {
     public void onEnable(@NotNull Plugin plugin) {
         CommandAPI.onEnable(plugin);
     }
+
+    @Override
+    public void onDisable(@NotNull Plugin plugin) {
+        CommandAPI.unregister("ultimateadvancementapi");
+    }
 }
