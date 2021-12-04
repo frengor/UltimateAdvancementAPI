@@ -30,6 +30,7 @@ import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityCategory;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Pose;
 import org.bukkit.entity.Projectile;
@@ -38,6 +39,7 @@ import org.bukkit.entity.memory.MemoryKey;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
@@ -325,7 +327,6 @@ public class FakePlayer implements Player {
 
     }
 
-    @Override
     public boolean sendChunkChange(@NotNull Location location, int i, int i1, int i2, @NotNull byte[] bytes) {
         return false;
     }
@@ -2019,5 +2020,35 @@ public class FakePlayer implements Player {
     @Override
     public void stopAllSounds() {
 
+    }
+
+    @Override
+    public void sendEquipmentChange(@NotNull LivingEntity entity, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {
+
+    }
+
+    @Override
+    public void hideEntity(@NotNull Plugin plugin, @NotNull Entity entity) {
+
+    }
+
+    @Override
+    public void showEntity(@NotNull Plugin plugin, @NotNull Entity entity) {
+
+    }
+
+    @Override
+    public boolean canSee(@NotNull Entity entity) {
+        return false;
+    }
+
+    @Override
+    public void showDemoScreen() {
+
+    }
+
+    @Override
+    public boolean isAllowingServerListings() {
+        return false;
     }
 }

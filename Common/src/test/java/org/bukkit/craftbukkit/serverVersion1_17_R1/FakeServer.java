@@ -777,4 +777,14 @@ public class FakeServer implements Server {
     public StructureManager getStructureManager() {
         return null;
     }
+
+    @Override
+    public int getSimulationDistance() {
+        return 0;
+    }
+
+    @Override
+    public boolean getHideOnlinePlayers() {
+        return false;
+    }
 }
