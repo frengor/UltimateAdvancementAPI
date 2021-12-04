@@ -24,6 +24,7 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.PistonMoveReaction;
+import org.bukkit.block.Sign;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationAbandonedEvent;
@@ -2050,5 +2051,10 @@ public class FakePlayer implements Player {
     @Override
     public boolean isAllowingServerListings() {
         return false;
+    }
+
+    @Override
+    public void openSign(@NotNull Sign sign) {
+
     }
 }
