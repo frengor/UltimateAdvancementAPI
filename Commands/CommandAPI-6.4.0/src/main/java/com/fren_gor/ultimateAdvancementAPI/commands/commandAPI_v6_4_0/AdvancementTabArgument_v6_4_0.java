@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_3_1;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_4_0;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
@@ -9,7 +9,7 @@ import dev.jorel.commandapi.arguments.CustomArgument.MessageBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AdvancementTabArgument_v6_3_1 {
+public class AdvancementTabArgument_v6_4_0 {
 
     @NotNull
     public static Argument getAdvancementTabArgument(AdvancementMain main, String nodeName) {

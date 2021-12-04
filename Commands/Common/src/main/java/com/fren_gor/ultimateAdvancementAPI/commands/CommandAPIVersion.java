@@ -8,11 +8,11 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.List;
 
 /**
- * Enum containing the used version of <a href="https://github.com/JorelAli/CommandAPI">CommandAPI</a>.
+ * Enum containing the used versions of <a href="https://github.com/JorelAli/CommandAPI">CommandAPI</a>.
  */
 public enum CommandAPIVersion {
     v5_12("5.12", "lCfbzi9Nf/RzQl6GvSGU/DqjuxkGDWavTNXt6Vms50o=", "5_12", List.of("v1_15_R1", "v1_16_R1", "v1_16_R2", "v1_16_R3")),
-    v6_3_1("6.3.1", "nQX6iAp9BHZPY+fmAFhcSjjVHdljk5GGGBNUpeExysc=", "6_3_1", List.of("v1_17_R1"));
+    v6_4_0("6.4.0", "Cdh9pugQD7LDrzKNUThn5WM0l2yhFRQb8iE9Y4dzvM8=", "6_4_0", List.of("v1_17_R1")),
 
     private final String version, checksum, suffix;
     private final List<String> supportedVersions;

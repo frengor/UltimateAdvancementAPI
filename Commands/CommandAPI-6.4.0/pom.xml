@@ -10,8 +10,8 @@
         <version>parent-SNAPSHOT</version>
     </parent>
 
-    <artifactId>ultimateadvancementapi-commands-commandapi-6-3-1</artifactId>
-    <name>UltimateAdvancementAPI-Commands-CommandAPI-6-3-1</name>
+    <artifactId>ultimateadvancementapi-commands-commandapi-6-4-0</artifactId>
+    <name>UltimateAdvancementAPI-Commands-CommandAPI-6-4-0</name>
     <version>2.0.1</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>dev.jorel.CommandAPI</groupId>
             <artifactId>commandapi-shade</artifactId>
-            <version>6.3.1</version>
+            <version>6.4.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
