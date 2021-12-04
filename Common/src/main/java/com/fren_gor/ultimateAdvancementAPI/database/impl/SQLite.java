@@ -60,6 +60,23 @@ public class SQLite implements IDatabase {
     }
 
     /**
+     * Creates a SQLite in memory database connection.
+     *
+     * @param logger The plugin {@link Logger}.
+     * @throws Exception If anything goes wrong.
+     */
+    protected SQLite(@NotNull Logger logger) throws Exception {
+        Validate.notNull(logger, "Logger is null.");
+        Class.forName("org.sqlite.JDBC");
+        SQLiteConfig config = new SQLiteConfig();
+        config.enforceForeignKeys(true);
+        config.setEncoding(Encoding.UTF8);
+        config.setSynchronous(SynchronousMode.FULL);
+        this.connection = DriverManager.getConnection("jdbc:sqlite::memory:", config.toProperties());
+        this.logger = logger;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override

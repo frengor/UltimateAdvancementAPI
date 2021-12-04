@@ -64,6 +64,8 @@ public class ConfigManager {
             port = getOrDefault("mysql.port", 3306);
             poolSize = getOrDefault("mysql.advanced-settings.poolSize", 5);
             connectionTimeout = getOrDefault("mysql.advanced-settings.connectionTimeout", 6000L);
+        } else if (storageType.equalsIgnoreCase("InMemory")) {
+            // Does nothing, keep to skip else case down below
         } else {
             System.out.println("Invalid storage-type \"" + storageType + "\". Shutting down " + plugin.getName() + '.');
             Bukkit.getPluginManager().disablePlugin(plugin);
@@ -85,6 +87,8 @@ public class ConfigManager {
             main.enableSQLite(new File(plugin.getDataFolder(), sqlLiteDbName));
         } else if (storageType.equalsIgnoreCase("MySQL")) {
             main.enableMySQL(username, password, databaseName, host, port, poolSize, connectionTimeout);
+        } else if (storageType.equalsIgnoreCase("InMemory")) {
+            main.enableInMemory();
         } // else case already handled in loadVariables()
     }
 

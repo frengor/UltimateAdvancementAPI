@@ -155,6 +155,28 @@ public final class AdvancementMain {
         commonEnablePostDatabase();
     }
 
+    /**
+     * Enables the API using an in-memory database.
+     * <p><strong>Must be called after {@link #load()} and cannot be called twice</strong> until {@link #disable()} is called.
+     * Also, only one <i>enable</i> method can be called per loading.
+     *
+     * @throws RuntimeException If the enabling fails. It is a wrapper for the real exception.
+     * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
+     * @throws IllegalStateException If it is called at an invalid moment.
+     */
+    public void enableInMemory() {
+        commonEnablePreDatabase();
+
+        try {
+            // Run it sync to avoid using a not initialized database
+            databaseManager = new DatabaseManager(this);
+        } catch (Exception e) {
+            failEnable(e);
+        }
+
+        commonEnablePostDatabase();
+    }
+
     private void commonEnablePreDatabase() {
         checkPrimaryThread();
         if (INVALID_VERSION.get()) {
