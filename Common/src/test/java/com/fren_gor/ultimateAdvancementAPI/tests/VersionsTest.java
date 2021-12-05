@@ -2,7 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.tests;
 
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.serverVersion1_17_R1.FakeServer;
+import org.bukkit.Server;
 import org.junit.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -37,8 +37,9 @@ public class VersionsTest {
     @Test
     public void getNMSVersionTest() {
         try (MockedStatic<Bukkit> bukkitMock = Mockito.mockStatic(Bukkit.class)) {
-            bukkitMock.when(Bukkit::getServer).thenReturn(new FakeServer());
-            assertSame("Mock failed", Bukkit.getServer().getClass(), FakeServer.class);
+            Server server = InterfaceImplementer.newFakeServer();
+            bukkitMock.when(Bukkit::getServer).thenReturn(server);
+            assertSame("Mock failed", Bukkit.getServer(), server);
             assertEquals("serverVersion1_17_R1", Versions.getNMSVersion());
         }
     }
