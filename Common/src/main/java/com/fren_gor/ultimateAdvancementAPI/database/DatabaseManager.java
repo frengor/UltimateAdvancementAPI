@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.UltimateAdvancementAPI;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption.Option;
+import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.SQLite;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
@@ -80,6 +81,21 @@ public final class DatabaseManager {
     private final Map<UUID, TempUserMetadata> tempLoaded = new HashMap<>();
     private final EventManager eventManager;
     private final IDatabase database;
+
+    /**
+     * Creates a new {@code DatabaseManager} which uses an in-memory database.
+     *
+     * @param main The {@link AdvancementMain}.
+     * @throws Exception If anything goes wrong.
+     */
+    public DatabaseManager(@NotNull AdvancementMain main) throws Exception {
+        Validate.notNull(main, "AdvancementMain is null.");
+        this.main = main;
+        this.eventManager = main.getEventManager();
+
+        database = new InMemory(main.getLogger());
+        commonSetUp();
+    }
 
     /**
      * Creates a new {@code DatabaseManager} which uses a SQLite database.

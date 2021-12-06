@@ -93,15 +93,23 @@ public class CommandAPIManager {
         /**
          * Enables the loadable object. Should be called into {@link Plugin#onEnable()}.
          *
-         * @param plugin The plugin that loaded the {@link AdvancementMain} passed to {@link #onLoad(AdvancementMain)}.
+         * @param plugin The plugin which loaded the {@link AdvancementMain} passed to {@link #onLoad(AdvancementMain)}.
          */
         void onEnable(@NotNull Plugin plugin);
+
+        /**
+         * Disables the loadable object. Should be called into {@link Plugin#onDisable()}.
+         *
+         * @param plugin The plugin which loaded the {@link AdvancementMain} passed to {@link #onLoad(AdvancementMain)}.
+         */
+        void onDisable(@NotNull Plugin plugin);
     }
 
     private static final class CommonLoadable implements ILoadable {
 
         private final ILoadable loadable;
         private Plugin advancementMainOwner;
+        private boolean enabled = false;
 
         public CommonLoadable(@NotNull ILoadable loadable) {
             Validate.notNull(loadable, "ILoadable is null.");
@@ -122,7 +130,22 @@ public class CommandAPIManager {
             }
             Validate.isTrue(plugin == advancementMainOwner, "AdvancementMain owning plugin isn't the provided Plugin.");
             Validate.isTrue(plugin.isEnabled(), "Plugin isn't enabled.");
+            enabled = true;
             loadable.onEnable(plugin);
+        }
+
+        @Override
+        public void onDisable(@NotNull Plugin plugin) {
+            if (advancementMainOwner == null) {
+                throw new IllegalStateException("Not loaded and not enabled.");
+            }
+            if (!enabled) {
+                throw new IllegalStateException("Not enabled.");
+            }
+            Validate.isTrue(plugin == advancementMainOwner, "AdvancementMain owning plugin isn't the provided Plugin.");
+            enabled = false;
+            advancementMainOwner = null;
+            loadable.onDisable(plugin);
         }
     }
 }

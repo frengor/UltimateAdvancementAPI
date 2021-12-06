@@ -425,17 +425,6 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public boolean isShownTo(Player player) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
-     *
-     * @throws UnsupportedOperationException Always when it's called.
-     */
-    @Override
     public void onGrant(@NotNull Player player, boolean giveRewards) {
         throw new UnsupportedOperationException();
     }

@@ -222,17 +222,6 @@ public class TaskAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Every time this method is called.
      */
     @Override
-    public final boolean isShownTo(Player player) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>Since {@code TaskAdvancement}s cannot be registered in tabs, this method always throws {@link UnsupportedOperationException}.
-     *
-     * @throws UnsupportedOperationException Every time this method is called.
-     */
-    @Override
     public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
         throw new UnsupportedOperationException();
     }

@@ -93,6 +93,8 @@ public class AdvancementPlugin extends JavaPlugin {
         if (!correctVersion) {
             return;
         }
+        if (commandAPIManager != null) // In case commands couldn't be loaded
+            commandAPIManager.onDisable(this);
         main.disable();
         main = null;
     }

@@ -1,6 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -30,18 +31,19 @@ public class TempUserMetadataTest {
 
     private static MockedStatic<Bukkit> bukkitMock;
 
-    private static final Map<UUID, FakePlayer> players = new HashMap<>();
+    private static final Map<UUID, Player> players = new HashMap<>();
     private static final int PLAYER_TO_REGISTER = 4;
     private static Object testUserMetadataInstance;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        assert PLAYER_TO_REGISTER > 1 : "Invalid PLAYER_TO_REGISTER";
+        assertTrue("Invalid PLAYER_TO_REGISTER", PLAYER_TO_REGISTER > 1);
 
         bukkitMock = Mockito.mockStatic(Bukkit.class);
         for (int i = 0; i < PLAYER_TO_REGISTER; i++) {
             UUID uuid = UUID.randomUUID();
-            FakePlayer pl = new FakePlayer(uuid);
+            Player pl = InterfaceImplementer.newFakePlayer(uuid);
+
             bukkitMock.when(() -> Bukkit.getPlayer(uuid)).thenReturn(pl);
             assertEquals("Mock failed", Bukkit.getPlayer(uuid), pl);
             players.put(uuid, pl);
@@ -144,8 +146,8 @@ public class TempUserMetadataTest {
     @Test
     public void addRequest() throws Exception {
         final Method m = getMethod("addRequest");
-        final Plugin p1 = new FakePlugin("Test1");
-        final Plugin p2 = new FakePlugin("Test2");
+        final Plugin p1 = InterfaceImplementer.newFakePlugin("Test1");
+        final Plugin p2 = InterfaceImplementer.newFakePlugin("Test2");
         assertAutoManual(0, 0, p1);
         assertAutoManual(0, 0, p2);
         for (int i = 1; i <= Character.MAX_VALUE; i++) {
@@ -160,7 +162,7 @@ public class TempUserMetadataTest {
             m.invoke(testUserMetadataInstance, p2, false);
             assertAutoManual(Character.MAX_VALUE, i, p2);
         }
-        assertAutoManual(0, 0, new FakePlugin("Another")); // Just to be sure
+        assertAutoManual(0, 0, InterfaceImplementer.newFakePlugin("Another")); // Just to be sure
         assertThrows(RuntimeException.class, () -> {
             try {
                 m.invoke(testUserMetadataInstance, p1, true);
@@ -181,8 +183,8 @@ public class TempUserMetadataTest {
     public void removeRequest() throws Exception {
         final Method add = getMethod("addRequest");
         final Method m = getMethod("removeRequest");
-        final Plugin p1 = new FakePlugin("Test1");
-        final Plugin p2 = new FakePlugin("Test2");
+        final Plugin p1 = InterfaceImplementer.newFakePlugin("Test1");
+        final Plugin p2 = InterfaceImplementer.newFakePlugin("Test2");
 
         // Prepare tests, addRequest method is tested above
         for (int i = 0; i < Character.MAX_VALUE; i++) {

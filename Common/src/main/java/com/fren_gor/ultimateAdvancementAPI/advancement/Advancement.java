@@ -21,6 +21,7 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.HoverEvent.Action;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
@@ -551,19 +552,6 @@ public abstract class Advancement {
     }
 
     /**
-     * Returns whether the advancement tab of this advancement is shown to the provided player.
-     *
-     * @param player The player.
-     * @return Whether the advancement tab of this advancement is shown to the player.
-     * @deprecated Use {@code getAdvancementTab().isShownTo(player)} instead.
-     */
-    @Deprecated
-    @Contract(pure = true, value = "null -> false")
-    public boolean isShownTo(Player player) {
-        return getAdvancementTab().isShownTo(player);
-    }
-
-    /**
      * Called when the advancement is completed by a player. It handles the chat message, the toast notification, and the advancement rewards (see {@link #giveReward(Player)} for more information).
      *
      * @param player The player who completed the advancement.
@@ -573,7 +561,8 @@ public abstract class Advancement {
         Validate.notNull(player, "Player is null.");
 
         // Send complete messages
-        if (display.doesAnnounceToChat()) {
+        Boolean gameRule = player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
+        if (display.doesAnnounceToChat() && (gameRule == null || gameRule)) {
             BaseComponent[] msg = getAnnounceMessage(player);
             if (msg != null)
                 for (Player p : Bukkit.getOnlinePlayers()) {

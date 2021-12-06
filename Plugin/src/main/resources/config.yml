@@ -12,6 +12,7 @@ disable-vanilla-advancements: false
 # Possible values:
 # - SQLite
 # - MySQL
+# - InMemory
 storage-type: SQLite
 
 # SQLite database file
