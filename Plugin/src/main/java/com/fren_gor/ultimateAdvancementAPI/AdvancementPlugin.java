@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.metrics.BStats;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -25,7 +26,8 @@ public class AdvancementPlugin extends JavaPlugin {
     private static AdvancementPlugin instance;
 
     private AdvancementMain main;
-    private boolean correctVersion = true;
+    private ConfigManager configManager;
+    private boolean correctVersion = true, commandsEnabled = false;
     @Nullable
     private ILoadable commandAPIManager;
 
@@ -62,13 +64,27 @@ public class AdvancementPlugin extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
-        if (commandAPIManager != null) // In case commands couldn't be loaded
-            commandAPIManager.onEnable(this);
 
-        ConfigManager configManager = new ConfigManager(this);
+        configManager = new ConfigManager(this);
         configManager.saveDefault(false);
-        configManager.loadVariables();
-        configManager.enable(main);
+        if (configManager.loadVariables()) {
+            main.disable();
+            configManager = null;
+            return;
+        }
+        try {
+            configManager.enable(main);
+        } catch (RuntimeException e) {
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "An exception occurred while enabling UltimateAdvancementAPI:");
+            e.printStackTrace();
+            // main.disable() is already called by AdvancementMain#failEnable(Exception)
+            return;
+        }
+
+        if (commandAPIManager != null) {// In case commands couldn't be loaded
+            commandAPIManager.onEnable(this);
+            commandsEnabled = true;
+        }
 
         if (configManager.getDisableVanillaAdvancements()) {
             new BukkitRunnable() {
@@ -77,7 +93,7 @@ public class AdvancementPlugin extends JavaPlugin {
                     try {
                         AdvancementUtils.disableVanillaAdvancements();
                     } catch (Exception e) {
-                        System.out.println("Couldn't disable vanilla advancements:");
+                        Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Couldn't disable vanilla advancements:");
                         e.printStackTrace();
                     }
                 }
@@ -93,7 +109,7 @@ public class AdvancementPlugin extends JavaPlugin {
         if (!correctVersion) {
             return;
         }
-        if (commandAPIManager != null) // In case commands couldn't be loaded
+        if (commandAPIManager != null && commandsEnabled) // In case commands are not loaded/enabled
             commandAPIManager.onDisable(this);
         main.disable();
         main = null;
@@ -106,13 +122,13 @@ public class AdvancementPlugin extends JavaPlugin {
                 if (scanner.hasNextLine()) {
                     if (!this.getDescription().getVersion().equalsIgnoreCase(scanner.next())) {
                         AdvancementUtils.runSync(this, () -> {
-                            this.getLogger().info("A new version of " + this.getDescription().getName() + " is out! Download it at https://www.spigotmc.org/resources/" + RESOURCE_ID);
+                            getLogger().info("A new version of " + this.getDescription().getName() + " is out! Download it at https://www.spigotmc.org/resources/" + RESOURCE_ID);
                         });
                     }
                 }
             } catch (Exception e) {
                 AdvancementUtils.runSync(this, () -> {
-                    this.getLogger().info("Cannot look for updates: " + e.getMessage());
+                    getLogger().info("Cannot look for updates: " + e.getMessage());
                 });
             }
         });
@@ -124,5 +140,9 @@ public class AdvancementPlugin extends JavaPlugin {
 
     public AdvancementMain getMain() {
         return main;
+    }
+
+    public ConfigManager getConfigManager() {
+        return configManager;
     }
 }

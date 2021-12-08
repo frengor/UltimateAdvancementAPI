@@ -2,12 +2,14 @@ package com.fren_gor.ultimateAdvancementAPI;
 
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 public class ConfigManager {
 
@@ -19,7 +21,7 @@ public class ConfigManager {
 
     private boolean disableVanillaAdvancements;
     // db parameters
-    private String storageType;
+    private DB_TYPE storageType;
     private String sqlLiteDbName;
     private String username;
     private String password;
@@ -29,34 +31,38 @@ public class ConfigManager {
     private int poolSize;
     private long connectionTimeout;
 
-    public ConfigManager(AdvancementPlugin plugin) {
-        this.plugin = plugin;
+    public ConfigManager(@NotNull AdvancementPlugin plugin) {
+        this.plugin = Objects.requireNonNull(plugin, "Plugin is null.");
         configFile = new File(plugin.getDataFolder(), "config.yml");
     }
 
-    public void loadVariables() {
-
+    /**
+     * Load the config.
+     *
+     * @return {@code true} if the loading failed, {@code false} otherwise.
+     */
+    public boolean loadVariables() {
         try {
             config.load(configFile);
         } catch (IOException | InvalidConfigurationException e) {
-            System.out.println("An error occurred, shutting down " + plugin.getName() + '.');
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "An error occurred loading the config file.");
             e.printStackTrace();
-            Bukkit.getPluginManager().disablePlugin(plugin);
-            return;
+            return true;
         }
 
         disableVanillaAdvancements = config.getBoolean("disable-vanilla-advancements");
 
-        storageType = config.getString("storage-type");
-        if (storageType == null) {
-            System.out.println("Could not find storage-type. Shutting down " + plugin.getName() + '.');
-            Bukkit.getPluginManager().disablePlugin(plugin);
-            return;
+        String type = config.getString("storage-type");
+        if (type == null) {
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Could not find \"storage-type\".");
+            return true;
         }
 
-        if (storageType.equalsIgnoreCase("SQLite")) {
+        if (type.equalsIgnoreCase("SQLite")) {
+            storageType = DB_TYPE.SQLITE;
             sqlLiteDbName = getOrDefault("sqlite.file", "database.db");
-        } else if (storageType.equalsIgnoreCase("MySQL")) {
+        } else if (type.equalsIgnoreCase("MySQL")) {
+            storageType = DB_TYPE.MYSQL;
             username = getOrDefault("mysql.username", "root");
             password = getOrDefault("mysql.password", "");
             databaseName = getOrDefault("mysql.databaseName", "advancements");
@@ -64,14 +70,14 @@ public class ConfigManager {
             port = getOrDefault("mysql.port", 3306);
             poolSize = getOrDefault("mysql.advanced-settings.poolSize", 5);
             connectionTimeout = getOrDefault("mysql.advanced-settings.connectionTimeout", 6000L);
-        } else if (storageType.equalsIgnoreCase("InMemory")) {
-            // Does nothing, keep to skip else case down below
+        } else if (type.equalsIgnoreCase("InMemory")) {
+            storageType = DB_TYPE.IN_MEMORY;
         } else {
-            System.out.println("Invalid storage-type \"" + storageType + "\". Shutting down " + plugin.getName() + '.');
-            Bukkit.getPluginManager().disablePlugin(plugin);
-            return; // Keep to avoid future issues if code will be added below
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Invalid storage type \"" + type + "\".");
+            return true;
         }
 
+        return false;
     }
 
     public void saveDefault(boolean replace) {
@@ -80,16 +86,14 @@ public class ConfigManager {
         }
     }
 
-    public void enable(AdvancementMain main) {
+    public void enable(@NotNull AdvancementMain main) {
         Validate.notNull(storageType, "Config has not been loaded.");
 
-        if (storageType.equalsIgnoreCase("SQLite")) {
-            main.enableSQLite(new File(plugin.getDataFolder(), sqlLiteDbName));
-        } else if (storageType.equalsIgnoreCase("MySQL")) {
-            main.enableMySQL(username, password, databaseName, host, port, poolSize, connectionTimeout);
-        } else if (storageType.equalsIgnoreCase("InMemory")) {
-            main.enableInMemory();
-        } // else case already handled in loadVariables()
+        switch (storageType) {
+            case SQLITE -> main.enableSQLite(new File(plugin.getDataFolder(), sqlLiteDbName));
+            case MYSQL -> main.enableMySQL(username, password, databaseName, host, port, poolSize, connectionTimeout);
+            case IN_MEMORY -> main.enableInMemory();
+        }
     }
 
     private String getOrDefault(@NotNull String path, @NotNull String def) {
@@ -106,5 +110,26 @@ public class ConfigManager {
 
     public boolean getDisableVanillaAdvancements() {
         return disableVanillaAdvancements;
+    }
+
+    public DB_TYPE getStorageType() {
+        return storageType;
+    }
+
+    public enum DB_TYPE {
+        SQLITE("SQLite"),
+        MYSQL("MySQL"),
+        IN_MEMORY("In Memory");
+
+        private final String fancyName;
+
+        DB_TYPE(@NotNull String fancyName) {
+            this.fancyName = Objects.requireNonNull(fancyName);
+        }
+
+        @NotNull
+        public String getFancyName() {
+            return fancyName;
+        }
     }
 }
