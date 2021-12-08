@@ -10,7 +10,7 @@
 
 A powerful API to create custom advancements for your minecraft server.
 
-<img src="https://github.com/frengor/UltimateAdvancementAPI/wiki/images/spigot-photo.png" alt="Advancement Tab Image">
+![Advancement Tab Image](https://github.com/frengor/UltimateAdvancementAPI/wiki/images/spigot-photo.png)
 
 **Spigot Page:** <https://www.spigotmc.org/resources/95585/>  
 **Download Page:** <https://frengor.com/UltimateAdvancementAPI/>  
