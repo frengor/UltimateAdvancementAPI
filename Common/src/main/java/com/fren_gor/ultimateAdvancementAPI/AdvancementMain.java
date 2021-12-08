@@ -182,7 +182,7 @@ public final class AdvancementMain {
         if (INVALID_VERSION.get()) {
             throw new InvalidVersionException("Incorrect minecraft version. Couldn't enable UltimateAdvancementAPI.");
         }
-        if (!isLoaded()) {
+        if (!LOADED.get()) {
             throw new IllegalStateException("UltimateAdvancementAPI is not loaded.");
         }
         if (!owningPlugin.isEnabled()) {
@@ -220,44 +220,49 @@ public final class AdvancementMain {
 
     @Contract("_ -> fail")
     private void failEnable(Exception e) {
-        e.printStackTrace();
-        Bukkit.getPluginManager().disablePlugin(owningPlugin);
+        disable(); // Disable everything we set up before failing
         throw new RuntimeException("Exception setting up database.", e);
     }
 
     /**
      * Disables the API.
-     * <p><strong>Can be called exactly once</strong> after an <i>enable</i> method is called.
+     * <p>If not called after an <i>enable</i> method or {@link #load()} no action is done.
      *
      * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
-     * @throws IllegalStateException If the API is not enabled.
      */
     public void disable() {
         checkPrimaryThread();
         if (INVALID_VERSION.get()) {
             throw new InvalidVersionException("Incorrect minecraft version. Couldn't disable UltimateAdvancementAPI.");
         }
-        checkInitialisation();
-        LOADED.set(false);
-        ENABLED.set(false);
+        if (!LOADED.compareAndSet(true, false)) {
+            // Old code
+            // throw new IllegalStateException("UltimateAdvancementAPI is not loaded.");
+
+            return; // Don't do anything if API is already disabled
+        }
 
         UltimateAdvancementAPI.main = null;
-        // eventManager is disabled automatically since pl is disabling.
-        pluginMap.clear();
-        Iterator<AdvancementTab> it = tabs.values().iterator();
-        while (it.hasNext()) {
-            try {
-                AdvancementTab tab = it.next();
-                if (tab.isActive()) {
-                    tab.dispose();
+
+        if (ENABLED.getAndSet(false)) {
+            if (eventManager != null)
+                eventManager.disable();
+            pluginMap.clear();
+            Iterator<AdvancementTab> it = tabs.values().iterator();
+            while (it.hasNext()) {
+                try {
+                    AdvancementTab tab = it.next();
+                    if (tab.isActive()) {
+                        tab.dispose();
+                    }
+                    it.remove();
+                } catch (Exception t) {
+                    t.printStackTrace();
                 }
-                it.remove();
-            } catch (Exception t) {
-                t.printStackTrace();
             }
+            if (databaseManager != null)
+                databaseManager.unregister();
         }
-        if (databaseManager != null)
-            databaseManager.unregister();
     }
 
     /**
