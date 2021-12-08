@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementPlugin;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.DrilldownPie;
+import org.bstats.charts.SimplePie;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,8 +24,9 @@ public class BStats {
 
         Metrics metrics = new Metrics(plugin, BSTATS_ID);
 
+        metrics.addCustomChart(new SimplePie("vanilla_advancements", () -> plugin.getConfigManager().getDisableVanillaAdvancements() ? "Disabled" : "Not Disabled"));
+        metrics.addCustomChart(new SimplePie("database_type", () -> plugin.getConfigManager().getStorageType().getFancyName()));
         metrics.addCustomChart(new DrilldownPie("api_-_minecraft_version", () -> apiMcVersions));
-
         metrics.addCustomChart(new DrilldownPie("api_-_nms_version", () -> apiNMSVersions));
     }
 }
