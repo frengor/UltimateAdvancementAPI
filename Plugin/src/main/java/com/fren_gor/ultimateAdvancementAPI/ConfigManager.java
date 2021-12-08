@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -87,7 +87,7 @@ public class ConfigManager {
     }
 
     public void enable(@NotNull AdvancementMain main) {
-        Validate.notNull(storageType, "Config has not been loaded.");
+        Preconditions.checkNotNull(storageType, "Config has not been loaded.");
 
         switch (storageType) {
             case SQLITE -> main.enableSQLite(new File(plugin.getDataFolder(), sqlLiteDbName));

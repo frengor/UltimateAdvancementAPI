@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets;
 
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +26,7 @@ public interface ISendable {
      * @throws IllegalArgumentException If the players array is {@code null}.
      */
     default void sendTo(@NotNull Player... players) {
-        Validate.notNull(players, "Players is null.");
+        Preconditions.checkNotNull(players, "Players is null.");
         for (Player p : players) {
             if (p != null)
                 sendTo(p);
@@ -40,7 +40,7 @@ public interface ISendable {
      * @throws IllegalArgumentException If the players collection is {@code null}.
      */
     default void sendTo(@NotNull Collection<Player> players) {
-        Validate.notNull(players, "Collection<Player> is null.");
+        Preconditions.checkNotNull(players, "Collection<Player> is null.");
         for (Player p : players) {
             if (p != null)
                 sendTo(p);

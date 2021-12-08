@@ -1,12 +1,12 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_15_R1;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
 import net.minecraft.server.v1_15_R1.Criterion;
 import net.minecraft.server.v1_15_R1.CriterionProgress;
 import net.minecraft.server.v1_15_R1.CriterionTriggerImpossible;
 import net.minecraft.server.v1_15_R1.Packet;
-import org.apache.commons.lang.Validate;
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +18,7 @@ public class Util {
 
     @NotNull
     public static Map<String, Criterion> getAdvancementCriteria(@Range(from = 1, to = Integer.MAX_VALUE) int maxProgressions) {
-        Validate.isTrue(maxProgressions >= 1, "Max progressions must be >= 1.");
+        Preconditions.checkArgument(maxProgressions >= 1, "Max progressions must be >= 1.");
 
         Map<String, Criterion> advCriteria = Maps.newHashMapWithExpectedSize(maxProgressions);
         for (int i = 0; i < maxProgressions; i++) {
@@ -30,7 +30,7 @@ public class Util {
 
     @NotNull
     public static String[][] getAdvancementRequirements(@NotNull Map<String, Criterion> advCriteria) {
-        Validate.notNull(advCriteria, "Advancement criteria map is null.");
+        Preconditions.checkNotNull(advCriteria, "Advancement criteria map is null.");
 
         String[][] array = new String[advCriteria.size()][1];
         int index = 0;
@@ -43,8 +43,8 @@ public class Util {
 
     @NotNull
     public static net.minecraft.server.v1_15_R1.AdvancementProgress getAdvancementProgress(@NotNull net.minecraft.server.v1_15_R1.Advancement mcAdv, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
-        Validate.notNull(mcAdv, "NMS Advancement is null.");
-        Validate.isTrue(progression >= 0, "Progression must be >= 0.");
+        Preconditions.checkNotNull(mcAdv, "NMS Advancement is null.");
+        Preconditions.checkArgument(progression >= 0, "Progression must be >= 0.");
 
         AdvancementProgress advPrg = new AdvancementProgress();
         advPrg.a(mcAdv.getCriteria(), mcAdv.i());
@@ -60,8 +60,8 @@ public class Util {
     }
 
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {
-        Validate.notNull(player, "Player is null.");
-        Validate.notNull(packet, "Packet is null.");
+        Preconditions.checkNotNull(player, "Player is null.");
+        Preconditions.checkNotNull(packet, "Packet is null.");
         ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
     }
 

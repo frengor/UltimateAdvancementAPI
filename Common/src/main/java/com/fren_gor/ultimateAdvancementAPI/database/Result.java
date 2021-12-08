@@ -2,7 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.database;
 
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UnhandledException;
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,7 +47,7 @@ public class Result {
      * @throws IllegalArgumentException If {@code occurredException} is {@code null}.
      */
     public Result(@NotNull Exception occurredException) {
-        Validate.notNull(occurredException, "Exception is null.");
+        Preconditions.checkNotNull(occurredException, "Exception is null.");
         this.occurredException = occurredException;
     }
 

@@ -3,19 +3,17 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
+import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -204,18 +202,19 @@ public class AdvancementDisplay {
      * @param description The description of the advancement.
      */
     public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull List<String> description) {
-        Validate.notNull(icon, "Icon is null.");
-        Validate.notNull(title, "Title is null.");
-        Validate.notNull(frame, "Frame is null.");
-        Validate.notNull(defaultColor, "Default color is null.");
-        Validate.notNull(description, "Description is null.");
-        Validate.noNullElements(description, "An element of the description is null.");
-        Validate.isTrue(x >= 0, "x is not null or positive.");
-        Validate.isTrue(y >= 0, "y is not null or positive.");
+        Preconditions.checkNotNull(icon, "Icon is null.");
+        Preconditions.checkNotNull(title, "Title is null.");
+        Preconditions.checkNotNull(frame, "Frame is null.");
+        Preconditions.checkNotNull(defaultColor, "Default color is null.");
+        Preconditions.checkNotNull(description, "Description is null.");
+        for (String line : description)
+            Preconditions.checkNotNull(line, "A line of the description is null.");
+        Preconditions.checkArgument(x >= 0, "x is not null or positive.");
+        Preconditions.checkArgument(y >= 0, "y is not null or positive.");
 
         this.icon = icon.clone();
         this.title = title;
-        this.description = Collections.unmodifiableList(new ArrayList<>(description));
+        this.description = List.copyOf(description);
 
         // Remove trailing spaces and color codes
         String titleTrimmed = title.trim();
@@ -227,7 +226,7 @@ public class AdvancementDisplay {
 
         this.chatTitle[0] = new TextComponent(defaultColor + rawTitle);
         // Old code, bugged for unknown reasons (found out that BaseComponent[] must have length 1 or it bugs in HoverEvents)
-        //this.chatDescription = AdvancementUtils.fromStringList(title, this.description);
+        // this.chatDescription = AdvancementUtils.fromStringList(title, this.description);
 
         if (this.description.isEmpty()) {
             this.compactDescription = "";
@@ -307,7 +306,7 @@ public class AdvancementDisplay {
      */
     @NotNull
     public AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement) {
-        Validate.notNull(advancement, "Advancement is null.");
+        Preconditions.checkNotNull(advancement, "Advancement is null.");
         AdvancementDisplayWrapper wrapper;
         try {
             if (advancement instanceof RootAdvancement root) {

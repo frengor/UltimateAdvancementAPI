@@ -18,7 +18,7 @@ import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent.Action;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -48,6 +48,7 @@ import java.util.function.Consumer;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
  * The database manager. It handles the connection to the database and caches the requested values to improve performances.
@@ -89,7 +90,7 @@ public final class DatabaseManager {
      * @throws Exception If anything goes wrong.
      */
     public DatabaseManager(@NotNull AdvancementMain main) throws Exception {
-        Validate.notNull(main, "AdvancementMain is null.");
+        Preconditions.checkNotNull(main, "AdvancementMain is null.");
         this.main = main;
         this.eventManager = main.getEventManager();
 
@@ -105,8 +106,8 @@ public final class DatabaseManager {
      * @throws Exception If anything goes wrong.
      */
     public DatabaseManager(@NotNull AdvancementMain main, @NotNull File dbFile) throws Exception {
-        Validate.notNull(main, "AdvancementMain is null.");
-        Validate.notNull(dbFile, "Database file is null.");
+        Preconditions.checkNotNull(main, "AdvancementMain is null.");
+        Preconditions.checkNotNull(dbFile, "Database file is null.");
         this.main = main;
         this.eventManager = main.getEventManager();
 
@@ -128,7 +129,7 @@ public final class DatabaseManager {
      * @throws Exception If anything goes wrong.
      */
     public DatabaseManager(@NotNull AdvancementMain main, @NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout) throws Exception {
-        Validate.notNull(main, "AdvancementMain is null.");
+        Preconditions.checkNotNull(main, "AdvancementMain is null.");
         this.main = main;
         this.eventManager = main.getEventManager();
 
@@ -339,7 +340,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<Result> updatePlayerName(@NotNull Player player) {
-        Validate.notNull(player, "Player cannot be null.");
+        Preconditions.checkNotNull(player, "Player cannot be null.");
         return CompletableFuture.supplyAsync(() -> {
             try {
                 database.updatePlayerName(player.getUniqueId(), player.getName());
@@ -397,7 +398,7 @@ public final class DatabaseManager {
 
     @NotNull
     private CompletableFuture<Result> updatePlayerTeam(@NotNull UUID playerToMove, @Nullable Player ptm, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
-        Validate.notNull(playerToMove, "Player to move is null.");
+        Preconditions.checkNotNull(playerToMove, "Player to move is null.");
         validateTeamProgression(otherTeamProgression);
 
         synchronized (DatabaseManager.this) {
@@ -482,7 +483,7 @@ public final class DatabaseManager {
     }
 
     private CompletableFuture<ObjectResult<@NotNull TeamProgression>> movePlayerInNewTeam(@NotNull UUID uuid, @Nullable Player ptr) throws UserNotLoadedException {
-        Validate.notNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
         synchronized (DatabaseManager.this) {
             if (!progressionCache.containsKey(uuid)) {
                 throw new UserNotLoadedException(uuid);
@@ -552,7 +553,7 @@ public final class DatabaseManager {
      * @see UltimateAdvancementAPI#unregisterOfflinePlayer(UUID)
      */
     public CompletableFuture<Result> unregisterOfflinePlayer(@NotNull UUID uuid) throws IllegalStateException {
-        Validate.notNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
         AdvancementUtils.checkSync();
         if (Bukkit.getPlayer(uuid) != null)
             throw new IllegalStateException("Player is online.");
@@ -652,9 +653,9 @@ public final class DatabaseManager {
      */
     @NotNull
     public Entry<Integer, CompletableFuture<Result>> updateProgressionWithCompletable(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
-        Validate.notNull(key, "Key is null.");
+        Preconditions.checkNotNull(key, "Key is null.");
         validateTeamProgression(progression);
-        Validate.isTrue(progression.getSize() > 0, "TeamProgression doesn't contain any player.");
+        Preconditions.checkArgument(progression.getSize() > 0, "TeamProgression doesn't contain any player.");
         AdvancementUtils.checkSync();
 
         int old = progression.updateProgression(key, newProgression);
@@ -705,7 +706,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public synchronized TeamProgression getTeamProgression(@NotNull UUID uuid) throws UserNotLoadedException {
-        Validate.notNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
         TeamProgression pro = progressionCache.get(uuid);
         AdvancementUtils.checkTeamProgressionNotNull(pro, uuid);
         return pro;
@@ -789,9 +790,9 @@ public final class DatabaseManager {
     @Contract(pure = true)
     @Range(from = 0, to = MAX_SIMULTANEOUS_LOADING_REQUESTS)
     public synchronized int getLoadingRequestsAmount(@NotNull Plugin plugin, @NotNull UUID uuid, @NotNull CacheFreeingOption.Option type) {
-        Validate.notNull(plugin, "Plugin is null.");
-        Validate.notNull(uuid, "UUID is null.");
-        Validate.notNull(type, "CacheFreeingOption.Option is null.");
+        Preconditions.checkNotNull(plugin, "Plugin is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(type, "CacheFreeingOption.Option is null.");
         TempUserMetadata t = tempLoaded.get(uuid);
         if (t == null) {
             return 0;
@@ -828,7 +829,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<ObjectResult<@NotNull Boolean>> isUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
-        Validate.notNull(key, "AdvancementKey is null.");
+        Preconditions.checkNotNull(key, "AdvancementKey is null.");
         validateTeamProgression(pro);
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -869,7 +870,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<Result> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull TeamProgression pro) {
-        Validate.notNull(key, "AdvancementKey is null.");
+        Preconditions.checkNotNull(key, "AdvancementKey is null.");
         validateTeamProgression(pro);
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -908,7 +909,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<Result> unsetUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
-        Validate.notNull(key, "AdvancementKey is null.");
+        Preconditions.checkNotNull(key, "AdvancementKey is null.");
         validateTeamProgression(pro);
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -933,7 +934,7 @@ public final class DatabaseManager {
      */
     @NotNull
     public CompletableFuture<ObjectResult<@NotNull String>> getStoredPlayerName(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return new ObjectResult<>(database.getPlayerName(uuid));
@@ -963,8 +964,8 @@ public final class DatabaseManager {
      */
     @NotNull
     public synchronized CompletableFuture<ObjectResult<@NotNull TeamProgression>> loadOfflinePlayer(@NotNull UUID uuid, @NotNull CacheFreeingOption option) {
-        Validate.notNull(uuid, "UUID is null.");
-        Validate.notNull(option, "CacheFreeingOption is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(option, "CacheFreeingOption is null.");
         TeamProgression pro = progressionCache.get(uuid);
         if (pro != null) {
             handleCacheFreeingOption(uuid, null, option); // Handle requests
@@ -1052,8 +1053,8 @@ public final class DatabaseManager {
     }
 
     private synchronized void internalUnloadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester, boolean auto) {
-        Validate.notNull(uuid, "UUID is null.");
-        Validate.notNull(requester, "Plugin is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(requester, "Plugin is null.");
         TempUserMetadata meta = tempLoaded.get(uuid);
         if (meta != null) {
             meta.removeRequest(requester, auto);
@@ -1068,11 +1069,6 @@ public final class DatabaseManager {
                 }
             }
         }
-    }
-
-    private static void validateTeamProgression(@NotNull TeamProgression pro) {
-        Validate.notNull(pro, "TeamProgression is null.");
-        Validate.isTrue(pro.isValid(), "TeamProgression is not valid (this means it is not present in cache).");
     }
 
     private static final class TempUserMetadata {

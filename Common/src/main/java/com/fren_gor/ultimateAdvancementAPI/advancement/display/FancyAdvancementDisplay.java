@@ -1,9 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
+import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -150,7 +150,7 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
      */
     public FancyAdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultTitleColor, @NotNull ChatColor defaultDescriptionColor, @NotNull List<String> description) {
         super(icon, title, frame, showToast, announceChat, x, y, defaultDescriptionColor, description);
-        Validate.notNull(defaultTitleColor, "Default title color is null.");
+        Preconditions.checkNotNull(defaultTitleColor, "Default title color is null.");
 
         this.chatTitle[0] = new TextComponent(defaultTitleColor + rawTitle);
 

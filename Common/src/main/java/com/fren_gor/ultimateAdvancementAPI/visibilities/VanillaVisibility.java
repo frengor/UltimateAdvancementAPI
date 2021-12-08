@@ -4,7 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.multiParents.AbstractMultiParentsAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -22,8 +22,8 @@ public interface VanillaVisibility extends IVisibility {
      */
     @Override
     default boolean isVisible(@NotNull Advancement advancement, @NotNull TeamProgression progression) {
-        Validate.notNull(advancement, "Advancement is null.");
-        Validate.notNull(progression, "TeamProgression is null.");
+        Preconditions.checkNotNull(advancement, "Advancement is null.");
+        Preconditions.checkNotNull(progression, "TeamProgression is null.");
         if (advancement.getProgression(progression) > 0)
             return true;
 

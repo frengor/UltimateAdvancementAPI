@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -62,8 +62,8 @@ public final class CacheFreeingOption {
      * @return A {@code CacheFreeingOption} instance with caching strategy <a href="./CacheFreeingOption.Option.html#AUTOMATIC"><code>CacheFreeingOption.Option#AUTOMATIC</code></a>.
      */
     public static CacheFreeingOption AUTOMATIC(@NotNull Plugin requester, @Range(from = 0, to = Long.MAX_VALUE) long ticks) {
-        Validate.notNull(requester, "Plugin is null.");
-        Validate.isTrue(requester.isEnabled(), "Plugin isn't enabled.");
+        Preconditions.checkNotNull(requester, "Plugin is null.");
+        Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
         return new CacheFreeingOption(Option.AUTOMATIC, ticks, requester);
     }
 
@@ -74,8 +74,8 @@ public final class CacheFreeingOption {
      * @return A {@code CacheFreeingOption} instance with caching strategy <a href="./CacheFreeingOption.Option.html#MANUAL"><code>CacheFreeingOption.Option#MANUAL</code></a>.
      */
     public static CacheFreeingOption MANUAL(@NotNull Plugin requester) {
-        Validate.notNull(requester, "Plugin is null.");
-        Validate.isTrue(requester.isEnabled(), "Plugin isn't enabled.");
+        Preconditions.checkNotNull(requester, "Plugin is null.");
+        Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
         return new CacheFreeingOption(Option.MANUAL, requester);
     }
 

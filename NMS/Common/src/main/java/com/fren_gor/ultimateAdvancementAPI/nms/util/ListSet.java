@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.util;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.AbstractWrapper;
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -33,7 +33,7 @@ public final class ListSet<E> extends AbstractSet<E> implements Set<E> {
      * @throws IllegalArgumentException If the provided {@link Set} is {@code null}.
      */
     public ListSet(@NotNull Set<E> elements) {
-        Validate.notNull(elements, "Set is null.");
+        Preconditions.checkNotNull(elements, "Set is null.");
         @SuppressWarnings("unchecked")
         E[] array = (E[]) new Object[elements.size()];
         int i = 0;
@@ -62,7 +62,7 @@ public final class ListSet<E> extends AbstractSet<E> implements Set<E> {
     @NotNull
     @Contract(pure = true, value = "_ -> new")
     public static <T extends AbstractWrapper> ListSet<?> fromWrapperSet(@NotNull Set<T> elements) {
-        Validate.notNull(elements, "Set is null.");
+        Preconditions.checkNotNull(elements, "Set is null.");
         Object[] array = new Object[elements.size()];
         int i = 0;
         for (T t : elements) {

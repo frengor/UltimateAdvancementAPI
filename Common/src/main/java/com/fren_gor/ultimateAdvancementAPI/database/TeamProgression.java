@@ -3,9 +3,9 @@ package com.fren_gor.ultimateAdvancementAPI.database;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
@@ -50,7 +50,7 @@ public final class TeamProgression {
      */
     public TeamProgression(int teamId, @NotNull UUID member) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
-        Validate.notNull(member, "Member is null.");
+        Preconditions.checkNotNull(member, "Member is null.");
         this.advancements = new ConcurrentHashMap<>();
         this.teamId = teamId;
         players = new HashSet<>();
@@ -70,8 +70,8 @@ public final class TeamProgression {
      */
     public TeamProgression(@NotNull Map<AdvancementKey, Integer> advancements, int teamId, @NotNull Collection<UUID> members) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
-        Validate.notNull(advancements, "Advancements is null.");
-        Validate.notNull(members, "Members is null.");
+        Preconditions.checkNotNull(advancements, "Advancements is null.");
+        Preconditions.checkNotNull(members, "Members is null.");
         this.advancements = new ConcurrentHashMap<>(advancements);
         this.teamId = teamId;
         players = Sets.newHashSetWithExpectedSize(members.size() + 4);
@@ -92,7 +92,7 @@ public final class TeamProgression {
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int getProgression(@NotNull Advancement advancement) {
-        Validate.notNull(advancement, "Advancement is null.");
+        Preconditions.checkNotNull(advancement, "Advancement is null.");
         Integer progression = advancements.get(advancement.getKey());
 
         if (progression != null) {
@@ -160,7 +160,7 @@ public final class TeamProgression {
      * @param action The {@link Consumer} to run for each member.
      */
     public void forEachMember(@NotNull Consumer<UUID> action) {
-        Validate.notNull(action, "Consumer is null.");
+        Preconditions.checkNotNull(action, "Consumer is null.");
         synchronized (players) {
             for (UUID u : players) {
                 action.accept(u);
@@ -176,7 +176,7 @@ public final class TeamProgression {
      * @return Whether the {@link Predicate} returns {@code true} for every member, or {@code true} if the team is empty.
      */
     public boolean everyMemberMatch(@NotNull Predicate<UUID> action) {
-        Validate.notNull(action, "Predicate is null.");
+        Preconditions.checkNotNull(action, "Predicate is null.");
         synchronized (players) {
             for (UUID u : players) {
                 if (!action.test(u)) {
@@ -195,7 +195,7 @@ public final class TeamProgression {
      * @return Whether the {@link Predicate} returns {@code true} for at least one member, or {@code false} if the team is empty.
      */
     public boolean anyMemberMatch(@NotNull Predicate<UUID> action) {
-        Validate.notNull(action, "Predicate is null.");
+        Preconditions.checkNotNull(action, "Predicate is null.");
         synchronized (players) {
             for (UUID u : players) {
                 if (action.test(u)) {
@@ -214,7 +214,7 @@ public final class TeamProgression {
      * @return Whether the {@link Predicate} returns {@code false} for every member, or {@code true} if the team is empty.
      */
     public boolean noMemberMatch(@NotNull Predicate<UUID> action) {
-        Validate.notNull(action, "Predicate is null.");
+        Preconditions.checkNotNull(action, "Predicate is null.");
         synchronized (players) {
             for (UUID u : players) {
                 if (action.test(u)) {
@@ -266,7 +266,7 @@ public final class TeamProgression {
      * @param uuid The {@link UUID} of the player to be added.
      */
     void addMember(@NotNull UUID uuid) {
-        Validate.notNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
         synchronized (players) {
             players.add(uuid);
         }
@@ -293,7 +293,7 @@ public final class TeamProgression {
      */
     @Nullable
     public Player getAnOnlineMember(@NotNull DatabaseManager manager) {
-        Validate.notNull(manager, "DatabaseManager is null.");
+        Preconditions.checkNotNull(manager, "DatabaseManager is null.");
         synchronized (players) {
             for (UUID u : players) {
                 if (manager.isLoadedAndOnline(u)) {

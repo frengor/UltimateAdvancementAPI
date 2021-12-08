@@ -7,8 +7,8 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
+import com.google.common.base.Preconditions;
 import net.byteflux.libby.BukkitLibraryManager;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
@@ -61,7 +61,7 @@ public final class AdvancementMain {
      * @param owningPlugin The plugin instantiating the API.
      */
     public AdvancementMain(@NotNull Plugin owningPlugin) {
-        Validate.notNull(owningPlugin, "Plugin is null.");
+        Preconditions.checkNotNull(owningPlugin, "Plugin is null.");
         this.owningPlugin = owningPlugin;
         this.libFolder = ".libs";
     }
@@ -74,8 +74,8 @@ public final class AdvancementMain {
      *         The folder is created into the plugin directory.
      */
     public AdvancementMain(@NotNull Plugin owningPlugin, String libFolder) {
-        Validate.notNull(owningPlugin, "Plugin is null.");
-        Validate.notNull(libFolder, "Lib folder is null.");
+        Preconditions.checkNotNull(owningPlugin, "Plugin is null.");
+        Preconditions.checkNotNull(libFolder, "Lib folder is null.");
         this.owningPlugin = owningPlugin;
         this.libFolder = libFolder;
     }
@@ -279,8 +279,8 @@ public final class AdvancementMain {
     @Contract("_, _ -> new")
     public AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace) throws DuplicatedException {
         checkInitialisation();
-        Validate.notNull(plugin, "Plugin is null.");
-        Validate.notNull(namespace, "Namespace is null.");
+        Preconditions.checkNotNull(plugin, "Plugin is null.");
+        Preconditions.checkNotNull(namespace, "Namespace is null.");
         if (tabs.containsKey(namespace)) {
             throw new DuplicatedException("An AdvancementTab with '" + namespace + "' namespace already exists.");
         }
@@ -302,7 +302,7 @@ public final class AdvancementMain {
     @Nullable
     public AdvancementTab getAdvancementTab(@NotNull String namespace) {
         checkInitialisation();
-        Validate.notNull(namespace, "Namespace is null.");
+        Preconditions.checkNotNull(namespace, "Namespace is null.");
         return tabs.get(namespace);
     }
 
@@ -316,7 +316,7 @@ public final class AdvancementMain {
      */
     public boolean isAdvancementTabRegistered(@NotNull String namespace) {
         checkInitialisation();
-        Validate.notNull(namespace, "Namespace is null.");
+        Preconditions.checkNotNull(namespace, "Namespace is null.");
         return tabs.containsKey(namespace);
     }
 
@@ -332,7 +332,7 @@ public final class AdvancementMain {
     @NotNull
     public Collection<@NotNull AdvancementTab> getPluginAdvancementTabs(@NotNull Plugin plugin) {
         checkInitialisation();
-        Validate.notNull(plugin, "Plugin is null.");
+        Preconditions.checkNotNull(plugin, "Plugin is null.");
         return Collections.unmodifiableCollection(pluginMap.getOrDefault(plugin, Collections.emptyList()));
     }
 
@@ -345,7 +345,7 @@ public final class AdvancementMain {
      */
     public void unregisterAdvancementTab(@NotNull String namespace) {
         checkInitialisation();
-        Validate.notNull(namespace, "Namespace is null.");
+        Preconditions.checkNotNull(namespace, "Namespace is null.");
         AdvancementTab tab = tabs.remove(namespace);
         if (tab != null)
             tab.dispose();
@@ -360,7 +360,7 @@ public final class AdvancementMain {
      */
     public void unregisterAdvancementTabs(@NotNull Plugin plugin) {
         checkInitialisation();
-        Validate.notNull(plugin, "Plugin is null.");
+        Preconditions.checkNotNull(plugin, "Plugin is null.");
         List<AdvancementTab> tabs = pluginMap.remove(plugin);
         if (tabs != null) {
             for (AdvancementTab t : tabs)
@@ -399,8 +399,8 @@ public final class AdvancementMain {
     @Nullable
     public Advancement getAdvancement(@NotNull String namespace, @NotNull String key) {
         checkInitialisation();
-        Validate.notNull(namespace, "Namespace is null.");
-        Validate.notNull(key, "Key is null.");
+        Preconditions.checkNotNull(namespace, "Namespace is null.");
+        Preconditions.checkNotNull(key, "Key is null.");
         return getAdvancement(new AdvancementKey(namespace, key));
     }
 
@@ -415,7 +415,7 @@ public final class AdvancementMain {
     @Nullable
     public Advancement getAdvancement(@NotNull AdvancementKey namespacedKey) {
         checkInitialisation();
-        Validate.notNull(namespacedKey, "AdvancementKey is null.");
+        Preconditions.checkNotNull(namespacedKey, "AdvancementKey is null.");
         AdvancementTab tab = tabs.get(namespacedKey.getNamespace());
         if (tab == null || !tab.isActive())
             return null;
@@ -503,7 +503,7 @@ public final class AdvancementMain {
      */
     public void updatePlayer(@NotNull Player player) {
         checkInitialisation();
-        Validate.notNull(player, "Player is null.");
+        Preconditions.checkNotNull(player, "Player is null.");
         for (AdvancementTab tab : tabs.values()) {
             if (tab.isActive() && tab.isShownTo(player)) {
                 tab.updateEveryAdvancement(player);

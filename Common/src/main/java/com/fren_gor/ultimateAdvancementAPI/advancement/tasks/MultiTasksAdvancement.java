@@ -7,8 +7,8 @@ import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskProgressionUpdateException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
  * An implementation of {@link AbstractMultiTasksAdvancement}. {@link TaskAdvancement}s have to be registered
@@ -87,11 +88,11 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         if (initialised) {
             throw new IllegalStateException("MultiTaskAdvancement is already initialised.");
         }
-        Validate.notNull(tasks, "Set<TaskAdvancement> is null.");
+        Preconditions.checkNotNull(tasks, "Set<TaskAdvancement> is null.");
         int progression = 0;
         for (TaskAdvancement t : tasks) {
             if (t == null) {
-                throw new IllegalArgumentException("A TaskAdvancement is null.");
+                throw new NullPointerException("A TaskAdvancement is null.");
             }
             if (t.getMultiTasksAdvancement() != this) {
                 throw new IllegalArgumentException("TaskAdvancement's AbstractMultiTasksAdvancement (" + t.getMultiTasksAdvancement().getKey() + ") doesn't match with this MultiTasksAdvancement (" + key + ").");
@@ -132,7 +133,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int getProgression(@NotNull TeamProgression progression) {
         checkInitialisation();
-        Validate.notNull(progression, "TeamProgression is null.");
+        validateTeamProgression(progression);
         Integer progr = progressionsCache.get(progression.getTeamId());
         if (progr == null) {
             int c = 0;
@@ -154,7 +155,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     @Override
     public boolean isGranted(@NotNull TeamProgression pro) {
         checkInitialisation();
-        Validate.notNull(pro, "TeamProgression is null.");
+        validateTeamProgression(pro);
         return getProgression(pro) >= maxProgression;
     }
 
@@ -176,7 +177,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     @Override
     protected void setProgression(@NotNull TeamProgression progression, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, boolean giveRewards) throws ArbitraryMultiTaskProgressionUpdateException {
         checkInitialisation();
-        Validate.notNull(progression, "TeamProgression is null.");
+        validateTeamProgression(progression);
         validateProgressionValueStrict(newProgression, maxProgression);
 
         int current = getProgression(progression);
@@ -239,7 +240,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     protected void reloadTasks(@NotNull TeamProgression progression, @Nullable Player player, boolean giveRewards) {
         checkInitialisation();
         if (doReloads) { // Skip reloads when update comes from ourselves
-            Validate.notNull(progression, "TeamProgression is null.");
+            validateTeamProgression(progression);
 
             int current = getProgression(progression);
             resetProgressionCache(progression);
@@ -263,7 +264,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * @param pro The team to remove from the cache.
      */
     public void resetProgressionCache(@NotNull TeamProgression pro) {
-        Validate.notNull(pro, "TeamProgression is null.");
+        validateTeamProgression(pro);
         progressionsCache.remove(pro.getTeamId());
     }
 
@@ -274,7 +275,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * @param progression The new progression to store in cache.
      */
     protected void updateProgressionCache(@NotNull TeamProgression pro, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
-        Validate.notNull(pro, "TeamProgression is null.");
+        validateTeamProgression(pro);
         validateProgressionValueStrict(progression, maxProgression);
         progressionsCache.put(pro.getTeamId(), progression);
     }
