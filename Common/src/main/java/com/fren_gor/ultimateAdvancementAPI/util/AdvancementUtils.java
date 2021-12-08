@@ -7,6 +7,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisablerWrapper;
@@ -226,7 +227,7 @@ public class AdvancementUtils {
 
     public static void checkSync() {
         if (!Bukkit.isPrimaryThread())
-            throw new IllegalStateException("Illegal async method call. This method can be called only from the main thread.");
+            throw new AsyncExecutionException("Illegal async method call. This method can be called only from the main thread.");
     }
 
     public static void runSync(@NotNull AdvancementMain main, @NotNull Runnable runnable) {

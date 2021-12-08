@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import com.google.common.base.Preconditions;
 import net.byteflux.libby.BukkitLibraryManager;
@@ -36,6 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.checkSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 
 /**
@@ -88,7 +90,7 @@ public final class AdvancementMain {
      * @throws IllegalStateException If it is called at an invalid moment.
      */
     public void load() throws InvalidVersionException {
-        checkPrimaryThread();
+        checkSync();
         if (!LOADED.compareAndSet(false, true)) {
             throw new IllegalStateException("UltimateAdvancementAPI is getting loaded twice.");
         }
@@ -178,7 +180,7 @@ public final class AdvancementMain {
     }
 
     private void commonEnablePreDatabase() {
-        checkPrimaryThread();
+        checkSync();
         if (INVALID_VERSION.get()) {
             throw new InvalidVersionException("Incorrect minecraft version. Couldn't enable UltimateAdvancementAPI.");
         }
@@ -231,7 +233,7 @@ public final class AdvancementMain {
      * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
      */
     public void disable() {
-        checkPrimaryThread();
+        checkSync();
         if (INVALID_VERSION.get()) {
             throw new InvalidVersionException("Incorrect minecraft version. Couldn't disable UltimateAdvancementAPI.");
         }
@@ -519,12 +521,6 @@ public final class AdvancementMain {
 
     private static boolean isMcReload(@NotNull String command) {
         return command.startsWith("/minecraft:reload") || command.startsWith("minecraft:reload");
-    }
-
-    private static void checkPrimaryThread() {
-        if (!Bukkit.isPrimaryThread()) {
-            throw new IllegalStateException("Executing thread is not main thread.");
-        }
     }
 
     /**
