@@ -6,9 +6,10 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
+import com.google.common.base.Preconditions;
 import net.byteflux.libby.BukkitLibraryManager;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
@@ -36,6 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.checkSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 
 /**
@@ -61,7 +63,7 @@ public final class AdvancementMain {
      * @param owningPlugin The plugin instantiating the API.
      */
     public AdvancementMain(@NotNull Plugin owningPlugin) {
-        Validate.notNull(owningPlugin, "Plugin is null.");
+        Preconditions.checkNotNull(owningPlugin, "Plugin is null.");
         this.owningPlugin = owningPlugin;
         this.libFolder = ".libs";
     }
@@ -74,8 +76,8 @@ public final class AdvancementMain {
      *         The folder is created into the plugin directory.
      */
     public AdvancementMain(@NotNull Plugin owningPlugin, String libFolder) {
-        Validate.notNull(owningPlugin, "Plugin is null.");
-        Validate.notNull(libFolder, "Lib folder is null.");
+        Preconditions.checkNotNull(owningPlugin, "Plugin is null.");
+        Preconditions.checkNotNull(libFolder, "Lib folder is null.");
         this.owningPlugin = owningPlugin;
         this.libFolder = libFolder;
     }
@@ -88,7 +90,7 @@ public final class AdvancementMain {
      * @throws IllegalStateException If it is called at an invalid moment.
      */
     public void load() throws InvalidVersionException {
-        checkPrimaryThread();
+        checkSync();
         if (!LOADED.compareAndSet(false, true)) {
             throw new IllegalStateException("UltimateAdvancementAPI is getting loaded twice.");
         }
@@ -178,11 +180,11 @@ public final class AdvancementMain {
     }
 
     private void commonEnablePreDatabase() {
-        checkPrimaryThread();
+        checkSync();
         if (INVALID_VERSION.get()) {
             throw new InvalidVersionException("Incorrect minecraft version. Couldn't enable UltimateAdvancementAPI.");
         }
-        if (!isLoaded()) {
+        if (!LOADED.get()) {
             throw new IllegalStateException("UltimateAdvancementAPI is not loaded.");
         }
         if (!owningPlugin.isEnabled()) {
@@ -220,44 +222,49 @@ public final class AdvancementMain {
 
     @Contract("_ -> fail")
     private void failEnable(Exception e) {
-        e.printStackTrace();
-        Bukkit.getPluginManager().disablePlugin(owningPlugin);
+        disable(); // Disable everything we set up before failing
         throw new RuntimeException("Exception setting up database.", e);
     }
 
     /**
      * Disables the API.
-     * <p><strong>Can be called exactly once</strong> after an <i>enable</i> method is called.
+     * <p>If not called after an <i>enable</i> method or {@link #load()} no action is done.
      *
      * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
-     * @throws IllegalStateException If the API is not enabled.
      */
     public void disable() {
-        checkPrimaryThread();
+        checkSync();
         if (INVALID_VERSION.get()) {
             throw new InvalidVersionException("Incorrect minecraft version. Couldn't disable UltimateAdvancementAPI.");
         }
-        checkInitialisation();
-        LOADED.set(false);
-        ENABLED.set(false);
+        if (!LOADED.compareAndSet(true, false)) {
+            // Old code
+            // throw new IllegalStateException("UltimateAdvancementAPI is not loaded.");
+
+            return; // Don't do anything if API is already disabled
+        }
 
         UltimateAdvancementAPI.main = null;
-        // eventManager is disabled automatically since pl is disabling.
-        pluginMap.clear();
-        Iterator<AdvancementTab> it = tabs.values().iterator();
-        while (it.hasNext()) {
-            try {
-                AdvancementTab tab = it.next();
-                if (tab.isActive()) {
-                    tab.dispose();
+
+        if (ENABLED.getAndSet(false)) {
+            if (eventManager != null)
+                eventManager.disable();
+            pluginMap.clear();
+            Iterator<AdvancementTab> it = tabs.values().iterator();
+            while (it.hasNext()) {
+                try {
+                    AdvancementTab tab = it.next();
+                    if (tab.isActive()) {
+                        tab.dispose();
+                    }
+                    it.remove();
+                } catch (Exception t) {
+                    t.printStackTrace();
                 }
-                it.remove();
-            } catch (Exception t) {
-                t.printStackTrace();
             }
+            if (databaseManager != null)
+                databaseManager.unregister();
         }
-        if (databaseManager != null)
-            databaseManager.unregister();
     }
 
     /**
@@ -274,8 +281,8 @@ public final class AdvancementMain {
     @Contract("_, _ -> new")
     public AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace) throws DuplicatedException {
         checkInitialisation();
-        Validate.notNull(plugin, "Plugin is null.");
-        Validate.notNull(namespace, "Namespace is null.");
+        Preconditions.checkNotNull(plugin, "Plugin is null.");
+        Preconditions.checkNotNull(namespace, "Namespace is null.");
         if (tabs.containsKey(namespace)) {
             throw new DuplicatedException("An AdvancementTab with '" + namespace + "' namespace already exists.");
         }
@@ -297,7 +304,7 @@ public final class AdvancementMain {
     @Nullable
     public AdvancementTab getAdvancementTab(@NotNull String namespace) {
         checkInitialisation();
-        Validate.notNull(namespace, "Namespace is null.");
+        Preconditions.checkNotNull(namespace, "Namespace is null.");
         return tabs.get(namespace);
     }
 
@@ -311,7 +318,7 @@ public final class AdvancementMain {
      */
     public boolean isAdvancementTabRegistered(@NotNull String namespace) {
         checkInitialisation();
-        Validate.notNull(namespace, "Namespace is null.");
+        Preconditions.checkNotNull(namespace, "Namespace is null.");
         return tabs.containsKey(namespace);
     }
 
@@ -327,7 +334,7 @@ public final class AdvancementMain {
     @NotNull
     public Collection<@NotNull AdvancementTab> getPluginAdvancementTabs(@NotNull Plugin plugin) {
         checkInitialisation();
-        Validate.notNull(plugin, "Plugin is null.");
+        Preconditions.checkNotNull(plugin, "Plugin is null.");
         return Collections.unmodifiableCollection(pluginMap.getOrDefault(plugin, Collections.emptyList()));
     }
 
@@ -340,7 +347,7 @@ public final class AdvancementMain {
      */
     public void unregisterAdvancementTab(@NotNull String namespace) {
         checkInitialisation();
-        Validate.notNull(namespace, "Namespace is null.");
+        Preconditions.checkNotNull(namespace, "Namespace is null.");
         AdvancementTab tab = tabs.remove(namespace);
         if (tab != null)
             tab.dispose();
@@ -355,7 +362,7 @@ public final class AdvancementMain {
      */
     public void unregisterAdvancementTabs(@NotNull Plugin plugin) {
         checkInitialisation();
-        Validate.notNull(plugin, "Plugin is null.");
+        Preconditions.checkNotNull(plugin, "Plugin is null.");
         List<AdvancementTab> tabs = pluginMap.remove(plugin);
         if (tabs != null) {
             for (AdvancementTab t : tabs)
@@ -394,8 +401,8 @@ public final class AdvancementMain {
     @Nullable
     public Advancement getAdvancement(@NotNull String namespace, @NotNull String key) {
         checkInitialisation();
-        Validate.notNull(namespace, "Namespace is null.");
-        Validate.notNull(key, "Key is null.");
+        Preconditions.checkNotNull(namespace, "Namespace is null.");
+        Preconditions.checkNotNull(key, "Key is null.");
         return getAdvancement(new AdvancementKey(namespace, key));
     }
 
@@ -410,7 +417,7 @@ public final class AdvancementMain {
     @Nullable
     public Advancement getAdvancement(@NotNull AdvancementKey namespacedKey) {
         checkInitialisation();
-        Validate.notNull(namespacedKey, "AdvancementKey is null.");
+        Preconditions.checkNotNull(namespacedKey, "AdvancementKey is null.");
         AdvancementTab tab = tabs.get(namespacedKey.getNamespace());
         if (tab == null || !tab.isActive())
             return null;
@@ -498,7 +505,7 @@ public final class AdvancementMain {
      */
     public void updatePlayer(@NotNull Player player) {
         checkInitialisation();
-        Validate.notNull(player, "Player is null.");
+        Preconditions.checkNotNull(player, "Player is null.");
         for (AdvancementTab tab : tabs.values()) {
             if (tab.isActive() && tab.isShownTo(player)) {
                 tab.updateEveryAdvancement(player);
@@ -514,12 +521,6 @@ public final class AdvancementMain {
 
     private static boolean isMcReload(@NotNull String command) {
         return command.startsWith("/minecraft:reload") || command.startsWith("minecraft:reload");
-    }
-
-    private static void checkPrimaryThread() {
-        if (!Bukkit.isPrimaryThread()) {
-            throw new IllegalStateException("Executing thread is not main thread.");
-        }
     }
 
     /**

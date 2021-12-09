@@ -7,6 +7,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisablerWrapper;
@@ -14,11 +15,11 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementD
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdvancementsWrapper;
+import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -61,11 +62,11 @@ public class AdvancementUtils {
      * @see UltimateAdvancementAPI#displayCustomToast(Player, ItemStack, String, AdvancementFrameType)
      */
     public static void displayToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame) {
-        Validate.notNull(player, "Player is null.");
-        Validate.notNull(icon, "Icon is null.");
-        Validate.notNull(title, "Title is null.");
-        Validate.notNull(frame, "AdvancementFrameType is null.");
-        Validate.isTrue(icon.getType() != Material.AIR, "ItemStack is air.");
+        Preconditions.checkNotNull(player, "Player is null.");
+        Preconditions.checkNotNull(icon, "Icon is null.");
+        Preconditions.checkNotNull(title, "Title is null.");
+        Preconditions.checkNotNull(frame, "AdvancementFrameType is null.");
+        Preconditions.checkArgument(icon.getType() != Material.AIR, "ItemStack is air.");
 
         try {
             AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(icon, title, ADV_DESCRIPTION, frame.getNMSWrapper(), 1, 0, true, false, false);
@@ -81,13 +82,13 @@ public class AdvancementUtils {
     }
 
     /*public static void displayToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, @NotNull Advancement base) {
-        Validate.notNull(player, "Player is null.");
-        Validate.notNull(icon, "Icon is null.");
-        Validate.notNull(title, "Title is null.");
-        Validate.notNull(frame, "AdvancementFrameType is null.");
-        Validate.notNull(base, "Advancement is null.");
-        Validate.isTrue(base.isValid(), "Advancement isn't valid.");
-        Validate.isTrue(icon.getType() != Material.AIR, "ItemStack is air.");
+        Preconditions.checkNotNull(player, "Player is null.");
+        Preconditions.checkNotNull(icon, "Icon is null.");
+        Preconditions.checkNotNull(title, "Title is null.");
+        Preconditions.checkNotNull(frame, "AdvancementFrameType is null.");
+        Preconditions.checkNotNull(base, "Advancement is null.");
+        Preconditions.checkArgument(base.isValid(), "Advancement isn't valid.");
+        Preconditions.checkArgument(icon.getType() != Material.AIR, "ItemStack is air.");
 
         final MinecraftKeyWrapper key = getUniqueKey(base.getAdvancementTab()).getNMSWrapper();
 
@@ -105,9 +106,9 @@ public class AdvancementUtils {
     }*/
 
     public static void displayToastDuringUpdate(@NotNull Player player, @NotNull Advancement advancement) {
-        Validate.notNull(player, "Player is null.");
-        Validate.notNull(advancement, "Advancement is null.");
-        Validate.isTrue(advancement.isValid(), "Advancement isn't valid.");
+        Preconditions.checkNotNull(player, "Player is null.");
+        Preconditions.checkNotNull(advancement, "Advancement is null.");
+        Preconditions.checkArgument(advancement.isValid(), "Advancement isn't valid.");
 
         final AdvancementDisplay display = advancement.getDisplay();
         final MinecraftKeyWrapper keyWrapper = getUniqueKey(advancement.getAdvancementTab()).getNMSWrapper();
@@ -123,7 +124,8 @@ public class AdvancementUtils {
         }
     }
 
-    private static AdvancementKey getUniqueKey(AdvancementTab tab) {
+    @NotNull
+    private static AdvancementKey getUniqueKey(@NotNull AdvancementTab tab) {
         final String namespace = tab.getNamespace();
         StringBuilder builder = new StringBuilder("i");
         AdvancementKey key;
@@ -150,7 +152,7 @@ public class AdvancementUtils {
 
     @NotNull
     public static BaseComponent[] fromStringList(@Nullable String title, @NotNull List<String> list) {
-        Validate.notNull(list);
+        Preconditions.checkNotNull(list);
         ComponentBuilder builder = new ComponentBuilder();
         if (title != null) {
             builder.append(TextComponent.fromLegacyText(title), FormatRetention.NONE);
@@ -171,7 +173,7 @@ public class AdvancementUtils {
     }
 
     public static boolean startsWithEmptyLine(@NotNull String text) {
-        Validate.notNull(text);
+        Preconditions.checkNotNull(text);
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             if (c == '§') {
@@ -206,8 +208,8 @@ public class AdvancementUtils {
 
     @Contract("null -> fail; !null -> param1")
     public static TeamProgression validateTeamProgression(TeamProgression pro) {
-        Validate.notNull(pro, "TeamProgression is null.");
-        Validate.isTrue(pro.isValid(), "Invalid TeamProgression.");
+        Preconditions.checkNotNull(pro, "TeamProgression is null.");
+        Preconditions.checkArgument(pro.isValid(), "Invalid TeamProgression.");
         return pro;
     }
 
@@ -224,7 +226,8 @@ public class AdvancementUtils {
     }
 
     public static void checkSync() {
-        Validate.isTrue(Bukkit.isPrimaryThread(), "Illegal async method call.");
+        if (!Bukkit.isPrimaryThread())
+            throw new AsyncExecutionException("Illegal async method call. This method can be called only from the main thread.");
     }
 
     public static void runSync(@NotNull AdvancementMain main, @NotNull Runnable runnable) {
@@ -240,20 +243,20 @@ public class AdvancementUtils {
     }
 
     public static void runSync(@NotNull Plugin plugin, long delay, @NotNull Runnable runnable) {
-        Validate.notNull(plugin, "Plugin is null.");
-        Validate.notNull(runnable, "Runnable is null.");
+        Preconditions.checkNotNull(plugin, "Plugin is null.");
+        Preconditions.checkNotNull(runnable, "Runnable is null.");
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, runnable, delay);
     }
 
     @NotNull
     public static UUID uuidFromPlayer(@NotNull Player player) {
-        Validate.notNull(player, "Player is null.");
+        Preconditions.checkNotNull(player, "Player is null.");
         return player.getUniqueId();
     }
 
     @NotNull
     public static UUID uuidFromPlayer(@NotNull OfflinePlayer player) {
-        Validate.notNull(player, "OfflinePlayer is null.");
+        Preconditions.checkNotNull(player, "OfflinePlayer is null.");
         return player.getUniqueId();
     }
 
@@ -274,7 +277,7 @@ public class AdvancementUtils {
 
     @NotNull
     public static TeamProgression progressionFromUUID(@NotNull UUID uuid, @NotNull AdvancementTab tab) {
-        Validate.notNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
         return tab.getDatabaseManager().getTeamProgression(uuid);
     }
 

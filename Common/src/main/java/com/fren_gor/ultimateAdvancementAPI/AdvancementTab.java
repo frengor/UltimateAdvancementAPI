@@ -20,9 +20,9 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutSel
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey.checkNamespace;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
  * The {@code AdvancementTab} class represents a tab in the advancement GUI.
@@ -333,7 +334,7 @@ public final class AdvancementTab {
      */
     public void updateAdvancementsToTeam(@NotNull TeamProgression pro) {
         checkInitialisation();
-        Validate.notNull(pro, "TeamProgression is null.");
+        validateTeamProgression(pro);
 
         final int best = advancements.size() + 16;
         final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(best);
@@ -385,7 +386,7 @@ public final class AdvancementTab {
      */
     public void updateEveryAdvancement(@NotNull Player player) {
         checkInitialisation();
-        Validate.notNull(player, "Player is null.");
+        Preconditions.checkNotNull(player, "Player is null.");
 
         TeamProgression pro = databaseManager.getTeamProgression(player);
 
@@ -451,8 +452,8 @@ public final class AdvancementTab {
         }
         if (initialised)
             throw new IllegalStateException("Tab is already initialised.");
-        Validate.notNull(rootAdvancement, "RootAdvancement is null.");
-        Validate.isTrue(isOwnedByThisTab(rootAdvancement), "RootAdvancement " + rootAdvancement + " is not owned by this tab.");
+        Preconditions.checkNotNull(rootAdvancement, "RootAdvancement is null.");
+        Preconditions.checkArgument(isOwnedByThisTab(rootAdvancement), "RootAdvancement " + rootAdvancement + " is not owned by this tab.");
 
         for (BaseAdvancement a : advancements) {
             if (a == null) {
@@ -542,7 +543,7 @@ public final class AdvancementTab {
      */
     public void showTab(@NotNull Player... players) {
         checkInitialisation();
-        Validate.notNull(players, "Player[] is null.");
+        Preconditions.checkNotNull(players, "Player[] is null.");
         for (Player p : players) {
             try {
                 showTab(p);
@@ -562,7 +563,7 @@ public final class AdvancementTab {
      */
     public void showTab(@NotNull Player player) {
         checkInitialisation();
-        Validate.notNull(player, "Player is null.");
+        Preconditions.checkNotNull(player, "Player is null.");
         if (!players.containsKey(player)) {
             players.put(player, Collections.emptySet());
             updateEveryAdvancement(player);
@@ -579,7 +580,7 @@ public final class AdvancementTab {
      */
     public void hideTab(@NotNull Player... players) {
         checkInitialisation();
-        Validate.notNull(players, "Player[] is null.");
+        Preconditions.checkNotNull(players, "Player[] is null.");
         for (Player p : players) {
             try {
                 hideTab(p);
@@ -599,7 +600,7 @@ public final class AdvancementTab {
      */
     public void hideTab(@NotNull Player player) {
         checkInitialisation();
-        Validate.notNull(player, "Player is null.");
+        Preconditions.checkNotNull(player, "Player is null.");
         checkPlayer(player);
 
         removePlayer(player, players.remove(player));
@@ -696,7 +697,7 @@ public final class AdvancementTab {
      */
     @Contract(pure = true)
     public boolean isOwnedByThisTab(@NotNull Advancement advancement) {
-        Validate.notNull(advancement, "Advancement is null.");
+        Preconditions.checkNotNull(advancement, "Advancement is null.");
         return advancement.getKey().getNamespace().equals(namespace);
     }
 

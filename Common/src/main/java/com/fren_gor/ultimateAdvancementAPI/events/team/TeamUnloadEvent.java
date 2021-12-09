@@ -2,7 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.events.team;
 
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +25,7 @@ public class TeamUnloadEvent extends Event {
      * @param team The {@link TeamProgression} of the unloaded team. It must be invalid (see {@link TeamProgression#isValid()}).
      */
     public TeamUnloadEvent(@NotNull TeamProgression team) {
-        Validate.isTrue(!Objects.requireNonNull(team, "TeamProgression is null.").isValid(), "TeamProgression is valid.");
+        Preconditions.checkArgument(!Objects.requireNonNull(team, "TeamProgression is null.").isValid(), "TeamProgression is valid.");
         this.team = team;
     }
 

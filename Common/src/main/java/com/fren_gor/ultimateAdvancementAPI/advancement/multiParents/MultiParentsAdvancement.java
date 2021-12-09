@@ -8,9 +8,9 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementExceptio
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.Unmodifiable;
@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
  * An implementation of {@link AbstractMultiParentsAdvancement}.
@@ -132,7 +134,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      */
     @Override
     public boolean isEveryParentGranted(@NotNull TeamProgression pro) {
-        Validate.notNull(pro, "TeamProgression cannot be null.");
+        Preconditions.checkNotNull(pro, "TeamProgression cannot be null.");
 
         for (BaseAdvancement advancement : parents.keySet()) {
             if (!advancement.isGranted(pro)) {
@@ -147,7 +149,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      */
     @Override
     public boolean isAnyParentGranted(@NotNull TeamProgression pro) {
-        Validate.notNull(pro, "TeamProgression cannot be null.");
+        Preconditions.checkNotNull(pro, "TeamProgression cannot be null.");
 
         for (BaseAdvancement advancement : parents.keySet()) {
             if (advancement.isGranted(pro)) {
@@ -162,7 +164,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      */
     @Override
     public boolean isEveryGrandparentGranted(@NotNull TeamProgression pro) {
-        Validate.notNull(pro, "TeamProgression cannot be null.");
+        Preconditions.checkNotNull(pro, "TeamProgression cannot be null.");
 
         for (BaseAdvancement advancement : parents.keySet()) {
             if (!advancement.isGranted(pro)) { // If it is granted then continue to check the other parents
@@ -182,7 +184,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      */
     @Override
     public boolean isAnyGrandparentGranted(@NotNull TeamProgression pro) {
-        Validate.notNull(pro, "TeamProgression cannot be null.");
+        validateTeamProgression(pro);
 
         for (BaseAdvancement advancement : parents.keySet()) {
             if (advancement.isGranted(pro)) {
@@ -199,7 +201,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
 
     // Not currently used
     /*public boolean isAnyParentStarted(@NotNull TeamProgression pro) {
-        Validate.notNull(pro, "TeamProgression cannot be null.");
+        Preconditions.checkNotNull(pro, "TeamProgression cannot be null.");
 
         for (BaseAdvancement advancement : parents.keySet()) {
             if (advancement.getProgression(pro) > 0) {
@@ -210,7 +212,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     }
 
     public boolean isAnyGrandparentStarted(@NotNull TeamProgression pro) {
-        Validate.notNull(pro, "TeamProgression cannot be null.");
+        Preconditions.checkNotNull(pro, "TeamProgression cannot be null.");
 
         for (BaseAdvancement advancement : parents.keySet()) {
             if (advancement.getProgression(pro) > 0 || isParentStarted(pro, advancement)) {

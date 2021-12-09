@@ -6,8 +6,8 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
+import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.BaseComponent;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -187,7 +187,7 @@ public final class FakeAdvancement extends BaseAdvancement {
         @Override
         @NotNull
         public AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement) {
-            Validate.notNull(advancement, "Advancement is null.");
+            Preconditions.checkNotNull(advancement, "Advancement is null.");
             try {
                 return AdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y, false, false, true);
             } catch (ReflectiveOperationException e) {

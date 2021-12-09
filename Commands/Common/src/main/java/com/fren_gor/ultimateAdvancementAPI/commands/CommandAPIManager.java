@@ -2,9 +2,9 @@ package com.fren_gor.ultimateAdvancementAPI.commands;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
+import com.google.common.base.Preconditions;
 import net.byteflux.libby.Library;
 import net.byteflux.libby.LibraryManager;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +37,7 @@ public class CommandAPIManager {
      */
     @Nullable
     public static ILoadable loadManager(@NotNull LibraryManager libbyManager) {
-        Validate.notNull(libbyManager, "LibraryManager is null.");
+        Preconditions.checkNotNull(libbyManager, "LibraryManager is null.");
         CommandAPIVersion ver = CommandAPIVersion.getVersionToLoad(Versions.getNMSVersion());
         if (ver == null) {
             // Skip code down below if nms version is invalid
@@ -112,13 +112,13 @@ public class CommandAPIManager {
         private boolean enabled = false;
 
         public CommonLoadable(@NotNull ILoadable loadable) {
-            Validate.notNull(loadable, "ILoadable is null.");
+            Preconditions.checkNotNull(loadable, "ILoadable is null.");
             this.loadable = loadable;
         }
 
         @Override
         public void onLoad(@NotNull AdvancementMain main) {
-            Validate.isTrue(AdvancementMain.isLoaded(), "AdvancementMain is not loaded.");
+            Preconditions.checkArgument(AdvancementMain.isLoaded(), "AdvancementMain is not loaded.");
             this.advancementMainOwner = main.getOwningPlugin();
             loadable.onLoad(main);
         }
@@ -128,8 +128,8 @@ public class CommandAPIManager {
             if (advancementMainOwner == null) {
                 throw new IllegalStateException("Not loaded.");
             }
-            Validate.isTrue(plugin == advancementMainOwner, "AdvancementMain owning plugin isn't the provided Plugin.");
-            Validate.isTrue(plugin.isEnabled(), "Plugin isn't enabled.");
+            Preconditions.checkArgument(plugin == advancementMainOwner, "AdvancementMain owning plugin isn't the provided Plugin.");
+            Preconditions.checkArgument(plugin.isEnabled(), "Plugin isn't enabled.");
             enabled = true;
             loadable.onEnable(plugin);
         }
@@ -142,7 +142,7 @@ public class CommandAPIManager {
             if (!enabled) {
                 throw new IllegalStateException("Not enabled.");
             }
-            Validate.isTrue(plugin == advancementMainOwner, "AdvancementMain owning plugin isn't the provided Plugin.");
+            Preconditions.checkArgument(plugin == advancementMainOwner, "AdvancementMain owning plugin isn't the provided Plugin.");
             enabled = false;
             advancementMainOwner = null;
             loadable.onDisable(plugin);

@@ -8,8 +8,8 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.BaseComponent;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
  * The {@code TaskAdvancement} class represents a task. It can be used by any {@link AbstractMultiTasksAdvancement} subclass
@@ -96,7 +97,7 @@ public class TaskAdvancement extends BaseAdvancement {
      */
     @Override
     protected void setProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveRewards) {
-        Validate.notNull(pro, "TeamProgression is null.");
+        validateTeamProgression(pro);
         validateProgressionValueStrict(progression, maxProgression);
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
@@ -154,7 +155,7 @@ public class TaskAdvancement extends BaseAdvancement {
      */
     @Override
     public void onGrant(@NotNull Player player, boolean giveRewards) {
-        Validate.notNull(player, "Player is null.");
+        Preconditions.checkNotNull(player, "Player is null.");
 
         if (giveRewards)
             giveReward(player);

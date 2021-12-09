@@ -13,13 +13,13 @@ import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.fren_gor.ultimateAdvancementAPI.visibilities.IVisibility;
+import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.HoverEvent.Action;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.entity.Player;
@@ -46,6 +46,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateIncrement;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
  * The {@code Advancement} class is the parent class of every advancement.
@@ -112,10 +113,10 @@ public abstract class Advancement {
         if (!(this instanceof BaseAdvancement || this instanceof RootAdvancement)) {
             throw new IllegalOperationException(getClass().getName() + " is neither an instance of RootAdvancement nor BaseAdvancement.");
         }
-        Validate.isTrue(maxProgression > 0, "Maximum progression cannot be <= 0");
+        Preconditions.checkArgument(maxProgression > 0, "Maximum progression cannot be <= 0");
         this.advancementTab = Objects.requireNonNull(advancementTab, "AdvancementTab is null.");
-        Validate.isTrue(!advancementTab.isInitialised(), "AdvancementTab is already initialised.");
-        Validate.isTrue(!advancementTab.isDisposed(), "AdvancementTab is disposed.");
+        Preconditions.checkArgument(!advancementTab.isInitialised(), "AdvancementTab is already initialised.");
+        Preconditions.checkArgument(!advancementTab.isDisposed(), "AdvancementTab is disposed.");
         this.key = new AdvancementKey(advancementTab.getNamespace(), key);
         this.display = Objects.requireNonNull(display, "Display is null.");
         this.maxProgression = maxProgression;
@@ -186,7 +187,7 @@ public abstract class Advancement {
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int getProgression(@NotNull TeamProgression progression) {
-        Validate.notNull(progression, "TeamProgression is null.");
+        validateTeamProgression(progression);
         return progression.getProgression(this);
     }
 
@@ -217,7 +218,7 @@ public abstract class Advancement {
      * @return Whether the advancement has been completed by the provided team.
      */
     public boolean isGranted(@NotNull TeamProgression progression) {
-        Validate.notNull(progression, "TeamProgression is null.");
+        validateTeamProgression(progression);
         return getProgression(progression) >= maxProgression;
     }
 
@@ -230,7 +231,7 @@ public abstract class Advancement {
      */
     @Nullable
     public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
-        Validate.notNull(player, "Player is null.");
+        Preconditions.checkNotNull(player, "Player is null.");
         ChatColor color = display.getFrame().getColor();
         return new ComponentBuilder(player.getName() + ' ' + display.getFrame().getChatText() + ' ')
                 .color(ChatColor.WHITE)
@@ -365,7 +366,7 @@ public abstract class Advancement {
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
     protected int incrementProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
-        Validate.notNull(pro, "TeamProgression is null.");
+        validateTeamProgression(pro);
         validateIncrement(increment);
 
         int progression = getProgression(pro);
@@ -438,7 +439,7 @@ public abstract class Advancement {
      * @param giveRewards Whether to give rewards if the advancement gets completed.
      */
     protected void setProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveRewards) {
-        Validate.notNull(pro, "TeamProgression is null.");
+        validateTeamProgression(pro);
         validateProgressionValueStrict(progression, maxProgression);
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
@@ -469,7 +470,7 @@ public abstract class Advancement {
      *         The default action updates the tab's advancement to the team (see {@link AfterHandle#UPDATE_ADVANCEMENTS_TO_TEAM}).
      */
     protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int newProgression, int oldProgression, boolean giveRewards, @Nullable AfterHandle afterHandle) {
-        Validate.notNull(pro, "TeamProgression is null.");
+        validateTeamProgression(pro);
         if (newProgression >= this.maxProgression && oldProgression < this.maxProgression) {
             if (player != null) {
                 onGrant(player, giveRewards);
@@ -539,6 +540,7 @@ public abstract class Advancement {
      *         When overridden, this method (called via {@code super}) enables the AVS features for that method.
      */
     public boolean isVisible(@NotNull TeamProgression progression) {
+        validateTeamProgression(progression);
         // Advancement visibility system
         if (iVisibilityMethod != null) {
             try {
@@ -558,7 +560,7 @@ public abstract class Advancement {
      * @param giveRewards Whether to give rewards.
      */
     public void onGrant(@NotNull Player player, boolean giveRewards) {
-        Validate.notNull(player, "Player is null.");
+        Preconditions.checkNotNull(player, "Player is null.");
 
         // Send complete messages
         Boolean gameRule = player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
@@ -596,7 +598,7 @@ public abstract class Advancement {
      * @param giveRewards Whether to give rewards.
      */
     public void grant(@NotNull Player player, boolean giveRewards) {
-        Validate.notNull(player, "Player is null.");
+        Preconditions.checkNotNull(player, "Player is null.");
         setProgression(player, maxProgression, giveRewards);
     }
 
@@ -606,7 +608,7 @@ public abstract class Advancement {
      * @param player The player.
      */
     public void revoke(@NotNull Player player) {
-        Validate.notNull(player, "Player is null.");
+        Preconditions.checkNotNull(player, "Player is null.");
         setProgression(player, 0, false);
     }
 

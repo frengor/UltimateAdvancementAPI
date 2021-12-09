@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.wrappers;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -18,8 +18,8 @@ public class VanillaAdvancementDisablerWrapper {
         assert clazz != null : "Wrapper class is null.";
         try {
             method = clazz.getDeclaredMethod("disableVanillaAdvancements");
-            Validate.isTrue(Modifier.isPublic(method.getModifiers()), "Method disableVanillaAdvancements() is not public.");
-            Validate.isTrue(Modifier.isStatic(method.getModifiers()), "Method disableVanillaAdvancements() is not static.");
+            Preconditions.checkArgument(Modifier.isPublic(method.getModifiers()), "Method disableVanillaAdvancements() is not public.");
+            Preconditions.checkArgument(Modifier.isStatic(method.getModifiers()), "Method disableVanillaAdvancements() is not static.");
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }

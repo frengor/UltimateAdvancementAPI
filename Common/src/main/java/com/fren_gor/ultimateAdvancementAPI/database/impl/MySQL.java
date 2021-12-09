@@ -5,10 +5,10 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalKeyException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import com.google.common.base.Preconditions;
 import net.byteflux.libby.Library;
 import net.byteflux.libby.LibraryManager;
 import net.byteflux.libby.classloader.IsolatedClassLoader;
-import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -55,15 +55,15 @@ public class MySQL implements IDatabase {
      * @throws Exception If anything goes wrong.
      */
     public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws Exception {
-        Validate.notNull(username, "Username is null.");
-        Validate.notNull(password, "Password is null.");
-        Validate.notNull(databaseName, "Database name is null.");
-        Validate.notNull(host, "Host is null.");
-        Validate.isTrue(port > 0, "Port must be greater than zero.");
-        Validate.isTrue(poolSize > 0, "Pool size must be greater than zero.");
-        Validate.isTrue(connectionTimeout >= 250, "Connection timeout must be greater or equals to 250.");
-        Validate.notNull(logger, "Logger is null.");
-        Validate.notNull(manager, "LibraryManager is null.");
+        Preconditions.checkNotNull(username, "Username is null.");
+        Preconditions.checkNotNull(password, "Password is null.");
+        Preconditions.checkNotNull(databaseName, "Database name is null.");
+        Preconditions.checkNotNull(host, "Host is null.");
+        Preconditions.checkArgument(port > 0, "Port must be greater than zero.");
+        Preconditions.checkArgument(poolSize > 0, "Pool size must be greater than zero.");
+        Preconditions.checkArgument(connectionTimeout >= 250, "Connection timeout must be greater or equals to 250.");
+        Preconditions.checkNotNull(logger, "Logger is null.");
+        Preconditions.checkNotNull(manager, "LibraryManager is null.");
 
         classLoader = new IsolatedClassLoader();
         classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.30").checksum("zboHlk0btAoHYUhcax6ML4/Z6x0ZxTkorA1/lRAQXFc=").build()));

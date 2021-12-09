@@ -3,7 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.multiParents;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -178,10 +178,10 @@ public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
      */
     @NotNull
     public static <E extends BaseAdvancement> E validateAndGetFirst(@NotNull Set<E> advancements) {
-        Validate.notNull(advancements, "Parent advancements are null.");
-        Validate.isTrue(advancements.size() > 0, "There must be at least 1 parent.");
+        Preconditions.checkNotNull(advancements, "Parent advancements are null.");
+        Preconditions.checkArgument(advancements.size() > 0, "There must be at least 1 parent.");
         E e = advancements.iterator().next();
-        Validate.notNull(e, "A parent advancement is null.");
+        Preconditions.checkNotNull(e, "A parent advancement is null.");
         return e;
     }
 }

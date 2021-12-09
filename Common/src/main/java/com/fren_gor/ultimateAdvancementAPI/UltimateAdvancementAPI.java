@@ -15,7 +15,7 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.NotGrantedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -64,8 +64,8 @@ public final class UltimateAdvancementAPI {
      */
     @NotNull
     public static UltimateAdvancementAPI getInstance(@NotNull Plugin plugin) throws APINotInstantiatedException {
-        Validate.notNull(plugin, "Plugin is null.");
-        Validate.isTrue(plugin.isEnabled(), "Plugin is not enabled.");
+        Preconditions.checkNotNull(plugin, "Plugin is null.");
+        Preconditions.checkArgument(plugin.isEnabled(), "Plugin is not enabled.");
         if (main == null) {
             throw new APINotInstantiatedException();
         }
@@ -312,8 +312,8 @@ public final class UltimateAdvancementAPI {
      *         If no code should be called, it can be put to {@code null}.
      */
     public void updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player aDestTeamPlayer, @Nullable Consumer<Result> action) {
-        Validate.notNull(playerToMove, "Player to move is null.");
-        Validate.notNull(aDestTeamPlayer, "Destination player (representing destination team) is null.");
+        Preconditions.checkNotNull(playerToMove, "Player to move is null.");
+        Preconditions.checkNotNull(aDestTeamPlayer, "Destination player (representing destination team) is null.");
         callAfterLoad(playerToMove, aDestTeamPlayer, ds -> ds.updatePlayerTeam(playerToMove, aDestTeamPlayer), action);
     }
 
@@ -336,8 +336,8 @@ public final class UltimateAdvancementAPI {
      *         If no code should be called, it can be put to {@code null}.
      */
     public void updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID aDestTeamPlayer, @Nullable Consumer<Result> action) {
-        Validate.notNull(playerToMove, "Player to move is null.");
-        Validate.notNull(aDestTeamPlayer, "Destination player (representing destination team) is null.");
+        Preconditions.checkNotNull(playerToMove, "Player to move is null.");
+        Preconditions.checkNotNull(aDestTeamPlayer, "Destination player (representing destination team) is null.");
         callAfterLoad(playerToMove, aDestTeamPlayer, ds -> ds.updatePlayerTeam(playerToMove, aDestTeamPlayer), action);
     }
 
@@ -476,9 +476,9 @@ public final class UltimateAdvancementAPI {
      *         which provides the {@link Boolean} result.
      */
     public void isUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @NotNull Consumer<ObjectResult<@NotNull Boolean>> action) {
-        Validate.notNull(advancement, "Advancement is null.");
-        Validate.notNull(uuid, "UUID is null.");
-        Validate.notNull(action, "Consumer is null.");
+        Preconditions.checkNotNull(advancement, "Advancement is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(action, "Consumer is null.");
         // Don't query if advancement isn't granted, it should always return false
         if (!advancement.isGranted(uuid)) {
             action.accept(new ObjectResult<>(false));
@@ -588,8 +588,8 @@ public final class UltimateAdvancementAPI {
      * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, boolean giveRewards, @Nullable Consumer<Result> action) throws NotGrantedException {
-        Validate.notNull(advancement, "Advancement is null.");
-        Validate.notNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(advancement, "Advancement is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
         // Don't call update if advancement isn't granted, it may throw a foreign key exception
         if (!advancement.isGranted(uuid)) {
             throw new NotGrantedException();
@@ -639,8 +639,8 @@ public final class UltimateAdvancementAPI {
      *         If no code should be called, it can be put to {@code null}.
      */
     public void unsetUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @Nullable Consumer<Result> action) {
-        Validate.notNull(advancement, "Advancement is null.");
-        Validate.notNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(advancement, "Advancement is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
         callAfterLoad(uuid, ds -> ds.unsetUnredeemed(advancement.getKey(), uuid), action);
     }
 
@@ -853,7 +853,7 @@ public final class UltimateAdvancementAPI {
      *         which provides the in-database stored name of the player.
      */
     public void getStoredPlayerName(@NotNull UUID uuid, @NotNull Consumer<ObjectResult<@Nullable String>> action) {
-        Validate.notNull(action, "Consumer is null.");
+        Preconditions.checkNotNull(action, "Consumer is null.");
         getMain().getDatabaseManager().getStoredPlayerName(uuid).thenAccept(s -> runSync(plugin, () -> action.accept(s)));
     }
 
@@ -862,7 +862,7 @@ public final class UltimateAdvancementAPI {
     }
 
     private <T extends Result> void callAfterLoad(@NotNull UUID uuid, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
-        Validate.notNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
         final DatabaseManager ds = getMain().getDatabaseManager();
         ds.loadOfflinePlayer(uuid, CacheFreeingOption.MANUAL(plugin)).thenAccept(t1 -> {
             if (t1.isExceptionOccurred()) {
@@ -942,7 +942,6 @@ public final class UltimateAdvancementAPI {
                 });
             }
         });
-
     }
 
     private <T extends Result> void callSyncIfNotNull(@NotNull CompletableFuture<T> completableFuture, @Nullable Consumer<T> action) {

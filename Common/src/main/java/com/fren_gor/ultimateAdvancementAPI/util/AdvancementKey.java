@@ -2,7 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.util;
 
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalKeyException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
-import org.apache.commons.lang.Validate;
+import com.google.common.base.Preconditions;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -150,8 +150,8 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
      * @throws IllegalKeyException If the provided string is longer than 127 characters.
      */
     public static void checkNamespace(String namespace) throws IllegalArgumentException, IllegalKeyException {
-        Validate.notNull(namespace, "Namespace is null.");
-        Validate.isTrue(!namespace.isEmpty(), "Namespace is empty.");
+        Preconditions.checkNotNull(namespace, "Namespace is null.");
+        Preconditions.checkArgument(!namespace.isEmpty(), "Namespace is empty.");
         if (namespace.length() > 127) {
             throw new IllegalKeyException("Too long namespace (max allowed is 127 chars).");
         }
@@ -165,8 +165,8 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
      * @throws IllegalKeyException If the provided string is longer than 127 characters.
      */
     public static void checkKey(String key) throws IllegalArgumentException, IllegalKeyException {
-        Validate.notNull(key, "Key is null.");
-        Validate.isTrue(!key.isEmpty(), "Key is empty.");
+        Preconditions.checkNotNull(key, "Key is null.");
+        Preconditions.checkArgument(!key.isEmpty(), "Key is empty.");
         if (key.length() > 127) {
             throw new IllegalKeyException("Too long key (max allowed is 127 chars).");
         }
