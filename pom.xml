@@ -43,7 +43,7 @@
 
     <properties>
         <!-- Project Properties -->
-        <apiVersion>2.0.2</apiVersion> <!-- Change also in Versions class -->
+        <apiVersion>2.0.3</apiVersion> <!-- Change also in Versions class -->
         <libbyVersion>1.1.4</libbyVersion>
         <projectEncoding>UTF-8</projectEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -98,7 +98,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Spigot 1.17.1 -->
+        <!-- Spigot API -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
