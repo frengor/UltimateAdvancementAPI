@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_5_2;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_5_3;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
@@ -20,14 +20,14 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.*;
-import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_5_2.AdvancementArgument_v6_5_2.getAdvancementArgument;
-import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_5_2.AdvancementTabArgument_v6_5_2.getAdvancementTabArgument;
+import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_5_3.AdvancementArgument_v6_5_3.getAdvancementArgument;
+import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_5_3.AdvancementTabArgument_v6_5_3.getAdvancementTabArgument;
 
-public class UltimateAdvancementAPICommand_v6_5_2 {
+public class UltimateAdvancementAPICommand_v6_5_3 {
 
     private final AdvancementMain main;
 
-    protected UltimateAdvancementAPICommand_v6_5_2(@NotNull AdvancementMain main) {
+    protected UltimateAdvancementAPICommand_v6_5_3(@NotNull AdvancementMain main) {
         this.main = Objects.requireNonNull(main, "AdvancementMain is null.");
     }
 
