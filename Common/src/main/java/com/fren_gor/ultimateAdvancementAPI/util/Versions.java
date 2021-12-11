@@ -15,7 +15,7 @@ import java.util.Objects;
  */
 public class Versions {
 
-    private static final String API_VERSION = "2.0.3";
+    private static final String API_VERSION = "2.0.4";
 
     private static final List<String> SUPPORTED_NMS_VERSIONS = List.of("v1_15_R1", "v1_16_R1", "v1_16_R2", "v1_16_R3", "v1_17_R1", "v1_18_R1");
 
@@ -25,7 +25,7 @@ public class Versions {
             "v1_16_R2", List.of("1.16.3", "1.16.4"),
             "v1_16_R3", List.of("1.16.5"),
             "v1_17_R1", List.of("1.17", "1.17.1"),
-            "v1_18_R1", List.of("1.18")
+            "v1_18_R1", List.of("1.18", "1.18.1")
     );
 
     private static final Map<String, String> NMS_TO_FANCY = Map.of(
@@ -34,7 +34,7 @@ public class Versions {
             "v1_16_R2", "1.16.3-1.16.4",
             "v1_16_R3", "1.16.5",
             "v1_17_R1", "1.17-1.17.1",
-            "v1_18_R1", "1.18"
+            "v1_18_R1", "1.18-1.18.1"
     );
 
     private static final List<String> SUPPORTED_VERSIONS = SUPPORTED_NMS_VERSIONS.stream()

@@ -24,7 +24,7 @@
         <module>Common</module>
         <module>CommandAPI-5.12</module>
         <module>CommandAPI-6.4.0</module>
-        <module>CommandAPI-6.5.2</module>
+        <module>CommandAPI-6.5.3</module>
         <module>Distribution</module>
     </modules>
 
