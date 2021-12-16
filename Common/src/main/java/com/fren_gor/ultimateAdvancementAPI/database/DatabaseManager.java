@@ -77,6 +77,8 @@ public final class DatabaseManager {
      * <p>Limit is applied to automatic and manual requests separately and doesn't apply to requests which don't cache.
      */
     public static final int MAX_SIMULTANEOUS_LOADING_REQUESTS = Character.MAX_VALUE;
+    private static final int LOAD_EVENTS_DELAY = 3;
+
     private final AdvancementMain main;
     private final Map<UUID, TeamProgression> progressionCache = new HashMap<>();
     private final Map<UUID, TempUserMetadata> tempLoaded = new HashMap<>();
@@ -147,7 +149,7 @@ public final class DatabaseManager {
             } catch (Exception ex) {
                 System.err.println("Cannot load player " + e.getPlayer().getName() + ':');
                 ex.printStackTrace();
-                runSync(main, 2, () -> Bukkit.getPluginManager().callEvent(new PlayerLoadingFailedEvent(e.getPlayer(), ex)));
+                runSync(main, LOAD_EVENTS_DELAY, () -> Bukkit.getPluginManager().callEvent(new PlayerLoadingFailedEvent(e.getPlayer(), ex)));
             }
         }));
         eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
@@ -219,7 +221,7 @@ public final class DatabaseManager {
     private void loadPlayerMainFunction(final @NotNull Player player) throws SQLException {
         Entry<TeamProgression, Boolean> entry = loadOrRegisterPlayer(player);
         final TeamProgression pro = entry.getKey();
-        runSync(main, 2, () -> {
+        runSync(main, LOAD_EVENTS_DELAY, () -> {
             Bukkit.getPluginManager().callEvent(new PlayerLoadingCompletedEvent(player, pro));
             if (entry.getValue())
                 Bukkit.getPluginManager().callEvent(new TeamUpdateEvent(pro, player.getUniqueId(), Action.JOIN));
