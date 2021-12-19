@@ -160,4 +160,125 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
             this.chatDescription[0] = new TextComponent(defaultTitleColor + rawTitle + (AdvancementUtils.startsWithEmptyLine(compactDescription) ? "\n" : "\n\n") + compactDescription);
         }
     }
+
+    /**
+     * A builder for {@link FancyAdvancementDisplay}.
+     */
+    public static class Builder extends AdvancementDisplayBuilder<Builder, FancyAdvancementDisplay> {
+
+        /**
+         * The default color of the title.
+         */
+        private ChatColor defaultTitleColor;
+
+        /**
+         * The default color of the description.
+         */
+        private ChatColor defaultDescriptionColor;
+
+        /**
+         * Construct a new builder for the {@link FancyAdvancementDisplay}.
+         * <p>By default, the advancement won't show the toast message, and
+         * won't announce the message in the chat upon completion.
+         * <p>The default frame is {@link AdvancementFrameType#TASK}.
+         *
+         * @param icon The material of the advancement's icon in the advancement GUI.
+         * @param title The title of the advancement.
+         * @param x The advancement x coordinate.
+         * @param y The advancement y coordinate.
+         * @param description The description of the advancement.
+         */
+        public Builder(@NotNull Material icon, @NotNull String title, float x, float y, @NotNull String... description) {
+            this(new ItemStack(icon), title, x, y, Arrays.asList(description));
+        }
+
+        /**
+         * Construct a new builder for the {@link FancyAdvancementDisplay}.
+         * <p>By default, the advancement won't show the toast message, and
+         * won't announce the message in the chat upon completion.
+         * <p>The default frame is {@link AdvancementFrameType#TASK}.
+         *
+         * @param icon The material of the advancement's icon in the advancement GUI.
+         * @param title The title of the advancement.
+         * @param x The advancement x coordinate.
+         * @param y The advancement y coordinate.
+         * @param description The description of the advancement.
+         */
+        public Builder(@NotNull Material icon, @NotNull String title, float x, float y, @NotNull List<String> description) {
+            this(new ItemStack(icon), title, x, y, description);
+        }
+
+        /**
+         * Construct a new builder for the {@link FancyAdvancementDisplay}.
+         * <p>By default, the advancement won't show the toast message, and
+         * won't announce the message in the chat upon completion.
+         * <p>The default frame is {@link AdvancementFrameType#TASK}.
+         *
+         * @param icon The advancement's icon in the advancement GUI.
+         * @param title The title of the advancement.
+         * @param x The advancement x coordinate.
+         * @param y The advancement y coordinate.
+         * @param description The description of the advancement.
+         */
+        public Builder(@NotNull ItemStack icon, @NotNull String title, float x, float y, @NotNull String... description) {
+            this(icon, title, x, y, Arrays.asList(description));
+        }
+
+        /**
+         * Construct a new builder for the {@link FancyAdvancementDisplay}.
+         * <p>By default, the advancement won't show the toast message, and
+         * won't announce the message in the chat upon completion.
+         * <p>The default frame is {@link AdvancementFrameType#TASK}.
+         *
+         * @param icon The advancement's icon in the advancement GUI.
+         * @param title The title of the advancement.
+         * @param x The advancement x coordinate.
+         * @param y The advancement y coordinate.
+         * @param description The description of the advancement.
+         */
+        public Builder(@NotNull ItemStack icon, @NotNull String title, float x, float y, @NotNull List<String> description) {
+            super(icon, title, x, y, description);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Builder color(@NotNull ChatColor color) {
+            return titleColor(color).descriptionColor(color);
+        }
+
+        /**
+         * Set the default color of the title.
+         *
+         * @param titleColor The default color of the title.
+         * @return This builder.
+         */
+        public Builder titleColor(@NotNull ChatColor titleColor) {
+            this.defaultTitleColor = titleColor;
+            return this;
+        }
+
+        /**
+         * Set the default color of the description.
+         *
+         * @param descriptionColor The default color of the description.
+         * @return This builder.
+         */
+        public Builder descriptionColor(@NotNull ChatColor descriptionColor) {
+            this.defaultDescriptionColor = descriptionColor;
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public FancyAdvancementDisplay build() {
+            if (frame == null) frame = AdvancementFrameType.TASK;
+            if (defaultTitleColor == null) defaultTitleColor = DEFAULT_TITLE_COLOR;
+            if (defaultDescriptionColor == null) defaultDescriptionColor = DEFAULT_DESCRIPTION_COLOR;
+            return new FancyAdvancementDisplay(icon, title, frame, showToast, announceChat, x, y, defaultTitleColor, defaultDescriptionColor, description);
+        }
+    }
 }
