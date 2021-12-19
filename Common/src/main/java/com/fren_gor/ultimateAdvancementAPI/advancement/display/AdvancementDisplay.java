@@ -209,8 +209,8 @@ public class AdvancementDisplay {
         Preconditions.checkNotNull(description, "Description is null.");
         for (String line : description)
             Preconditions.checkNotNull(line, "A line of the description is null.");
-        Preconditions.checkArgument(x >= 0, "x is not null or positive.");
-        Preconditions.checkArgument(y >= 0, "y is not null or positive.");
+        Preconditions.checkArgument(x >= 0, "x is not zero or positive.");
+        Preconditions.checkArgument(y >= 0, "y is not zero or positive.");
 
         this.icon = icon.clone();
         this.title = title;
