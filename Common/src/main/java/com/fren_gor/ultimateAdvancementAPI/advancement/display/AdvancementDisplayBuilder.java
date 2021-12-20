@@ -5,6 +5,7 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuilder<?, 
     /**
      * The description of the advancement.
      */
-    protected final List<String> description;
+    protected List<String> description;
 
     /**
      * The shape of the advancement frame in the advancement GUI.
@@ -76,6 +77,28 @@ abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuilder<?, 
         this.x = x;
         this.y = y;
         this.description = description;
+    }
+
+    /**
+     * Set the description of the advancement.
+     *
+     * @param description The description of the advancement.
+     * @return This builder.
+     */
+    public T description(@NotNull String... description) {
+        this.description = Arrays.asList(description);
+        return (T) this;
+    }
+
+    /**
+     * Set the description of the advancement.
+     *
+     * @param description The description of the advancement.
+     * @return This builder.
+     */
+    public T description(@NotNull List<String> description) {
+        this.description = description;
+        return (T) this;
     }
 
     /**
