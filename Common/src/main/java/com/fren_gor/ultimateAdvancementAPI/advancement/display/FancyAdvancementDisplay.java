@@ -244,8 +244,8 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
          * {@inheritDoc}
          */
         @Override
-        public Builder color(@NotNull ChatColor color) {
-            return titleColor(color).descriptionColor(color);
+        public Builder defaultColor(@NotNull ChatColor defaultColor) {
+            return titleColor(defaultColor).descriptionColor(defaultColor);
         }
 
         /**

@@ -112,13 +112,43 @@ abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuilder<?, 
     }
 
     /**
-     * Set the default color of the title and description.
+     * Set the shape of the advancement frame to the {@link AdvancementFrameType#TASK}
+     * in the advancement GUI.
      *
-     * @param color The default color of the title and description.
      * @return This builder.
      */
-    public T color(@NotNull ChatColor color) {
-        this.defaultColor = color;
+    public T taskFrame() {
+        return frame(AdvancementFrameType.TASK);
+    }
+
+    /**
+     * Set the shape of the advancement frame to the {@link AdvancementFrameType#GOAL}
+     * in the advancement GUI.
+     *
+     * @return This builder.
+     */
+    public T goalFrame() {
+        return frame(AdvancementFrameType.GOAL);
+    }
+
+    /**
+     * Set the shape of the advancement frame to the {@link AdvancementFrameType#CHALLENGE}
+     * in the advancement GUI.
+     *
+     * @return This builder.
+     */
+    public T challengeFrame() {
+        return frame(AdvancementFrameType.CHALLENGE);
+    }
+
+    /**
+     * Set the default color of the title and description.
+     *
+     * @param defaultColor The default color of the title and description.
+     * @return This builder.
+     */
+    public T defaultColor(@NotNull ChatColor defaultColor) {
+        this.defaultColor = defaultColor;
         return (T) this;
     }
 
