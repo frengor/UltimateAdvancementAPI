@@ -45,8 +45,8 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
      * @param frame The shape of the advancement frame in the advancement GUI.
      * @param showToast Whether the toast notification should be sent on advancement grant.
      * @param announceChat Whether the advancement completion message should be sent on advancement grant.
-     * @param x The advancement x coordinate. Must be positive.
-     * @param y The advancement y coordinate. Must be positive.
+     * @param x The advancement x coordinate. Must be not negative.
+     * @param y The advancement y coordinate. Must be not negative.
      * @param description The description of the advancement.
      */
     public FancyAdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
@@ -64,8 +64,8 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
      * @param frame The shape of the advancement frame in the advancement GUI.
      * @param showToast Whether the toast notification should be sent on advancement grant.
      * @param announceChat Whether the advancement completion message should be sent on advancement grant.
-     * @param x The advancement x coordinate. Must be positive.
-     * @param y The advancement y coordinate. Must be positive.
+     * @param x The advancement x coordinate. Must be not negative.
+     * @param y The advancement y coordinate. Must be not negative.
      * @param description The description of the advancement.
      */
     public FancyAdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
@@ -83,8 +83,8 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
      * @param frame The shape of the advancement frame in the advancement GUI.
      * @param showToast Whether the toast notification should be sent on advancement grant.
      * @param announceChat Whether the advancement completion message should be sent on advancement grant.
-     * @param x The advancement x coordinate. Must be positive.
-     * @param y The advancement y coordinate. Must be positive.
+     * @param x The advancement x coordinate. Must be not negative.
+     * @param y The advancement y coordinate. Must be not negative.
      * @param description The description of the advancement.
      */
     public FancyAdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
@@ -102,8 +102,8 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
      * @param frame The shape of the advancement frame in the advancement GUI.
      * @param showToast Whether the toast notification should be sent on advancement grant.
      * @param announceChat Whether the advancement completion message should be sent on advancement grant.
-     * @param x The advancement x coordinate. Must be positive.
-     * @param y The advancement y coordinate. Must be positive.
+     * @param x The advancement x coordinate. Must be not negative.
+     * @param y The advancement y coordinate. Must be not negative.
      * @param description The description of the advancement.
      */
     public FancyAdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
@@ -121,8 +121,8 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
      * @param frame The shape of the advancement frame in the advancement GUI.
      * @param showToast Whether the toast notification should be sent on advancement grant.
      * @param announceChat Whether the advancement completion message should be sent on advancement grant.
-     * @param x The advancement x coordinate. Must be positive.
-     * @param y The advancement y coordinate. Must be positive.
+     * @param x The advancement x coordinate. Must be not negative.
+     * @param y The advancement y coordinate. Must be not negative.
      * @param defaultTitleColor The default color of the title.
      * @param defaultDescriptionColor The default color of the description.
      * @param description The description of the advancement.
@@ -142,8 +142,8 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
      * @param frame The shape of the advancement frame in the advancement GUI.
      * @param showToast Whether the toast notification should be sent on advancement grant.
      * @param announceChat Whether the advancement completion message should be sent on advancement grant.
-     * @param x The advancement x coordinate. Must be positive.
-     * @param y The advancement y coordinate. Must be positive.
+     * @param x The advancement x coordinate. Must be not negative.
+     * @param y The advancement y coordinate. Must be not negative.
      * @param defaultTitleColor The default color of the title.
      * @param defaultDescriptionColor The default color of the description.
      * @param description The description of the advancement.
@@ -169,104 +169,60 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
         /**
          * The default color of the title.
          */
-        private ChatColor defaultTitleColor;
+        protected ChatColor defaultTitleColor = DEFAULT_TITLE_COLOR;
 
         /**
          * The default color of the description.
          */
-        private ChatColor defaultDescriptionColor;
+        protected ChatColor defaultDescriptionColor = DEFAULT_DESCRIPTION_COLOR;
 
         /**
-         * Construct a new builder for the {@link FancyAdvancementDisplay}.
-         * <p>By default, the advancement won't show the toast message, and
-         * won't announce the message in the chat upon completion.
-         * <p>The default frame is {@link AdvancementFrameType#TASK}.
+         * Creates a new {@code FancyAdvancementDisplay.Builder}.
+         * <p>By default, the fancy advancement display returned by {@link #build()} won't show both the toast message and
+         * the announcement message in the chat upon advancement completion.
+         * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
          *
          * @param icon The material of the advancement's icon in the advancement GUI.
          * @param title The title of the advancement.
-         * @param x The advancement x coordinate.
-         * @param y The advancement y coordinate.
-         * @param description The description of the advancement.
          */
-        public Builder(@NotNull Material icon, @NotNull String title, float x, float y, @NotNull String... description) {
-            this(new ItemStack(icon), title, x, y, Arrays.asList(description));
+        public Builder(@NotNull Material icon, @NotNull String title) {
+            this(new ItemStack(icon), title);
         }
 
         /**
-         * Construct a new builder for the {@link FancyAdvancementDisplay}.
-         * <p>By default, the advancement won't show the toast message, and
-         * won't announce the message in the chat upon completion.
-         * <p>The default frame is {@link AdvancementFrameType#TASK}.
-         *
-         * @param icon The material of the advancement's icon in the advancement GUI.
-         * @param title The title of the advancement.
-         * @param x The advancement x coordinate.
-         * @param y The advancement y coordinate.
-         * @param description The description of the advancement.
-         */
-        public Builder(@NotNull Material icon, @NotNull String title, float x, float y, @NotNull List<String> description) {
-            this(new ItemStack(icon), title, x, y, description);
-        }
-
-        /**
-         * Construct a new builder for the {@link FancyAdvancementDisplay}.
-         * <p>By default, the advancement won't show the toast message, and
-         * won't announce the message in the chat upon completion.
-         * <p>The default frame is {@link AdvancementFrameType#TASK}.
+         * Creates a new {@code FancyAdvancementDisplay.Builder}.
+         * <p>By default, the fancy advancement display returned by {@link #build()} won't show both the toast message and
+         * the announcement message in the chat upon advancement completion.
+         * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
          *
          * @param icon The advancement's icon in the advancement GUI.
          * @param title The title of the advancement.
-         * @param x The advancement x coordinate.
-         * @param y The advancement y coordinate.
-         * @param description The description of the advancement.
          */
-        public Builder(@NotNull ItemStack icon, @NotNull String title, float x, float y, @NotNull String... description) {
-            this(icon, title, x, y, Arrays.asList(description));
+        public Builder(@NotNull ItemStack icon, @NotNull String title) {
+            super(icon, title);
         }
 
         /**
-         * Construct a new builder for the {@link FancyAdvancementDisplay}.
-         * <p>By default, the advancement won't show the toast message, and
-         * won't announce the message in the chat upon completion.
-         * <p>The default frame is {@link AdvancementFrameType#TASK}.
-         *
-         * @param icon The advancement's icon in the advancement GUI.
-         * @param title The title of the advancement.
-         * @param x The advancement x coordinate.
-         * @param y The advancement y coordinate.
-         * @param description The description of the advancement.
-         */
-        public Builder(@NotNull ItemStack icon, @NotNull String title, float x, float y, @NotNull List<String> description) {
-            super(icon, title, x, y, description);
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Builder defaultColor(@NotNull ChatColor defaultColor) {
-            return titleColor(defaultColor).descriptionColor(defaultColor);
-        }
-
-        /**
-         * Set the default color of the title.
+         * Sets the default color of the title.
          *
          * @param titleColor The default color of the title.
          * @return This builder.
          */
+        @NotNull
         public Builder titleColor(@NotNull ChatColor titleColor) {
-            this.defaultTitleColor = titleColor;
+            this.defaultTitleColor = Objects.requireNonNull(titleColor, "Default title color is null.");
             return this;
         }
 
         /**
-         * Set the default color of the description.
+         * Sets the default color of the description.
          *
          * @param descriptionColor The default color of the description.
          * @return This builder.
          */
+        @NotNull
         public Builder descriptionColor(@NotNull ChatColor descriptionColor) {
-            this.defaultDescriptionColor = descriptionColor;
+            this.defaultDescriptionColor = Objects.requireNonNull(descriptionColor, "Default description color is null.");
             return this;
         }
 
@@ -274,11 +230,29 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
          * {@inheritDoc}
          */
         @Override
+        @NotNull
         public FancyAdvancementDisplay build() {
-            if (frame == null) frame = AdvancementFrameType.TASK;
-            if (defaultTitleColor == null) defaultTitleColor = DEFAULT_TITLE_COLOR;
-            if (defaultDescriptionColor == null) defaultDescriptionColor = DEFAULT_DESCRIPTION_COLOR;
             return new FancyAdvancementDisplay(icon, title, frame, showToast, announceChat, x, y, defaultTitleColor, defaultDescriptionColor, description);
+        }
+
+        /**
+         * Gets the default color of the title.
+         *
+         * @return The default color of the title.
+         */
+        @NotNull
+        public ChatColor getDefaultTitleColor() {
+            return defaultTitleColor;
+        }
+
+        /**
+         * Gets the default color of the description.
+         *
+         * @return The default color of the description.
+         */
+        @NotNull
+        public ChatColor getDefaultDescriptionColor() {
+            return defaultDescriptionColor;
         }
     }
 }

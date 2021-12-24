@@ -1,18 +1,18 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
-import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import net.md_5.bungee.api.ChatColor;
+import com.google.common.base.Preconditions;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A builder for advancement displays.
  */
 @SuppressWarnings("unchecked")
-abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuilder<?, ?>, R extends AdvancementDisplay>  {
+public abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuilder<T, R>, R extends AdvancementDisplay> {
 
     /**
      * The icon of the advancement in the advancement GUI.
@@ -27,17 +27,13 @@ abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuilder<?, 
     /**
      * The description of the advancement.
      */
-    protected List<String> description;
+    @Unmodifiable
+    protected List<String> description = List.of();
 
     /**
      * The shape of the advancement frame in the advancement GUI.
      */
-    protected AdvancementFrameType frame;
-
-    /**
-     * The default color of the title and description.
-     */
-    protected ChatColor defaultColor;
+    protected AdvancementFrameType frame = AdvancementFrameType.TASK;
 
     /**
      * Whether the toast notification should be sent on advancement grant.
@@ -50,159 +46,181 @@ abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuilder<?, 
     protected boolean announceChat = false;
 
     /**
-     * The advancement x coordinate.
+     * The advancement x coordinate. Must be &gt;= 0.
      */
-    protected float x;
+    protected float x = 0;
 
     /**
-     * The advancement y coordinate.
+     * The advancement y coordinate. Must be &gt;= 0.
      */
-    protected float y;
+    protected float y = 0;
 
     /**
-     * Construct a new builder for the advancement display.
-     * <p>By default, the advancement won't show the toast message, and
-     * won't announce the message in the chat upon completion.
-     * <p>The default frame is {@link AdvancementFrameType#TASK}.
+     * Creates a new {@code AdvancementDisplayBuilder}.
+     * <p>By default, the advancement display returned by {@link #build()} won't show both the toast message and
+     * the announcement message in the chat upon advancement completion.
+     * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
      *
      * @param icon The advancement's icon in the advancement GUI.
      * @param title The title of the advancement.
-     * @param x The advancement x coordinate.
-     * @param y The advancement y coordinate.
-     * @param description The description of the advancement.
      */
-    protected AdvancementDisplayBuilder(@NotNull ItemStack icon, @NotNull String title, float x, float y, @NotNull List<String> description) {
-        this.icon = icon;
-        this.title = title;
+    protected AdvancementDisplayBuilder(@NotNull ItemStack icon, @NotNull String title) {
+        this.icon = Objects.requireNonNull(icon, "Icon is null.");
+        this.title = Objects.requireNonNull(title, "Title is null.");
+    }
+
+    /**
+     * Sets the x and y coordinates of the advancement in the advancement GUI.
+     * <p>The origin is placed in the upper-left corner of the advancement GUI.
+     * The x-axis points to the right (as usual), whereas the y-axis points downward.
+     * Thus, the x and y coordinates must be positive.
+     *
+     * @param x The advancement x coordinate. Must be not negative.
+     * @param y The advancement y coordinate. Must be not negative.
+     * @return This builder.
+     */
+    @NotNull
+    public T coords(float x, float y) {
+        x(x);
+        y(y);
+        return (T) this;
+    }
+
+    /**
+     * Sets the x and y coordinates of the advancement in the advancement GUI.
+     * <p>The origin is placed in the upper-left corner of the advancement GUI. The x-axis points to the right (as usual).
+     *
+     * @param x The advancement x coordinate. Must be not negative.
+     * @return This builder.
+     */
+    @NotNull
+    public T x(float x) {
+        Preconditions.checkArgument(x >= 0, "x is not zero or positive.");
         this.x = x;
+        return (T) this;
+    }
+
+    /**
+     * Sets the y coordinate of the advancement in the advancement GUI.
+     * <p>The origin is placed in the upper-left corner of the advancement GUI. The y-axis points downward.
+     *
+     * @param y The advancement y coordinate. Must be not negative.
+     * @return This builder.
+     */
+    @NotNull
+    public T y(float y) {
+        Preconditions.checkArgument(y >= 0, "y is not zero or positive.");
         this.y = y;
-        this.description = description;
+        return (T) this;
     }
 
     /**
-     * Set the description of the advancement.
+     * Sets the description of the advancement.
      *
      * @param description The description of the advancement.
      * @return This builder.
      */
+    @NotNull
     public T description(@NotNull String... description) {
-        this.description = Arrays.asList(description);
+        this.description = List.of(description);
         return (T) this;
     }
 
     /**
-     * Set the description of the advancement.
+     * Sets the description of the advancement.
      *
      * @param description The description of the advancement.
      * @return This builder.
      */
+    @NotNull
     public T description(@NotNull List<String> description) {
-        this.description = description;
+        this.description = List.copyOf(description);
         return (T) this;
     }
 
     /**
-     * Offset the current x and y coordinates based on the provided advancement.
-     *
-     * @param advancement The advancement to apply offset from.
-     * @return This builder.
-     */
-    public T offset(@NotNull Advancement advancement) {
-        return offset(advancement.getDisplay());
-    }
-
-    /**
-     * Offset the current x and y coordinates based on the provided advancement display.
-     *
-     * @param display The advancement display to apply offset from.
-     * @return This builder.
-     */
-    public T offset(@NotNull AdvancementDisplay display) {
-        this.x += display.getX();
-        this.y += display.getY();
-        return (T) this;
-    }
-
-    /**
-     * Set the shape of the advancement frame in the advancement GUI.
+     * Sets the shape of the advancement frame in the advancement GUI.
      *
      * @param frame The shape of the advancement frame in the advancement GUI.
      * @return This builder.
      */
+    @NotNull
     public T frame(@NotNull AdvancementFrameType frame) {
-        this.frame = frame;
+        this.frame = Objects.requireNonNull(frame, "Frame is null.");
         return (T) this;
     }
 
     /**
-     * Set the shape of the advancement frame to the {@link AdvancementFrameType#TASK}
-     * in the advancement GUI.
+     * Sets the shape of the advancement frame to {@link AdvancementFrameType#TASK}.
      *
      * @return This builder.
      */
+    @NotNull
     public T taskFrame() {
         return frame(AdvancementFrameType.TASK);
     }
 
     /**
-     * Set the shape of the advancement frame to the {@link AdvancementFrameType#GOAL}
-     * in the advancement GUI.
+     * Sets the shape of the advancement frame to {@link AdvancementFrameType#GOAL}.
      *
      * @return This builder.
      */
+    @NotNull
     public T goalFrame() {
         return frame(AdvancementFrameType.GOAL);
     }
 
     /**
-     * Set the shape of the advancement frame to the {@link AdvancementFrameType#CHALLENGE}
-     * in the advancement GUI.
+     * Sets the shape of the advancement frame to {@link AdvancementFrameType#CHALLENGE}.
      *
      * @return This builder.
      */
+    @NotNull
     public T challengeFrame() {
         return frame(AdvancementFrameType.CHALLENGE);
     }
 
     /**
-     * Set the default color of the title and description.
-     *
-     * @param defaultColor The default color of the title and description.
-     * @return This builder.
-     */
-    public T defaultColor(@NotNull ChatColor defaultColor) {
-        this.defaultColor = defaultColor;
-        return (T) this;
-    }
-
-    /**
-     * Set the toast notification to be sent on advancement grant.
+     * Enables the toast notification sent on advancement grant.
      *
      * @return This builder.
      */
+    @NotNull
     public T showToast() {
-        this.showToast = true;
+        return showToast(true);
+    }
+
+    /**
+     * Enables or disables the toast notification sent on advancement grant.
+     *
+     * @param showToast Whether to show the toast notification on advancement grant.
+     * @return This builder.
+     */
+    public T showToast(boolean showToast) {
+        this.showToast = showToast;
         return (T) this;
     }
 
     /**
-     * Set the advancement completion message to be sent on advancement grant.
+     * Enables the advancement completion message sent on advancement grant.
      *
      * @return This builder.
      */
+    @NotNull
     public T announceChat() {
-        this.announceChat = true;
-        return (T) this;
+        return announceChat(true);
     }
 
     /**
-     * Set the toast notification and the advancement completion message
-     * to be sent on advancement grant.
+     * Enables or disables the advancement completion message sent on advancement grant.
      *
+     * @param announceChat Whether to send the advancement completion message on advancement grant.
      * @return This builder.
      */
-    public T announceAll() {
-        return (T) showToast().announceChat();
+    @NotNull
+    public T announceChat(boolean announceChat) {
+        this.announceChat = announceChat;
+        return (T) this;
     }
 
     /**
@@ -210,5 +228,82 @@ abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuilder<?, 
      *
      * @return The built advancement display.
      */
+    @NotNull
     public abstract R build();
+
+    /**
+     * Gets the icon of the advancement in the advancement GUI.
+     *
+     * @return The icon of the advancement in the advancement GUI.
+     */
+    @NotNull
+    public ItemStack getIcon() {
+        return icon;
+    }
+
+    /**
+     * Gets the title of the advancement.
+     *
+     * @return The title of the advancement.
+     */
+    @NotNull
+    public String getTitle() {
+        return title;
+    }
+
+    /**
+     * Gets the description of the advancement.
+     *
+     * @return The description of the advancement.
+     */
+    @NotNull
+    public List<String> getDescription() {
+        return description;
+    }
+
+    /**
+     * Gets the shape of the advancement frame in the advancement GUI.
+     *
+     * @return The shape of the advancement frame in the advancement GUI.
+     */
+    @NotNull
+    public AdvancementFrameType getFrame() {
+        return frame;
+    }
+
+    /**
+     * Returns whether the toast notification should be sent on advancement grant.
+     *
+     * @return Whether the toast notification should be sent on advancement grant.
+     */
+    public boolean doesShowToast() {
+        return showToast;
+    }
+
+    /**
+     * Returns whether the advancement completion message should be sent on advancement grant.
+     *
+     * @return Whether the advancement completion message should be sent on advancement grant.
+     */
+    public boolean doesAnnounceToChat() {
+        return announceChat;
+    }
+
+    /**
+     * Returns the advancement position relative to the x-axis.
+     *
+     * @return The x coordinate.
+     */
+    public float getX() {
+        return x;
+    }
+
+    /**
+     * Returns the advancement position relative to the y-axis.
+     *
+     * @return The y coordinate.
+     */
+    public float getY() {
+        return y;
+    }
 }
