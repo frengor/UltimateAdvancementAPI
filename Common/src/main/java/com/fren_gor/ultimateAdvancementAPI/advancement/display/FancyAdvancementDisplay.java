@@ -186,7 +186,7 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
          * @param title The title of the advancement.
          */
         public Builder(@NotNull Material icon, @NotNull String title) {
-            this(new ItemStack(icon), title);
+            super(icon, title);
         }
 
         /**

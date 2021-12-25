@@ -1,6 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.google.common.base.Preconditions;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -54,6 +55,20 @@ public abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuil
      * The advancement y coordinate. Must be &gt;= 0.
      */
     protected float y = 0;
+
+    /**
+     * Creates a new {@code AdvancementDisplayBuilder}.
+     * <p>By default, the advancement display returned by {@link #build()} won't show both the toast message and
+     * the announcement message in the chat upon advancement completion.
+     * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
+     *
+     * @param icon The material of the advancement's icon in the advancement GUI.
+     * @param title The title of the advancement.
+     */
+    protected AdvancementDisplayBuilder(@NotNull Material icon, @NotNull String title) {
+        this.icon = new ItemStack(Objects.requireNonNull(icon, "Icon is null."));
+        this.title = Objects.requireNonNull(title, "Title is null.");
+    }
 
     /**
      * Creates a new {@code AdvancementDisplayBuilder}.

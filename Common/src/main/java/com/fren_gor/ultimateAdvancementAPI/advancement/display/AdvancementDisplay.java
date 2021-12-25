@@ -397,7 +397,7 @@ public class AdvancementDisplay {
          * The default color of the title and description.
          */
         protected ChatColor defaultColor = frame.getColor();
-        private boolean manuallySetDefaultColor = false;
+        private boolean manuallySetDefaultColor = false; // Set to true when defaultColor(ChatColor) is called
 
         /**
          * Creates a new {@code AdvancementDisplay.Builder}.
@@ -410,7 +410,7 @@ public class AdvancementDisplay {
          * @param title The title of the advancement.
          */
         public Builder(@NotNull Material icon, @NotNull String title) {
-            this(new ItemStack(icon), title);
+            super(icon, title);
         }
 
         /**
