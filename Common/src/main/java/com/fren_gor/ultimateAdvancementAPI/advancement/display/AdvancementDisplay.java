@@ -494,7 +494,7 @@ public class AdvancementDisplay {
         @Override
         @NotNull
         public AdvancementDisplay build() {
-            return new AdvancementDisplay(icon, title, frame, showToast, announceChat, x, y, description);
+            return new AdvancementDisplay(icon, title, frame, showToast, announceChat, x, y, defaultColor, description);
         }
 
         /**
