@@ -65,7 +65,7 @@ public abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuil
      * @param title The title of the advancement.
      */
     protected AdvancementDisplayBuilder(@NotNull ItemStack icon, @NotNull String title) {
-        this.icon = Objects.requireNonNull(icon, "Icon is null.");
+        this.icon = Objects.requireNonNull(icon, "Icon is null.").clone();
         this.title = Objects.requireNonNull(title, "Title is null.");
     }
 
@@ -238,7 +238,7 @@ public abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuil
      */
     @NotNull
     public ItemStack getIcon() {
-        return icon;
+        return icon.clone();
     }
 
     /**
