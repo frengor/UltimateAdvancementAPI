@@ -219,7 +219,7 @@ public class AdvancementDisplay {
         // Remove trailing spaces and color codes
         String titleTrimmed = title.trim();
         int toSub = titleTrimmed.length();
-        while (titleTrimmed.charAt(toSub - 2) == '§') {
+        while (toSub > 1 && titleTrimmed.charAt(toSub - 2) == '§') {
             toSub -= 2;
         }
         this.rawTitle = titleTrimmed.substring(0, toSub).trim();
