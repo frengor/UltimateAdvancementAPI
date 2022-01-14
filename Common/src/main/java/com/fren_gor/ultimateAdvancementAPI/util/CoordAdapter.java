@@ -1,5 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.util;
 
+import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,14 +58,53 @@ public final class CoordAdapter {
         return new Coord(e.x + lowestX, e.y + lowestY);
     }
 
+    public float getOriginalX(@NotNull Advancement advancement) {
+        return getOriginalX(Objects.requireNonNull(advancement, "Advancement is null.").getDisplay());
+    }
+
+    public float getOriginalX(@NotNull AdvancementDisplay display) {
+        return getOriginalX(Objects.requireNonNull(display, "AdvancementDisplay is null.").getX());
+    }
+
     public float getOriginalX(float x) {
         return x - lowestX;
+    }
+
+    public float getOriginalY(@NotNull Advancement advancement) {
+        return getOriginalY(Objects.requireNonNull(advancement, "Advancement is null.").getDisplay());
+    }
+
+    public float getOriginalY(@NotNull AdvancementDisplay display) {
+        return getOriginalY(Objects.requireNonNull(display, "AdvancementDisplay is null.").getY());
     }
 
     public float getOriginalY(float y) {
         return y - lowestY;
     }
 
+    @NotNull
+    public Coord getOriginalXAndY(@NotNull Advancement advancement) {
+        return getOriginalXAndY(Objects.requireNonNull(advancement, "Advancement is null.").getDisplay());
+    }
+
+    @NotNull
+    public Coord getOriginalXAndY(@NotNull AdvancementDisplay display) {
+        Preconditions.checkNotNull(display, "AdvancementDisplay is null.");
+        return getOriginalXAndY(display.getX(), display.getY());
+    }
+
+    @NotNull
+    public Coord getOriginalXAndY(@NotNull Coord coord) {
+        Preconditions.checkNotNull(coord, "Coord is null.");
+        return getOriginalXAndY(coord.x, coord.y);
+    }
+
+    @NotNull
+    public Coord getOriginalXAndY(float x, float y) {
+        return new Coord(getOriginalX(x), getOriginalY(y));
+    }
+
+    @NotNull
     public static CoordAdapterBuilder builder() {
         return new CoordAdapterBuilder();
     }
