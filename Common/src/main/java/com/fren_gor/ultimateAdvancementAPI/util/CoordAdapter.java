@@ -58,11 +58,11 @@ public final class CoordAdapter {
         return new SimpleEntry<>(e.getKey() + lowestX, e.getValue() + lowestY);
     }
 
-    public float convertBackX(float x) {
+    public float getOriginalX(float x) {
         return x - lowestX;
     }
 
-    public float convertBackY(float y) {
+    public float getOriginalY(float y) {
         return y - lowestY;
     }
 
