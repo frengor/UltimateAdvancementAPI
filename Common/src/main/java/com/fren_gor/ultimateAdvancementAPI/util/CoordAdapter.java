@@ -3,24 +3,22 @@ package com.fren_gor.ultimateAdvancementAPI.util;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 
 public final class CoordAdapter {
 
-    private final Map<AdvancementKey, Entry<Float, Float>> advancementCoords;
+    private final Map<AdvancementKey, Coord> advancementCoords;
     private float lowestX, lowestY;
 
-    public CoordAdapter(@NotNull Map<AdvancementKey, Entry<Float, Float>> advancementCoords) {
+    public CoordAdapter(@NotNull Map<AdvancementKey, Coord> advancementCoords) {
         this.advancementCoords = Objects.requireNonNull(advancementCoords, "Advancement coords is null.");
         for (var e : advancementCoords.entrySet()) {
             Preconditions.checkNotNull(e.getKey(), "An AdvancementKey is null.");
             var coords = e.getValue();
             Preconditions.checkNotNull(coords, e.getKey() + "'s coords entry is null.");
-            float x = coords.getKey(), y = coords.getValue();
+            float x = coords.x, y = coords.y;
             Preconditions.checkArgument(Float.isFinite(x), e.getKey() + "'s x value is not finite.");
             Preconditions.checkArgument(Float.isFinite(y), e.getKey() + "'s y value is not finite.");
 
@@ -38,7 +36,7 @@ public final class CoordAdapter {
         if (e == null) {
             throw new IllegalArgumentException("Couldn't find key \"" + key + "\".");
         }
-        return e.getKey() + lowestX;
+        return e.x + lowestX;
     }
 
     public float getY(@NotNull AdvancementKey key) {
@@ -46,16 +44,16 @@ public final class CoordAdapter {
         if (e == null) {
             throw new IllegalArgumentException("Couldn't find key \"" + key + "\".");
         }
-        return e.getValue() + lowestY;
+        return e.y + lowestY;
     }
 
     @NotNull
-    public Entry<Float, Float> getXAndY(@NotNull AdvancementKey key) {
+    public Coord getXAndY(@NotNull AdvancementKey key) {
         var e = advancementCoords.get(Objects.requireNonNull(key, "Key is null."));
         if (e == null) {
             throw new IllegalArgumentException("Couldn't find key \"" + key + "\".");
         }
-        return new SimpleEntry<>(e.getKey() + lowestX, e.getValue() + lowestY);
+        return new Coord(e.x + lowestX, e.y + lowestY);
     }
 
     public float getOriginalX(float x) {
@@ -71,7 +69,7 @@ public final class CoordAdapter {
     }
 
     public static final class CoordAdapterBuilder {
-        private final Map<AdvancementKey, Entry<Float, Float>> advancementCoords = new HashMap<>();
+        private final Map<AdvancementKey, Coord> advancementCoords = new HashMap<>();
 
         public CoordAdapterBuilder() {
         }
@@ -82,7 +80,7 @@ public final class CoordAdapter {
             Preconditions.checkArgument(Float.isFinite(x), key + "'s x value is not finite.");
             Preconditions.checkArgument(Float.isFinite(y), key + "'s y value is not finite.");
 
-            advancementCoords.put(key, new SimpleEntry<>(x, y));
+            advancementCoords.put(key, new Coord(x, y));
             return this;
         }
 
@@ -97,7 +95,7 @@ public final class CoordAdapter {
             if (e == null) {
                 throw new IllegalArgumentException("Cannot find key \"" + keyOfParent + "\".");
             }
-            advancementCoords.put(key, new SimpleEntry<>(e.getKey() + offsetX, e.getValue() + offsetY));
+            advancementCoords.put(key, new Coord(e.x + offsetX, e.y + offsetY));
             return this;
         }
 
@@ -105,5 +103,8 @@ public final class CoordAdapter {
         public CoordAdapter build() {
             return new CoordAdapter(advancementCoords);
         }
+    }
+
+    public record Coord(float x, float y) {
     }
 }
