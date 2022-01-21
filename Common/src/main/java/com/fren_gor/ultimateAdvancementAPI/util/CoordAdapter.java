@@ -40,7 +40,7 @@ public final class CoordAdapter {
         return coord.x + lowestX;
     }
 
-    public float getY(@NotNull AdvancementKey key) {
+    public float getY(@NotNull AdvancementKey key) throws IllegalArgumentException {
         Coord coord = advancementCoords.get(Objects.requireNonNull(key, "Key is null."));
         if (coord == null) {
             throw new IllegalArgumentException("Couldn't find key \"" + key + "\".");
@@ -49,7 +49,7 @@ public final class CoordAdapter {
     }
 
     @NotNull
-    public Coord getXAndY(@NotNull AdvancementKey key) {
+    public Coord getXAndY(@NotNull AdvancementKey key) throws IllegalArgumentException {
         Coord coord = advancementCoords.get(Objects.requireNonNull(key, "Key is null."));
         if (coord == null) {
             throw new IllegalArgumentException("Couldn't find key \"" + key + "\".");
@@ -77,7 +77,7 @@ public final class CoordAdapter {
         return getOriginalY(Objects.requireNonNull(display, "AdvancementDisplay is null.").getY());
     }
 
-    public float getOriginalY(@NotNull AdvancementKey key) {
+    public float getOriginalY(@NotNull AdvancementKey key) throws IllegalArgumentException {
         Coord coord = advancementCoords.get(Objects.requireNonNull(key, "Key is null."));
         if (coord == null) {
             throw new IllegalArgumentException("Couldn't find key \"" + key + "\".");
@@ -96,7 +96,7 @@ public final class CoordAdapter {
     }
 
     @NotNull
-    public Coord getOriginalXAndY(@NotNull AdvancementKey key) {
+    public Coord getOriginalXAndY(@NotNull AdvancementKey key) throws IllegalArgumentException {
         Coord coord = advancementCoords.get(Objects.requireNonNull(key, "Key is null."));
         if (coord == null) {
             throw new IllegalArgumentException("Couldn't find key \"" + key + "\".");
@@ -137,7 +137,7 @@ public final class CoordAdapter {
         }
 
         @NotNull
-        public CoordAdapterBuilder offset(@NotNull AdvancementKey key, @NotNull AdvancementKey keyOfParent, float offsetX, float offsetY) {
+        public CoordAdapterBuilder offset(@NotNull AdvancementKey key, @NotNull AdvancementKey keyOfParent, float offsetX, float offsetY) throws IllegalArgumentException {
             Preconditions.checkNotNull(key, "Key is null");
             Preconditions.checkNotNull(keyOfParent, "Key of parent is null");
             Preconditions.checkArgument(Float.isFinite(offsetX), key + "'s offsetX value is not finite.");
