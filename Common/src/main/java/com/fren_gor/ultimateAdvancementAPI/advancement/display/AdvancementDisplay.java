@@ -209,6 +209,8 @@ public class AdvancementDisplay {
         Preconditions.checkNotNull(description, "Description is null.");
         for (String line : description)
             Preconditions.checkNotNull(line, "A line of the description is null.");
+        Preconditions.checkArgument(Float.isFinite(x), "x is NaN or infinite.");
+        Preconditions.checkArgument(Float.isFinite(y), "y is NaN or infinite.");
         Preconditions.checkArgument(x >= 0, "x is not zero or positive.");
         Preconditions.checkArgument(y >= 0, "y is not zero or positive.");
 
