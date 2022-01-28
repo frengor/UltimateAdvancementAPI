@@ -329,5 +329,23 @@ public final class CoordAdapter {
             Preconditions.checkArgument(Float.isFinite(x), "x coordinate is not finite.");
             Preconditions.checkArgument(Float.isFinite(y), "y coordinate is not finite.");
         }
+
+        /**
+         * Returns the x coordinate.
+         *
+         * @return The x coordinate.
+         */
+        public float x() {
+            return x;
+        }
+
+        /**
+         * Returns the y coordinate.
+         *
+         * @return The y coordinate.
+         */
+        public float y() {
+            return y;
+        }
     }
 }
