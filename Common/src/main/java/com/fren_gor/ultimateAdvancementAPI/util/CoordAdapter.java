@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.util;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -19,41 +20,38 @@ public final class CoordAdapter {
             Preconditions.checkNotNull(e.getKey(), "An AdvancementKey is null.");
             Coord coords = e.getValue();
             Preconditions.checkNotNull(coords, e.getKey() + "'s coords entry is null.");
-            float x = coords.x, y = coords.y;
-            Preconditions.checkArgument(Float.isFinite(x), e.getKey() + "'s x value is not finite.");
-            Preconditions.checkArgument(Float.isFinite(y), e.getKey() + "'s y value is not finite.");
 
-            if (x < lowestX) {
-                lowestX = x;
+            if (coords.x < lowestX) {
+                lowestX = coords.x;
             }
-            if (y < lowestY) {
-                lowestY = y;
+            if (coords.y < lowestY) {
+                lowestY = coords.y;
             }
+        }
+        if (lowestX < 0) {
+            lowestX = -lowestX;
+        }
+        if (lowestY < 0) {
+            lowestY = -lowestY;
         }
     }
 
     public float getX(@NotNull AdvancementKey key) throws IllegalArgumentException {
         Coord coord = advancementCoords.get(Objects.requireNonNull(key, "Key is null."));
-        if (coord == null) {
-            throw new IllegalArgumentException("Couldn't find key \"" + key + "\".");
-        }
+        Preconditions.checkArgument(coord != null, "Couldn't find key \"" + key + "\".");
         return coord.x + lowestX;
     }
 
     public float getY(@NotNull AdvancementKey key) throws IllegalArgumentException {
         Coord coord = advancementCoords.get(Objects.requireNonNull(key, "Key is null."));
-        if (coord == null) {
-            throw new IllegalArgumentException("Couldn't find key \"" + key + "\".");
-        }
+        Preconditions.checkArgument(coord != null, "Couldn't find key \"" + key + "\".");
         return coord.y + lowestY;
     }
 
     @NotNull
     public Coord getXAndY(@NotNull AdvancementKey key) throws IllegalArgumentException {
         Coord coord = advancementCoords.get(Objects.requireNonNull(key, "Key is null."));
-        if (coord == null) {
-            throw new IllegalArgumentException("Couldn't find key \"" + key + "\".");
-        }
+        Preconditions.checkArgument(coord != null, "Couldn't find key \"" + key + "\".");
         return new Coord(coord.x + lowestX, coord.y + lowestY);
     }
 
@@ -63,13 +61,12 @@ public final class CoordAdapter {
 
     public float getOriginalX(@NotNull AdvancementKey key) throws IllegalArgumentException {
         Coord coord = advancementCoords.get(Objects.requireNonNull(key, "Key is null."));
-        if (coord == null) {
-            throw new IllegalArgumentException("Couldn't find key \"" + key + "\".");
-        }
+        Preconditions.checkArgument(coord != null, "Couldn't find key \"" + key + "\".");
         return coord.x;
     }
 
     public float getOriginalX(float x) {
+        Preconditions.checkArgument(Float.isFinite(x), "y coordinate is not finite.");
         return x - lowestX;
     }
 
@@ -79,13 +76,12 @@ public final class CoordAdapter {
 
     public float getOriginalY(@NotNull AdvancementKey key) throws IllegalArgumentException {
         Coord coord = advancementCoords.get(Objects.requireNonNull(key, "Key is null."));
-        if (coord == null) {
-            throw new IllegalArgumentException("Couldn't find key \"" + key + "\".");
-        }
+        Preconditions.checkArgument(coord != null, "Couldn't find key \"" + key + "\".");
         return coord.y;
     }
 
     public float getOriginalY(float y) {
+        Preconditions.checkArgument(Float.isFinite(y), "y coordinate is not finite.");
         return y - lowestY;
     }
 
@@ -98,9 +94,7 @@ public final class CoordAdapter {
     @NotNull
     public Coord getOriginalXAndY(@NotNull AdvancementKey key) throws IllegalArgumentException {
         Coord coord = advancementCoords.get(Objects.requireNonNull(key, "Key is null."));
-        if (coord == null) {
-            throw new IllegalArgumentException("Couldn't find key \"" + key + "\".");
-        }
+        Preconditions.checkArgument(coord != null, "Couldn't find key \"" + key + "\".");
         return coord;
     }
 
@@ -116,6 +110,7 @@ public final class CoordAdapter {
     }
 
     @NotNull
+    @Contract(pure = true, value = "-> new")
     public static CoordAdapterBuilder builder() {
         return new CoordAdapterBuilder();
     }
@@ -158,5 +153,9 @@ public final class CoordAdapter {
     }
 
     public record Coord(float x, float y) {
+        public Coord {
+            Preconditions.checkArgument(Float.isFinite(x), "x coordinate is not finite.");
+            Preconditions.checkArgument(Float.isFinite(y), "y coordinate is not finite.");
+        }
     }
 }
