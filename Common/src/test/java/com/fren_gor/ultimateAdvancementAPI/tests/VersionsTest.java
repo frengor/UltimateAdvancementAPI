@@ -1,11 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
-import org.bukkit.Bukkit;
-import org.bukkit.Server;
 import org.junit.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.Versions.getApiVersion;
 import static com.fren_gor.ultimateAdvancementAPI.util.Versions.getNMSVersionsList;
@@ -36,12 +32,7 @@ public class VersionsTest {
 
     @Test
     public void getNMSVersionTest() {
-        try (MockedStatic<Bukkit> bukkitMock = Mockito.mockStatic(Bukkit.class)) {
-            Server server = InterfaceImplementer.newFakeServer();
-            bukkitMock.when(Bukkit::getServer).thenReturn(server);
-            assertSame("Mock failed", Bukkit.getServer(), server);
-            assertEquals("serverVersion1_17_R1", Versions.getNMSVersion());
-        }
+        Utils.mockServer(() -> assertEquals("serverVersion1_17_R1", Versions.getNMSVersion()));
     }
 
     @Test
