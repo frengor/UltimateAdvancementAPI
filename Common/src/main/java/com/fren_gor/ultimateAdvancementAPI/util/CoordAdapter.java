@@ -26,12 +26,12 @@ import java.util.Objects;
  *         .build();
  *
  * // Create the AdvancementDisplays
- * var advDisplay1 = new AdvancementDisplay(icon1, title1, ... , adapter.getX(advKey1), adapter.getY(advKey1));
- * var advDisplay2 = new AdvancementDisplay(icon2, title2, ... , adapter.getX(advKey2), adapter.getY(advKey2));
- * var advDisplay3 = new AdvancementDisplay(icon3, title3, ... , adapter.getX(advKey3), adapter.getY(advKey3));
+ * var advDisplay1 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title1").coords(adapter, advKey1).build();
+ * var advDisplay2 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title2").coords(adapter, advKey2).build();
+ * var advDisplay3 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title3").coords(adapter, advKey3).build();
  *
  * // Create the advancements
- * var adv1 = new RootAdvancement(tab, advKey1.getKey(), advDisplay1, "textures/block/stone.png");
+ * var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1, "textures/block/stone.png");
  * var adv2 = new BaseAdvancement(advKey2.getKey(), advDisplay2, adv1);
  * var adv3 = new BaseAdvancement(advKey3.getKey(), advDisplay3, adv1, 5);</pre></blockquote>
  */
