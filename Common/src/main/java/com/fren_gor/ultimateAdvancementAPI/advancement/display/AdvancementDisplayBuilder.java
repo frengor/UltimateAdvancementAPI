@@ -1,5 +1,8 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter;
+import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter.Coord;
 import com.google.common.base.Preconditions;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -82,6 +85,22 @@ public abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuil
     protected AdvancementDisplayBuilder(@NotNull ItemStack icon, @NotNull String title) {
         this.icon = Objects.requireNonNull(icon, "Icon is null.").clone();
         this.title = Objects.requireNonNull(title, "Title is null.");
+    }
+
+    /**
+     * Sets the coordinates of the advancement in the advancement GUI, taking them from the provided {@link CoordAdapter}.
+     *
+     * @param adapter The {@link CoordAdapter} from which the coordinates are taken.
+     * @param key The {@link AdvancementKey} of the advancement.
+     * @return This builder.
+     * @see CoordAdapter
+     */
+    @NotNull
+    public T coords(@NotNull CoordAdapter adapter, @NotNull AdvancementKey key) {
+        Preconditions.checkNotNull(adapter, "CoordAdapter is null.");
+        Coord coord = adapter.getXAndY(Objects.requireNonNull(key, "AdvancementKey is null."));
+        coords(coord.x(), coord.y());
+        return (T) this;
     }
 
     /**
