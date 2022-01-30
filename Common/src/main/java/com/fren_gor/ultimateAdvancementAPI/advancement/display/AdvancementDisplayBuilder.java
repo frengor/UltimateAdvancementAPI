@@ -14,6 +14,8 @@ import java.util.Objects;
 
 /**
  * A builder for advancement displays.
+ *
+ * @since 2.1.0
  */
 @SuppressWarnings("unchecked")
 public abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuilder<T, R>, R extends AdvancementDisplay> {

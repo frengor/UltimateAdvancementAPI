@@ -163,6 +163,8 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
 
     /**
      * A builder for {@link FancyAdvancementDisplay}.
+     *
+     * @since 2.1.0
      */
     public static class Builder extends AdvancementDisplayBuilder<Builder, FancyAdvancementDisplay> {
 

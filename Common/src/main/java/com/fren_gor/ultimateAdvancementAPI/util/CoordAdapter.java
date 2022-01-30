@@ -34,6 +34,8 @@ import java.util.Objects;
  * var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1, "textures/block/stone.png");
  * var adv2 = new BaseAdvancement(advKey2.getKey(), advDisplay2, adv1);
  * var adv3 = new BaseAdvancement(advKey3.getKey(), advDisplay3, adv1, 5);</pre></blockquote>
+ *
+ * @since 2.1.0
  */
 public final class CoordAdapter {
 

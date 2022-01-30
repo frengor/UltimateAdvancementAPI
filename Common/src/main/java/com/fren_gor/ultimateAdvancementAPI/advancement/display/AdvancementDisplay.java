@@ -392,6 +392,8 @@ public class AdvancementDisplay {
 
     /**
      * A builder for {@link AdvancementDisplay}.
+     *
+     * @since 2.1.0
      */
     public static class Builder extends AdvancementDisplayBuilder<Builder, AdvancementDisplay> {
 
