@@ -43,7 +43,7 @@
 
     <properties>
         <!-- Project Properties -->
-        <apiVersion>2.0.5</apiVersion> <!-- Change also in Versions class -->
+        <apiVersion>2.1.0</apiVersion> <!-- Change also in Versions class -->
         <libbyVersion>1.1.5</libbyVersion>
         <projectEncoding>UTF-8</projectEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

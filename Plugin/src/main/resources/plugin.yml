@@ -2,7 +2,7 @@ main: com.fren_gor.ultimateAdvancementAPI.AdvancementPlugin
 name: UltimateAdvancementAPI
 version: ${apiVersion}
 description: ${project.description}
-author: [fren_gor, EscanorTargaryen]
+authors: [fren_gor, EscanorTargaryen]
 website: ${project.url}
 
 api-version: 1.15

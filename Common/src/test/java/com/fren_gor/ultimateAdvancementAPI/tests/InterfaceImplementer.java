@@ -34,16 +34,12 @@ public final class InterfaceImplementer {
             if (function != null) {
                 return function.invoke(object, args);
             }
-            switch (method.getName()) {
-                case "equals":
-                    return object == args[0];
-                case "hashCode":
-                    return System.identityHashCode(object);
-                case "toString":
-                    return interfaceToImpl.getName() + '@' + Integer.toHexString(System.identityHashCode(object));
-                default:
-                    throw new UnsupportedOperationException(method.getName());
-            }
+            return switch (method.getName()) {
+                case "equals" -> object == args[0];
+                case "hashCode" -> System.identityHashCode(object);
+                case "toString" -> interfaceToImpl.getName() + '@' + Integer.toHexString(System.identityHashCode(object));
+                default -> throw new UnsupportedOperationException(method.getName());
+            };
         });
     }
 

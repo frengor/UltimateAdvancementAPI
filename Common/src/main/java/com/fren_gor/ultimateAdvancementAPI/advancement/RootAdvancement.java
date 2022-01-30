@@ -58,6 +58,7 @@ public class RootAdvancement extends Advancement {
     /**
      * {@inheritDoc}
      */
+    @Override
     @NotNull
     public AdvancementWrapper getNMSWrapper() {
         if (wrapper != null) {

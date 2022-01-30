@@ -15,6 +15,7 @@ import com.fren_gor.ultimateAdvancementAPI.events.team.TeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent.Action;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
@@ -28,6 +29,7 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,6 +44,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -137,6 +140,24 @@ public final class DatabaseManager {
 
         database = new MySQL(username, password, databaseName, host, port, poolSize, connectionTimeout, main.getLogger(), main.getLibbyManager());
         commonSetUp();
+    }
+
+    /**
+     * Used for tests.
+     *
+     * @param iDatabase The {@link IDatabase}.
+     */
+    @Internal
+    private DatabaseManager(AdvancementMain main, EventManager manager, IDatabase iDatabase, boolean runInitialisation) throws Exception {
+        Class<?> callerClass = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass();
+        if (!callerClass.getPackage().getName().startsWith("com.fren_gor.ultimateAdvancementAPI.tests")) {
+            throw new IllegalOperationException("Used only for tests.");
+        }
+        this.main = main;
+        this.eventManager = manager;
+        this.database = iDatabase;
+        if (runInitialisation)
+            commonSetUp();
     }
 
     private void commonSetUp() throws SQLException {

@@ -276,8 +276,8 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * @return The NMS wrapper of this advancement.
      * @see #getNMSWrapper(BaseAdvancement)
      */
-    @NotNull
     @Override
+    @NotNull
     public AdvancementWrapper getNMSWrapper() {
         setUpWrapper();
         return wrapper.toBaseAdvancementWrapper(parent.getNMSWrapper());
