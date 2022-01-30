@@ -63,6 +63,7 @@ public class BaseAdvancement extends Advancement {
     /**
      * {@inheritDoc}
      */
+    @Override
     @NotNull
     public AdvancementWrapper getNMSWrapper() {
         if (wrapper != null) {
