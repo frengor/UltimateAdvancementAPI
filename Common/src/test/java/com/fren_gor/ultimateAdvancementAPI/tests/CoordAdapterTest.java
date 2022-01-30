@@ -6,9 +6,18 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDispla
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter.Coord;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -66,7 +75,65 @@ public class CoordAdapterTest {
     }
 
     @Test
-    public void testDocCode() {
+    public void coordAdapterTest() {
+        Utils.mockServer(() -> {
+            testCoordAdapterHelper(List.of(new Coord(0, 0), new Coord(5, 7), new Coord(-2, -11)));
+            testCoordAdapterHelper(List.of(new Coord(0, 0), new Coord(0, 0), new Coord(0, 0)));
+            testCoordAdapterHelper(List.of(new Coord(100, 98), new Coord(54, 43), new Coord(32, 8)));
+            testCoordAdapterHelper(List.of(new Coord(-100, -98), new Coord(-54, -43), new Coord(-32, -8)));
+            testCoordAdapterHelper(List.of(new Coord(100, 98), new Coord(54, 43), new Coord(32, 8), new Coord(-100, -98), new Coord(-54, -43), new Coord(-32, -8)));
+        });
+    }
+
+    /**
+     * Must be called inside a:
+     * <blockquote><pre>
+     * Utils.mockServer(() -> {
+     *     testCoordAdapterHelper(...);
+     * }</pre></blockquote>
+     *
+     * @param coordinates Coordinates to test
+     */
+    private void testCoordAdapterHelper(@NotNull Collection<Coord> coordinates) {
+        // Make sure we're called inside Utils#mockServer
+        assertNotNull("testCoordAdapterHelper must be called inside Utils#mockServer", Bukkit.getServer());
+
+        Map<AdvancementKey, Coord> map = Maps.newHashMapWithExpectedSize(coordinates.size());
+        int i = 0;
+        for (Coord c : coordinates) {
+            map.put(new AdvancementKey("namespace", String.valueOf(i++)), c);
+        }
+
+        CoordAdapter adapter = new CoordAdapter(map);
+        for (var entry : map.entrySet()) {
+            assertEquals(entry.getValue(), adapter.getOriginalXAndY(entry.getKey()));
+            assertEquals(entry.getValue(), new Coord(adapter.getOriginalX(entry.getKey()), adapter.getOriginalY(entry.getKey())));
+
+            Coord coords = adapter.getXAndY(entry.getKey());
+            assertEquals(coords, new Coord(adapter.getX(entry.getKey()), adapter.getY(entry.getKey())));
+            assertTrue(coords.x() >= 0);
+            assertTrue(coords.y() >= 0);
+            assertEquals(entry.getValue().x(), adapter.getOriginalX(coords.x()), 0);
+            assertEquals(entry.getValue().y(), adapter.getOriginalY(coords.y()), 0);
+        }
+
+        // Test converted values
+        for (Set<AdvancementKey> set : Sets.combinations(map.keySet(), 2)) {
+            assertEquals("Guava Sets#combinations bugged!", 2, set.size());
+            var iter = set.iterator();
+            AdvancementKey key1 = iter.next();
+            AdvancementKey key2 = iter.next();
+            Coord c1 = map.get(key1);
+            Coord c2 = map.get(key2);
+            Coord c1A = adapter.getXAndY(key1);
+            Coord c2A = adapter.getXAndY(key2);
+            assertEquals(c1.x() - c2.x(), c1A.x() - c2A.x(), 0);
+            assertEquals(c1.y() - c2.y(), c1A.y() - c2A.y(), 0);
+        }
+    }
+
+    @Test
+    public void docCodeTest() {
         Plugin myPlugin = InterfaceImplementer.newFakePlugin("myPlugin");
         Utils.mockServer(() -> {
             // Keys of the advancements to create
@@ -95,6 +162,9 @@ public class CoordAdapterTest {
             assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(0, 1));
             assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(1, 0));
             assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(1, 2));
+            assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(advDisplay1));
+            assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(advDisplay2));
+            assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(advDisplay3));
         });
     }
 }
