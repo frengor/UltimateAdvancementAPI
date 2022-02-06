@@ -172,4 +172,26 @@ public class CoordAdapterTest {
         assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(advDisplay2));
         assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(advDisplay3));
     }
+
+    @Test
+    public void offsetTest() {
+        Plugin pl = InterfaceImplementer.newFakePlugin("plugin");
+        var parent = new AdvancementKey(pl, "akey");
+        var child = new AdvancementKey(pl, "anotherkey");
+
+        assertThrows(IllegalArgumentException.class, () -> CoordAdapter.builder().offset(child, parent, 0, 0));
+        for (int i = -10; i <= 10; i++) {
+            for (int t = -10; t <= 10; t++) {
+                for (int n = -10; n <= 10; n++) {
+                    for (int j = -10; j <= 10; j++) {
+                        CoordAdapter coordAdapter = CoordAdapter.builder().add(parent, i, t).offset(child, parent, n, j).build();
+                        assertEquals(i, coordAdapter.getOriginalX(parent), 0);
+                        assertEquals(i + n, coordAdapter.getOriginalX(child), 0);
+                        assertEquals(t, coordAdapter.getOriginalY(parent), 0);
+                        assertEquals(t + j, coordAdapter.getOriginalY(child), 0);
+                    }
+                }
+            }
+        }
+    }
 }
