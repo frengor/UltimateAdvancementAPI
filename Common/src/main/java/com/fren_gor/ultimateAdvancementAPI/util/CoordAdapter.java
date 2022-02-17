@@ -11,6 +11,7 @@ import java.util.Objects;
 
 /**
  * The {@code CoordAdapter} class adds support for advancement negative coordinates.
+ * <p>Note that the x-axis points to the right (as usual), whereas the y-axis points downward.
  * <p>An example usage is shown below:
  * <blockquote><pre>
  * // Keys of the advancements to create
@@ -257,6 +258,7 @@ public final class CoordAdapter {
 
         /**
          * Adds the provided {@link AdvancementKey} with its coordinates to the builder.
+         * <p>Note that the x-axis points to the right (as usual), whereas the y-axis points downward.
          *
          * @param key The {@link AdvancementKey} to add.
          * @param x The x coordinate. Must be finite.
@@ -277,6 +279,9 @@ public final class CoordAdapter {
          * Adds the provided {@link AdvancementKey} to the builder.
          * <p>Its coordinates are based off the coordinates of the provided parent's {@link AdvancementKey}.
          * <p>In fact, they are calculated adding the offsets to the parent's coordinates.
+         * <p>Note that the x-axis points to the right (as usual), whereas the y-axis points downward.
+         * Thus, a positive {@code offsetY} moves the advancement downwards, while a negative {@code offsetY} moves
+         * the advancement upwards.
          *
          * @param key The {@link AdvancementKey} to add.
          * @param keyOfParent The parent's {@link AdvancementKey}. Must be already added to the builder.
@@ -312,7 +317,8 @@ public final class CoordAdapter {
     }
 
     /**
-     * Record which represents a coordinate in the Cartesian plane.
+     * Record which represents a coordinate in a Cartesian plane where the x-axis points to the right (as usual)
+     * and the y-axis points downward.
      *
      * @param x The x coordinate. Can be any finite value.
      * @param y The y coordinate. Can be any finite value.

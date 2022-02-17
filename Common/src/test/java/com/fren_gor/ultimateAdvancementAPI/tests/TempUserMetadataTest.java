@@ -5,13 +5,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -24,22 +22,31 @@ import static org.junit.Assert.*;
 
 public class TempUserMetadataTest {
 
-    private static Class<?> TempUserMetadataClass;
-
     private static Constructor<?> constructor;
     private static final Map<String, Method> methods = new HashMap<>();
-
-    private static MockedStatic<Bukkit> bukkitMock;
-
-    private static final Map<UUID, Player> players = new HashMap<>();
     private static final int PLAYER_TO_REGISTER = 4;
-    private static Object testUserMetadataInstance;
+
+    private MockedStatic<Bukkit> bukkitMock;
+    private final Map<UUID, Player> players = new HashMap<>();
+    private Object testUserMetadataInstance;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
+        Class<?> tempUserMetadataClass = Class.forName("com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager$TempUserMetadata");
+
+        constructor = tempUserMetadataClass.getConstructor(UUID.class);
+        constructor.setAccessible(true);
+        for (Method m : tempUserMetadataClass.getDeclaredMethods()) {
+            m.setAccessible(true);
+            methods.put(m.getName(), m);
+        }
+    }
+
+    @Before
+    public void setUp() throws Exception {
         assertTrue("Invalid PLAYER_TO_REGISTER", PLAYER_TO_REGISTER > 1);
 
-        bukkitMock = Mockito.mockStatic(Bukkit.class);
+        bukkitMock = Utils.mockServer();
         for (int i = 0; i < PLAYER_TO_REGISTER; i++) {
             UUID uuid = UUID.randomUUID();
             Player pl = InterfaceImplementer.newFakePlayer(uuid);
@@ -48,34 +55,15 @@ public class TempUserMetadataTest {
             assertEquals("Mock failed", Bukkit.getPlayer(uuid), pl);
             players.put(uuid, pl);
         }
-        TempUserMetadataClass = Class.forName("com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager$TempUserMetadata");
 
-        constructor = TempUserMetadataClass.getConstructor(UUID.class);
-        constructor.setAccessible(true);
-        for (Method m : TempUserMetadataClass.getDeclaredMethods()) {
-            m.setAccessible(true);
-            methods.put(m.getName(), m);
-        }
-    }
-
-    @AfterClass
-    public static void afterClass() throws Exception {
-        bukkitMock.close();
-        bukkitMock = null;
-        players.clear();
-        methods.clear();
-        testUserMetadataInstance = null;
-        TempUserMetadataClass = null;
-        constructor = null;
-    }
-
-    @Before
-    public void before() throws Exception {
-        testUserMetadataInstance = constructor.newInstance(Objects.requireNonNull(players.keySet().iterator().next(), "Couldn't find a player in players map."));
+        testUserMetadataInstance = constructor.newInstance(Objects.requireNonNull(players.keySet().iterator().next(), "Couldn't find any player in players map."));
     }
 
     @After
-    public void after() throws Exception {
+    public void tearDown() throws Exception {
+        bukkitMock.close();
+        bukkitMock = null;
+        players.clear();
         testUserMetadataInstance = null;
     }
 

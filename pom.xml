@@ -43,7 +43,7 @@
 
     <properties>
         <!-- Project Properties -->
-        <apiVersion>2.1.0</apiVersion> <!-- Change also in Versions class -->
+        <apiVersion>2.1.1</apiVersion> <!-- Change also in Versions class -->
         <libbyVersion>1.1.5</libbyVersion>
         <projectEncoding>UTF-8</projectEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -111,7 +111,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
-            <version>4.1.0</version>
+            <version>4.3.1</version>
             <scope>test</scope>
         </dependency>
 
