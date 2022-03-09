@@ -58,6 +58,12 @@
             <version>${apiVersion}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_18_R2</artifactId>
+            <version>${apiVersion}</version>
+            <scope>compile</scope>
+        </dependency>
 
         <dependency>
             <groupId>com.frengor</groupId>
