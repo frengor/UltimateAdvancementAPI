@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_5_3;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v6_5_4;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
@@ -9,7 +9,7 @@ import dev.jorel.commandapi.arguments.CustomArgument.MessageBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AdvancementArgument_v6_5_3 {
+public class AdvancementArgument_v6_5_4 {
 
     @NotNull
     public static Argument getAdvancementArgument(AdvancementMain main, String nodeName) {
