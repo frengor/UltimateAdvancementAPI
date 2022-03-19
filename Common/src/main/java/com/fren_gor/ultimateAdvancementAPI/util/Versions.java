@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -17,26 +18,34 @@ public class Versions {
 
     private static final String API_VERSION = "2.1.2";
 
-    private static final List<String> SUPPORTED_NMS_VERSIONS = List.of("v1_15_R1", "v1_16_R1", "v1_16_R2", "v1_16_R3", "v1_17_R1", "v1_18_R1", "v1_18_R2");
+    private static final List<String> SUPPORTED_NMS_VERSIONS = List.of("v1_12_R1", "v1_13_R1", "v1_13_R2", "v1_14_R1", "v1_15_R1", "v1_16_R1", "v1_16_R2", "v1_16_R3", "v1_17_R1", "v1_18_R1", "v1_18_R2");
 
-    private static final Map<String, List<String>> NMS_TO_VERSIONS = Map.of(
-            "v1_15_R1", List.of("1.15", "1.15.1", "1.15.2"),
-            "v1_16_R1", List.of("1.16", "1.16.1", "1.16.2"),
-            "v1_16_R2", List.of("1.16.3", "1.16.4"),
-            "v1_16_R3", List.of("1.16.5"),
-            "v1_17_R1", List.of("1.17", "1.17.1"),
-            "v1_18_R1", List.of("1.18", "1.18.1"),
-            "v1_18_R2", List.of("1.18.2")
+    private static final Map<String, List<String>> NMS_TO_VERSIONS = Map.ofEntries(
+            new SimpleEntry<>("v1_12_R1", List.of("1.12", "1.12.1", "1.12.2")),
+            new SimpleEntry<>("v1_13_R1", List.of("1.13", "1.13.1")),
+            new SimpleEntry<>("v1_13_R2", List.of("1.13.2")),
+            new SimpleEntry<>("v1_14_R1", List.of("1.14", "1.14.1", "1.14.2", "1.14.3", "1.14.4")),
+            new SimpleEntry<>("v1_15_R1", List.of("1.15", "1.15.1", "1.15.2")),
+            new SimpleEntry<>("v1_16_R1", List.of("1.16", "1.16.1", "1.16.2")),
+            new SimpleEntry<>("v1_16_R2", List.of("1.16.3", "1.16.4")),
+            new SimpleEntry<>("v1_16_R3", List.of("1.16.5")),
+            new SimpleEntry<>("v1_17_R1", List.of("1.17", "1.17.1")),
+            new SimpleEntry<>("v1_18_R1", List.of("1.18", "1.18.1")),
+            new SimpleEntry<>("v1_18_R2", List.of("1.18.2"))
     );
 
-    private static final Map<String, String> NMS_TO_FANCY = Map.of(
-            "v1_15_R1", "1.15-1.15.2",
-            "v1_16_R1", "1.16-1.16.2",
-            "v1_16_R2", "1.16.3-1.16.4",
-            "v1_16_R3", "1.16.5",
-            "v1_17_R1", "1.17-1.17.1",
-            "v1_18_R1", "1.18-1.18.1",
-            "v1_18_R2", "1.18.2"
+    private static final Map<String, String> NMS_TO_FANCY = Map.ofEntries(
+            new SimpleEntry<>("v1_12_R1", "1.12-1.12.2"),
+            new SimpleEntry<>("v1_13_R1", "1.13-1.13.1"),
+            new SimpleEntry<>("v1_13_R2", "1.13.2"),
+            new SimpleEntry<>("v1_14_R1", "1.14-1.14.4"),
+            new SimpleEntry<>("v1_15_R1", "1.15-1.15.2"),
+            new SimpleEntry<>("v1_16_R1", "1.16-1.16.2"),
+            new SimpleEntry<>("v1_16_R2", "1.16.3-1.16.4"),
+            new SimpleEntry<>("v1_16_R3", "1.16.5"),
+            new SimpleEntry<>("v1_17_R1", "1.17-1.17.1"),
+            new SimpleEntry<>("v1_18_R1", "1.18-1.18.1"),
+            new SimpleEntry<>("v1_18_R2", "1.18.2")
     );
 
     private static final List<String> SUPPORTED_VERSIONS = SUPPORTED_NMS_VERSIONS.stream()
