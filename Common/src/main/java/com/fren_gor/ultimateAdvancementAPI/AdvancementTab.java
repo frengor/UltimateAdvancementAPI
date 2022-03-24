@@ -785,6 +785,8 @@ public final class AdvancementTab {
         public void dispose() {
             if (task != null) {
                 task.cancel();
+                advsToUpdate.clear();
+                scheduled = false;
             }
         }
 
