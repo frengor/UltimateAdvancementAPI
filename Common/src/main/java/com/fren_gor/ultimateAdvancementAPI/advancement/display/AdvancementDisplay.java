@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Arrays;
@@ -22,7 +23,7 @@ import java.util.StringJoiner;
  * The {@code AdvancementDisplay} class contains the graphical information of the advancement.
  * <p>It contains the title, description, icon, etc. etc.
  */
-public class AdvancementDisplay {
+public class AdvancementDisplay implements IAdvancementDisplay {
 
     /**
      * The icon of the advancement in the advancement GUI.
@@ -253,63 +254,99 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Returns whether the toast notification should be sent on advancement grant.
-     *
-     * @return Whether the toast notification should be sent on advancement grant.
+     * {@inheritDoc}
      */
-    public boolean doesShowToast() {
+    @Override
+    public float getX(@Nullable Player player) {
+        return x;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public float getY(@Nullable Player player) {
+        return y;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean doesShowToast(@Nullable Player player) {
         return showToast;
     }
 
     /**
-     * Returns whether the advancement completion message should be sent on advancement grant.
-     *
-     * @return Whether the advancement completion message should be sent on advancement grant.
+     * {@inheritDoc}
      */
-    public boolean doesAnnounceToChat() {
+    @Override
+    public boolean doesAnnounceToChat(@Nullable Player player) {
         return announceChat;
     }
 
     /**
-     * Gets the {@link BaseComponent} array that contains the fancy title. Used by {@link Advancement#getAnnounceMessage(Player)}.
-     *
-     * @return The {@link BaseComponent} array that contains the fancy title.
+     * {@inheritDoc}
      */
+    @Override
     @NotNull
-    public BaseComponent[] getChatTitle() {
+    public BaseComponent[] getChatTitle(@Nullable Player player) {
         return chatTitle.clone();
     }
 
     /**
-     * Gets the {@link BaseComponent} array that contains the fancy description. Used by {@link Advancement#getAnnounceMessage(Player)}.
-     *
-     * @return The {@link BaseComponent} array that contains the fancy description.
+     * {@inheritDoc}
      */
+    @Override
     @NotNull
-    public BaseComponent[] getChatDescription() {
+    public BaseComponent[] getChatDescription(@Nullable Player player) {
         return chatDescription.clone();
     }
 
     /**
-     * Gets a clone of the icon.
-     *
-     * @return A clone of the icon.
+     * {@inheritDoc}
      */
+    @Override
     @NotNull
-    public ItemStack getIcon() {
+    public ItemStack getIcon(@Nullable Player player) {
         return icon.clone();
     }
 
     /**
-     * Returns the {@code AdvancementDisplay} NMS wrapper, using the provided advancement for construction (when necessary).
-     *
-     * @param advancement The advancement used, when necessary, to create the NMS wrapper. Must be not {@code null}.
-     * @return The {@code AdvancementDisplay} NMS wrapper.
+     * {@inheritDoc}
      */
+    @Override
     @NotNull
-    public AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement) {
+    public String getTitle(@Nullable Player player) {
+        return title;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    @Unmodifiable
+    public List<String> getDescription(@Nullable Player player) {
+        return description;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public AdvancementFrameType getFrame(@Nullable Player player) {
+        return frame;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public AdvancementDisplayWrapper getNMSWrapper(@Nullable Player player, @NotNull Advancement advancement) {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
-        AdvancementDisplayWrapper wrapper;
         try {
             if (advancement instanceof RootAdvancement root) {
                 return AdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y, root.getBackgroundTexture());
@@ -322,33 +359,14 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Returns the title of the advancement.
-     *
-     * @return The title of the advancement.
-     */
-    @NotNull
-    public String getTitle() {
-        return title;
-    }
-
-    /**
      * Returns the trimmed title of the advancement.
      *
      * @return The trimmed title of the advancement.
      */
+    @Deprecated
     @NotNull
     public String getRawTitle() {
         return rawTitle;
-    }
-
-    /**
-     * Returns the description of the advancement.
-     *
-     * @return The description of the advancement.
-     */
-    @Unmodifiable
-    public List<String> getDescription() {
-        return description;
     }
 
     /**
@@ -357,37 +375,10 @@ public class AdvancementDisplay {
      * @return The compacted description.
      * @see #compactDescription
      */
+    @Deprecated
     @NotNull
     public String getCompactDescription() {
         return compactDescription;
-    }
-
-    /**
-     * Returns the shape of the advancement frame in the advancement GUI.
-     *
-     * @return The shape of the advancement frame in the advancement GUI.
-     */
-    @NotNull
-    public AdvancementFrameType getFrame() {
-        return frame;
-    }
-
-    /**
-     * Returns the advancement position relative to the x-axis.
-     *
-     * @return The x coordinate.
-     */
-    public float getX() {
-        return x;
-    }
-
-    /**
-     * Returns the advancement position relative to the y-axis.
-     *
-     * @return The y coordinate.
-     */
-    public float getY() {
-        return y;
     }
 
     /**
