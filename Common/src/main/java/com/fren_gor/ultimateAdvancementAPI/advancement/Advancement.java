@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.IAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
@@ -72,7 +73,7 @@ public abstract class Advancement {
      * The advancement display of the advancement.
      */
     @NotNull
-    protected final AdvancementDisplay display;
+    protected final IAdvancementDisplay display;
 
     /**
      * The maximum progression of the advancement.
@@ -94,7 +95,7 @@ public abstract class Advancement {
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
      */
-    Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display) {
+    Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull IAdvancementDisplay display) {
         this(advancementTab, key, display, 1);
     }
 
@@ -106,7 +107,7 @@ public abstract class Advancement {
      * @param display The display information of this advancement.
      * @param maxProgression The maximum advancement progression.
      */
-    Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull IAdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         // Validate class inheritance: Advancement can be extended only by RootAdvancement and BaseAdvancement
         // This makes sure no reflection is being used to make an invalid Advancement
         // The instanceOfs order provides max speed in most cases (there is usually one root for many base advancements)
@@ -155,6 +156,16 @@ public abstract class Advancement {
     @Range(from = 1, to = Integer.MAX_VALUE)
     public final int getMaxProgression() {
         return maxProgression;
+    }
+
+    /**
+     * Gets the {@link IAdvancementDisplay} of this advancement.
+     *
+     * @return The {@link IAdvancementDisplay} of this advancement.
+     */
+    @NotNull
+    public final IAdvancementDisplay getDisplay() {
+        return display;
     }
 
     /**
@@ -761,16 +772,6 @@ public abstract class Advancement {
             return getIVisibilityMethod(sClazz.asSubclass(Advancement.class));
         }
         return null;
-    }
-
-    /**
-     * Gets the {@link AdvancementDisplay} of this advancement.
-     *
-     * @return The {@link AdvancementDisplay} of this advancement.
-     */
-    @NotNull
-    public AdvancementDisplay getDisplay() {
-        return display;
     }
 
     /**

@@ -58,15 +58,6 @@ public final class FakeAdvancement extends BaseAdvancement {
      */
     @Override
     @NotNull
-    public FakeAdvancementDisplay getDisplay() {
-        return (FakeAdvancementDisplay) super.getDisplay();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @NotNull
     public AdvancementWrapper getNMSWrapper() {
         return super.getNMSWrapper();
     }
