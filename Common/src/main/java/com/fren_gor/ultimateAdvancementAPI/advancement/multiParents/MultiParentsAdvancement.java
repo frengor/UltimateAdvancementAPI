@@ -2,7 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.multiParents;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.FakeAdvancement;
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.IAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
@@ -41,7 +41,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * @param display The display information of this advancement.
      * @param parents The advancement parents. There must be at least one.
      */
-    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull BaseAdvancement... parents) {
+    public MultiParentsAdvancement(@NotNull String key, @NotNull IAdvancementDisplay display, @NotNull BaseAdvancement... parents) {
         this(key, display, 1, parents);
     }
 
@@ -53,7 +53,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * @param maxProgression The maximum advancement progression.
      * @param parents The advancement parents. There must be at least one.
      */
-    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull BaseAdvancement... parents) {
+    public MultiParentsAdvancement(@NotNull String key, @NotNull IAdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull BaseAdvancement... parents) {
         this(key, display, maxProgression, Sets.newHashSet(Objects.requireNonNull(parents)));
     }
 
@@ -64,7 +64,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * @param display The display information of this advancement.
      * @param parents The advancement parents. There must be at least one.
      */
-    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Set<BaseAdvancement> parents) {
+    public MultiParentsAdvancement(@NotNull String key, @NotNull IAdvancementDisplay display, @NotNull Set<BaseAdvancement> parents) {
         this(key, display, 1, parents);
     }
 
@@ -76,7 +76,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * @param maxProgression The maximum advancement progression.
      * @param parents The advancement parents. There must be at least one.
      */
-    public MultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull Set<BaseAdvancement> parents) {
+    public MultiParentsAdvancement(@NotNull String key, @NotNull IAdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull Set<BaseAdvancement> parents) {
         super(key, display, validateAndGetFirst(parents), maxProgression);
 
         this.parents = Maps.newHashMapWithExpectedSize(parents.size());

@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.multiParents;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.IAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.google.common.base.Preconditions;
 import org.bukkit.entity.Player;
@@ -29,7 +29,7 @@ public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
      * @param display The display information of this advancement.
      * @param aParent One of the parents of this advancement.
      */
-    public AbstractMultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull BaseAdvancement aParent) {
+    public AbstractMultiParentsAdvancement(@NotNull String key, @NotNull IAdvancementDisplay display, @NotNull BaseAdvancement aParent) {
         super(key, display, aParent);
     }
 
@@ -41,7 +41,7 @@ public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
      * @param aParent One of the parents of this advancement.
      * @param maxProgression The maximum progression of the task.
      */
-    public AbstractMultiParentsAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull BaseAdvancement aParent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    public AbstractMultiParentsAdvancement(@NotNull String key, @NotNull IAdvancementDisplay display, @NotNull BaseAdvancement aParent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         super(key, display, aParent, maxProgression);
     }
 
@@ -168,7 +168,7 @@ public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
     /**
      * Returns the first element of the provided {@link Set} of {@link BaseAdvancement}s. This method is intended to
      * be used to safely get an advancement from the {@link Set} of parent advancements passed as parameter in the subclass constructor.
-     * The obtained parent advancement should be passed to {@link #AbstractMultiParentsAdvancement(String, AdvancementDisplay, BaseAdvancement, int)}.
+     * The obtained parent advancement should be passed to {@link #AbstractMultiParentsAdvancement(String, IAdvancementDisplay, BaseAdvancement, int)}.
      * <p>If the returned element is {@code null} or it doesn't exist (the {@link Set} is empty), an {@link IllegalArgumentException} is thrown.
      *
      * @param advancements The advancements of the {@link Set}.

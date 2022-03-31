@@ -2,7 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.IAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -31,7 +31,7 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      * @param display The display information of this advancement.
      * @param parent The parent of this advancement.
      */
-    public AbstractMultiTasksAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent) {
+    public AbstractMultiTasksAdvancement(@NotNull String key, @NotNull IAdvancementDisplay display, @NotNull Advancement parent) {
         super(key, display, parent);
     }
 
@@ -43,7 +43,7 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      * @param parent The parent of this advancement.
      * @param maxProgression The maximum progression of the task.
      */
-    public AbstractMultiTasksAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    public AbstractMultiTasksAdvancement(@NotNull String key, @NotNull IAdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         super(key, display, parent, maxProgression);
     }
 
