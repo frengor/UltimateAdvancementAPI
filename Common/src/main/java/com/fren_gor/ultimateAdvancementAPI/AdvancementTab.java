@@ -601,9 +601,9 @@ public final class AdvancementTab {
     public void hideTab(@NotNull Player player) {
         checkInitialisation();
         Preconditions.checkNotNull(player, "Player is null.");
-        checkPlayer(player);
 
-        removePlayer(player, players.remove(player));
+        if (isShownTo(player))
+            removePlayer(player, players.remove(player));
     }
 
     private void removePlayer(@NotNull Player player, @NotNull Set<MinecraftKeyWrapper> keys) {
@@ -706,11 +706,6 @@ public final class AdvancementTab {
             throw new DisposedException("AdvancementTab is disposed");
         if (!initialised)
             throw new IllegalStateException("AdvancementTab has not been initialised yet.");
-    }
-
-    private void checkPlayer(Player player) {
-        if (!players.containsKey(player))
-            throw new IllegalArgumentException("Tab isn't shown to " + (player == null ? "null" : player.getName()));
     }
 
     /**
