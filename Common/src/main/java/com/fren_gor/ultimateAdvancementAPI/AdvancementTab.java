@@ -585,7 +585,7 @@ public final class AdvancementTab {
             try {
                 hideTab(p);
             } catch (Exception e) {
-                // Add other players anyway
+                // Remove other players anyway
                 e.printStackTrace();
             }
         }
