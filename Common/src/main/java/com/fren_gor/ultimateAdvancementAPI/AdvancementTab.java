@@ -706,22 +706,27 @@ public final class AdvancementTab {
     }
 
     /**
-     * Utility method which automatically shows this tab to every player after they have been loaded.
+     * Utility method which automatically shows this tab to every player just after they have been loaded.
      * <p>More formally, this is equivalent to calling:
      * <blockquote><pre>
      * tab.registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOWEST, e -> tab.showTab(e.getPlayer()));
      * </pre></blockquote>
      *
+     * @return This {@code AdvancementTab}.
      * @throws IllegalStateException If the tab is not initialised.
      * @throws DisposedException If the tab is disposed.
      * @since 2.2.0
      */
-    public void automaticallyShowToPlayers() {
+    @NotNull
+    @Contract("-> this")
+    public AdvancementTab automaticallyShowToPlayers() {
         checkInitialisation();
         if (!automaticallyShown) {
             automaticallyShown = true;
+            // Use LOWEST priority in order to show the tab as soon as possible
             registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOWEST, e -> showTab(e.getPlayer()));
         }
+        return this;
     }
 
     /**
