@@ -68,7 +68,7 @@ public final class AdvancementTab {
     private final Map<Player, Set<MinecraftKeyWrapper>> players = new HashMap<>();
 
     private RootAdvancement rootAdvancement;
-    private boolean initialised = false, disposed = false, automaticallyShown = false;
+    private boolean initialised = false, disposed = false, automaticallyShown = false, automaticallyGrant = false;
     @LazyValue
     private Collection<String> advNamespacedKeys;
     @LazyValue
@@ -725,6 +725,30 @@ public final class AdvancementTab {
             automaticallyShown = true;
             // Use LOWEST priority in order to show the tab as soon as possible
             registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOWEST, e -> showTab(e.getPlayer()));
+        }
+        return this;
+    }
+
+    /**
+     * Utility method which automatically grants the root advancement of this tab to every player after they have been loaded.
+     * <p>More formally, this is equivalent to calling:
+     * <blockquote><pre>
+     * tab.registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOW, e -> tab.grantRootAdvancement(e.getPlayer()));
+     * </pre></blockquote>
+     *
+     * @return This {@code AdvancementTab}.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     * @since 2.2.0
+     */
+    @NotNull
+    @Contract("-> this")
+    public AdvancementTab automaticallyGrantRootAdvancement() {
+        checkInitialisation();
+        if (!automaticallyGrant) {
+            automaticallyGrant = true;
+            // Use LOW priority since automaticallyShowToPlayers() uses LOWEST priority
+            registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOW, e -> grantRootAdvancement(e.getPlayer()));
         }
         return this;
     }
