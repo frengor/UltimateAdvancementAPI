@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDispla
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
@@ -692,9 +693,15 @@ public abstract class Advancement {
      * @param eventClass The class of the event to register.
      * @param consumer The code to run when the event occurs.
      * @param <E> The class of the event to register.
+     * @throws DisposedException If the {@link AdvancementTab} of this advancement is disposed.
+     * @throws IllegalArgumentException If any argument is null.
      */
     protected final <E extends Event> void registerEvent(@NotNull Class<E> eventClass, @NotNull Consumer<E> consumer) {
-        advancementTab.getEventManager().register(this, eventClass, consumer);
+        try {
+            advancementTab.getEventManager().register(this, eventClass, consumer);
+        } catch (IllegalStateException e) {
+            throw new DisposedException(e);
+        }
     }
 
     /**
@@ -704,9 +711,15 @@ public abstract class Advancement {
      * @param priority The priority of the event. See {@link EventPriority}.
      * @param consumer The code to run when the event occurs.
      * @param <E> The class of the event to register.
+     * @throws DisposedException If the {@link AdvancementTab} of this advancement is disposed.
+     * @throws IllegalArgumentException If any argument is null.
      */
     protected final <E extends Event> void registerEvent(@NotNull Class<E> eventClass, @NotNull EventPriority priority, @NotNull Consumer<E> consumer) {
-        advancementTab.getEventManager().register(this, eventClass, priority, consumer);
+        try {
+            advancementTab.getEventManager().register(this, eventClass, priority, consumer);
+        } catch (IllegalStateException e) {
+            throw new DisposedException(e);
+        }
     }
 
     /**
