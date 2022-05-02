@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementDisposeEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementDisposedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementRegistrationEvent;
@@ -25,6 +26,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -44,6 +47,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey.checkNamespace;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
@@ -64,7 +68,7 @@ public final class AdvancementTab {
     private final Map<Player, Set<MinecraftKeyWrapper>> players = new HashMap<>();
 
     private RootAdvancement rootAdvancement;
-    private boolean initialised = false, disposed = false;
+    private boolean initialised = false, disposed = false, automaticallyShown = false;
     @LazyValue
     private Collection<String> advNamespacedKeys;
     @LazyValue
@@ -699,6 +703,62 @@ public final class AdvancementTab {
     public boolean isOwnedByThisTab(@NotNull Advancement advancement) {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         return advancement.getKey().getNamespace().equals(namespace);
+    }
+
+    /**
+     * Utility method which automatically shows this tab to every player after they have been loaded.
+     * <p>More formally, this is equivalent to calling:
+     * <blockquote><pre>
+     * tab.registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOWEST, e -> tab.showTab(e.getPlayer()));
+     * </pre></blockquote>
+     *
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     * @since 2.2.0
+     */
+    public void automaticallyShowToPlayers() {
+        checkInitialisation();
+        if (!automaticallyShown) {
+            automaticallyShown = true;
+            registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOWEST, e -> showTab(e.getPlayer()));
+        }
+    }
+
+    /**
+     * Registers the provided event into the {@link EventManager} of this tab.
+     *
+     * @param eventClass The class of the event to register.
+     * @param consumer The code to run when the event occurs.
+     * @param <E> The class of the event to register.
+     * @throws DisposedException If the tab is disposed.
+     * @throws IllegalArgumentException If any argument is null.
+     * @since 2.2.0
+     */
+    public <E extends Event> void registerEvent(@NotNull Class<E> eventClass, @NotNull Consumer<E> consumer) {
+        try {
+            eventManager.register(this, eventClass, consumer);
+        } catch (IllegalStateException e) {
+            throw new DisposedException(e);
+        }
+    }
+
+    /**
+     * Registers the provided event into the {@link EventManager} of this tab.
+     *
+     * @param eventClass The class of the event to register.
+     * @param priority The priority of the event. See {@link EventPriority}.
+     * @param consumer The code to run when the event occurs.
+     * @param <E> The class of the event to register.
+     * @throws DisposedException If the tab is disposed.
+     * @throws IllegalArgumentException If any argument is null.
+     * @since 2.2.0
+     */
+    public <E extends Event> void registerEvent(@NotNull Class<E> eventClass, @NotNull EventPriority priority, @NotNull Consumer<E> consumer) {
+        try {
+            eventManager.register(this, eventClass, priority, consumer);
+        } catch (IllegalStateException e) {
+            throw new DisposedException(e);
+        }
     }
 
     private void checkInitialisation() {
