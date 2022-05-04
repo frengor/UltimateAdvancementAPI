@@ -46,6 +46,14 @@ Feel free to open issues or pull requests. Feature requests can be done opening 
 
 For pull requests, use the formatting style settings present under `.idea/codeStyles` folder.
 
+## Required Java version
+
+Currently, the project is compiled for Java 16, although the minimum required Java version might change in future releases.
+
+> We consider changing the minimum required Java version a breaking change, so DO NOT expect it to be frequently modified.
+
+In order to compile the code you must be using (at least) the Java version required by the last Minecraft version, since the project uses NMS.
+
 ## License
 
 This project is licensed under the [GNU Lesser General Public License v3.0 or later](https://www.gnu.org/licenses/lgpl-3.0.txt).
