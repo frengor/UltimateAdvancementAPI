@@ -2,32 +2,32 @@ package com.fren_gor.ultimateAdvancementAPI.events.team;
 
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
  * Called when a new {@link TeamProgression} instance is created and stored in the caching system.
  * <p>The {@link TeamProgression} instance provided by this event is always valid.
+ * <p>May be called asynchronously.
  *
  * @see DatabaseManager
- * @deprecated Use {@link AsyncTeamLoadEvent} instead.
+ * @since 2.2.0
  */
-@Deprecated(since = "2.2.0", forRemoval = true)
-public class TeamLoadEvent extends Event {
+public class AsyncTeamLoadEvent extends Event {
 
     private final TeamProgression team;
 
     /**
-     * Creates a new {@code TeamLoadEvent}.
+     * Creates a new {@code AsyncTeamLoadEvent}.
      *
      * @param team The loaded {@link TeamProgression}. It must be valid (see {@link TeamProgression#isValid()}).
      */
-    public TeamLoadEvent(@NotNull TeamProgression team) {
+    public AsyncTeamLoadEvent(@NotNull TeamProgression team) {
+        super(!Bukkit.isPrimaryThread());
         this.team = validateTeamProgression(team);
     }
 
@@ -55,7 +55,7 @@ public class TeamLoadEvent extends Event {
 
     @Override
     public String toString() {
-        return "TeamLoadEvent{" +
+        return "AsyncTeamLoadEvent{" +
                 "team=" + team +
                 '}';
     }
@@ -65,7 +65,7 @@ public class TeamLoadEvent extends Event {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        TeamLoadEvent that = (TeamLoadEvent) o;
+        AsyncTeamLoadEvent that = (AsyncTeamLoadEvent) o;
 
         return team.equals(that.team);
     }

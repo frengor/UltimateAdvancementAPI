@@ -14,7 +14,9 @@ import java.util.Objects;
  * <p>The {@link TeamProgression} instance provided by this event is always invalid.
  *
  * @see DatabaseManager
+ * @deprecated Use {@link AsyncTeamUnloadEvent} instead.
  */
+@Deprecated(since = "2.2.0", forRemoval = true)
 public class TeamUnloadEvent extends Event {
 
     private final TeamProgression team;

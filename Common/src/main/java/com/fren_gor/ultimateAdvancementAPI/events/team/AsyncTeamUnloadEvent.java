@@ -2,39 +2,42 @@ package com.fren_gor.ultimateAdvancementAPI.events.team;
 
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.google.common.base.Preconditions;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
-
 /**
- * Called when a new {@link TeamProgression} instance is created and stored in the caching system.
- * <p>The {@link TeamProgression} instance provided by this event is always valid.
+ * Called after a {@link TeamProgression} instance is removed from the caching system.
+ * <p>The {@link TeamProgression} instance provided by this event is always invalid.
+ * <p>May be called asynchronously.
  *
  * @see DatabaseManager
- * @deprecated Use {@link AsyncTeamLoadEvent} instead.
+ * @since 2.2.0
  */
-@Deprecated(since = "2.2.0", forRemoval = true)
-public class TeamLoadEvent extends Event {
+public class AsyncTeamUnloadEvent extends Event {
 
     private final TeamProgression team;
 
     /**
-     * Creates a new {@code TeamLoadEvent}.
+     * Creates a new {@code AsyncTeamUnloadEvent}.
      *
-     * @param team The loaded {@link TeamProgression}. It must be valid (see {@link TeamProgression#isValid()}).
+     * @param team The {@link TeamProgression} of the unloaded team. It must be invalid (see {@link TeamProgression#isValid()}).
      */
-    public TeamLoadEvent(@NotNull TeamProgression team) {
-        this.team = validateTeamProgression(team);
+    public AsyncTeamUnloadEvent(@NotNull TeamProgression team) {
+        super(!Bukkit.isPrimaryThread());
+        Preconditions.checkArgument(!Objects.requireNonNull(team, "TeamProgression is null.").isValid(), "TeamProgression is valid.");
+        this.team = team;
     }
 
     /**
-     * Gets the loaded {@link TeamProgression}.
+     * Gets the {@link TeamProgression} of the unloaded team.
+     * <p>Note that the returned {@link TeamProgression} is always invalid (see {@link TeamProgression#isValid()}).
      *
-     * @return The loaded {@link TeamProgression}.
+     * @return The {@link TeamProgression} of the unloaded team.
      */
     @NotNull
     public TeamProgression getTeamProgression() {
@@ -55,7 +58,7 @@ public class TeamLoadEvent extends Event {
 
     @Override
     public String toString() {
-        return "TeamLoadEvent{" +
+        return "AsyncTeamUnloadEvent{" +
                 "team=" + team +
                 '}';
     }
@@ -65,7 +68,7 @@ public class TeamLoadEvent extends Event {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        TeamLoadEvent that = (TeamLoadEvent) o;
+        AsyncTeamUnloadEvent that = (AsyncTeamUnloadEvent) o;
 
         return team.equals(that.team);
     }

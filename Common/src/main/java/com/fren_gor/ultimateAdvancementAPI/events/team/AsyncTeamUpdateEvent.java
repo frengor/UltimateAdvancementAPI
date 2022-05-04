@@ -1,6 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.events.team;
 
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -12,11 +13,11 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 
 /**
  * Called when a team member joins or leaves a team.
+ * <p>May be called asynchronously.
  *
- * @deprecated Use {@link AsyncTeamUpdateEvent} instead.
+ * @since 2.2.0
  */
-@Deprecated(since = "2.2.0", forRemoval = true)
-public class TeamUpdateEvent extends Event {
+public class AsyncTeamUpdateEvent extends Event {
 
     /**
      * The action that occurred.
@@ -31,14 +32,15 @@ public class TeamUpdateEvent extends Event {
     private final Action action;
 
     /**
-     * Creates a new {@code TeamUpdateEvent}.
+     * Creates a new {@code AsyncTeamUpdateEvent}.
      *
-     * @param team The {@link TeamProgression} of the player's team.
+     * @param team The {@link TeamProgression} of the player's team. It must be valid (see {@link TeamProgression#isValid()}).
      * @param playerUUID The {@link UUID} of the player.
      * @param action The {@link Action} of the update.
      */
-    public TeamUpdateEvent(@NotNull TeamProgression team, @NotNull UUID playerUUID, @NotNull Action action) {
-        this.team = team; // Cannot validate TeamProgression! This is the reason this class is deprecated
+    public AsyncTeamUpdateEvent(@NotNull TeamProgression team, @NotNull UUID playerUUID, @NotNull Action action) {
+        super(!Bukkit.isPrimaryThread());
+        this.team = validateTeamProgression(team);
         this.playerUUID = Objects.requireNonNull(playerUUID, "UUID is null.");
         this.action = Objects.requireNonNull(action, "Action is null.");
     }
@@ -87,7 +89,7 @@ public class TeamUpdateEvent extends Event {
 
     @Override
     public String toString() {
-        return "TeamUpdateEvent{" +
+        return "AsyncTeamUpdateEvent{" +
                 "team=" + team +
                 ", playerUUID=" + playerUUID +
                 ", action=" + action +
@@ -99,7 +101,7 @@ public class TeamUpdateEvent extends Event {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        TeamUpdateEvent that = (TeamUpdateEvent) o;
+        AsyncTeamUpdateEvent that = (AsyncTeamUpdateEvent) o;
 
         if (!team.equals(that.team)) return false;
         if (!playerUUID.equals(that.playerUUID)) return false;
