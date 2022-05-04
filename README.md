@@ -46,6 +46,10 @@ Feel free to open issues or pull requests. Feature requests can be done opening 
 
 For pull requests, use the formatting style settings present under `.idea/codeStyles` folder.
 
+## License
+
+This project is licensed under the [GNU Lesser General Public License v3.0 or later](https://www.gnu.org/licenses/lgpl-3.0.txt).
+
 ## Credits
 
 UltimateAdvancementAPI has been made by [fren_gor](https://github.com/frengor) and [EscanorTargaryen](https://github.com/EscanorTargaryen).  
