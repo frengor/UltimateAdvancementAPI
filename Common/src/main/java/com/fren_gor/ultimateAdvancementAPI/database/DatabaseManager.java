@@ -48,6 +48,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
@@ -82,6 +87,9 @@ public final class DatabaseManager {
      */
     public static final int MAX_SIMULTANEOUS_LOADING_REQUESTS = Character.MAX_VALUE;
     private static final int LOAD_EVENTS_DELAY = 3;
+
+    // A single-thread executor is used to maintain executed queries sequential
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private final AdvancementMain main;
     private final Map<UUID, TeamProgression> progressionCache = new HashMap<>();
@@ -155,7 +163,7 @@ public final class DatabaseManager {
                 ex.printStackTrace();
                 runSync(main, LOAD_EVENTS_DELAY, () -> Bukkit.getPluginManager().callEvent(new PlayerLoadingFailedEvent(e.getPlayer(), ex)));
             }
-        }));
+        }, executor));
         eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
             synchronized (DatabaseManager.this) {
                 TempUserMetadata meta = tempLoaded.get(e.getPlayer().getUniqueId());
@@ -194,7 +202,7 @@ public final class DatabaseManager {
                 System.err.println("Cannot clear up unused team ids:");
                 e.printStackTrace();
             }
-        });
+        }, executor);
     }
 
     /**
@@ -202,6 +210,23 @@ public final class DatabaseManager {
      * <p>This method does not call {@link Event}s.
      */
     public void unregister() {
+        // Shutdown executor before database connection
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                // There are other tasks
+                executor.shutdownNow();
+                if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                    System.err.println("It was not possible to terminate some tasks.");
+                }
+            }
+        } catch (InterruptedException ignored) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt(); // Preserve interrupt status
+        } catch (Exception ignored) {
+            executor.shutdownNow();
+        }
+
         if (eventManager.isEnabled())
             eventManager.unregister(this);
         try {
@@ -233,7 +258,7 @@ public final class DatabaseManager {
                 callEventCatchingExceptions(new TeamUpdateEvent(pro, player.getUniqueId(), TeamUpdateEvent.Action.JOIN));
             }
             main.updatePlayer(player);
-            CompletableFuture.runAsync(() -> processUnredeemed(player, pro));
+            CompletableFuture.runAsync(() -> processUnredeemed(player, pro), executor);
         });
     }
 
@@ -337,7 +362,7 @@ public final class DatabaseManager {
                                 e.getKey().onGrant(player, e.getValue());
                             }
                         });
-                    });
+                    }, executor);
             });
     }
 
@@ -362,7 +387,7 @@ public final class DatabaseManager {
                 return new Result(e);
             }
             return Result.SUCCESSFUL;
-        });
+        }, executor);
     }
 
     /**
@@ -471,7 +496,7 @@ public final class DatabaseManager {
                 processUnredeemed(ptm, otherTeamProgression);
             }
             return Result.SUCCESSFUL;
-        });
+        }, executor);
     }
 
     /**
@@ -553,7 +578,7 @@ public final class DatabaseManager {
                     main.updatePlayer(ptr);
             });
             return new ObjectResult<>(newPro);
-        });
+        }, executor);
     }
 
     /**
@@ -599,7 +624,7 @@ public final class DatabaseManager {
 
             callEventCatchingExceptions(new AsyncPlayerUnregisteredEvent(uuid));
             return Result.SUCCESSFUL;
-        });
+        }, executor);
     }
 
     /**
@@ -699,7 +724,7 @@ public final class DatabaseManager {
                     return new Result(e);
                 }
                 return Result.SUCCESSFUL;
-            }));
+            }, executor));
         }
         return new SimpleEntry<>(old, CompletableFuture.completedFuture(Result.SUCCESSFUL));
     }
@@ -863,7 +888,7 @@ public final class DatabaseManager {
                 e.printStackTrace();
                 return new ObjectResult<>(e);
             }
-        });
+        }, executor);
     }
 
     /**
@@ -904,7 +929,7 @@ public final class DatabaseManager {
                 return new Result(e);
             }
             return Result.SUCCESSFUL;
-        });
+        }, executor);
     }
 
     /**
@@ -943,7 +968,7 @@ public final class DatabaseManager {
                 return new Result(e);
             }
             return Result.SUCCESSFUL;
-        });
+        }, executor);
     }
 
     /**
@@ -966,7 +991,7 @@ public final class DatabaseManager {
             } catch (Exception e) {
                 return new ObjectResult<>(e);
             }
-        });
+        }, executor);
     }
 
     /**
@@ -1015,7 +1040,7 @@ public final class DatabaseManager {
                 runSync(main, () -> Bukkit.getPluginManager().callEvent(new TeamLoadEvent(t)));
             }
             return new ObjectResult<>(t);
-        });
+        }, executor);
     }
 
     private void handleCacheFreeingOption(@NotNull UUID uuid, @Nullable TeamProgression pro, @NotNull CacheFreeingOption option) {
