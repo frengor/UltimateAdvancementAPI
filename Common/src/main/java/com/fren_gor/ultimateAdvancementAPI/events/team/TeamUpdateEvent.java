@@ -38,7 +38,7 @@ public class TeamUpdateEvent extends Event {
      * @param action The {@link Action} of the update.
      */
     public TeamUpdateEvent(@NotNull TeamProgression team, @NotNull UUID playerUUID, @NotNull Action action) {
-        this.team = team; // Cannot validate TeamProgression! This is the reason this class is deprecated
+        this.team = Objects.requireNonNull(team, "TeamProgression is null."); // Cannot validate TeamProgression! This is the reason this class is deprecated
         this.playerUUID = Objects.requireNonNull(playerUUID, "UUID is null.");
         this.action = Objects.requireNonNull(action, "Action is null.");
     }
