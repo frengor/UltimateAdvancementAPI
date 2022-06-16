@@ -576,7 +576,9 @@ public final class AdvancementTab {
         removePlayer(player, players.remove(player));
     }
 
-    private void removePlayer(@NotNull Player player, @NotNull Set<MinecraftKeyWrapper> keys) {
+    private void removePlayer(@NotNull Player player, Set<MinecraftKeyWrapper> keys) {
+        if (keys == null || keys.isEmpty())
+            return;
         try {
             PacketPlayOutAdvancementsWrapper.craftRemovePacket(keys).sendTo(player);
         } catch (ReflectiveOperationException e) {
