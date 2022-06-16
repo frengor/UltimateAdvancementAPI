@@ -22,24 +22,10 @@
     </properties>
 
     <dependencies>
-        <!-- NMS Modules -->
+        <!-- Command Modules -->
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-commandapi-5-12</artifactId>
-            <version>${apiVersion}</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-commandapi-6-4-0</artifactId>
-            <version>${apiVersion}</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-commandapi-6-5-4</artifactId>
+            <artifactId>ultimateadvancementapi-commands-commandapi-8-3-1</artifactId>
             <version>${apiVersion}</version>
             <scope>compile</scope>
         </dependency>

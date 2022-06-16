@@ -65,12 +65,6 @@
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
 
-        <!-- CommandAPI -->
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-
         <!-- Libby (AlessioDP) -->
         <repository>
             <id>AlessioDP</id>

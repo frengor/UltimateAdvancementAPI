@@ -45,9 +45,9 @@ public class CommandAPIManager {
         }
 
         // Download correct version of CommandAPI
-        libbyManager.addJitPack();
+        libbyManager.addMavenCentral();
         Library commandAPILibrary = Library.builder()
-                .groupId("dev{}jorel{}CommandAPI")
+                .groupId("dev{}jorel")
                 .artifactId("commandapi-shade")
                 .version(ver.getVersion()).checksum(ver.getChecksum())
                 .relocate("dev{}jorel{}commandapi", "dev.jorel.commandapi") // Should be changed by shading
