@@ -333,7 +333,7 @@ public final class AdvancementTab {
     }
 
     /**
-     * Sends or updates the advancements of the tab to the provided team members.
+     * Sends or updates the advancements of the tab to the provided team's members.
      *
      * @param pro The {@link TeamProgression} of the team.
      * @throws IllegalStateException If the tab is not initialised.
@@ -352,48 +352,11 @@ public final class AdvancementTab {
      * @throws IllegalStateException If the tab is not initialised.
      * @throws DisposedException If the tab is disposed.
      * @throws UserNotLoadedException If the provided player's team is not loaded.
+     * @deprecated Use {@link #updateAdvancementsToTeam(Player)} instead.
      */
-    @Deprecated
+    @Deprecated(since = "2.2.0")
     public void updateEveryAdvancement(@NotNull Player player) throws UserNotLoadedException {
-        checkInitialisation();
-        Preconditions.checkNotNull(player, "Player is null.");
-
-        TeamProgression pro = databaseManager.getTeamProgression(player);
-
-        final int best = advancements.size() + 16;
-        final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(best);
-        final Map<AdvancementWrapper, Integer> advs = Maps.newHashMapWithExpectedSize(best);
-
-        for (Advancement advancement : advancements.values()) {
-            advancement.onUpdate(pro, advs);
-            keys.add(advancement.getKey().getNMSWrapper());
-        }
-
-        ISendable sendPacket, noTab, thisTab;
-        try {
-            sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(advs);
-            noTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelectNone();
-            thisTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelect(rootAdvancement.getKey().getNMSWrapper());
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        noTab.sendTo(player);
-
-        @Nullable Set<MinecraftKeyWrapper> set = players.put(player, keys);
-        if (set != null && !set.isEmpty()) {
-            try {
-                PacketPlayOutAdvancementsWrapper.craftRemovePacket(keys).sendTo(player);
-            } catch (ReflectiveOperationException e) {
-                e.printStackTrace();
-                thisTab.sendTo(player);
-                return; // TODO Check
-            }
-        }
-
-        sendPacket.sendTo(player);
-        thisTab.sendTo(player);
+        updateAdvancementsToTeam(player);
     }
 
     /**
@@ -536,7 +499,7 @@ public final class AdvancementTab {
         Preconditions.checkNotNull(player, "Player is null.");
         if (!players.containsKey(player)) {
             players.put(player, Collections.emptySet());
-            updateEveryAdvancement(player);
+            updateAdvancementsToTeam(player);
         }
     }
 

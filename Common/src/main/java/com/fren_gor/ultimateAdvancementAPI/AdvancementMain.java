@@ -508,7 +508,7 @@ public final class AdvancementMain {
         Preconditions.checkNotNull(player, "Player is null.");
         for (AdvancementTab tab : tabs.values()) {
             if (tab.isActive() && tab.isShownTo(player)) {
-                tab.updateEveryAdvancement(player);
+                tab.updateAdvancementsToTeam(player);
             }
         }
     }
