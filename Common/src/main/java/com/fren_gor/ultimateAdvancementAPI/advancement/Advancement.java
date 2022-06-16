@@ -576,7 +576,7 @@ public abstract class Advancement {
         // Show Toast
         if (display.doesShowToast()) {
             // TODO Find a better solution
-            runSync(advancementTab.getOwningPlugin(), () -> AdvancementUtils.displayToastDuringUpdate(player, this));
+            runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(player, this));
         }
 
         if (giveRewards)
