@@ -6,12 +6,14 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementDisposeEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementDisposedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementRegistrationEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.ISendable;
@@ -25,9 +27,12 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,12 +43,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey.checkNamespace;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
@@ -62,9 +69,10 @@ public final class AdvancementTab {
     private final DatabaseManager databaseManager;
     private final Map<AdvancementKey, Advancement> advancements = new HashMap<>();
     private final Map<Player, Set<MinecraftKeyWrapper>> players = new HashMap<>();
+    private final AdvsUpdateRunnable updateManager;
 
     private RootAdvancement rootAdvancement;
-    private boolean initialised = false, disposed = false;
+    private boolean initialised = false, disposed = false, automaticallyShown = false, automaticallyGrant = false;
     @LazyValue
     private Collection<String> advNamespacedKeys;
     @LazyValue
@@ -76,6 +84,7 @@ public final class AdvancementTab {
         this.owningPlugin = Objects.requireNonNull(owningPlugin);
         this.eventManager = new EventManager(owningPlugin);
         this.databaseManager = Objects.requireNonNull(databaseManager);
+        this.updateManager = new AdvsUpdateRunnable();
         eventManager.register(this, PlayerQuitEvent.class, e -> players.remove(e.getPlayer()));
     }
 
@@ -309,8 +318,9 @@ public final class AdvancementTab {
      * @param player The player.
      * @throws IllegalStateException If the tab is not initialised.
      * @throws DisposedException If the tab is disposed.
+     * @throws UserNotLoadedException If the provided player's team is not loaded.
      */
-    public void updateAdvancementsToTeam(@NotNull Player player) {
+    public void updateAdvancementsToTeam(@NotNull Player player) throws UserNotLoadedException {
         updateAdvancementsToTeam(AdvancementUtils.uuidFromPlayer(player));
     }
 
@@ -320,13 +330,14 @@ public final class AdvancementTab {
      * @param uuid A {@link UUID} of the player.
      * @throws IllegalStateException If the tab is not initialised.
      * @throws DisposedException If the tab is disposed.
+     * @throws UserNotLoadedException If the provided player's team is not loaded.
      */
-    public void updateAdvancementsToTeam(@NotNull UUID uuid) {
+    public void updateAdvancementsToTeam(@NotNull UUID uuid) throws UserNotLoadedException {
         updateAdvancementsToTeam(databaseManager.getTeamProgression(uuid));
     }
 
     /**
-     * Sends or updates the advancements of the tab to the provided team members.
+     * Sends or updates the advancements of the tab to the provided team's members.
      *
      * @param pro The {@link TeamProgression} of the team.
      * @throws IllegalStateException If the tab is not initialised.
@@ -335,46 +346,7 @@ public final class AdvancementTab {
     public void updateAdvancementsToTeam(@NotNull TeamProgression pro) {
         checkInitialisation();
         validateTeamProgression(pro);
-
-        final int best = advancements.size() + 16;
-        final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(best);
-        final Map<AdvancementWrapper, Integer> advs = Maps.newHashMapWithExpectedSize(best);
-
-        for (Advancement advancement : advancements.values()) {
-            advancement.onUpdate(pro, advs);
-            keys.add(advancement.getKey().getNMSWrapper());
-        }
-
-        ISendable sendPacket, noTab, thisTab;
-        try {
-            sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(advs);
-            noTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelectNone();
-            thisTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelect(rootAdvancement.getKey().getNMSWrapper());
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        pro.forEachMember(u -> {
-            Player player = Bukkit.getPlayer(u);
-            if (player != null) {
-                noTab.sendTo(player);
-
-                @Nullable Set<MinecraftKeyWrapper> set = players.put(player, keys);
-                if (set != null && !set.isEmpty()) {
-                    try {
-                        PacketPlayOutAdvancementsWrapper.craftRemovePacket(keys).sendTo(player);
-                    } catch (ReflectiveOperationException e) {
-                        e.printStackTrace();
-                        thisTab.sendTo(player);
-                        return; // TODO Check
-                    }
-                }
-
-                sendPacket.sendTo(player);
-                thisTab.sendTo(player);
-            }
-        });
+        updateManager.schedule(pro);
     }
 
     /**
@@ -383,47 +355,12 @@ public final class AdvancementTab {
      * @param player The player.
      * @throws IllegalStateException If the tab is not initialised.
      * @throws DisposedException If the tab is disposed.
+     * @throws UserNotLoadedException If the provided player's team is not loaded.
+     * @deprecated Use {@link #updateAdvancementsToTeam(Player)} instead.
      */
-    public void updateEveryAdvancement(@NotNull Player player) {
-        checkInitialisation();
-        Preconditions.checkNotNull(player, "Player is null.");
-
-        TeamProgression pro = databaseManager.getTeamProgression(player);
-
-        final int best = advancements.size() + 16;
-        final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(best);
-        final Map<AdvancementWrapper, Integer> advs = Maps.newHashMapWithExpectedSize(best);
-
-        for (Advancement advancement : advancements.values()) {
-            advancement.onUpdate(pro, advs);
-            keys.add(advancement.getKey().getNMSWrapper());
-        }
-
-        ISendable sendPacket, noTab, thisTab;
-        try {
-            sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(advs);
-            noTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelectNone();
-            thisTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelect(rootAdvancement.getKey().getNMSWrapper());
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        noTab.sendTo(player);
-
-        @Nullable Set<MinecraftKeyWrapper> set = players.put(player, keys);
-        if (set != null && !set.isEmpty()) {
-            try {
-                PacketPlayOutAdvancementsWrapper.craftRemovePacket(keys).sendTo(player);
-            } catch (ReflectiveOperationException e) {
-                e.printStackTrace();
-                thisTab.sendTo(player);
-                return; // TODO Check
-            }
-        }
-
-        sendPacket.sendTo(player);
-        thisTab.sendTo(player);
+    @Deprecated(since = "2.2.0")
+    public void updateEveryAdvancement(@NotNull Player player) throws UserNotLoadedException {
+        updateAdvancementsToTeam(player);
     }
 
     /**
@@ -566,7 +503,7 @@ public final class AdvancementTab {
         Preconditions.checkNotNull(player, "Player is null.");
         if (!players.containsKey(player)) {
             players.put(player, Collections.emptySet());
-            updateEveryAdvancement(player);
+            updateAdvancementsToTeam(player);
         }
     }
 
@@ -606,7 +543,9 @@ public final class AdvancementTab {
             removePlayer(player, players.remove(player));
     }
 
-    private void removePlayer(@NotNull Player player, @NotNull Set<MinecraftKeyWrapper> keys) {
+    private void removePlayer(@NotNull Player player, Set<MinecraftKeyWrapper> keys) {
+        if (keys == null || keys.isEmpty())
+            return;
         try {
             PacketPlayOutAdvancementsWrapper.craftRemovePacket(keys).sendTo(player);
         } catch (ReflectiveOperationException e) {
@@ -618,6 +557,7 @@ public final class AdvancementTab {
         checkInitialisation();
         disposed = true;
         eventManager.disable();
+        updateManager.dispose();
         var it = players.entrySet().iterator();
         while (it.hasNext()) {
             Entry<Player, Set<MinecraftKeyWrapper>> e = it.next();
@@ -699,6 +639,91 @@ public final class AdvancementTab {
     public boolean isOwnedByThisTab(@NotNull Advancement advancement) {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         return advancement.getKey().getNamespace().equals(namespace);
+    }
+
+    /**
+     * Utility method which automatically shows this tab to every player just after they have been loaded.
+     * <p>More formally, this is equivalent to calling:
+     * <blockquote><pre>
+     * tab.registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOWEST, e -> tab.showTab(e.getPlayer()));
+     * </pre></blockquote>
+     *
+     * @return This {@code AdvancementTab}.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     * @since 2.2.0
+     */
+    @NotNull
+    @Contract("-> this")
+    public AdvancementTab automaticallyShowToPlayers() {
+        checkInitialisation();
+        if (!automaticallyShown) {
+            automaticallyShown = true;
+            // Use LOWEST priority in order to show the tab as soon as possible
+            registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOWEST, e -> showTab(e.getPlayer()));
+        }
+        return this;
+    }
+
+    /**
+     * Utility method which automatically grants the root advancement of this tab to every player after they have been loaded.
+     * <p>More formally, this is equivalent to calling:
+     * <blockquote><pre>
+     * tab.registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOW, e -> tab.grantRootAdvancement(e.getPlayer()));
+     * </pre></blockquote>
+     *
+     * @return This {@code AdvancementTab}.
+     * @throws IllegalStateException If the tab is not initialised.
+     * @throws DisposedException If the tab is disposed.
+     * @since 2.2.0
+     */
+    @NotNull
+    @Contract("-> this")
+    public AdvancementTab automaticallyGrantRootAdvancement() {
+        checkInitialisation();
+        if (!automaticallyGrant) {
+            automaticallyGrant = true;
+            // Use LOW priority since automaticallyShowToPlayers() uses LOWEST priority
+            registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOW, e -> grantRootAdvancement(e.getPlayer()));
+        }
+        return this;
+    }
+
+    /**
+     * Registers the provided event into the {@link EventManager} of this tab.
+     *
+     * @param eventClass The class of the event to register.
+     * @param consumer The code to run when the event occurs.
+     * @param <E> The class of the event to register.
+     * @throws DisposedException If the tab is disposed.
+     * @throws IllegalArgumentException If any argument is null.
+     * @since 2.2.0
+     */
+    public <E extends Event> void registerEvent(@NotNull Class<E> eventClass, @NotNull Consumer<E> consumer) {
+        try {
+            eventManager.register(this, eventClass, consumer);
+        } catch (IllegalStateException e) {
+            throw new DisposedException(e);
+        }
+    }
+
+    /**
+     * Registers the provided event into the {@link EventManager} of this tab.
+     *
+     * @param eventClass The class of the event to register.
+     * @param priority The priority of the event. See {@link EventPriority}.
+     * @param consumer The code to run when the event occurs.
+     * @param <E> The class of the event to register.
+     * @throws DisposedException If the tab is disposed.
+     * @throws IllegalArgumentException If any argument is null.
+     * @since 2.2.0
+     */
+    public <E extends Event> void registerEvent(@NotNull Class<E> eventClass, @NotNull EventPriority priority, @NotNull Consumer<E> consumer) {
+        try {
+            eventManager.register(this, eventClass, priority, consumer);
+        } catch (IllegalStateException e) {
+            throw new DisposedException(e);
+        }
     }
 
     private void checkInitialisation() {
@@ -790,5 +815,80 @@ public final class AdvancementTab {
      */
     public boolean isDisposed() {
         return disposed;
+    }
+
+    private class AdvsUpdateRunnable implements Runnable {
+
+        private final Set<TeamProgression> advsToUpdate = new HashSet<>();
+        private boolean scheduled = false;
+        private BukkitTask task;
+
+        public void schedule(@NotNull TeamProgression progression) {
+            if (!scheduled) {
+                scheduled = true;
+                task = Bukkit.getScheduler().runTaskLater(owningPlugin, this, 1L);
+            }
+            advsToUpdate.add(progression);
+        }
+
+        public void dispose() {
+            if (task != null) {
+                task.cancel();
+                advsToUpdate.clear();
+                scheduled = false;
+            }
+        }
+
+        @Override
+        public void run() {
+            // Keep additional space for advancements that might be added by Advancement#onUpdate
+            final int best = advancements.size() + 16;
+            final Map<AdvancementWrapper, Integer> advs = Maps.newHashMapWithExpectedSize(best);
+
+            for (TeamProgression pro : advsToUpdate) {
+                final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(best);
+
+                for (Advancement advancement : advancements.values()) {
+                    advancement.onUpdate(pro, advs);
+                    keys.add(advancement.getKey().getNMSWrapper());
+                }
+
+                ISendable sendPacket, noTab, thisTab;
+                try {
+                    sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(advs);
+                    noTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelectNone();
+                    thisTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelect(rootAdvancement.getKey().getNMSWrapper());
+                } catch (ReflectiveOperationException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+
+                pro.forEachMember(u -> {
+                    Player player = Bukkit.getPlayer(u);
+                    if (player != null) {
+                        noTab.sendTo(player);
+
+                        @Nullable Set<MinecraftKeyWrapper> set = players.put(player, keys);
+                        if (set != null && !set.isEmpty()) {
+                            try {
+                                PacketPlayOutAdvancementsWrapper.craftRemovePacket(keys).sendTo(player);
+                            } catch (ReflectiveOperationException e) {
+                                e.printStackTrace();
+                                thisTab.sendTo(player);
+                                return; // TODO Check
+                            }
+                        }
+
+                        sendPacket.sendTo(player);
+                        thisTab.sendTo(player);
+                    }
+                });
+
+                advs.clear();
+            }
+            task = null;
+            advsToUpdate.clear();
+            scheduled = false;
+        }
     }
 }

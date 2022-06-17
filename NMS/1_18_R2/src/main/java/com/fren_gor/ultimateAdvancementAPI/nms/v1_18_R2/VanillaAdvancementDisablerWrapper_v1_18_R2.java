@@ -149,9 +149,9 @@ public class VanillaAdvancementDisablerWrapper_v1_18_R2 extends VanillaAdvanceme
 
         // Method setLevel is not present in Logger interface
         if (LOGGER instanceof org.apache.logging.log4j.core.Logger coreLogger) {
-            coreLogger.setLevel(Level.WARN);
+            coreLogger.setLevel(Level.OFF);
         } else if (LOGGER instanceof SimpleLogger simple) {
-            simple.setLevel(Level.WARN);
+            simple.setLevel(Level.OFF);
         }
 
         return old;

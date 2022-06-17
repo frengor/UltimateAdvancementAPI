@@ -12,7 +12,10 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 
 /**
  * Called when a team member joins or leaves a team.
+ *
+ * @deprecated Use {@link AsyncTeamUpdateEvent} instead.
  */
+@Deprecated(since = "2.2.0", forRemoval = true)
 public class TeamUpdateEvent extends Event {
 
     /**
@@ -30,12 +33,12 @@ public class TeamUpdateEvent extends Event {
     /**
      * Creates a new {@code TeamUpdateEvent}.
      *
-     * @param team The {@link TeamProgression} of the player's team. It must be valid (see {@link TeamProgression#isValid()}).
+     * @param team The {@link TeamProgression} of the player's team.
      * @param playerUUID The {@link UUID} of the player.
      * @param action The {@link Action} of the update.
      */
     public TeamUpdateEvent(@NotNull TeamProgression team, @NotNull UUID playerUUID, @NotNull Action action) {
-        this.team = validateTeamProgression(team);
+        this.team = Objects.requireNonNull(team, "TeamProgression is null."); // Cannot validate TeamProgression! This is the reason this class is deprecated
         this.playerUUID = Objects.requireNonNull(playerUUID, "UUID is null.");
         this.action = Objects.requireNonNull(action, "Action is null.");
     }

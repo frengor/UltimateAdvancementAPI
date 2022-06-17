@@ -15,7 +15,9 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
  * <p>The {@link TeamProgression} instance provided by this event is always valid.
  *
  * @see DatabaseManager
+ * @deprecated Use {@link AsyncTeamLoadEvent} instead.
  */
+@Deprecated(since = "2.2.0", forRemoval = true)
 public class TeamLoadEvent extends Event {
 
     private final TeamProgression team;

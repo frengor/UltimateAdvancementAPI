@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.frengor</groupId>
+        <artifactId>ultimateadvancementapi-commands-parent</artifactId>
+        <version>parent-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ultimateadvancementapi-commands-commandapi-8-3-1</artifactId>
+    <name>UltimateAdvancementAPI-Commands-CommandAPI-8-3-1</name>
+    <version>2.2.0</version>
+    <url>${parent.url}</url>
+    <packaging>jar</packaging>
+
+    <properties>
+        <!-- Skip deploy -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
+    <dependencies>
+        <!-- Common Module -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-common</artifactId>
+            <version>${apiVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- CommandAPI -->
+        <dependency>
+            <groupId>dev.jorel</groupId>
+            <artifactId>commandapi-shade</artifactId>
+            <version>8.3.1</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <filtering>false</filtering>
+                <directory>../..</directory>
+                <includes>
+                    <include>LICENSE</include>
+                    <include>LGPL</include>
+                    <include>NOTICE</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
