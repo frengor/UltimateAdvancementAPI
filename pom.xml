@@ -175,8 +175,8 @@
                         <failOnWarnings>true</failOnWarnings>
                         <links>
                             <link>https://frengor.com/javadocs/EventManagerAPI/build-server/</link>
-                            <!--<link>https://javadoc.io/doc/org.jetbrains/annotations/22.0.0/</link>-->
-                            <!--<link>https://javadoc.io/static/net.md-5/bungeecord-chat/1.16-R0.4/</link>-->
+                            <link>https://javadoc.io/doc/org.jetbrains/annotations/22.0.0/</link>
+                            <link>https://javadoc.io/static/net.md-5/bungeecord-chat/1.16-R0.4/</link>
                             <link>https://hub.spigotmc.org/javadocs/spigot/</link>
                         </links>
                         <includeDependencySources>true</includeDependencySources>
