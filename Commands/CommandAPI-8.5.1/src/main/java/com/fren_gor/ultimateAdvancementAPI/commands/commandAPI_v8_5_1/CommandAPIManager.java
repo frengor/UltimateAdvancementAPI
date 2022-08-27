@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_4_0;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_5_1;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.*;
@@ -31,5 +31,6 @@ public class CommandAPIManager implements ILoadable {
             for (var alias : command.aliases())
                 CommandAPI.unregister(alias);
         }
+        CommandAPI.onDisable();
     }
 }
