@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_3_1;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_5_1;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
@@ -7,26 +7,27 @@ import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.CustomArgument;
 import dev.jorel.commandapi.arguments.CustomArgument.CustomArgumentException;
 import dev.jorel.commandapi.arguments.CustomArgument.MessageBuilder;
+import dev.jorel.commandapi.arguments.NamespacedKeyArgument;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AdvancementArgument_v8_3_1 {
+public class AdvancementArgument {
 
     @NotNull
     public static Argument<Advancement> getAdvancementArgument(AdvancementMain main, String nodeName) {
-        return new CustomArgument<>(nodeName, input -> {
+        return new CustomArgument<>(new NamespacedKeyArgument(nodeName), input -> {
             try {
                 @Nullable Advancement adv = main.getAdvancement(input.input());
                 if (adv == null) {
-                    throw new CustomArgumentException(new MessageBuilder("Unknown advancement: ").appendArgInput());
+                    throw new CustomArgumentException(new MessageBuilder("Unknown advancement: ").appendArgInput().appendHere());
                 } else if (!adv.isValid()) {
-                    throw new CustomArgumentException(new MessageBuilder("Invalid advancement: ").appendArgInput());
+                    throw new CustomArgumentException(new MessageBuilder("Invalid advancement: ").appendArgInput().appendHere());
                 } else {
                     return adv;
                 }
             } catch (IllegalArgumentException e) {
-                throw new CustomArgumentException(new MessageBuilder("Illegal advancement: ").appendArgInput());
+                throw new CustomArgumentException(new MessageBuilder("Illegal advancement: ").appendArgInput().appendHere());
             }
-        }, true).replaceSuggestions(ArgumentSuggestions.strings(sender -> main.filterNamespaces(null).toArray(new String[0])));
+        }).replaceSuggestions(ArgumentSuggestions.strings(sender -> main.filterNamespaces(null).toArray(new String[0])));
     }
 }

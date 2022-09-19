@@ -43,7 +43,7 @@
 
     <properties>
         <!-- Project Properties -->
-        <apiVersion>2.2.0</apiVersion> <!-- Change also in Versions class -->
+        <apiVersion>2.2.1</apiVersion> <!-- Change also in Versions class -->
         <libbyVersion>1.1.5</libbyVersion>
         <projectEncoding>UTF-8</projectEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -96,7 +96,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.19-R0.1-SNAPSHOT</version>
+            <version>1.19.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
             <optional>true</optional> <!-- Don't use latest api into per-version code -->
         </dependency>

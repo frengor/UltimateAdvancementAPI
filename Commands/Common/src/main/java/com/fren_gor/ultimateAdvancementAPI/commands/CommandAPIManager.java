@@ -60,7 +60,7 @@ public class CommandAPIManager {
             return null;
         }
 
-        String manager = "com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v" + ver.getClasspathSuffix() + ".CommandAPIManager_v" + ver.getClasspathSuffix();
+        String manager = "com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v" + ver.getClasspathSuffix() + ".CommandAPIManager";
         Class<?> clazz;
         try {
             clazz = Class.forName(manager);

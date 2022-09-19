@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_3_1;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_5_1;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
@@ -7,7 +7,7 @@ import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.BooleanArgument;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument;
-import dev.jorel.commandapi.arguments.EntitySelectorArgument.EntitySelector;
+import dev.jorel.commandapi.arguments.EntitySelector;
 import dev.jorel.commandapi.arguments.IntegerArgument;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import org.bukkit.ChatColor;
@@ -20,14 +20,14 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.*;
-import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_3_1.AdvancementArgument_v8_3_1.getAdvancementArgument;
-import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_3_1.AdvancementTabArgument_v8_3_1.getAdvancementTabArgument;
+import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_5_1.AdvancementArgument.getAdvancementArgument;
+import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_5_1.AdvancementTabArgument.getAdvancementTabArgument;
 
-public class UltimateAdvancementAPICommand_v8_3_1 {
+public class UltimateAdvancementAPICommand {
 
     private final AdvancementMain main;
 
-    protected UltimateAdvancementAPICommand_v8_3_1(@NotNull AdvancementMain main) {
+    protected UltimateAdvancementAPICommand(@NotNull AdvancementMain main) {
         this.main = Objects.requireNonNull(main, "AdvancementMain is null.");
     }
 
