@@ -6,8 +6,6 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameT
 import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption;
 import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption.Option;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
-import com.fren_gor.ultimateAdvancementAPI.database.ObjectResult;
-import com.fren_gor.ultimateAdvancementAPI.database.Result;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.APINotInstantiatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
@@ -298,9 +296,10 @@ public final class UltimateAdvancementAPI {
      *
      * @param playerToMove The player to move.
      * @param aDestTeamPlayer A player of the destination team.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      */
-    public void updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player aDestTeamPlayer) {
-        updatePlayerTeam(playerToMove, aDestTeamPlayer, null);
+    public CompletableFuture<Void> updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player aDestTeamPlayer) {
+        return updatePlayerTeam(playerToMove, aDestTeamPlayer, null);
     }
 
     /**
@@ -308,13 +307,14 @@ public final class UltimateAdvancementAPI {
      *
      * @param playerToMove The player to move.
      * @param aDestTeamPlayer A player of the destination team.
-     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     * @param action A {@link Consumer} that is called synchronously after the operation. If no code should be called,
+     *         it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      */
-    public void updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player aDestTeamPlayer, @Nullable Consumer<Result> action) {
+    public CompletableFuture<Void> updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player aDestTeamPlayer, @Nullable Consumer<Void> action) {
         Preconditions.checkNotNull(playerToMove, "Player to move is null.");
         Preconditions.checkNotNull(aDestTeamPlayer, "Destination player (representing destination team) is null.");
-        callAfterLoad(playerToMove, aDestTeamPlayer, ds -> ds.updatePlayerTeam(playerToMove, aDestTeamPlayer), action);
+        return callAfterLoad(playerToMove, aDestTeamPlayer, ds -> ds.updatePlayerTeam(playerToMove, aDestTeamPlayer), action);
     }
 
     /**
@@ -322,9 +322,10 @@ public final class UltimateAdvancementAPI {
      *
      * @param playerToMove The {@link UUID} of the player to move.
      * @param aDestTeamPlayer The {@link UUID} of a player of the destination team.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      */
-    public void updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID aDestTeamPlayer) {
-        updatePlayerTeam(playerToMove, aDestTeamPlayer, null);
+    public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID aDestTeamPlayer) {
+        return updatePlayerTeam(playerToMove, aDestTeamPlayer, null);
     }
 
     /**
@@ -332,55 +333,64 @@ public final class UltimateAdvancementAPI {
      *
      * @param playerToMove The {@link UUID} of the player to move.
      * @param aDestTeamPlayer The {@link UUID} of a player of the destination team.
-     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     * @param action A {@link Consumer} that is called synchronously after the operation. If no code should be called,
+     *         it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      */
-    public void updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID aDestTeamPlayer, @Nullable Consumer<Result> action) {
+    public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID aDestTeamPlayer, @Nullable Consumer<Void> action) {
         Preconditions.checkNotNull(playerToMove, "Player to move is null.");
         Preconditions.checkNotNull(aDestTeamPlayer, "Destination player (representing destination team) is null.");
-        callAfterLoad(playerToMove, aDestTeamPlayer, ds -> ds.updatePlayerTeam(playerToMove, aDestTeamPlayer), action);
+        return callAfterLoad(playerToMove, aDestTeamPlayer, ds -> ds.updatePlayerTeam(playerToMove, aDestTeamPlayer), action);
     }
 
     /**
      * Moves the provided player into a new team.
      *
      * @param playerToMove The player to be moved.
+     * @return A {@link CompletableFuture} which will complete with the {@link TeamProgression} of the player's new team
+     *         when the operation finishes.
      */
-    public void movePlayerInNewTeam(@NotNull Player playerToMove) {
-        movePlayerInNewTeam(playerToMove, null);
+    public CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull Player playerToMove) {
+        return movePlayerInNewTeam(playerToMove, null);
     }
 
     /**
      * Moves the provided player into a new team.
      *
      * @param playerToMove The player to be moved.
-     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the {@link TeamProgression} of the player's new team (when the operation is successful).
+     * @param action A {@link Consumer} that is called synchronously after the operation with the
+     *         {@link TeamProgression} of the player's new team (when the operation is successful).
      *         If no code should be called, it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete with the {@link TeamProgression} of the player's new team
+     *         when the operation finishes.
      */
-    public void movePlayerInNewTeam(@NotNull Player playerToMove, @Nullable Consumer<ObjectResult<@NotNull TeamProgression>> action) {
-        callAfterLoad(playerToMove, ds -> ds.movePlayerInNewTeam(playerToMove), action);
+    public CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull Player playerToMove, @Nullable Consumer<TeamProgression> action) {
+        return callAfterLoad(playerToMove, ds -> ds.movePlayerInNewTeam(playerToMove), action);
     }
 
     /**
      * Moves the provided player into a new team.
      *
      * @param playerToMove The {@link UUID} of the player to be moved.
+     * @return A {@link CompletableFuture} which will complete with the {@link TeamProgression} of the player's new team
+     *         when the operation finishes.
      */
-    public void movePlayerInNewTeam(@NotNull UUID playerToMove) {
-        movePlayerInNewTeam(playerToMove, null);
+    public CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID playerToMove) {
+        return movePlayerInNewTeam(playerToMove, null);
     }
 
     /**
      * Moves the provided player into a new team.
      *
      * @param playerToMove The {@link UUID} of the player to be moved.
-     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the {@link TeamProgression} of the player's new team (when the operation is successful).
+     * @param action A {@link Consumer} that is called synchronously after the operation with the
+     *         {@link TeamProgression} of the player's new team (when the operation is successful).
      *         If no code should be called, it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete with the {@link TeamProgression} of the player's new team
+     *         when the operation finishes.
      */
-    public void movePlayerInNewTeam(@NotNull UUID playerToMove, @Nullable Consumer<ObjectResult<@NotNull TeamProgression>> action) {
-        callAfterLoad(playerToMove, ds -> ds.movePlayerInNewTeam(playerToMove), action);
+    public CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID playerToMove, @Nullable Consumer<TeamProgression> action) {
+        return callAfterLoad(playerToMove, ds -> ds.movePlayerInNewTeam(playerToMove), action);
     }
 
     /**
@@ -389,10 +399,11 @@ public final class UltimateAdvancementAPI {
      * For more information about the caching system see {@link DatabaseManager}.
      *
      * @param player The offline player to unregister.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      * @throws IllegalStateException If the player is online or loaded into the caching system.
      */
-    public void unregisterOfflinePlayer(@NotNull OfflinePlayer player) throws IllegalStateException {
-        unregisterOfflinePlayer(player, null);
+    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull OfflinePlayer player) throws IllegalStateException {
+        return unregisterOfflinePlayer(player, null);
     }
 
     /**
@@ -401,12 +412,13 @@ public final class UltimateAdvancementAPI {
      * For more information about the caching system see {@link DatabaseManager}.
      *
      * @param player The offline player to unregister.
-     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     * @param action A {@link Consumer} that is called synchronously after the operation. If no code should be called,
+     *         it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      * @throws IllegalStateException If the player is online or loaded into the caching system.
      */
-    public void unregisterOfflinePlayer(@NotNull OfflinePlayer player, @Nullable Consumer<Result> action) throws IllegalStateException {
-        callSyncIfNotNull(getMain().getDatabaseManager().unregisterOfflinePlayer(player), action);
+    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull OfflinePlayer player, @Nullable Consumer<Void> action) throws IllegalStateException {
+        return callSyncIfNotNull(getMain().getDatabaseManager().unregisterOfflinePlayer(player), action);
     }
 
     /**
@@ -415,10 +427,11 @@ public final class UltimateAdvancementAPI {
      * For more information about the caching system see {@link DatabaseManager}.
      *
      * @param uuid The {@link UUID} of the player to unregister.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      * @throws IllegalStateException If the player is online or loaded into the caching system.
      */
-    public void unregisterOfflinePlayer(@NotNull UUID uuid) throws IllegalStateException {
-        unregisterOfflinePlayer(uuid, null);
+    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull UUID uuid) throws IllegalStateException {
+        return unregisterOfflinePlayer(uuid, null);
     }
 
     /**
@@ -427,32 +440,35 @@ public final class UltimateAdvancementAPI {
      * For more information about the caching system see {@link DatabaseManager}.
      *
      * @param uuid The {@link UUID} of the player to unregister.
-     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     * @param action A {@link Consumer} that is called synchronously after the operation. If no code should be called,
+     *         it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      * @throws IllegalStateException If the player is online or loaded into the caching system.
      */
-    public void unregisterOfflinePlayer(@NotNull UUID uuid, @Nullable Consumer<Result> action) throws IllegalStateException {
-        callSyncIfNotNull(getMain().getDatabaseManager().unregisterOfflinePlayer(uuid), action);
+    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull UUID uuid, @Nullable Consumer<Void> action) throws IllegalStateException {
+        return callSyncIfNotNull(getMain().getDatabaseManager().unregisterOfflinePlayer(uuid), action);
     }
 
     /**
      * Updates the name of the specified player in the database.
      *
      * @param player The player to update.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      */
-    public void updatePlayerName(@NotNull Player player) {
-        updatePlayerName(player, null);
+    public CompletableFuture<Void> updatePlayerName(@NotNull Player player) {
+        return updatePlayerName(player, null);
     }
 
     /**
      * Updates the name of the specified player in the database.
      *
      * @param player The player to update.
-     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     * @param action A {@link Consumer} that is called synchronously after the operation. If no code should be called,
+     *         it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      */
-    public void updatePlayerName(@NotNull Player player, @Nullable Consumer<Result> action) {
-        callSyncIfNotNull(getMain().getDatabaseManager().updatePlayerName(player), action);
+    public CompletableFuture<Void> updatePlayerName(@NotNull Player player, @Nullable Consumer<Void> action) {
+        return callSyncIfNotNull(getMain().getDatabaseManager().updatePlayerName(player), action);
     }
 
     /**
@@ -460,11 +476,11 @@ public final class UltimateAdvancementAPI {
      *
      * @param advancement The advancement.
      * @param player The player.
-     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the {@link Boolean} result.
+     * @param action A {@link Consumer} that is called synchronously after the operation with its result.
+     * @return A {@link CompletableFuture} which will complete with the operation's result when the operation finishes.
      */
-    public void isUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @NotNull Consumer<ObjectResult<@NotNull Boolean>> action) {
-        isUnredeemed(advancement, uuidFromPlayer(player), action);
+    public CompletableFuture<Boolean> isUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @NotNull Consumer<Boolean> action) {
+        return isUnredeemed(advancement, uuidFromPlayer(player), action);
     }
 
     /**
@@ -472,19 +488,19 @@ public final class UltimateAdvancementAPI {
      *
      * @param advancement The advancement.
      * @param uuid The {@link UUID} of the player.
-     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the {@link Boolean} result.
+     * @param action A {@link Consumer} that is called synchronously after the operation with its result.
+     * @return A {@link CompletableFuture} which will complete with the operation's result when it finishes.
      */
-    public void isUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @NotNull Consumer<ObjectResult<@NotNull Boolean>> action) {
+    public CompletableFuture<Boolean> isUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @NotNull Consumer<Boolean> action) {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(action, "Consumer is null.");
         // Don't query if advancement isn't granted, it should always return false
         if (!advancement.isGranted(uuid)) {
-            action.accept(new ObjectResult<>(false));
-            return;
+            action.accept(false);
+            return CompletableFuture.completedFuture(false);
         }
-        callAfterLoad(uuid, ds -> ds.isUnredeemed(advancement.getKey(), uuid), action);
+        return callAfterLoad(uuid, ds -> ds.isUnredeemed(advancement.getKey(), uuid), action);
     }
 
     /**
@@ -493,10 +509,11 @@ public final class UltimateAdvancementAPI {
      *
      * @param advancement The advancement.
      * @param player The player.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
-    public void setUnredeemed(@NotNull Advancement advancement, @NotNull Player player) throws NotGrantedException {
-        setUnredeemed(advancement, player, true);
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull Player player) throws NotGrantedException {
+        return setUnredeemed(advancement, player, true);
     }
 
     /**
@@ -505,12 +522,13 @@ public final class UltimateAdvancementAPI {
      *
      * @param advancement The advancement.
      * @param player The player.
-     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     * @param action A {@link Consumer} that is called synchronously after the operation. If no code should be called,
+     *         it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
-    public void setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @Nullable Consumer<Result> action) throws NotGrantedException {
-        setUnredeemed(advancement, player, true, action);
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @Nullable Consumer<Void> action) throws NotGrantedException {
+        return setUnredeemed(advancement, player, true, action);
     }
 
     /**
@@ -519,10 +537,11 @@ public final class UltimateAdvancementAPI {
      * @param advancement The advancement.
      * @param player The player.
      * @param giveRewards Whether to give rewards on redeem.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
-    public void setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, boolean giveRewards) throws NotGrantedException {
-        setUnredeemed(advancement, uuidFromPlayer(player), giveRewards);
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, boolean giveRewards) throws NotGrantedException {
+        return setUnredeemed(advancement, uuidFromPlayer(player), giveRewards);
     }
 
     /**
@@ -531,12 +550,13 @@ public final class UltimateAdvancementAPI {
      * @param advancement The advancement.
      * @param player The player.
      * @param giveRewards Whether to give rewards on redeem.
-     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     * @param action A {@link Consumer} that is called synchronously after the operation. If no code should be called,
+     *         it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
-    public void setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, boolean giveRewards, @Nullable Consumer<Result> action) throws NotGrantedException {
-        setUnredeemed(advancement, uuidFromPlayer(player), giveRewards, action);
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, boolean giveRewards, @Nullable Consumer<Void> action) throws NotGrantedException {
+        return setUnredeemed(advancement, uuidFromPlayer(player), giveRewards, action);
     }
 
     /**
@@ -545,10 +565,11 @@ public final class UltimateAdvancementAPI {
      *
      * @param advancement The advancement.
      * @param uuid The {@link UUID} of the player.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
-    public void setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid) throws NotGrantedException {
-        setUnredeemed(advancement, uuid, true);
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid) throws NotGrantedException {
+        return setUnredeemed(advancement, uuid, true);
     }
 
     /**
@@ -557,12 +578,13 @@ public final class UltimateAdvancementAPI {
      *
      * @param advancement The advancement.
      * @param uuid The {@link UUID} of the player.
-     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     * @param action A {@link Consumer} that is called synchronously after the operation. If no code should be called,
+     *         it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
-    public void setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @Nullable Consumer<Result> action) throws NotGrantedException {
-        setUnredeemed(advancement, uuid, true, action);
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @Nullable Consumer<Void> action) throws NotGrantedException {
+        return setUnredeemed(advancement, uuid, true, action);
     }
 
     /**
@@ -571,10 +593,11 @@ public final class UltimateAdvancementAPI {
      * @param advancement The advancement.
      * @param uuid The {@link UUID} of the player.
      * @param giveRewards Whether to give rewards on redeem.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
-    public void setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, boolean giveRewards) throws NotGrantedException {
-        setUnredeemed(advancement, uuid, giveRewards, null);
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, boolean giveRewards) throws NotGrantedException {
+        return setUnredeemed(advancement, uuid, giveRewards, null);
     }
 
     /**
@@ -583,11 +606,12 @@ public final class UltimateAdvancementAPI {
      * @param advancement The advancement.
      * @param uuid The {@link UUID} of the player.
      * @param giveRewards Whether to give rewards on redeem.
-     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     * @param action A {@link Consumer} that is called synchronously after the operation. If no code should be called,
+     *         it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
-    public void setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, boolean giveRewards, @Nullable Consumer<Result> action) throws NotGrantedException {
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, boolean giveRewards, @Nullable Consumer<Void> action) throws NotGrantedException {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkNotNull(uuid, "UUID is null.");
         // Don't call update if advancement isn't granted, it may throw a foreign key exception
@@ -595,7 +619,7 @@ public final class UltimateAdvancementAPI {
             throw new NotGrantedException();
         }
 
-        callAfterLoad(uuid, ds -> ds.setUnredeemed(advancement.getKey(), giveRewards, uuid), action);
+        return callAfterLoad(uuid, ds -> ds.setUnredeemed(advancement.getKey(), giveRewards, uuid), action);
     }
 
     /**
@@ -603,9 +627,10 @@ public final class UltimateAdvancementAPI {
      *
      * @param advancement The advancement.
      * @param player The player.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      */
-    public void unsetUnredeemed(@NotNull Advancement advancement, @NotNull Player player) {
-        unsetUnredeemed(advancement, player, null);
+    public CompletableFuture<Void> unsetUnredeemed(@NotNull Advancement advancement, @NotNull Player player) {
+        return unsetUnredeemed(advancement, player, null);
     }
 
     /**
@@ -613,11 +638,12 @@ public final class UltimateAdvancementAPI {
      *
      * @param advancement The advancement.
      * @param player The player.
-     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     * @param action A {@link Consumer} that is called synchronously after the operation. If no code should be called,
+     *         it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      */
-    public void unsetUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @Nullable Consumer<Result> action) {
-        unsetUnredeemed(advancement, uuidFromPlayer(player), action);
+    public CompletableFuture<Void> unsetUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @Nullable Consumer<Void> action) {
+        return unsetUnredeemed(advancement, uuidFromPlayer(player), action);
     }
 
     /**
@@ -625,9 +651,10 @@ public final class UltimateAdvancementAPI {
      *
      * @param advancement The advancement.
      * @param uuid The {@link UUID} of the player.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      */
-    public void unsetUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid) {
-        unsetUnredeemed(advancement, uuid, null);
+    public CompletableFuture<Void> unsetUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid) {
+        return unsetUnredeemed(advancement, uuid, null);
     }
 
     /**
@@ -635,13 +662,14 @@ public final class UltimateAdvancementAPI {
      *
      * @param advancement The advancement.
      * @param uuid The {@link UUID} of the player.
-     * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     * @param action A {@link Consumer} that is called synchronously after the operation. If no code should be called,
+     *         it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
      */
-    public void unsetUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @Nullable Consumer<Result> action) {
+    public CompletableFuture<Void> unsetUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @Nullable Consumer<Void> action) {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkNotNull(uuid, "UUID is null.");
-        callAfterLoad(uuid, ds -> ds.unsetUnredeemed(advancement.getKey(), uuid), action);
+        return callAfterLoad(uuid, ds -> ds.unsetUnredeemed(advancement.getKey(), uuid), action);
     }
 
     /**
@@ -684,9 +712,10 @@ public final class UltimateAdvancementAPI {
      * <p>For more information about the caching system see {@link DatabaseManager}.
      *
      * @param player The offline player to load.
+     * @return A {@link CompletableFuture} which will complete with the loaded {@link TeamProgression} when the operation finishes.
      */
-    public void loadOfflinePlayer(@NotNull OfflinePlayer player) {
-        loadOfflinePlayer(uuidFromPlayer(player));
+    public CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull OfflinePlayer player) {
+        return loadOfflinePlayer(uuidFromPlayer(player));
     }
 
     /**
@@ -696,63 +725,70 @@ public final class UltimateAdvancementAPI {
      * <p>For more information about the caching system see {@link DatabaseManager}.
      *
      * @param uuid The {@link UUID} of the player to load.
+     * @return A {@link CompletableFuture} which will complete with the loaded {@link TeamProgression} when the operation finishes.
      */
-    public void loadOfflinePlayer(@NotNull UUID uuid) {
-        loadOfflinePlayer(uuid, CacheFreeingOption.MANUAL(plugin), null);
+    public CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull UUID uuid) {
+        return loadOfflinePlayer(uuid, CacheFreeingOption.MANUAL(plugin), null);
     }
 
     /**
      * Loads the provided offline player from the database without putting they into the caching system (see {@link CacheFreeingOption#DONT_CACHE()}).
-     * <p>The loaded {@link TeamProgression} can be retrieved through the {@link Consumer}&lt;{@link ObjectResult}&gt;.
+     * <p>The loaded {@link TeamProgression} can be retrieved using the {@link Consumer} passed as parameter or the returned {@link CompletableFuture}.
      * <p>For more information about the caching system see {@link DatabaseManager}.
      *
      * @param player The offline player to load.
-     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the loaded {@link TeamProgression}.
+     * @param action A {@link Consumer} that is called synchronously after the operation, which provides the loaded {@link TeamProgression}.
+     *         If no code should be called, it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete with the loaded {@link TeamProgression} when the operation finishes.
      */
-    public void loadOfflinePlayer(@NotNull OfflinePlayer player, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
-        loadOfflinePlayer(uuidFromPlayer(player), action);
+    public CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull OfflinePlayer player, @Nullable Consumer<TeamProgression> action) {
+        return loadOfflinePlayer(uuidFromPlayer(player), action);
     }
 
     /**
      * Loads the provided player from the database without putting they into the caching system (see {@link CacheFreeingOption#DONT_CACHE()}).
-     * <p>The loaded {@link TeamProgression} can be retrieved through the {@link Consumer}&lt;{@link ObjectResult}&gt;.
+     * <p>The loaded {@link TeamProgression} can be retrieved using the {@link Consumer} passed as parameter or the returned {@link CompletableFuture}.
      * <p>For more information about the caching system see {@link DatabaseManager}.
      *
      * @param uuid The {@link UUID} of the player to load.
-     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the loaded {@link TeamProgression}.
+     * @param action A {@link Consumer} that is called synchronously after the operation, which provides the loaded {@link TeamProgression}.
+     *         If no code should be called, it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete with the loaded {@link TeamProgression} when the operation finishes.
      */
-    public void loadOfflinePlayer(@NotNull UUID uuid, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
-        loadOfflinePlayer(uuid, CacheFreeingOption.DONT_CACHE(), action);
+    public CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull UUID uuid, @Nullable Consumer<TeamProgression> action) {
+        return loadOfflinePlayer(uuid, CacheFreeingOption.DONT_CACHE(), action);
     }
 
     /**
      * Loads the provided offline player from the database with the specified {@link CacheFreeingOption}.
+     * <p>The loaded {@link TeamProgression} can be retrieved using the {@link Consumer} passed as parameter or the returned {@link CompletableFuture}.
      * <p>For more information about the {@link CacheFreeingOption} see {@link DatabaseManager#loadOfflinePlayer(UUID, CacheFreeingOption)}.
      * <p>For more information about the caching system see {@link DatabaseManager}.
      *
      * @param player The offline player to load.
      * @param option The chosen {@link CacheFreeingOption}.
-     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the loaded {@link TeamProgression}.
+     * @param action A {@link Consumer} that is called synchronously after the operation, which provides the loaded {@link TeamProgression}.
+     *         If no code should be called, it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete with the loaded {@link TeamProgression} when the operation finishes.
      */
-    public void loadOfflinePlayer(@NotNull OfflinePlayer player, @NotNull CacheFreeingOption option, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
-        loadOfflinePlayer(uuidFromPlayer(player), option, action);
+    public CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull OfflinePlayer player, @NotNull CacheFreeingOption option, @Nullable Consumer<TeamProgression> action) {
+        return loadOfflinePlayer(uuidFromPlayer(player), option, action);
     }
 
     /**
      * Loads the provided player from the database with the specified {@link CacheFreeingOption}.
+     * <p>The loaded {@link TeamProgression} can be retrieved using the {@link Consumer} passed as parameter or the returned {@link CompletableFuture}.
      * <p>For more information about the {@link CacheFreeingOption} see {@link DatabaseManager#loadOfflinePlayer(UUID, CacheFreeingOption)}.
      * <p>For more information about the caching system see {@link DatabaseManager}.
      *
      * @param uuid The {@link UUID} of the player to load.
      * @param option The chosen {@link CacheFreeingOption}.
-     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the loaded {@link TeamProgression}.
+     * @param action A {@link Consumer} that is called synchronously after the operation, which provides the loaded {@link TeamProgression}.
+     *         If no code should be called, it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete with the loaded {@link TeamProgression} when the operation finishes.
      */
-    public void loadOfflinePlayer(@NotNull UUID uuid, @NotNull CacheFreeingOption option, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
-        callSyncIfNotNull(getMain().getDatabaseManager().loadOfflinePlayer(uuid, option), action);
+    public CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull UUID uuid, @NotNull CacheFreeingOption option, @Nullable Consumer<TeamProgression> action) {
+        return callSyncIfNotNull(getMain().getDatabaseManager().loadOfflinePlayer(uuid, option), action);
     }
 
     /**
@@ -838,116 +874,138 @@ public final class UltimateAdvancementAPI {
      * Gets the in-database stored name of the provided player.
      *
      * @param player The player.
-     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the in-database stored name of the player.
+     * @param action A {@link Consumer} that is called synchronously after the operation, which provides the in-database stored name of the player.
+     *         If no code should be called, it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete with the in-database stored name of the player when the operation finishes.
      */
-    public void getStoredPlayerName(@NotNull OfflinePlayer player, @NotNull Consumer<ObjectResult<@Nullable String>> action) {
-        getStoredPlayerName(uuidFromPlayer(player), action);
+    public CompletableFuture<String> getStoredPlayerName(@NotNull OfflinePlayer player, @Nullable Consumer<String> action) {
+        return getStoredPlayerName(uuidFromPlayer(player), action);
     }
 
     /**
      * Gets the in-database stored name of the provided player.
      *
      * @param uuid The {@link UUID} of the player.
-     * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the in-database stored name of the player.
+     * @param action A {@link Consumer} that is called synchronously after the operation, which provides the in-database stored name of the player.
+     *         If no code should be called, it can be put to {@code null}.
+     * @return A {@link CompletableFuture} which will complete with the in-database stored name of the player when the operation finishes.
      */
-    public void getStoredPlayerName(@NotNull UUID uuid, @NotNull Consumer<ObjectResult<@Nullable String>> action) {
-        Preconditions.checkNotNull(action, "Consumer is null.");
-        getMain().getDatabaseManager().getStoredPlayerName(uuid).thenAccept(s -> runSync(plugin, () -> action.accept(s)));
+    public CompletableFuture<String> getStoredPlayerName(@NotNull UUID uuid, @Nullable Consumer<String> action) {
+        return callSyncIfNotNull(getMain().getDatabaseManager().getStoredPlayerName(uuid), action);
     }
 
-    private <T extends Result> void callAfterLoad(@NotNull Player player, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
-        callAfterLoad(uuidFromPlayer(player), internalAction, action);
+    private <T> CompletableFuture<T> callAfterLoad(@NotNull Player player, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
+        return callAfterLoad(uuidFromPlayer(player), internalAction, action);
     }
 
-    private <T extends Result> void callAfterLoad(@NotNull UUID uuid, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
+    private <T> CompletableFuture<T> callAfterLoad(@NotNull UUID uuid, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
-        final DatabaseManager ds = getMain().getDatabaseManager();
-        ds.loadOfflinePlayer(uuid, CacheFreeingOption.MANUAL(plugin)).thenAccept(t1 -> {
-            if (t1.isExceptionOccurred()) {
-                new RuntimeException("An exception occurred while loading user " + uuid + ':', t1.getOccurredException()).printStackTrace();
-                return;
-            }
-            CompletableFuture<T> c;
-            try {
-                c = internalAction.apply(ds);
-            } catch (Exception t) {
-                new RuntimeException("An exception occurred while calling API method:", t).printStackTrace();
-                ds.unloadOfflinePlayer(uuid, plugin);
-                return;
-            }
-            c.thenAccept(b -> {
-                if (action != null) {
-                    runSync(plugin, () -> {
-                        try {
-                            if (plugin.isEnabled())
-                                action.accept(b);
-                        } catch (Exception t) {
-                            new RuntimeException("An exception occurred while calling " + plugin.getName() + "'s Consumer:", t).printStackTrace();
-                        } finally {
-                            ds.unloadOfflinePlayer(uuid, plugin);
-                        }
-                    });
-                } else
-                    ds.unloadOfflinePlayer(uuid, plugin);
-            });
-        });
-    }
+        Preconditions.checkNotNull(internalAction, "internalAction is null.");
 
-    private <T extends Result> void callAfterLoad(@NotNull Player player1, @NotNull Player player2, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
-        callAfterLoad(Objects.requireNonNull(player1, "Player1 is null.").getUniqueId(), Objects.requireNonNull(player2, "Player2 is null.").getUniqueId(), internalAction, action);
-    }
-
-    private <T extends Result> void callAfterLoad(@NotNull UUID uuid1, @NotNull UUID uuid2, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
         final DatabaseManager ds = getMain().getDatabaseManager();
-        final CacheFreeingOption cacheFreeingOption = CacheFreeingOption.MANUAL(plugin);
-        ds.loadOfflinePlayer(uuid1, cacheFreeingOption).thenAccept(t1 -> {
-            if (t1.isExceptionOccurred()) {
-                new RuntimeException("An exception occurred while loading 1st user " + uuid1 + ':', t1.getOccurredException()).printStackTrace();
+        CompletableFuture<T> completableFuture = new CompletableFuture<>();
+
+        ds.loadOfflinePlayer(uuid, CacheFreeingOption.MANUAL(plugin)).handleAsync((progression, exception) -> {
+            if (exception != null) {
+                completableFuture.completeExceptionally(exception);
+                new RuntimeException("An exception occurred while loading user " + uuid + ':', exception.getCause()).printStackTrace();
             } else {
-                ds.loadOfflinePlayer(uuid2, cacheFreeingOption).thenAccept(t2 -> {
-                    if (t2.isExceptionOccurred()) {
-                        new RuntimeException("An exception occurred while loading 2nd user " + uuid2 + ':', t2.getOccurredException()).printStackTrace();
-                        ds.unloadOfflinePlayer(uuid1, plugin);
-                        return;
-                    }
-                    CompletableFuture<T> c;
-                    try {
-                        c = internalAction.apply(ds);
-                    } catch (Exception t) {
-                        new RuntimeException("An exception occurred while calling API method:", t).printStackTrace();
-                        ds.unloadOfflinePlayer(uuid1, plugin);
-                        ds.unloadOfflinePlayer(uuid2, plugin);
-                        return;
-                    }
-                    c.thenAccept(b -> {
+                internalAction.apply(ds).handleAsync((res, exc) -> {
+                    if (exc != null) {
+                        completableFuture.completeExceptionally(exc);
+                        new RuntimeException("An exception occurred while calling API method:", exc).printStackTrace();
+                        ds.unloadOfflinePlayer(uuid, plugin);
+                    } else {
+                        completableFuture.complete(res);
                         if (action != null) {
                             runSync(plugin, () -> {
                                 try {
                                     if (plugin.isEnabled())
-                                        action.accept(b);
+                                        action.accept(res);
                                 } catch (Exception t) {
                                     new RuntimeException("An exception occurred while calling " + plugin.getName() + "'s Consumer:", t).printStackTrace();
                                 } finally {
-                                    ds.unloadOfflinePlayer(uuid1, plugin);
-                                    ds.unloadOfflinePlayer(uuid2, plugin);
+                                    ds.unloadOfflinePlayer(uuid, plugin);
                                 }
                             });
                         } else {
-                            ds.unloadOfflinePlayer(uuid1, plugin);
-                            ds.unloadOfflinePlayer(uuid2, plugin);
+                            ds.unloadOfflinePlayer(uuid, plugin);
                         }
-                    });
+                    }
+                    return null;
                 });
             }
+            return null;
         });
+
+        return completableFuture;
     }
 
-    private <T extends Result> void callSyncIfNotNull(@NotNull CompletableFuture<T> completableFuture, @Nullable Consumer<T> action) {
+    private <T> CompletableFuture<T> callAfterLoad(@NotNull Player player1, @NotNull Player player2, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
+        return callAfterLoad(Objects.requireNonNull(player1, "Player1 is null.").getUniqueId(), Objects.requireNonNull(player2, "Player2 is null.").getUniqueId(), internalAction, action);
+    }
+
+    private <T> CompletableFuture<T> callAfterLoad(@NotNull UUID uuid1, @NotNull UUID uuid2, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
+        Preconditions.checkNotNull(uuid1, "1st UUID is null.");
+        Preconditions.checkNotNull(uuid2, "2nd UUID is null.");
+        Preconditions.checkNotNull(internalAction, "internalAction is null.");
+
+        final DatabaseManager ds = getMain().getDatabaseManager();
+        final CacheFreeingOption cacheFreeingOption = CacheFreeingOption.MANUAL(plugin);
+        CompletableFuture<T> completableFuture = new CompletableFuture<>();
+
+        ds.loadOfflinePlayer(uuid1, cacheFreeingOption).handleAsync((progression1, lexc1) -> {
+            if (lexc1 != null) {
+                completableFuture.completeExceptionally(lexc1);
+                new RuntimeException("An exception occurred while loading 1st user " + uuid1 + ':', lexc1.getCause()).printStackTrace();
+            } else {
+                ds.loadOfflinePlayer(uuid2, cacheFreeingOption).handleAsync((progression2, lexc2) -> {
+                    if (lexc2 != null) {
+                        completableFuture.completeExceptionally(lexc2);
+                        new RuntimeException("An exception occurred while loading 2nd user " + uuid2 + ':', lexc2.getCause()).printStackTrace();
+                    } else {
+                        internalAction.apply(ds).handleAsync((res, exception) -> {
+                            if (exception != null) {
+                                completableFuture.completeExceptionally(exception);
+                                new RuntimeException("An exception occurred while calling API method:", exception).printStackTrace();
+                                ds.unloadOfflinePlayer(uuid1, plugin);
+                                ds.unloadOfflinePlayer(uuid2, plugin);
+                            } else {
+                                completableFuture.complete(res);
+                                if (action != null) {
+                                    runSync(plugin, () -> {
+                                        try {
+                                            if (plugin.isEnabled())
+                                                action.accept(res);
+                                        } catch (Exception t) {
+                                            new RuntimeException("An exception occurred while calling " + plugin.getName() + "'s Consumer:", t).printStackTrace();
+                                        } finally {
+                                            ds.unloadOfflinePlayer(uuid1, plugin);
+                                            ds.unloadOfflinePlayer(uuid2, plugin);
+                                        }
+                                    });
+                                } else {
+                                    ds.unloadOfflinePlayer(uuid1, plugin);
+                                    ds.unloadOfflinePlayer(uuid2, plugin);
+                                }
+                            }
+                            return null;
+                        });
+                    }
+                    return null;
+                });
+            }
+            return null;
+        });
+
+        return completableFuture;
+    }
+
+    private <T> CompletableFuture<T> callSyncIfNotNull(@NotNull CompletableFuture<T> completableFuture, @Nullable Consumer<T> action) {
         if (action != null) {
-            completableFuture.thenAccept(t -> runSync(plugin, () -> action.accept(t)));
+            completableFuture.thenAcceptAsync(t -> runSync(plugin, () -> action.accept(t)));
         }
+        return completableFuture;
     }
 
     private UltimateAdvancementAPI() {
