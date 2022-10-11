@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
