@@ -3,7 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskProgressionUpdateException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
@@ -54,7 +55,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     /**
      * The cache for the team's progressions (the key is the team unique id).
      */
-    protected final Map<Integer, Integer> progressionsCache = new HashMap<>();
+    protected final Map<Integer, Integer> progressionsCache = Collections.synchronizedMap(new HashMap<>());
 
     private boolean initialised = false, doReloads = true;
 
@@ -107,7 +108,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             throw new IllegalArgumentException("Expected max progression (" + maxProgression + ") doesn't match the tasks' total one (" + progression + ").");
         }
         this.tasks.addAll(tasks);
-        registerEvent(TeamUnloadEvent.class, e -> progressionsCache.remove(e.getTeamProgression().getTeamId()));
+        registerEvent(AsyncTeamUnloadEvent.class, e -> progressionsCache.remove(e.getTeamProgression().getTeamId()));
         initialised = true;
     }
 
@@ -134,16 +135,18 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     public int getProgression(@NotNull TeamProgression progression) {
         checkInitialisation();
         validateTeamProgression(progression);
-        Integer progr = progressionsCache.get(progression.getTeamId());
-        if (progr == null) {
-            int c = 0;
-            for (TaskAdvancement t : tasks) {
-                c += progression.getProgression(t);
+        synchronized (progressionsCache) {
+            Integer progr = progressionsCache.get(progression.getTeamId());
+            if (progr == null) {
+                int c = 0;
+                for (TaskAdvancement t : tasks) {
+                    c += progression.getProgression(t);
+                }
+                progressionsCache.put(progression.getTeamId(), c);
+                return c;
+            } else {
+                return progr;
             }
-            progressionsCache.put(progression.getTeamId(), c);
-            return c;
-        } else {
-            return progr;
         }
     }
 
