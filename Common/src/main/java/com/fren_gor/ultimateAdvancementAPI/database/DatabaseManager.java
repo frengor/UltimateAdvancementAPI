@@ -435,16 +435,22 @@ public final class DatabaseManager {
         Preconditions.checkNotNull(playerToMove, "Player to move is null.");
         validateTeamProgression(otherTeamProgression);
 
+        final TeamProgression oldProgression;
         synchronized (DatabaseManager.this) {
-            if (!progressionCache.containsKey(playerToMove)) {
-                throw new UserNotLoadedException(playerToMove);
-            }
+            oldProgression = progressionCache.get(playerToMove);
+        }
+
+        if (oldProgression == null) {
+            throw new UserNotLoadedException(playerToMove);
         }
 
         if (otherTeamProgression.contains(playerToMove)) {
             // Player is already in that team
             return CompletableFuture.completedFuture(null);
         }
+
+        // Remove before database update
+        removeFromTeam(oldProgression, playerToMove);
 
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
@@ -461,24 +467,10 @@ public final class DatabaseManager {
                 return;
             }
 
-            final TeamProgression pro;
             synchronized (DatabaseManager.this) {
-                pro = progressionCache.get(playerToMove);
-                if (pro != null) {
-                    callEventCatchingExceptions(new AsyncTeamUpdateEvent(pro, playerToMove, Action.LEAVE));
-                }
-
                 otherTeamProgression.addMember(playerToMove);
                 progressionCache.put(playerToMove, otherTeamProgression);
 
-                if (pro != null) {
-                    pro.removeMember(playerToMove);
-                    boolean teamUnloaded = pro.noMemberMatch(progressionCache::containsKey);
-                    if (teamUnloaded) {
-                        pro.inCache.set(false); // Invalidate TeamProgression
-                        callEventCatchingExceptions(new AsyncTeamUnloadEvent(pro));
-                    }
-                }
                 callEventCatchingExceptions(new AsyncTeamUpdateEvent(otherTeamProgression, playerToMove, Action.JOIN));
             }
 
@@ -522,11 +514,16 @@ public final class DatabaseManager {
 
     private CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID uuid, @Nullable Player ptr) throws UserNotLoadedException {
         Preconditions.checkNotNull(uuid, "UUID is null.");
+        final TeamProgression oldProgression;
         synchronized (DatabaseManager.this) {
-            if (!progressionCache.containsKey(uuid)) {
-                throw new UserNotLoadedException(uuid);
-            }
+            oldProgression = progressionCache.get(uuid);
         }
+
+        if (oldProgression == null) {
+            throw new UserNotLoadedException(uuid);
+        }
+
+        removeFromTeam(oldProgression, uuid);
 
         CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
 
@@ -543,24 +540,10 @@ public final class DatabaseManager {
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
-            final TeamProgression pro;
-            synchronized (DatabaseManager.this) {
-                pro = progressionCache.get(uuid);
-                if (pro != null) {
-                    callEventCatchingExceptions(new AsyncTeamUpdateEvent(pro, uuid, Action.LEAVE));
-                }
 
+            synchronized (DatabaseManager.this) {
                 newPro.inCache.set(true); // Set TeamProgression valid
                 progressionCache.put(uuid, newPro);
-
-                if (pro != null) {
-                    pro.removeMember(uuid);
-                    boolean teamUnloaded = pro.noMemberMatch(progressionCache::containsKey);
-                    if (teamUnloaded) {
-                        pro.inCache.set(false); // Invalidate TeamProgression
-                        callEventCatchingExceptions(new AsyncTeamUnloadEvent(pro));
-                    }
-                }
 
                 callEventCatchingExceptions(new AsyncTeamLoadEvent(newPro));
                 callEventCatchingExceptions(new AsyncTeamUpdateEvent(newPro, uuid, Action.JOIN));
@@ -1169,7 +1152,23 @@ public final class DatabaseManager {
         }
     }
 
-    private static <E extends Event> void callEventCatchingExceptions(E event) {
+    private void removeFromTeam(@NotNull TeamProgression progression, @NotNull UUID uuid) {
+        callEventCatchingExceptions(new AsyncTeamUpdateEvent(progression, uuid, Action.LEAVE));
+        progression.removeMember(uuid);
+
+        // Check for team unloading
+        final boolean teamUnloaded;
+        synchronized (DatabaseManager.this) {
+            teamUnloaded = progression.noMemberMatch(progressionCache::containsKey);
+        }
+
+        if (teamUnloaded) {
+            progression.inCache.set(false); // Invalidate TeamProgression
+            callEventCatchingExceptions(new AsyncTeamUnloadEvent(progression));
+        }
+    }
+
+    private static <E extends Event> void callEventCatchingExceptions(@NotNull E event) {
         try {
             Bukkit.getPluginManager().callEvent(event);
         } catch (Exception exception) {
