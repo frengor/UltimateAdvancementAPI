@@ -271,7 +271,7 @@ public final class DatabaseManager {
 
         TeamProgression pro = progressionCache.get(uuid);
         if (pro != null) {
-            // Don't let player to be unloaded from cache
+            // Don't let the player to be unloaded from cache
             TempUserMetadata meta = tempLoaded.get(uuid);
             if (meta != null) {
                 meta.isOnline = true;
@@ -449,9 +449,6 @@ public final class DatabaseManager {
             return CompletableFuture.completedFuture(null);
         }
 
-        // Remove before database update
-        removeFromTeam(oldProgression, playerToMove);
-
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
         CompletableFuture.runAsync(() -> {
@@ -467,12 +464,16 @@ public final class DatabaseManager {
                 return;
             }
 
+            // Get old progression again since it may be changed
+            final TeamProgression oldTeam;
             synchronized (DatabaseManager.this) {
-                otherTeamProgression.addMember(playerToMove);
-                progressionCache.put(playerToMove, otherTeamProgression);
+                oldTeam = progressionCache.get(playerToMove);
 
-                callEventCatchingExceptions(new AsyncTeamUpdateEvent(otherTeamProgression, playerToMove, Action.JOIN));
+                if (!otherTeamProgression.isValid()) {
+                    completableFuture.completeExceptionally(new IllegalArgumentException("Destination team's TeamProgression is invalid."));
+                }
             }
+            replacePlayerTeam(oldTeam, otherTeamProgression, playerToMove);
 
             if (ptm != null) {
                 processUnredeemed(ptm, otherTeamProgression);
@@ -523,8 +524,6 @@ public final class DatabaseManager {
             throw new UserNotLoadedException(uuid);
         }
 
-        removeFromTeam(oldProgression, uuid);
-
         CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
 
         CompletableFuture.runAsync(() -> {
@@ -541,13 +540,12 @@ public final class DatabaseManager {
                 return;
             }
 
+            // Get old progression again since it may be changed
+            final TeamProgression oldTeam;
             synchronized (DatabaseManager.this) {
-                newPro.inCache.set(true); // Set TeamProgression valid
-                progressionCache.put(uuid, newPro);
-
-                callEventCatchingExceptions(new AsyncTeamLoadEvent(newPro));
-                callEventCatchingExceptions(new AsyncTeamUpdateEvent(newPro, uuid, Action.JOIN));
+                oldTeam = progressionCache.get(uuid);
             }
+            replacePlayerTeam(oldTeam, newPro, uuid);
 
             if (ptr != null) {
                 runSync(main, () -> {
@@ -1152,19 +1150,29 @@ public final class DatabaseManager {
         }
     }
 
-    private void removeFromTeam(@NotNull TeamProgression progression, @NotNull UUID uuid) {
-        callEventCatchingExceptions(new AsyncTeamUpdateEvent(progression, uuid, Action.LEAVE));
-        progression.removeMember(uuid);
+    private void replacePlayerTeam(@NotNull TeamProgression oldTeam, @NotNull TeamProgression newTeam, @NotNull UUID uuid) {
+        callEventCatchingExceptions(new AsyncTeamUpdateEvent(oldTeam, uuid, Action.LEAVE));
 
-        // Check for team unloading
-        final boolean teamUnloaded;
+        final boolean teamUnloaded, newTeamLoaded;
         synchronized (DatabaseManager.this) {
-            teamUnloaded = progression.noMemberMatch(progressionCache::containsKey);
+            // Replace team atomically
+            oldTeam.movePlayer(newTeam, uuid);
+            progressionCache.put(uuid, newTeam);
+            newTeamLoaded = newTeam.inCache.getAndSet(true);
+
+            // Check for team unloading
+            teamUnloaded = oldTeam.noMemberMatch(progressionCache::containsKey);
         }
 
+        if (newTeamLoaded) {
+            callEventCatchingExceptions(new AsyncTeamLoadEvent(newTeam));
+        }
+
+        callEventCatchingExceptions(new AsyncTeamUpdateEvent(newTeam, uuid, Action.JOIN));
+
         if (teamUnloaded) {
-            progression.inCache.set(false); // Invalidate TeamProgression
-            callEventCatchingExceptions(new AsyncTeamUnloadEvent(progression));
+            oldTeam.inCache.set(false); // Invalidate TeamProgression
+            callEventCatchingExceptions(new AsyncTeamUnloadEvent(oldTeam));
         }
     }
 
