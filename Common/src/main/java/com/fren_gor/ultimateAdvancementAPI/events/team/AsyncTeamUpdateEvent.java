@@ -12,7 +12,7 @@ import java.util.UUID;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
- * Called when a team member joins or leaves a team.
+ * Called before a team member leaves or after they join a team.
  * <p>May be called asynchronously.
  *
  * @since 2.2.0
