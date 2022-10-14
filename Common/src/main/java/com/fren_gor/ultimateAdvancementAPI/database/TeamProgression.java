@@ -25,6 +25,7 @@ import java.util.function.Predicate;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValue;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
  * The {@code TeamProgression} class stores information about a team and its advancement progressions.
@@ -269,6 +270,25 @@ public final class TeamProgression {
         Preconditions.checkNotNull(uuid, "UUID is null.");
         synchronized (players) {
             players.add(uuid);
+        }
+    }
+
+    /**
+     * Moves a player from this team to another atomically.
+     *
+     * @param newTeam The new team's {@link TeamProgression}.
+     * @param uuid The player's uuid.
+     */
+    void movePlayer(@NotNull TeamProgression newTeam, @NotNull UUID uuid) {
+        validateTeamProgression(newTeam);
+        Preconditions.checkNotNull(uuid, "UUID is null.");
+
+        // Synchronize on both this.players and newTeam.players to perform the move atomically
+        synchronized (this.players) {
+            synchronized (newTeam.players) {
+                players.remove(uuid);
+                newTeam.players.add(uuid);
+            }
         }
     }
 
