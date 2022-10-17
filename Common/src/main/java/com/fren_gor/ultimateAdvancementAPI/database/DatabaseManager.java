@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
+import java.io.Closeable;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.AbstractMap.SimpleEntry;
@@ -75,7 +76,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
  * For more information, see {@link DatabaseManager#getLoadingRequestsAmount(Plugin, UUID, CacheFreeingOption.Option)}.
  * <p>This class is thread safe.
  */
-public final class DatabaseManager {
+public final class DatabaseManager implements Closeable {
 
     /**
      * Max possible loading requests a plugin can make simultaneously per offline player.
@@ -204,7 +205,7 @@ public final class DatabaseManager {
      * Closes the connection to the database and frees the cache.
      * <p>This method does not call {@link Event}s.
      */
-    public void unregister() {
+    public void close() {
         // Shutdown executor before database connection
         executor.shutdown();
         try {

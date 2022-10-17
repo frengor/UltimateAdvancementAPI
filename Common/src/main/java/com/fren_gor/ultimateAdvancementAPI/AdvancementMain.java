@@ -6,7 +6,6 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import com.google.common.base.Preconditions;
 import net.byteflux.libby.BukkitLibraryManager;
@@ -263,7 +262,7 @@ public final class AdvancementMain {
                 }
             }
             if (databaseManager != null)
-                databaseManager.unregister();
+                databaseManager.close();
         }
     }
 
