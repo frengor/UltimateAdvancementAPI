@@ -13,7 +13,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +26,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValue;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
@@ -37,6 +38,9 @@ public final class TeamProgression {
     final AtomicBoolean inCache = new AtomicBoolean(false);
     private final int teamId;
     private final Set<UUID> players;
+    final ProgressionUpdaterManager progressionUpdaterManager = new ProgressionUpdaterManager();
+
+    // Should be updated only from inside ProgressionUpdate having synchronized over ProgressionUpdate.this
     private final Map<AdvancementKey, Integer> advancements;
 
     /**
@@ -104,6 +108,13 @@ public final class TeamProgression {
         } else {
             return 0;
         }
+    }
+
+    private int getRawProgression(@NotNull AdvancementKey key) {
+        Preconditions.checkNotNull(key, "AdvancementKey is null.");
+
+        Integer progression = advancements.get(key);
+        return progression != null ? progression : 0;
     }
 
     /**
@@ -238,19 +249,6 @@ public final class TeamProgression {
     }
 
     /**
-     * Sets the progression of the provided advancement for the team.
-     *
-     * @param key The key of the advancement.
-     * @param progression The new progression to be set.
-     * @return The previous progression.
-     */
-    int updateProgression(@NotNull AdvancementKey key, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
-        validateProgressionValue(progression);
-        Integer i = advancements.put(key, progression);
-        return i == null ? 0 : i;
-    }
-
-    /**
      * Removes the provided player from the team.
      *
      * @param uuid The {@link UUID} of the player to be removed.
@@ -353,5 +351,89 @@ public final class TeamProgression {
      */
     public int getTeamId() {
         return teamId;
+    }
+
+    final class ProgressionUpdaterManager {
+        private final Map<AdvancementKey, ProgressionUpdate> progressionUpdates = new HashMap<>();
+
+        public ProgressionUpdaterManager() {
+        }
+
+        public ScheduleResult scheduleSetUpdate(AdvancementKey key, int newValue) {
+            return scheduleUpdate(key, new ProgressionUpdateInfo(ProgressionUpdateInfo.SET, newValue));
+        }
+
+        public ScheduleResult scheduleIncrementUpdate(AdvancementKey key, int increment) {
+            return scheduleUpdate(key, new ProgressionUpdateInfo(ProgressionUpdateInfo.INCREMENT, increment));
+        }
+
+        private ScheduleResult scheduleUpdate(AdvancementKey key, ProgressionUpdateInfo updateInfo) {
+            synchronized (progressionUpdates) {
+                ProgressionUpdate update = progressionUpdates.computeIfAbsent(key, advancementKey -> {
+                    return new ProgressionUpdate(advancementKey, getRawProgression(advancementKey));
+                });
+                return update.scheduleUpdate(updateInfo);
+            }
+        }
+
+        final class ProgressionUpdate {
+            final AdvancementKey advancementKey;
+            int oldValue;
+            final ArrayDeque<ProgressionUpdateInfo> updateQueue = new ArrayDeque<>();
+
+            public ProgressionUpdate(AdvancementKey key, int oldValue) {
+                this.advancementKey = key;
+                this.oldValue = oldValue;
+            }
+
+            private synchronized ScheduleResult scheduleUpdate(ProgressionUpdateInfo info) {
+                updateQueue.addFirst(info);
+                int value = info.applyUpdate(oldValue);
+                Integer oldValue = advancements.put(advancementKey, value);
+                return new ScheduleResult(this, oldValue == null ? 0 : oldValue, value);
+            }
+
+            public synchronized int updateEndedSuccessfully() {
+                ProgressionUpdateInfo info = updateQueue.removeLast();
+                oldValue = info.applyUpdate(oldValue);
+                return oldValue;
+            }
+
+            public synchronized int updateEndedExceptionally() {
+                int value = oldValue;
+                updateQueue.removeLast();
+                for (ProgressionUpdateInfo info : updateQueue) {
+                    value = info.applyUpdate(value);
+                }
+                advancements.put(advancementKey, value);
+                return value;
+            }
+
+            public void checkDisposal() {
+                synchronized (progressionUpdates) {
+                    synchronized (ProgressionUpdate.this) {
+                        if (updateQueue.isEmpty()) {
+                            progressionUpdates.remove(advancementKey);
+                        }
+                    }
+                }
+            }
+        }
+
+        // value is an increment when operation==INCREMENT and the progression to set when operation==SET
+        private record ProgressionUpdateInfo(int operation, int value) {
+            public static final int INCREMENT = 0;
+            public static final int SET = 1;
+
+            public int applyUpdate(int currentValue) {
+                if (operation == INCREMENT) {
+                    return Math.max(currentValue + value, 0);
+                } else { // operation == SET
+                    return value;
+                }
+            }
+        }
+
+        record ScheduleResult(ProgressionUpdate progressionUpdate, int oldValue, int newCachedValue) {}
     }
 }

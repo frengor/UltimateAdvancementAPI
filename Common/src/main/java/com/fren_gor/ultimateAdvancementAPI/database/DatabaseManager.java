@@ -5,12 +5,12 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.UltimateAdvancementAPI;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption.Option;
+import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression.ProgressionUpdaterManager.ScheduleResult;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.SQLite;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncPlayerUnregisteredEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
@@ -362,7 +362,7 @@ public final class DatabaseManager {
     /**
      * Updates the name of the specified player in the database.
      *
-     * @param player The player to update.
+     * @param player The player to progressionUpdate.
      * @return A {@link CompletableFuture} which provides the result of the operation.
      * @see UltimateAdvancementAPI#updatePlayerName(Player)
      */
@@ -375,7 +375,7 @@ public final class DatabaseManager {
             try {
                 database.updatePlayerName(player.getUniqueId(), player.getName());
             } catch (SQLException e) {
-                System.err.println("Cannot update player " + player.getName() + " name:");
+                System.err.println("Cannot progressionUpdate player " + player.getName() + " name:");
                 e.printStackTrace();
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
@@ -617,38 +617,14 @@ public final class DatabaseManager {
      * Updates the progression of the specified advancement.
      *
      * @param key The advancement key.
-     * @param player The player who made the advancement.
-     * @param newProgression The new progression.
-     * @return The old progression.
-     * @throws UserNotLoadedException If the player was not loaded into the cache.
-     */
-    public int updateProgression(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
-        return updateProgression(key, uuidFromPlayer(player), newProgression);
-    }
-
-    /**
-     * Updates the progression of the specified advancement.
-     *
-     * @param key The advancement key.
      * @param uuid The {@link UUID} of the player who made the advancement.
      * @param newProgression The new progression.
-     * @return The old progression.
+     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
-    public int updateProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
-        return updateProgression(key, getTeamProgression(uuid), newProgression);
-    }
-
-    /**
-     * Updates the progression of the specified advancement.
-     *
-     * @param key The advancement key.
-     * @param progression The {@link TeamProgression} of the team which made the advancement.
-     * @param newProgression The new progression.
-     * @return The old progression.
-     */
-    public int updateProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
-        return updateProgressionWithCompletable(key, progression, newProgression).getKey();
+    @NotNull
+    public Entry<Integer, CompletableFuture<Integer>> setProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+        return setProgression(key, getTeamProgression(uuid), newProgression);
     }
 
     /**
@@ -661,22 +637,8 @@ public final class DatabaseManager {
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     @NotNull
-    public Entry<Integer, CompletableFuture<Void>> updateProgressionWithCompletable(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
-        return updateProgressionWithCompletable(key, uuidFromPlayer(player), newProgression);
-    }
-
-    /**
-     * Updates the progression of the specified advancement.
-     *
-     * @param key The advancement key.
-     * @param uuid The {@link UUID} of the player who made the advancement.
-     * @param newProgression The new progression.
-     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
-     * @throws UserNotLoadedException If the player was not loaded into the cache.
-     */
-    @NotNull
-    public Entry<Integer, CompletableFuture<Void>> updateProgressionWithCompletable(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
-        return updateProgressionWithCompletable(key, getTeamProgression(uuid), newProgression);
+    public Entry<Integer, CompletableFuture<Integer>> setProgression(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+        return setProgression(key, uuidFromPlayer(player), newProgression);
     }
 
     /**
@@ -688,38 +650,81 @@ public final class DatabaseManager {
      * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
      */
     @NotNull
-    public Entry<Integer, CompletableFuture<Void>> updateProgressionWithCompletable(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
+    public Entry<Integer, CompletableFuture<Integer>> setProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
         Preconditions.checkNotNull(key, "Key is null.");
         validateTeamProgression(progression);
         Preconditions.checkArgument(progression.getSize() > 0, "TeamProgression doesn't contain any player.");
         AdvancementUtils.checkSync();
 
-        int old = progression.updateProgression(key, newProgression);
+        ScheduleResult result = progression.progressionUpdaterManager.scheduleSetUpdate(key, newProgression);
 
-        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+        CompletableFuture<Integer> completableFuture = new CompletableFuture<>();
 
-        if (old != newProgression) { // Don't update if the progression isn't being changed
-            callEventCatchingExceptions(new ProgressionUpdateEvent(progression, old, newProgression, key));
-
-            CompletableFuture.runAsync(() -> {
+        CompletableFuture.runAsync(() -> {
+            if (result.progressionUpdate().oldValue != newProgression) { // Don't update the db if the saved progression won't change
                 try {
-                    database.updateAdvancement(key, progression.getTeamId(), newProgression);
+                    database.updateAdvancement(key, progression.getTeamId(), result.newCachedValue());
                 } catch (SQLException e) {
-                    System.err.println("Cannot update advancement " + key + " to team " + progression.getTeamId() + ':');
+                    System.err.println("Cannot set progression of advancement " + key + " to team " + progression.getTeamId() + ':');
                     e.printStackTrace();
+                    result.progressionUpdate().updateEndedExceptionally();
                     completableFuture.completeExceptionally(new DatabaseException(e));
                     return;
                 } catch (Exception e) {
+                    result.progressionUpdate().updateEndedExceptionally();
                     completableFuture.completeExceptionally(new DatabaseException(e));
                     return;
                 }
-                completableFuture.complete(null);
-            }, executor);
-        } else {
-            completableFuture.complete(null);
-        }
+            }
+            int resultingProgression = result.progressionUpdate().updateEndedSuccessfully();
+            result.progressionUpdate().checkDisposal();
+            completableFuture.complete(resultingProgression);
+        }, executor);
 
-        return new SimpleEntry<>(old, completableFuture);
+        return new SimpleEntry<>(result.oldValue(), completableFuture);
+    }
+
+    /**
+     * Updates the progression of the specified advancement.
+     *
+     * @param key The advancement key.
+     * @param progression The {@link TeamProgression} of the team which made the advancement.
+     * @param increment The increment of the progression.
+     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
+     */
+    @NotNull
+    public Entry<Integer, CompletableFuture<Integer>> incrementProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
+        Preconditions.checkNotNull(key, "Key is null.");
+        validateTeamProgression(progression);
+        Preconditions.checkArgument(progression.getSize() > 0, "TeamProgression doesn't contain any player.");
+        AdvancementUtils.checkSync();
+
+        ScheduleResult result = progression.progressionUpdaterManager.scheduleIncrementUpdate(key, increment);
+
+        CompletableFuture<Integer> completableFuture = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
+            if (increment != 0) { // Don't update the db if the saved progression won't change
+                try {
+                    database.updateAdvancement(key, progression.getTeamId(), result.newCachedValue());
+                } catch (SQLException e) {
+                    System.err.println("Cannot increment progression of advancement " + key + " to team " + progression.getTeamId() + ':');
+                    e.printStackTrace();
+                    result.progressionUpdate().updateEndedExceptionally();
+                    completableFuture.completeExceptionally(new DatabaseException(e));
+                    return;
+                } catch (Exception e) {
+                    result.progressionUpdate().updateEndedExceptionally();
+                    completableFuture.completeExceptionally(new DatabaseException(e));
+                    return;
+                }
+            }
+            int resultingProgression = result.progressionUpdate().updateEndedSuccessfully();
+            result.progressionUpdate().checkDisposal();
+            completableFuture.complete(resultingProgression);
+        }, executor);
+
+        return new SimpleEntry<>(result.oldValue(), completableFuture);
     }
 
     /**
@@ -1176,7 +1181,7 @@ public final class DatabaseManager {
         }
     }
 
-    private static <E extends Event> void callEventCatchingExceptions(@NotNull E event) {
+    static <E extends Event> void callEventCatchingExceptions(@NotNull E event) {
         try {
             Bukkit.getPluginManager().callEvent(event);
         } catch (Exception exception) {

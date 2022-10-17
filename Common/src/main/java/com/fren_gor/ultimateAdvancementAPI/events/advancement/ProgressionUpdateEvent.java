@@ -10,13 +10,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
+import java.util.UUID;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValue;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
  * Called when a team's progression of an advancement changes.
- * <p>This event differs from {@link AdvancementProgressionUpdateEvent} because it is called by {@link DatabaseManager#updateProgressionWithCompletable(AdvancementKey, TeamProgression, int)}.
+ * <p>This event differs from {@link AdvancementProgressionUpdateEvent} because it is called by {@link DatabaseManager#setProgression(AdvancementKey, UUID, int)}.
  */
 public class ProgressionUpdateEvent extends Event {
 

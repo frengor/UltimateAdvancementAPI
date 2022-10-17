@@ -18,8 +18,10 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
@@ -100,15 +102,15 @@ public class TaskAdvancement extends BaseAdvancement {
         validateProgressionValueStrict(progression, maxProgression);
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
-        int old = ds.updateProgression(key, pro, progression);
+        Entry<Integer, CompletableFuture<Integer>> result = ds.setProgression(key, pro, progression);
 
         try {
-            Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, old, progression, this));
+            Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.getKey(), progression, this));
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
 
-        handlePlayer(pro, player, progression, old, giveRewards, null);
+        handlePlayer(pro, player, progression, result.getKey(), giveRewards, null);
         getMultiTasksAdvancement().reloadTasks(pro, player, giveRewards);
     }
 
