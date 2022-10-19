@@ -32,7 +32,7 @@ public class VersionsTest {
 
     @Test
     public void getNMSVersionTest() {
-        Utils.mockServer(() -> assertEquals("serverVersion1_19_R1", Versions.getNMSVersion()));
+        Utils.mockServer(() -> assertEquals("mocked0_0_R1", Versions.getNMSVersion()));
     }
 
     @Test

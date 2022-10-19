@@ -13,7 +13,7 @@ import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter.Coord;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.serverVersion1_19_R1.VersionedServerMock;
+import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;

@@ -3,7 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.tests;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.serverVersion1_19_R1.VersionedServerMock;
+import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;

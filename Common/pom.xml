@@ -40,6 +40,13 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-mocked</artifactId>
+            <version>${apiVersion}</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Libby -->
         <dependency>
             <groupId>net.byteflux</groupId>

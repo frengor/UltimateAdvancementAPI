@@ -7,7 +7,7 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.serverVersion1_19_R1.VersionedServerMock;
+import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
