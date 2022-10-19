@@ -1,5 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
+import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
@@ -10,14 +12,13 @@ import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter.Coord;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.serverVersion1_19_R1.VersionedServerMock;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockedStatic;
 
 import java.util.Collection;
 import java.util.List;
@@ -28,17 +29,17 @@ import static org.junit.Assert.*;
 
 public class CoordAdapterTest {
 
-    private MockedStatic<Bukkit> bukkitMock;
+    private ServerMock server;
 
     @Before
-    public void setUp() throws Exception {
-        bukkitMock = Utils.mockServer();
+    public void setUp() {
+        server = MockBukkit.mock(new VersionedServerMock());
     }
 
     @After
-    public void tearDown() throws Exception {
-        bukkitMock.close();
-        bukkitMock = null;
+    public void tearDown() {
+        MockBukkit.unmock();
+        server = null;
     }
 
     @Test
@@ -138,7 +139,7 @@ public class CoordAdapterTest {
 
     @Test
     public void docCodeTest() {
-        Plugin myPlugin = InterfaceImplementer.newFakePlugin("myPlugin");
+        Plugin myPlugin = MockBukkit.createMockPlugin("myPlugin");
         AdvancementMain main = Utils.newAdvancementMain(myPlugin);
         AdvancementTab myTab = main.createAdvancementTab(myPlugin, "mytab");
 
@@ -175,7 +176,8 @@ public class CoordAdapterTest {
 
     @Test
     public void offsetTest() {
-        Plugin pl = InterfaceImplementer.newFakePlugin("plugin");
+
+        Plugin pl = MockBukkit.createMockPlugin("plugin");
         var parent = new AdvancementKey(pl, "akey");
         var child = new AdvancementKey(pl, "anotherkey");
 

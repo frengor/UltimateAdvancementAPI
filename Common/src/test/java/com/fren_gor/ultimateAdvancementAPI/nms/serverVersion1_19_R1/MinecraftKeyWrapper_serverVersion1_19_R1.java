@@ -1,19 +1,19 @@
-package com.fren_gor.ultimateAdvancementAPI.nms.serverVersion1_17_R1;
+package com.fren_gor.ultimateAdvancementAPI.nms.serverVersion1_19_R1;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
-public class MinecraftKeyWrapper_serverVersion1_17_R1 extends MinecraftKeyWrapper {
+public class MinecraftKeyWrapper_serverVersion1_19_R1 extends MinecraftKeyWrapper {
 
     private final String namespace, key;
 
-    public MinecraftKeyWrapper_serverVersion1_17_R1(@NotNull Object key) {
+    public MinecraftKeyWrapper_serverVersion1_19_R1(@NotNull Object key) {
         throw new UnsupportedOperationException();
     }
 
-    public MinecraftKeyWrapper_serverVersion1_17_R1(@NotNull String namespace, @NotNull String key) {
+    public MinecraftKeyWrapper_serverVersion1_19_R1(@NotNull String namespace, @NotNull String key) {
         AdvancementKey.checkNamespace(namespace);
         AdvancementKey.checkKey(key);
         Preconditions.checkArgument(AdvancementKey.VALID_NAMESPACE.matcher(namespace).matches());

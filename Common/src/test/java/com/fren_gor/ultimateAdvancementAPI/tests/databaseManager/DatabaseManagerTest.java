@@ -1,31 +1,31 @@
 package com.fren_gor.ultimateAdvancementAPI.tests.databaseManager;
 
+import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
-import com.fren_gor.ultimateAdvancementAPI.tests.InterfaceImplementer;
 import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
-import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.serverVersion1_19_R1.VersionedServerMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockedStatic;
 
 public class DatabaseManagerTest {
 
-    private MockedStatic<Bukkit> bukkit;
+    private ServerMock server;
     private AdvancementMain advancementMain;
 
     @Before
     public void setUp() throws Exception {
-        bukkit = Utils.mockServer();
-        advancementMain = Utils.newAdvancementMain(InterfaceImplementer.newFakePlugin("testPlugin"));
+        server = MockBukkit.mock(new VersionedServerMock());
+        advancementMain = Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"));
     }
 
     @After
     public void tearDown() throws Exception {
         advancementMain = null;
-        bukkit.close();
-        bukkit = null;
+        MockBukkit.unmock();
+        server = null;
     }
 
     @Test

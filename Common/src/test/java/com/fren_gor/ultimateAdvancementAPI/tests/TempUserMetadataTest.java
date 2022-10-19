@@ -1,6 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
+import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.ServerMock;
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.serverVersion1_19_R1.VersionedServerMock;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +12,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.MockedStatic;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -26,7 +28,7 @@ public class TempUserMetadataTest {
     private static final Map<String, Method> methods = new HashMap<>();
     private static final int PLAYER_TO_REGISTER = 4;
 
-    private MockedStatic<Bukkit> bukkitMock;
+    private ServerMock server;
     private final Map<UUID, Player> players = new HashMap<>();
     private Object testUserMetadataInstance;
 
@@ -46,12 +48,11 @@ public class TempUserMetadataTest {
     public void setUp() throws Exception {
         assertTrue("Invalid PLAYER_TO_REGISTER", PLAYER_TO_REGISTER > 1);
 
-        bukkitMock = Utils.mockServer();
+        server = MockBukkit.mock(new VersionedServerMock());
         for (int i = 0; i < PLAYER_TO_REGISTER; i++) {
-            UUID uuid = UUID.randomUUID();
-            Player pl = InterfaceImplementer.newFakePlayer(uuid);
+            Player pl = server.addPlayer();
+            UUID uuid = pl.getUniqueId();
 
-            bukkitMock.when(() -> Bukkit.getPlayer(uuid)).thenReturn(pl);
             assertEquals("Mock failed", Bukkit.getPlayer(uuid), pl);
             players.put(uuid, pl);
         }
@@ -61,8 +62,8 @@ public class TempUserMetadataTest {
 
     @After
     public void tearDown() throws Exception {
-        bukkitMock.close();
-        bukkitMock = null;
+        MockBukkit.unmock();
+        server = null;
         players.clear();
         testUserMetadataInstance = null;
     }
@@ -134,8 +135,8 @@ public class TempUserMetadataTest {
     @Test
     public void addRequest() throws Exception {
         final Method m = getMethod("addRequest");
-        final Plugin p1 = InterfaceImplementer.newFakePlugin("Test1");
-        final Plugin p2 = InterfaceImplementer.newFakePlugin("Test2");
+        final Plugin p1 = MockBukkit.createMockPlugin("Test1");
+        final Plugin p2 = MockBukkit.createMockPlugin("Test2");
         assertAutoManual(0, 0, p1);
         assertAutoManual(0, 0, p2);
         for (int i = 1; i <= Character.MAX_VALUE; i++) {
@@ -150,7 +151,7 @@ public class TempUserMetadataTest {
             m.invoke(testUserMetadataInstance, p2, false);
             assertAutoManual(Character.MAX_VALUE, i, p2);
         }
-        assertAutoManual(0, 0, InterfaceImplementer.newFakePlugin("Another")); // Just to be sure
+        assertAutoManual(0, 0, MockBukkit.createMockPlugin("Another")); // Just to be sure
         assertThrows(RuntimeException.class, () -> {
             try {
                 m.invoke(testUserMetadataInstance, p1, true);
@@ -171,8 +172,8 @@ public class TempUserMetadataTest {
     public void removeRequest() throws Exception {
         final Method add = getMethod("addRequest");
         final Method m = getMethod("removeRequest");
-        final Plugin p1 = InterfaceImplementer.newFakePlugin("Test1");
-        final Plugin p2 = InterfaceImplementer.newFakePlugin("Test2");
+        final Plugin p1 = MockBukkit.createMockPlugin("Test1");
+        final Plugin p2 = MockBukkit.createMockPlugin("Test2");
 
         // Prepare tests, addRequest method is tested above
         for (int i = 0; i < Character.MAX_VALUE; i++) {
