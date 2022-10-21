@@ -110,7 +110,7 @@ public final class TeamProgression {
         }
     }
 
-    private int getRawProgression(@NotNull AdvancementKey key) {
+    int getRawProgression(@NotNull AdvancementKey key) {
         Preconditions.checkNotNull(key, "AdvancementKey is null.");
 
         Integer progression = advancements.get(key);
