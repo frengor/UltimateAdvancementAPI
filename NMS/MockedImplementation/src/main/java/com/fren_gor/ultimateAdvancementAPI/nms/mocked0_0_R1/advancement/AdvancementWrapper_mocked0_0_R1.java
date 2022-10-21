@@ -3,7 +3,6 @@ package com.fren_gor.ultimateAdvancementAPI.nms.mocked0_0_R1.advancement;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
-import org.bukkit.advancement.Advancement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
@@ -52,7 +51,7 @@ public class AdvancementWrapper_mocked0_0_R1 extends AdvancementWrapper {
 
     @Override
     @NotNull
-    public Advancement toNMS() {
-        throw new UnsupportedOperationException();
+    public Object toNMS() {
+        return this;
     }
 }

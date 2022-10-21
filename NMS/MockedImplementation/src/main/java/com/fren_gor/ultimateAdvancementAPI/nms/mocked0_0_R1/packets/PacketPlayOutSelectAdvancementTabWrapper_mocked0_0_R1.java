@@ -15,6 +15,5 @@ public class PacketPlayOutSelectAdvancementTabWrapper_mocked0_0_R1 extends Packe
 
     @Override
     public void sendTo(@NotNull Player player) {
-        throw new UnsupportedOperationException();
     }
 }

@@ -2,7 +2,6 @@ package com.fren_gor.ultimateAdvancementAPI.nms.mocked0_0_R1.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
-import org.bukkit.advancement.AdvancementDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +85,7 @@ public class AdvancementDisplayWrapper_mocked0_0_R1 extends AdvancementDisplayWr
 
     @Override
     @NotNull
-    public AdvancementDisplay toNMS() {
-        throw new UnsupportedOperationException();
+    public Object toNMS() {
+        return this;
     }
 }

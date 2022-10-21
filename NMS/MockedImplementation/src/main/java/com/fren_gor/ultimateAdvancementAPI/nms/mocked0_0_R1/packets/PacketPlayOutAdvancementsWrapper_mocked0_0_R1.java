@@ -22,6 +22,5 @@ public class PacketPlayOutAdvancementsWrapper_mocked0_0_R1 extends PacketPlayOut
 
     @Override
     public void sendTo(@NotNull Player player) {
-        throw new UnsupportedOperationException();
     }
 }

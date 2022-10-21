@@ -38,12 +38,12 @@ public class PreparedAdvancementWrapper_mocked0_0_R1 extends PreparedAdvancement
     @Override
     @NotNull
     public AdvancementWrapper toRootAdvancementWrapper() {
-        throw new UnsupportedOperationException();
+        return new AdvancementWrapper_mocked0_0_R1(key, display, maxProgression);
     }
 
     @Override
     @NotNull
     public AdvancementWrapper toBaseAdvancementWrapper(@NotNull AdvancementWrapper parent) {
-        throw new UnsupportedOperationException();
+        return new AdvancementWrapper_mocked0_0_R1(key, parent, display, maxProgression);
     }
 }

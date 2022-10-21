@@ -20,6 +20,6 @@ public class AdvancementFrameTypeWrapper_mocked0_0_R1 extends AdvancementFrameTy
     @Override
     @NotNull
     public Object toNMS() {
-        throw new UnsupportedOperationException();
+        return this;
     }
 }

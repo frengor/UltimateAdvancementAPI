@@ -27,7 +27,7 @@ public class MinecraftKeyWrapper_mocked0_0_R1 extends MinecraftKeyWrapper {
     @Override
     @NotNull
     public Object toNMS() {
-        throw new UnsupportedOperationException();
+        return this;
     }
 
     @Override
