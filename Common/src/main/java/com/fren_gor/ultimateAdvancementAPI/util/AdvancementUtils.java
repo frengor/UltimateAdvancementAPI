@@ -245,7 +245,7 @@ public class AdvancementUtils {
     public static void runSync(@NotNull Plugin plugin, long delay, @NotNull Runnable runnable) {
         Preconditions.checkNotNull(plugin, "Plugin is null.");
         Preconditions.checkNotNull(runnable, "Runnable is null.");
-        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, runnable, delay);
+        Bukkit.getScheduler().runTaskLater(plugin, runnable, delay);
     }
 
     @NotNull
