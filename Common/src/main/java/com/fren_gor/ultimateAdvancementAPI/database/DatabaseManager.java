@@ -662,7 +662,7 @@ public final class DatabaseManager implements Closeable {
         CompletableFuture<Integer> completableFuture = new CompletableFuture<>();
 
         CompletableFuture.runAsync(() -> {
-            if (result.progressionUpdate().oldValue != newProgression) { // Don't update the db if the saved progression won't change
+            if (result.progressionUpdate().getOldValue() != newProgression) { // Don't update the db if the saved progression won't change
                 try {
                     database.updateAdvancement(key, progression.getTeamId(), result.newCachedValue());
                 } catch (SQLException e) {

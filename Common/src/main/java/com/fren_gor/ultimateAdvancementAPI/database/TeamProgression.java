@@ -381,7 +381,7 @@ public final class TeamProgression {
 
         final class ProgressionUpdate {
             final AdvancementKey advancementKey;
-            int oldValue;
+            private int oldValue;
             final ArrayDeque<ProgressionUpdateInfo> updateQueue = new ArrayDeque<>();
 
             public ProgressionUpdate(AdvancementKey key, int oldValue) {
@@ -420,6 +420,10 @@ public final class TeamProgression {
                         }
                     }
                 }
+            }
+
+            public synchronized int getOldValue() {
+                return oldValue;
             }
         }
 
