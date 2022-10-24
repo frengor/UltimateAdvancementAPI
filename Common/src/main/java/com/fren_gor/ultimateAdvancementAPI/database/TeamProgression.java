@@ -8,6 +8,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,6 +54,7 @@ public final class TeamProgression {
      * @throws IllegalOperationException If this constructor is called by a class not in the
      *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
      */
+    @Internal
     public TeamProgression(int teamId, @NotNull UUID member) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         Preconditions.checkNotNull(member, "Member is null.");
@@ -73,6 +75,7 @@ public final class TeamProgression {
      * @throws IllegalOperationException If this constructor is called by a class not in the
      *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
      */
+    @Internal
     public TeamProgression(@NotNull Map<AdvancementKey, Integer> advancements, int teamId, @NotNull Collection<UUID> members) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         Preconditions.checkNotNull(advancements, "Advancements is null.");
