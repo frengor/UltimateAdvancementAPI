@@ -391,7 +391,7 @@ public final class TeamProgression {
 
             private synchronized ScheduleResult scheduleUpdate(ProgressionUpdateInfo info) {
                 updateQueue.addFirst(info);
-                int value = info.applyUpdate(oldValue);
+                int value = info.applyUpdate(this.oldValue);
                 Integer oldValue = advancements.put(advancementKey, value);
                 return new ScheduleResult(this, oldValue == null ? 0 : oldValue, value);
             }
