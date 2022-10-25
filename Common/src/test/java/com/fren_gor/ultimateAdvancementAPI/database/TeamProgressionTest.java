@@ -3,8 +3,8 @@ package com.fren_gor.ultimateAdvancementAPI.database;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
+import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
-import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +21,7 @@ public class TeamProgressionTest {
 
     @Before
     public void setUp() throws Exception {
-        server = MockBukkit.mock(new VersionedServerMock());
+        server = Utils.mockServer();
     }
 
     @After

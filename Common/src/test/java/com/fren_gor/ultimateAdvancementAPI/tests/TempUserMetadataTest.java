@@ -3,7 +3,6 @@ package com.fren_gor.ultimateAdvancementAPI.tests;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +47,7 @@ public class TempUserMetadataTest {
     public void setUp() throws Exception {
         assertTrue("Invalid PLAYER_TO_REGISTER", PLAYER_TO_REGISTER > 1);
 
-        server = MockBukkit.mock(new VersionedServerMock());
+        server = Utils.mockServer();
         for (int i = 0; i < PLAYER_TO_REGISTER; i++) {
             Player pl = server.addPlayer();
             UUID uuid = pl.getUniqueId();

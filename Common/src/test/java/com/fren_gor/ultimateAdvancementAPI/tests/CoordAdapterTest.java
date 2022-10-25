@@ -7,13 +7,13 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter.Coord;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -33,7 +33,7 @@ public class CoordAdapterTest {
 
     @Before
     public void setUp() {
-        server = MockBukkit.mock(new VersionedServerMock());
+        server = Utils.mockServer();
     }
 
     @After
@@ -140,43 +140,47 @@ public class CoordAdapterTest {
     @Test
     public void docCodeTest() {
         Plugin myPlugin = MockBukkit.createMockPlugin("myPlugin");
-        AdvancementMain main = Utils.newAdvancementMain(myPlugin);
-        AdvancementTab myTab = main.createAdvancementTab(myPlugin, "mytab");
+        AdvancementMain main = Utils.newAdvancementMain(myPlugin, DatabaseManager::new);
 
-        // Keys of the advancements to create
-        var advKey1 = new AdvancementKey(myPlugin, "first_advancement");
-        var advKey2 = new AdvancementKey(myPlugin, "second_advancement");
-        var advKey3 = new AdvancementKey(myPlugin, "third_advancement");
+        try {
+            AdvancementTab myTab = main.createAdvancementTab(myPlugin, "mytab");
 
-        // Create the CoordAdapter instance
-        CoordAdapter adapter = CoordAdapter.builder()
-                .add(advKey1, 0, 0)  // Will become (0, 1)
-                .add(advKey2, 1, -1) // Will become (1, 0)
-                .add(advKey3, 1, 1)  // Will become (1, 2)
-                .build();
+            // Keys of the advancements to create
+            var advKey1 = new AdvancementKey(myPlugin, "first_advancement");
+            var advKey2 = new AdvancementKey(myPlugin, "second_advancement");
+            var advKey3 = new AdvancementKey(myPlugin, "third_advancement");
 
-        // Create the AdvancementDisplays
-        var advDisplay1 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title1").coords(adapter, advKey1).build();
-        var advDisplay2 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title2").coords(adapter, advKey2).build();
-        var advDisplay3 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title3").coords(adapter, advKey3).build();
+            // Create the CoordAdapter instance
+            CoordAdapter adapter = CoordAdapter.builder()
+                    .add(advKey1, 0, 0)  // Will become (0, 1)
+                    .add(advKey2, 1, -1) // Will become (1, 0)
+                    .add(advKey3, 1, 1)  // Will become (1, 2)
+                    .build();
 
-        // Create the advancements
-        var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1, "textures/block/stone.png");
-        var adv2 = new BaseAdvancement(advKey2.getKey(), advDisplay2, adv1);
-        var adv3 = new BaseAdvancement(advKey3.getKey(), advDisplay3, adv1, 5);
+            // Create the AdvancementDisplays
+            var advDisplay1 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title1").coords(adapter, advKey1).build();
+            var advDisplay2 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title2").coords(adapter, advKey2).build();
+            var advDisplay3 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title3").coords(adapter, advKey3).build();
 
-        // Just to be sure the comments above are correct
-        assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(0, 1));
-        assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(1, 0));
-        assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(1, 2));
-        assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(advDisplay1));
-        assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(advDisplay2));
-        assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(advDisplay3));
+            // Create the advancements
+            var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1, "textures/block/stone.png");
+            var adv2 = new BaseAdvancement(advKey2.getKey(), advDisplay2, adv1);
+            var adv3 = new BaseAdvancement(advKey3.getKey(), advDisplay3, adv1, 5);
+
+            // Just to be sure the comments above are correct
+            assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(0, 1));
+            assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(1, 0));
+            assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(1, 2));
+            assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(advDisplay1));
+            assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(advDisplay2));
+            assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(advDisplay3));
+        } finally {
+            main.disable();
+        }
     }
 
     @Test
     public void offsetTest() {
-
         Plugin pl = MockBukkit.createMockPlugin("plugin");
         var parent = new AdvancementKey(pl, "akey");
         var child = new AdvancementKey(pl, "anotherkey");

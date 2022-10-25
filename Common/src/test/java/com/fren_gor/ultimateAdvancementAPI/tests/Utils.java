@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.*;
@@ -94,39 +95,31 @@ public final class Utils {
      * }</pre></blockquote>
      *
      * @param plugin The plugin
+     * @param databaseManagerSupplier The database manager supplier.
      */
-    public static AdvancementMain newAdvancementMain(@NotNull Plugin plugin) {
-        return newAdvancementMain(plugin, new EventManager(plugin));
-    }
-
-    /**
-     * Must be called inside a:
-     * <blockquote><pre>
-     * Utils.mockServer(() -> {
-     *     newAdvancementMain(...)
-     * }</pre></blockquote>
-     *
-     * @param plugin The plugin
-     * @param manager The event manager
-     */
-    public static AdvancementMain newAdvancementMain(@NotNull Plugin plugin, @NotNull EventManager manager) {
+    public static AdvancementMain newAdvancementMain(@NotNull Plugin plugin, @NotNull DatabaseManagerSupplier databaseManagerSupplier) {
         assertNotNull("newAdvancementMain(...) must be called inside Utils.mockServer(...)", Bukkit.getServer());
         assertNotNull(plugin);
-        assertNotNull(manager);
+        assertNotNull(databaseManagerSupplier);
         AdvancementMain main = new AdvancementMain(plugin);
         try {
             ((AtomicBoolean) mainLOADED.get(main)).set(true);
             ((AtomicBoolean) mainENABLED.get(main)).set(true);
             ((AtomicBoolean) mainINVALID_VERSION.get(main)).set(false);
 
-            mainEventManager.set(main, manager);
-            mainDatabaseManager.set(main, new DatabaseManager(main));
+            mainEventManager.set(main, new EventManager(plugin));
             mainLibbyManager.set(main, testLibraryManager);
+            mainDatabaseManager.set(main, Objects.requireNonNull(databaseManagerSupplier.apply(main)));
         } catch (Exception e) {
             e.printStackTrace();
             fail("Cannot instantiate AdvancementMain for tests.");
         }
         return main;
+    }
+
+    public interface DatabaseManagerSupplier {
+        @NotNull
+        DatabaseManager apply(AdvancementMain main) throws Exception;
     }
 
     private Utils() {
