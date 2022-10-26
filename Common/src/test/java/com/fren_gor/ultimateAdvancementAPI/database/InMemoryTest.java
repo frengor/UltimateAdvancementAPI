@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.logging.Logger;
 

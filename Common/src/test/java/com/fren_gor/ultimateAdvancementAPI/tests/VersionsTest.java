@@ -1,14 +1,14 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.Versions.getApiVersion;
 import static com.fren_gor.ultimateAdvancementAPI.util.Versions.getNMSVersionsList;
 import static com.fren_gor.ultimateAdvancementAPI.util.Versions.getNMSVersionsRange;
 import static com.fren_gor.ultimateAdvancementAPI.util.Versions.getSupportedNMSVersions;
 import static com.fren_gor.ultimateAdvancementAPI.util.Versions.removeInitialV;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class VersionsTest {
 
@@ -18,7 +18,7 @@ public class VersionsTest {
         Class<?> mavenProperties = Class.forName("com.fren_gor.ultimateAdvancementAPI.tests.MavenProperties");
         String mavenVersion = (String) mavenProperties.getDeclaredField("API_VERSION").get(null);
         String failMessage = "API_VERSION in Versions class is not the same as the pom.xml version. Please update the Versions.API_VERSION constant.";
-        assertEquals(failMessage, mavenVersion, Versions.getApiVersion());
+        assertEquals(mavenVersion, Versions.getApiVersion(), failMessage);
     }
 
     @Test

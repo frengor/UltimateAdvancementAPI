@@ -16,7 +16,7 @@ import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -84,7 +84,9 @@ public final class Utils {
     }
 
     public static ServerMock mockServer() {
-        return MockBukkit.mock(new VersionedServerMock());
+        ServerMock server = MockBukkit.mock(new VersionedServerMock());
+        MockBukkit.ensureMocking();
+        return server;
     }
 
     /**
@@ -98,7 +100,7 @@ public final class Utils {
      * @param databaseManagerSupplier The database manager supplier.
      */
     public static AdvancementMain newAdvancementMain(@NotNull Plugin plugin, @NotNull DatabaseManagerSupplier databaseManagerSupplier) {
-        assertNotNull("newAdvancementMain(...) must be called inside Utils.mockServer(...)", Bukkit.getServer());
+        assertNotNull(Bukkit.getServer(), "newAdvancementMain(...) must be called inside Utils.mockServer(...)");
         assertNotNull(plugin);
         assertNotNull(databaseManagerSupplier);
         AdvancementMain main = new AdvancementMain(plugin);

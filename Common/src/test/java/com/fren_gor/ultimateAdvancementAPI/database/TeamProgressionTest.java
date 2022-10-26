@@ -5,26 +5,26 @@ import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TeamProgressionTest {
 
     private ServerMock server;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         server = Utils.mockServer();
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         MockBukkit.unmock();
         server = null;

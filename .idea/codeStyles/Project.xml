@@ -14,7 +14,7 @@
         <value>
           <package name="java.awt" withSubpackages="false" static="false" />
           <package name="com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager" withSubpackages="true" static="true" />
-          <package name="org.junit.Assert" withSubpackages="true" static="true" />
+          <package name="org.junit.jupiter.api.Assertions" withSubpackages="true" static="true" />
           <package name="javax.swing" withSubpackages="false" static="false" />
         </value>
       </option>

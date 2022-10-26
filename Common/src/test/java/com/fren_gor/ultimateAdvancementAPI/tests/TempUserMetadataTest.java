@@ -6,11 +6,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TempUserMetadataTest {
 
@@ -31,7 +31,7 @@ public class TempUserMetadataTest {
     private final Map<UUID, Player> players = new HashMap<>();
     private Object testUserMetadataInstance;
 
-    @BeforeClass
+    @BeforeAll
     public static void beforeClass() throws Exception {
         Class<?> tempUserMetadataClass = Class.forName("com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager$TempUserMetadata");
 
@@ -43,23 +43,28 @@ public class TempUserMetadataTest {
         }
     }
 
-    @Before
+    @AfterAll
+    public static void afterAll() {
+        methods.clear();
+    }
+
+    @BeforeEach
     public void setUp() throws Exception {
-        assertTrue("Invalid PLAYER_TO_REGISTER", PLAYER_TO_REGISTER > 1);
+        assertTrue(PLAYER_TO_REGISTER > 1, "Invalid PLAYER_TO_REGISTER");
 
         server = Utils.mockServer();
         for (int i = 0; i < PLAYER_TO_REGISTER; i++) {
             Player pl = server.addPlayer();
             UUID uuid = pl.getUniqueId();
 
-            assertEquals("Mock failed", Bukkit.getPlayer(uuid), pl);
+            assertEquals(Bukkit.getPlayer(uuid), pl, "Mock failed");
             players.put(uuid, pl);
         }
 
         testUserMetadataInstance = constructor.newInstance(Objects.requireNonNull(players.keySet().iterator().next(), "Couldn't find any player in players map."));
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         MockBukkit.unmock();
         server = null;
@@ -204,14 +209,14 @@ public class TempUserMetadataTest {
     private void assertAutoManual(int auto, int manual, @NotNull Plugin pl) throws Exception {
         final Method gA = getMethod("getAuto");
         final Method gM = getMethod("getManual");
-        Assert.assertEquals(auto, gA.invoke(testUserMetadataInstance, pl));
-        Assert.assertEquals(manual, gM.invoke(testUserMetadataInstance, pl));
+        assertEquals(auto, gA.invoke(testUserMetadataInstance, pl));
+        assertEquals(manual, gM.invoke(testUserMetadataInstance, pl));
     }
 
     private Method getMethod(String method) {
         Method m = methods.get(method);
         if (m == null) {
-            Assert.fail("Couldn't find method '" + method + '\'');
+            fail("Couldn't find method '" + method + '\'');
         }
         return m;
     }

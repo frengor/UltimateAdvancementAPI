@@ -10,13 +10,13 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
 import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DatabaseManagerTest {
 
@@ -24,14 +24,14 @@ public class DatabaseManagerTest {
     private AdvancementMain advancementMain;
     private DatabaseManager databaseManager;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         server = Utils.mockServer();
         advancementMain = Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), DatabaseManager::new);
         databaseManager = advancementMain.getDatabaseManager();
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         advancementMain.disable();
         advancementMain = null;

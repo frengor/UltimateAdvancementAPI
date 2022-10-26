@@ -16,27 +16,27 @@ import com.google.common.collect.Sets;
 import org.bukkit.Material;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CoordAdapterTest {
 
     private ServerMock server;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         server = Utils.mockServer();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         MockBukkit.unmock();
         server = null;
@@ -124,7 +124,7 @@ public class CoordAdapterTest {
 
         // Test converted values
         for (Set<AdvancementKey> set : Sets.combinations(map.keySet(), 2)) {
-            assertEquals("Guava Sets#combinations bugged!", 2, set.size());
+            assertEquals(2, set.size(), "Guava Sets#combinations bugged!");
             var iter = set.iterator();
             AdvancementKey key1 = iter.next();
             AdvancementKey key2 = iter.next();
