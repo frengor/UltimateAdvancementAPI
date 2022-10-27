@@ -12,6 +12,7 @@ import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
 import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -73,13 +74,12 @@ public class DatabaseManagerTest {
         System.out.println("Fine");
     }
 
-    // FIXME
-    //@Test
-    public void playerLoadingTest() {
+    @Test
+    public void playerLoadingTest() throws Exception {
         PlayerMock pl1 = loadPlayer();
         assertTrue(databaseManager.isLoaded(pl1.getUniqueId()));
 
-        PlayerMock pl2 = loadPlayer("APlayer");
+        PlayerMock pl2 = loadPlayer();
         assertTrue(databaseManager.isLoaded(pl2.getUniqueId()));
 
         pl1.disconnect();
@@ -89,23 +89,19 @@ public class DatabaseManagerTest {
     }
 
     public PlayerMock loadPlayer() {
-        return loadPlayer(null);
-    }
-
-    public PlayerMock loadPlayer(String name) {
         AtomicBoolean finished = new AtomicBoolean(false);
         AtomicBoolean skip = new AtomicBoolean(false);
         AtomicBoolean hadSuccess = new AtomicBoolean(false);
 
-        Object listener = new Object();
+        final Object listener = new Object();
 
-        PlayerMock p = name == null ? server.addPlayer() : server.addPlayer(name);
+        final PlayerMock p = server.addPlayer();
 
         try {
             // These events should run after a few ticks, so there shouldn't be any problem having them registered
             // after the player addition
             advancementMain.getEventManager().register(listener, PlayerLoadingCompletedEvent.class, e -> {
-                if (e.getPlayer().equals(p)) {
+                if (e.getPlayer().getUniqueId().equals(p.getUniqueId())) {
                     if (skip.getAndSet(true)) {
                         fail("PlayerLoadingCompletedEvent called too many times for player " + e.getPlayer().getName() + '.');
                     }
@@ -117,7 +113,7 @@ public class DatabaseManagerTest {
             });
 
             advancementMain.getEventManager().register(listener, PlayerLoadingFailedEvent.class, e -> {
-                if (e.getPlayer().equals(p)) {
+                if (e.getPlayer().getUniqueId().equals(p.getUniqueId())) {
                     if (skip.getAndSet(true)) {
                         fail("PlayerLoadingCompletedEvent called too many times for player " + e.getPlayer().getName() + '.');
                     }
