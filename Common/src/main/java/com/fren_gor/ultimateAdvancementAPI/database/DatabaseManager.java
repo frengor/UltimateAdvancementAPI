@@ -45,6 +45,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -101,12 +102,7 @@ public final class DatabaseManager implements Closeable {
      * @throws Exception If anything goes wrong.
      */
     public DatabaseManager(@NotNull AdvancementMain main) throws Exception {
-        Preconditions.checkNotNull(main, "AdvancementMain is null.");
-        this.main = main;
-        this.eventManager = main.getEventManager();
-
-        database = new InMemory(main.getLogger());
-        commonSetUp();
+        this(main, new InMemory(main.getLogger()));
     }
 
     /**
@@ -117,13 +113,7 @@ public final class DatabaseManager implements Closeable {
      * @throws Exception If anything goes wrong.
      */
     public DatabaseManager(@NotNull AdvancementMain main, @NotNull File dbFile) throws Exception {
-        Preconditions.checkNotNull(main, "AdvancementMain is null.");
-        Preconditions.checkNotNull(dbFile, "Database file is null.");
-        this.main = main;
-        this.eventManager = main.getEventManager();
-
-        database = new SQLite(dbFile, main.getLogger());
-        commonSetUp();
+        this(main, new SQLite(Objects.requireNonNull(dbFile, "Database file is null."), main.getLogger()));
     }
 
     /**
@@ -140,11 +130,14 @@ public final class DatabaseManager implements Closeable {
      * @throws Exception If anything goes wrong.
      */
     public DatabaseManager(@NotNull AdvancementMain main, @NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout) throws Exception {
+        this(main, new MySQL(username, password, databaseName, host, port, poolSize, connectionTimeout, main.getLogger(), main.getLibbyManager()));
+    }
+
+    private DatabaseManager(@NotNull AdvancementMain main, @NotNull IDatabase database) throws Exception {
         Preconditions.checkNotNull(main, "AdvancementMain is null.");
         this.main = main;
         this.eventManager = main.getEventManager();
-
-        database = new MySQL(username, password, databaseName, host, port, poolSize, connectionTimeout, main.getLogger(), main.getLibbyManager());
+        this.database = database;
         commonSetUp();
     }
 

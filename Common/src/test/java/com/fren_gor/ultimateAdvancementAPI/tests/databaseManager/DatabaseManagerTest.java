@@ -1,35 +1,47 @@
 package com.fren_gor.ultimateAdvancementAPI.tests.databaseManager;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
-import be.seeseemelk.mockbukkit.MockPlugin;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
-import be.seeseemelk.mockbukkit.plugin.PluginManagerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
+import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl;
+import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
+import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
 import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.UUID;
+import java.lang.reflect.Constructor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DatabaseManagerTest {
 
+    private static Constructor<DatabaseManager> dbManagerConstructor;
+
+    @BeforeAll
+    public static void beforeAll() throws Exception {
+        dbManagerConstructor = DatabaseManager.class.getDeclaredConstructor(AdvancementMain.class, IDatabase.class);
+        dbManagerConstructor.setAccessible(true);
+    }
+
     private ServerMock server;
     private AdvancementMain advancementMain;
     private DatabaseManager databaseManager;
+    private FallibleDBImpl fallible;
 
     @BeforeEach
     public void setUp() throws Exception {
         server = Utils.mockServer();
-        advancementMain = Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), DatabaseManager::new);
+        advancementMain = Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), main -> dbManagerConstructor.newInstance(main, fallible = new FallibleDBImpl(new InMemory(main.getLogger()))));
         databaseManager = advancementMain.getDatabaseManager();
+        assertNotNull(fallible);
     }
 
     @AfterEach
@@ -37,41 +49,9 @@ public class DatabaseManagerTest {
         advancementMain.disable();
         advancementMain = null;
         databaseManager = null;
+        fallible = null;
         MockBukkit.unmock();
         server = null;
-    }
-
-    // FIXME
-    //@Test
-    public void test() throws Exception {
-        MockPlugin pl = MockBukkit.createMockPlugin();
-        PlayerMock p = server.addPlayer();
-
-        UUID uuid = p.getUniqueId();
-        //CompletableFuture<TeamProgression> i = databaseManager.loadOfflinePlayer(uuid, CacheFreeingOption.AUTOMATIC(pl, 5000));
-
-        /*while (!i.isDone()) {
-            server.getScheduler().performOneTick();
-            System.out.println("Ciao");
-        }
-
-        server.getScheduler().performTicks(20);
-        TeamProgression pro = i.get();
-        server.getScheduler().performTicks(20);*/
-
-        while (!databaseManager.isLoaded(uuid)) {
-            server.getScheduler().performTicks(5);
-            Thread.yield();
-        }
-
-        server.getScheduler().performTicks(100);
-
-        PluginManagerMock plm = server.getPluginManager();
-
-        plm.assertEventFired(PlayerLoadingCompletedEvent.class);
-        //CompletableFuture<TeamProgression> i = databaseManager.loadOfflinePlayer(uuid, CacheFreeingOption.AUTOMATIC(pl, 5000));
-        //assertTrue(i.isDone());
-        System.out.println("Fine");
     }
 
     @Test
