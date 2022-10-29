@@ -22,7 +22,7 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
     /**
      * Pattern every valid advancement key should match.
      */
-    public static final Pattern VALID_ADVANCEMENT_KEY = Pattern.compile("[a-z0-9_.-]{1,127}:[a-z0-9_.-/]{1,127}");
+    public static final Pattern VALID_ADVANCEMENT_KEY = Pattern.compile("[a-z0-9_.-]{1,127}:[a-z0-9_./\\-]{1,127}");
 
     /**
      * Pattern every valid namespace should match.
@@ -32,7 +32,7 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
     /**
      * Pattern every valid key should match.
      */
-    public static final Pattern VALID_KEY = Pattern.compile("[a-z0-9_.-/]{1,127}");
+    public static final Pattern VALID_KEY = Pattern.compile("[a-z0-9_./\\-]{1,127}");
 
     @NotNull
     private final MinecraftKeyWrapper minecraftKey;
