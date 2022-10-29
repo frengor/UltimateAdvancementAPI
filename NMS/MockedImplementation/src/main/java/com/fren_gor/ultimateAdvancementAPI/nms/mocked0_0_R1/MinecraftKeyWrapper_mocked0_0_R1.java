@@ -8,8 +8,8 @@ import java.util.regex.Pattern;
 
 public class MinecraftKeyWrapper_mocked0_0_R1 extends MinecraftKeyWrapper {
 
-    private static final Pattern VALID_NAMESPACE = Pattern.compile("[a-z0-9_.-]+");
-    private static final Pattern VALID_KEY = Pattern.compile("[a-z0-9_.-/]+");
+    private static final Pattern VALID_NAMESPACE = Pattern.compile("[a-z0-9_.-]{1,127}");
+    private static final Pattern VALID_KEY = Pattern.compile("[a-z0-9_.\\-/]{1,127}");
 
     private final String namespace, key;
 
