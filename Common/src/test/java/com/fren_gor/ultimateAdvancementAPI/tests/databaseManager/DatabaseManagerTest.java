@@ -11,12 +11,16 @@ import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
 import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
+import java.util.Arrays;
+import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,12 +40,20 @@ public class DatabaseManagerTest {
     private DatabaseManager databaseManager;
     private FallibleDBImpl fallible;
 
+    private AdvancementKey KEY1;
+    private AdvancementKey KEY2;
+    private AdvancementKey KEY3;
+
     @BeforeEach
     public void setUp() throws Exception {
         server = Utils.mockServer();
         advancementMain = Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), main -> dbManagerConstructor.newInstance(main, fallible = new FallibleDBImpl(new InMemory(main.getLogger()))));
         databaseManager = advancementMain.getDatabaseManager();
         assertNotNull(fallible);
+
+        KEY1 = new AdvancementKey("a-namespace_", "a_-key/1");
+        KEY2 = new AdvancementKey("a-namespace_", "a_-key/2");
+        KEY3 = new AdvancementKey("a-namespace_", "a_-key/3");
     }
 
     @AfterEach
@@ -66,6 +78,34 @@ public class DatabaseManagerTest {
         assertFalse(databaseManager.isLoaded(pl1.getUniqueId()));
         pl2.disconnect();
         assertFalse(databaseManager.isLoaded(pl2.getUniqueId()));
+    }
+
+    @Test
+    public void advancementProgressionTest() throws Exception {
+        PlayerMock p = loadPlayer();
+
+        {
+            Entry<Integer, CompletableFuture<Integer>> entry = databaseManager.setProgression(KEY1, p, 10);
+
+            assertEquals(0, entry.getKey());
+            assertEquals(10, waitCompletion(entry.getValue()).get());
+        }
+
+        fallible.addToPlanning(Arrays.asList(true, false, true));
+        Entry<Integer, CompletableFuture<Integer>> entry1 = databaseManager.setProgression(KEY2, p, 10);
+
+        // This should fail
+        Entry<Integer, CompletableFuture<Integer>> entry2 = databaseManager.setProgression(KEY2, p, 20);
+
+        Entry<Integer, CompletableFuture<Integer>> entry3 = databaseManager.setProgression(KEY2, p, 30);
+
+        assertEquals(0, entry1.getKey());
+        assertEquals(10, entry2.getKey());
+        assertEquals(20, entry3.getKey());
+
+        assertEquals(10, waitCompletion(entry1.getValue()).get());
+        assertTrue(waitCompletion(entry2.getValue()).isCompletedExceptionally());
+        assertEquals(30, waitCompletion(entry3.getValue()).get());
     }
 
     public PlayerMock loadPlayer() {
@@ -115,5 +155,13 @@ public class DatabaseManagerTest {
             advancementMain.getEventManager().unregister(listener);
         }
         return p;
+    }
+
+    private <T> CompletableFuture<T> waitCompletion(CompletableFuture<T> completableFuture) {
+        while (!completableFuture.isDone()) {
+            server.getScheduler().performTicks(10);
+            Thread.yield();
+        }
+        return completableFuture;
     }
 }
