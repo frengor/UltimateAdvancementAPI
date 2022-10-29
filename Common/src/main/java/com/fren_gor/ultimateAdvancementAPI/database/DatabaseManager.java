@@ -608,7 +608,7 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Updates the progression of the specified advancement.
+     * Sets the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player who made the advancement.
@@ -622,7 +622,7 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Updates the progression of the specified advancement.
+     * Sets the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param player The player who made the advancement.
@@ -636,7 +636,7 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Updates the progression of the specified advancement.
+     * Sets the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
@@ -679,7 +679,35 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Updates the progression of the specified advancement.
+     * Increments the progression of the specified advancement.
+     *
+     * @param key The advancement key.
+     * @param uuid The {@link UUID} of the player who made the advancement.
+     * @param newProgression The increment of the progression.
+     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the cache.
+     */
+    @NotNull
+    public Entry<Integer, CompletableFuture<Integer>> incrementProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+        return incrementProgression(key, getTeamProgression(uuid), newProgression);
+    }
+
+    /**
+     * Increments the progression of the specified advancement.
+     *
+     * @param key The advancement key.
+     * @param player The player who made the advancement.
+     * @param newProgression The increment of the progression.
+     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the cache.
+     */
+    @NotNull
+    public Entry<Integer, CompletableFuture<Integer>> incrementProgression(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+        return incrementProgression(key, uuidFromPlayer(player), newProgression);
+    }
+
+    /**
+     * Increments the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
