@@ -166,7 +166,7 @@ public class FallibleDBImpl implements IDatabase {
     }
 
     private void checkPlanning() throws SQLException {
-        if (!planning.isEmpty() && planning.removeFirst()) {
+        if (!planning.isEmpty() && !planning.removeFirst()) {
             throw new PlannedFailureException();
         }
     }
