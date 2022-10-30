@@ -18,9 +18,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,17 +30,22 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DatabaseManagerTest {
 
     private static Constructor<DatabaseManager> dbManagerConstructor;
+    private static Field executorField;
 
     @BeforeAll
     public static void beforeAll() throws Exception {
         dbManagerConstructor = DatabaseManager.class.getDeclaredConstructor(AdvancementMain.class, IDatabase.class);
         dbManagerConstructor.setAccessible(true);
+
+        executorField = DatabaseManager.class.getDeclaredField("executor");
+        executorField.setAccessible(true);
     }
 
     private ServerMock server;
     private AdvancementMain advancementMain;
     private DatabaseManager databaseManager;
     private FallibleDBImpl fallible;
+    private ExecutorService executor;
 
     private AdvancementKey KEY1;
     private AdvancementKey KEY2;
@@ -50,6 +57,8 @@ public class DatabaseManagerTest {
         advancementMain = Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), main -> dbManagerConstructor.newInstance(main, fallible = new FallibleDBImpl(new InMemory(main.getLogger()))));
         databaseManager = advancementMain.getDatabaseManager();
         assertNotNull(fallible);
+        executor = (ExecutorService) executorField.get(databaseManager);
+        assertNotNull(executor);
 
         KEY1 = new AdvancementKey("a-namespace_", "a_-key/1");
         KEY2 = new AdvancementKey("a-namespace_", "a_-key/2");
@@ -81,7 +90,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void advancementProgressionTest() throws Exception {
+    public void advancementSetProgressionTest() throws Exception {
         PlayerMock p = loadPlayer();
 
         {
@@ -91,6 +100,8 @@ public class DatabaseManagerTest {
             assertEquals(10, waitCompletion(entry.getValue()).get());
         }
 
+        Paused paused = pauseFutureTasks();
+
         fallible.addToPlanning(Arrays.asList(true, false, true));
         Entry<Integer, CompletableFuture<Integer>> entry1 = databaseManager.setProgression(KEY2, p, 10);
 
@@ -99,6 +110,8 @@ public class DatabaseManagerTest {
 
         Entry<Integer, CompletableFuture<Integer>> entry3 = databaseManager.setProgression(KEY2, p, 30);
 
+        paused.resume();
+
         assertEquals(0, entry1.getKey());
         assertEquals(10, entry2.getKey());
         assertEquals(20, entry3.getKey());
@@ -106,6 +119,38 @@ public class DatabaseManagerTest {
         assertEquals(10, waitCompletion(entry1.getValue()).get());
         assertTrue(waitCompletion(entry2.getValue()).isCompletedExceptionally());
         assertEquals(30, waitCompletion(entry3.getValue()).get());
+    }
+
+    @Test
+    public void advancementIncrementProgressionTest() throws Exception {
+        PlayerMock p = loadPlayer();
+
+        {
+            Entry<Integer, CompletableFuture<Integer>> entry = databaseManager.incrementProgression(KEY1, p, 10);
+
+            assertEquals(0, entry.getKey());
+            assertEquals(10, waitCompletion(entry.getValue()).get());
+        }
+
+        Paused paused = pauseFutureTasks();
+
+        fallible.addToPlanning(Arrays.asList(true, false, true));
+        Entry<Integer, CompletableFuture<Integer>> entry1 = databaseManager.incrementProgression(KEY2, p, 10);
+
+        // This should fail
+        Entry<Integer, CompletableFuture<Integer>> entry2 = databaseManager.incrementProgression(KEY2, p, 20);
+
+        Entry<Integer, CompletableFuture<Integer>> entry3 = databaseManager.incrementProgression(KEY2, p, 30);
+
+        paused.resume();
+
+        assertEquals(0, entry1.getKey());
+        assertEquals(10, entry2.getKey());
+        assertEquals(30, entry3.getKey());
+
+        assertEquals(10, waitCompletion(entry1.getValue()).get());
+        assertTrue(waitCompletion(entry2.getValue()).isCompletedExceptionally());
+        assertEquals(40, waitCompletion(entry3.getValue()).get());
     }
 
     public PlayerMock loadPlayer() {
@@ -163,5 +208,44 @@ public class DatabaseManagerTest {
             Thread.yield();
         }
         return completableFuture;
+    }
+
+    private Paused pauseFutureTasks() {
+        CompletableFuture<Void> waiter = new CompletableFuture<>();
+        CompletableFuture<Void> blocker = new CompletableFuture<>();
+
+        CompletableFuture<Void> paused = CompletableFuture.runAsync(() -> {
+            try {
+                waiter.complete(null);
+                blocker.get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, executor);
+
+        waitCompletion(waiter);
+        return new Paused(blocker, paused);
+    }
+
+    private void waitForPendingTasks() {
+        CompletableFuture<Void> cf = new CompletableFuture<>();
+        CompletableFuture.runAsync(() -> cf.complete(null), executor);
+
+        waitCompletion(cf);
+    }
+
+    private final class Paused {
+        private final CompletableFuture<Void> blocker;
+        private final CompletableFuture<Void> paused;
+
+        private Paused(CompletableFuture<Void> blocker, CompletableFuture<Void> paused) {
+            this.blocker = blocker;
+            this.paused = paused;
+        }
+
+        public void resume() {
+            this.blocker.complete(null);
+            waitCompletion(this.paused);
+        }
     }
 }
