@@ -408,7 +408,20 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID otherTeamMember) throws UserNotLoadedException {
-        return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), getTeamProgression(otherTeamMember));
+        return updatePlayerTeam(playerToMove, getTeamProgression(otherTeamMember));
+    }
+
+    /**
+     * Moves the provided player from their team to the specified one.
+     *
+     * @param playerToMove The {@link UUID} of the player to move.
+     * @param otherTeamProgression The {@link TeamProgression} of the target team.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the cache.
+     */
+    @NotNull
+    public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
+        return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), otherTeamProgression);
     }
 
     /**
