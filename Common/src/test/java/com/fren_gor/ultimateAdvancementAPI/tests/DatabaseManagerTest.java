@@ -93,12 +93,15 @@ public class DatabaseManagerTest {
     public void advancementSetProgressionTest() throws Exception {
         PlayerMock p = loadPlayer();
 
-        {
-            Entry<Integer, CompletableFuture<Integer>> entry = databaseManager.setProgression(KEY1, p, 10);
+        Entry<Integer, CompletableFuture<Integer>> entry = databaseManager.setProgression(KEY1, p, 10);
 
-            assertEquals(0, entry.getKey());
-            assertEquals(10, waitCompletion(entry.getValue()).get());
-        }
+        assertEquals(0, entry.getKey());
+        assertEquals(10, waitCompletion(entry.getValue()).get());
+    }
+
+    @Test
+    public void advancementSetProgressionWithFailureTest() throws Exception {
+        PlayerMock p = loadPlayer();
 
         Paused paused = pauseFutureTasks();
 
@@ -125,12 +128,15 @@ public class DatabaseManagerTest {
     public void advancementIncrementProgressionTest() throws Exception {
         PlayerMock p = loadPlayer();
 
-        {
-            Entry<Integer, CompletableFuture<Integer>> entry = databaseManager.incrementProgression(KEY1, p, 10);
+        Entry<Integer, CompletableFuture<Integer>> entry = databaseManager.incrementProgression(KEY1, p, 10);
 
-            assertEquals(0, entry.getKey());
-            assertEquals(10, waitCompletion(entry.getValue()).get());
-        }
+        assertEquals(0, entry.getKey());
+        assertEquals(10, waitCompletion(entry.getValue()).get());
+    }
+
+    @Test
+    public void advancementIncrementProgressionWithFailureTest() throws Exception {
+        PlayerMock p = loadPlayer();
 
         Paused paused = pauseFutureTasks();
 
