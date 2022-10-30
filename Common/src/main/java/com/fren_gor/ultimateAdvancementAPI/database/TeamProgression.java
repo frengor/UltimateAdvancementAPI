@@ -42,6 +42,9 @@ public final class TeamProgression {
     final ProgressionUpdaterManager progressionUpdaterManager = new ProgressionUpdaterManager();
 
     // Should be updated only from inside ProgressionUpdate having synchronized over ProgressionUpdate.this
+    //
+    // Updates related to different advancements may happen simultaneously, synchronization over the whole collection is
+    // always already present since the Map is an instance of ConcurrentHashMap
     private final Map<AdvancementKey, Integer> advancements;
 
     /**
@@ -391,9 +394,16 @@ public final class TeamProgression {
 
             private synchronized ScheduleResult scheduleUpdate(ProgressionUpdateInfo info) {
                 updateQueue.addFirst(info);
-                int value = info.applyUpdate(this.oldValue);
-                Integer oldValue = advancements.put(advancementKey, value);
-                return new ScheduleResult(this, oldValue == null ? 0 : oldValue, value);
+
+                // Note that no `advancements.put(advancementKey, ...)` operation is possible between
+                // the get and the put down below since we have synchronized over ProgressionUpdate.this
+                // (see the comment on top of `advancements` declaration)
+
+                Integer nullableOldValue = advancements.get(advancementKey);
+                int oldValue = nullableOldValue == null ? 0 : nullableOldValue;
+                int value = info.applyUpdate(oldValue);
+                advancements.put(advancementKey, value);
+                return new ScheduleResult(this, oldValue, value);
             }
 
             public synchronized int updateEndedSuccessfully() {
@@ -434,13 +444,18 @@ public final class TeamProgression {
 
             public int applyUpdate(int currentValue) {
                 if (operation == INCREMENT) {
-                    return Math.max(currentValue + value, 0);
+                    try {
+                        return Math.max(Math.addExact(currentValue, value), 0);
+                    } catch (ArithmeticException ignored) {
+                        return Integer.MAX_VALUE;
+                    }
                 } else { // operation == SET
                     return value;
                 }
             }
         }
 
-        record ScheduleResult(ProgressionUpdate progressionUpdate, int oldValue, int newCachedValue) {}
+        record ScheduleResult(ProgressionUpdate progressionUpdate, int oldValue, int newCachedValue) {
+        }
     }
 }
