@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.tests.databaseManager;
+package com.fren_gor.ultimateAdvancementAPI.tests;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
