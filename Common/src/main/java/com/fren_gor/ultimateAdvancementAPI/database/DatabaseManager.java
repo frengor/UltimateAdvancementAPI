@@ -442,18 +442,10 @@ public final class DatabaseManager implements Closeable {
         Preconditions.checkNotNull(playerToMove, "Player to move is null.");
         validateTeamProgression(otherTeamProgression);
 
-        final TeamProgression oldProgression;
         synchronized (DatabaseManager.this) {
-            oldProgression = progressionCache.get(playerToMove);
-        }
-
-        if (oldProgression == null) {
-            throw new UserNotLoadedException(playerToMove);
-        }
-
-        if (otherTeamProgression.contains(playerToMove)) {
-            // Player is already in that team
-            return CompletableFuture.completedFuture(null);
+            if (!progressionCache.containsKey(playerToMove)) {
+                throw new UserNotLoadedException(playerToMove);
+            }
         }
 
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
@@ -471,7 +463,7 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
 
-            // Get old progression again since it may be changed
+            // Get old progression
             final TeamProgression oldTeam;
             synchronized (DatabaseManager.this) {
                 oldTeam = progressionCache.get(playerToMove);
@@ -522,13 +514,11 @@ public final class DatabaseManager implements Closeable {
 
     private CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID uuid, @Nullable Player ptr) throws UserNotLoadedException {
         Preconditions.checkNotNull(uuid, "UUID is null.");
-        final TeamProgression oldProgression;
-        synchronized (DatabaseManager.this) {
-            oldProgression = progressionCache.get(uuid);
-        }
 
-        if (oldProgression == null) {
-            throw new UserNotLoadedException(uuid);
+        synchronized (DatabaseManager.this) {
+            if (!progressionCache.containsKey(uuid)) {
+                throw new UserNotLoadedException(uuid);
+            }
         }
 
         CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
@@ -547,7 +537,7 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
 
-            // Get old progression again since it may be changed
+            // Get old progression
             final TeamProgression oldTeam;
             synchronized (DatabaseManager.this) {
                 oldTeam = progressionCache.get(uuid);
