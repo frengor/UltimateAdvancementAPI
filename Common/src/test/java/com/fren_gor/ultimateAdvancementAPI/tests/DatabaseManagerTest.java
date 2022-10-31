@@ -7,6 +7,7 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
+import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
@@ -157,6 +158,94 @@ public class DatabaseManagerTest {
         assertEquals(10, waitCompletion(entry1.getValue()).get());
         assertTrue(waitCompletion(entry2.getValue()).isCompletedExceptionally());
         assertEquals(40, waitCompletion(entry3.getValue()).get());
+    }
+
+    @Test
+    public void updatePlayerTeamTest() {
+        PlayerMock pl1 = loadPlayer();
+        PlayerMock pl2 = loadPlayer();
+        PlayerMock pl3 = loadPlayer();
+
+        TeamProgression tpl1 = databaseManager.getTeamProgression(pl1);
+        TeamProgression tpl2 = databaseManager.getTeamProgression(pl2);
+        TeamProgression tpl3 = databaseManager.getTeamProgression(pl3);
+
+        assertTrue(tpl1.isValid());
+        assertTrue(tpl2.isValid());
+        assertTrue(tpl3.isValid());
+
+        assertNotEquals(tpl1, tpl2);
+        assertNotEquals(tpl2, tpl3);
+        assertNotEquals(tpl1, tpl3);
+
+        CompletableFuture<Void> cf = waitCompletion(databaseManager.updatePlayerTeam(pl1, tpl2));
+        assertFalse(cf.isCompletedExceptionally());
+
+        TeamProgression newTpl1 = databaseManager.getTeamProgression(pl1);
+        TeamProgression newTpl2 = databaseManager.getTeamProgression(pl2);
+        TeamProgression newTpl3 = databaseManager.getTeamProgression(pl3);
+
+        assertFalse(tpl1.isValid());
+        assertTrue(tpl2.isValid());
+        assertTrue(tpl3.isValid());
+
+        assertTrue(newTpl1.isValid());
+        assertTrue(newTpl2.isValid());
+        assertTrue(newTpl3.isValid());
+
+        assertNotEquals(tpl1, newTpl1);
+        assertEquals(tpl2, newTpl2);
+        assertEquals(tpl3, newTpl3);
+
+        assertEquals(newTpl1, newTpl2);
+        assertNotEquals(newTpl2, newTpl3);
+        assertNotEquals(newTpl1, newTpl3);
+
+        assertTrue(newTpl1.contains(pl1.getUniqueId()));
+        assertTrue(newTpl1.contains(pl2.getUniqueId()));
+        assertFalse(newTpl1.contains(pl3.getUniqueId()));
+        assertFalse(newTpl3.contains(pl1.getUniqueId()));
+        assertFalse(newTpl3.contains(pl2.getUniqueId()));
+        assertTrue(newTpl3.contains(pl3.getUniqueId()));
+    }
+
+    @Test
+    public void updatePlayerTeamWithFailureTest() {
+        PlayerMock pl1 = loadPlayer();
+        PlayerMock pl2 = loadPlayer();
+        PlayerMock pl3 = loadPlayer();
+
+        Paused paused = pauseFutureTasks();
+
+        fallible.addToPlanning(Arrays.asList(true, true /*This allows the getUnredeemed call*/, false));
+        CompletableFuture<Void> cf1 = databaseManager.updatePlayerTeam(pl1, pl2);
+
+        // This should fail
+        CompletableFuture<Void> cf2 = databaseManager.updatePlayerTeam(pl2, pl3);
+
+        paused.resume();
+
+        waitCompletion(cf1);
+        waitCompletion(cf2);
+
+        TeamProgression tpl1 = databaseManager.getTeamProgression(pl1);
+        TeamProgression tpl2 = databaseManager.getTeamProgression(pl2);
+        TeamProgression tpl3 = databaseManager.getTeamProgression(pl3);
+
+        assertTrue(tpl1.isValid());
+        assertTrue(tpl2.isValid());
+        assertTrue(tpl3.isValid());
+
+        assertEquals(tpl1, tpl2);
+        assertNotEquals(tpl1, tpl3);
+        assertNotEquals(tpl2, tpl3);
+
+        assertTrue(tpl1.contains(pl1.getUniqueId()));
+        assertTrue(tpl1.contains(pl2.getUniqueId()));
+        assertFalse(tpl1.contains(pl3.getUniqueId()));
+        assertFalse(tpl3.contains(pl1.getUniqueId()));
+        assertFalse(tpl3.contains(pl2.getUniqueId()));
+        assertTrue(tpl3.contains(pl3.getUniqueId()));
     }
 
     public PlayerMock loadPlayer() {
