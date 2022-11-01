@@ -246,6 +246,44 @@ public class DatabaseManagerTest {
         assertTrue(tpl3.contains(pl3.getUniqueId()));
     }
 
+    @Test
+    public void moveInNewTeamTest() throws Exception {
+        PlayerMock pl1 = loadPlayer();
+        TeamProgression pro = databaseManager.getTeamProgression(pl1);
+
+        CompletableFuture<TeamProgression> cf = databaseManager.movePlayerInNewTeam(pl1);
+
+        waitCompletion(cf);
+
+        assertFalse(cf.isCompletedExceptionally());
+        TeamProgression newPro = cf.get();
+
+        assertNotEquals(pro, newPro);
+        assertFalse(pro.contains(pl1));
+        assertTrue(newPro.contains(pl1));
+        assertTrue(newPro.isValid());
+    }
+
+    @Test
+    public void moveInNewTeamWithFailureTest() throws Exception {
+        PlayerMock pl1 = loadPlayer();
+        TeamProgression pro = databaseManager.getTeamProgression(pl1);
+        assertTrue(pro.isValid());
+
+        Paused paused = pauseFutureTasks();
+
+        fallible.addToPlanning(false, false);
+        CompletableFuture<TeamProgression> cf = databaseManager.movePlayerInNewTeam(pl1);
+
+        paused.resume();
+
+        waitCompletion(cf);
+
+        assertTrue(cf.isCompletedExceptionally());
+        assertTrue(pro.isValid());
+        assertTrue(pro.contains(pl1));
+    }
+
     public PlayerMock loadPlayer() {
         AtomicBoolean finished = new AtomicBoolean(false);
         AtomicBoolean skip = new AtomicBoolean(false);
