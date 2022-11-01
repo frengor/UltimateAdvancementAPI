@@ -24,13 +24,13 @@ public class FallibleDBImpl implements IDatabase {
         this.inner = Objects.requireNonNull(inner);
     }
 
-    public void addToPlanning(List<@NotNull Boolean> planning) {
+    public void addToPlanning(boolean... planning) {
         for (boolean b : planning) {
             this.planning.addLast(b);
         }
     }
 
-    public void setPlanning(List<@NotNull Boolean> planning) {
+    public void setPlanning(boolean... planning) {
         clearPlanning();
         for (boolean b : planning) {
             this.planning.addLast(b);

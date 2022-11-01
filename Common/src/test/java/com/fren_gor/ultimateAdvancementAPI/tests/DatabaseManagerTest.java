@@ -11,7 +11,6 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
-import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -20,7 +19,6 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -106,7 +104,7 @@ public class DatabaseManagerTest {
 
         Paused paused = pauseFutureTasks();
 
-        fallible.addToPlanning(Arrays.asList(true, false, true));
+        fallible.addToPlanning(true, false, true);
         Entry<Integer, CompletableFuture<Integer>> entry1 = databaseManager.setProgression(KEY2, p, 10);
 
         // This should fail
@@ -141,7 +139,7 @@ public class DatabaseManagerTest {
 
         Paused paused = pauseFutureTasks();
 
-        fallible.addToPlanning(Arrays.asList(true, false, true));
+        fallible.addToPlanning(true, false, true);
         Entry<Integer, CompletableFuture<Integer>> entry1 = databaseManager.incrementProgression(KEY2, p, 10);
 
         // This should fail
@@ -217,7 +215,7 @@ public class DatabaseManagerTest {
 
         Paused paused = pauseFutureTasks();
 
-        fallible.addToPlanning(Arrays.asList(true, true /*This allows the getUnredeemed call*/, false));
+        fallible.addToPlanning(true, true /*This allows the getUnredeemed call*/, false);
         CompletableFuture<Void> cf1 = databaseManager.updatePlayerTeam(pl1, pl2);
 
         // This should fail
