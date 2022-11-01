@@ -1186,9 +1186,9 @@ public final class DatabaseManager implements Closeable {
         final boolean teamUnloaded, newTeamLoaded;
         synchronized (DatabaseManager.this) {
             // Replace team atomically
-            oldTeam.movePlayer(newTeam, uuid);
             progressionCache.put(uuid, newTeam);
             newTeamLoaded = newTeam.inCache.getAndSet(true);
+            oldTeam.movePlayer(newTeam, uuid);
 
             // Check for team unloading
             teamUnloaded = oldTeam.noMemberMatch(progressionCache::containsKey);
