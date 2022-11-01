@@ -6,6 +6,7 @@ import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl;
+import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl.DBOperation;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
@@ -104,6 +105,7 @@ public class DatabaseManagerTest {
 
         Paused paused = pauseFutureTasks();
 
+        fallible.setFallibleOps(DBOperation.UPDATE_ADVANCEMENT);
         fallible.addToPlanning(true, false, true);
         Entry<Integer, CompletableFuture<Integer>> entry1 = databaseManager.setProgression(KEY2, p, 10);
 
@@ -139,6 +141,7 @@ public class DatabaseManagerTest {
 
         Paused paused = pauseFutureTasks();
 
+        fallible.setFallibleOps(DBOperation.UPDATE_ADVANCEMENT);
         fallible.addToPlanning(true, false, true);
         Entry<Integer, CompletableFuture<Integer>> entry1 = databaseManager.incrementProgression(KEY2, p, 10);
 
@@ -215,7 +218,8 @@ public class DatabaseManagerTest {
 
         Paused paused = pauseFutureTasks();
 
-        fallible.addToPlanning(true, true /*This allows the getUnredeemed call*/, false);
+        fallible.setFallibleOps(DBOperation.MOVE_PLAYER);
+        fallible.addToPlanning(true, false);
         CompletableFuture<Void> cf1 = databaseManager.updatePlayerTeam(pl1, pl2);
 
         // This should fail
@@ -272,6 +276,7 @@ public class DatabaseManagerTest {
 
         Paused paused = pauseFutureTasks();
 
+        fallible.setFallibleOps(DBOperation.MOVE_PLAYER_IN_NEW_TEAM);
         fallible.addToPlanning(false, false);
         CompletableFuture<TeamProgression> cf = databaseManager.movePlayerInNewTeam(pl1);
 
