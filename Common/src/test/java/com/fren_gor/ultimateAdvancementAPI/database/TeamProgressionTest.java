@@ -20,18 +20,18 @@ public class TeamProgressionTest {
     private ServerMock server;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void init() throws Exception {
         server = Utils.mockServer();
     }
 
     @AfterEach
-    public void tearDown() throws Exception {
+    void tearDown() throws Exception {
         MockBukkit.unmock();
         server = null;
     }
 
     @Test
-    public void creationTest() {
+    void creationTest() {
         PlayerMock player1 = server.addPlayer();
         PlayerMock player2 = server.addPlayer();
         PlayerMock player3 = server.addPlayer();
@@ -59,7 +59,7 @@ public class TeamProgressionTest {
     }
 
     @Test
-    public void advancementProgressionTest() {
+    void advancementProgressionTest() {
         AdvancementKey key1 = new AdvancementKey("namespace1", "key1");
         AdvancementKey key2 = new AdvancementKey("namespace1", "key2");
         AdvancementKey key3 = new AdvancementKey("namespace2", "key3");

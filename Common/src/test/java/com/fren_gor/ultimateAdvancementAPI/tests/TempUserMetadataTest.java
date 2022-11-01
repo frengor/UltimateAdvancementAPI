@@ -32,7 +32,7 @@ public class TempUserMetadataTest {
     private Object testUserMetadataInstance;
 
     @BeforeAll
-    public static void beforeClass() throws Exception {
+    static void initAll() throws Exception {
         Class<?> tempUserMetadataClass = Class.forName("com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager$TempUserMetadata");
 
         constructor = tempUserMetadataClass.getConstructor(UUID.class);
@@ -44,12 +44,12 @@ public class TempUserMetadataTest {
     }
 
     @AfterAll
-    public static void afterAll() {
+    static void tearDownAll() {
         methods.clear();
     }
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void init() throws Exception {
         assertTrue(PLAYER_TO_REGISTER > 1, "Invalid PLAYER_TO_REGISTER");
 
         server = Utils.mockServer();
@@ -65,7 +65,7 @@ public class TempUserMetadataTest {
     }
 
     @AfterEach
-    public void tearDown() throws Exception {
+    void tearDown() throws Exception {
         MockBukkit.unmock();
         server = null;
         players.clear();
@@ -73,7 +73,7 @@ public class TempUserMetadataTest {
     }
 
     @Test
-    public void addAutoTest() throws Exception {
+    void addAutoTest() throws Exception {
         final Method m = getMethod("addAuto");
         int old = 0x0000_ABCD;
         for (int i = 0; i < Character.MAX_VALUE; i++) {
@@ -92,7 +92,7 @@ public class TempUserMetadataTest {
     }
 
     @Test
-    public void addManualTest() throws Exception {
+    void addManualTest() throws Exception {
         final Method m = getMethod("addManual");
         int old = 0xABCD_0000;
         for (int i = 0; i < Character.MAX_VALUE; i++) {
@@ -111,7 +111,7 @@ public class TempUserMetadataTest {
     }
 
     @Test
-    public void removeAutoTest() throws Exception {
+    void removeAutoTest() throws Exception {
         final Method m = getMethod("removeAuto");
         int old = 0xFFFF_ABCD;
         for (int i = 0; i < Character.MAX_VALUE; i++) {
@@ -124,7 +124,7 @@ public class TempUserMetadataTest {
     }
 
     @Test
-    public void removeManualTest() throws Exception {
+    void removeManualTest() throws Exception {
         final Method m = getMethod("removeManual");
         int old = 0xABCD_FFFF;
         for (int i = 0; i < Character.MAX_VALUE; i++) {
@@ -137,7 +137,7 @@ public class TempUserMetadataTest {
     }
 
     @Test
-    public void addRequest() throws Exception {
+    void addRequest() throws Exception {
         final Method m = getMethod("addRequest");
         final Plugin p1 = MockBukkit.createMockPlugin("Test1");
         final Plugin p2 = MockBukkit.createMockPlugin("Test2");
@@ -173,7 +173,7 @@ public class TempUserMetadataTest {
     }
 
     @Test
-    public void removeRequest() throws Exception {
+    void removeRequest() throws Exception {
         final Method add = getMethod("addRequest");
         final Method m = getMethod("removeRequest");
         final Plugin p1 = MockBukkit.createMockPlugin("Test1");

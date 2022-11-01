@@ -6,7 +6,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.sql.SQLException;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -17,19 +16,19 @@ public class InMemoryTest {
     private InMemory db;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void init() throws Exception {
         db = new InMemory(Logger.getLogger("InMemoryTest"));
         db.setUp();
     }
 
     @AfterEach
-    public void tearDown() throws Exception {
+    void tearDown() throws Exception {
         db.close();
         db = null;
     }
 
     @Test
-    public void inMemoryTest() throws Exception {
+    void inMemoryTest() throws Exception {
         UUID uuid = UUID.randomUUID();
         var res = db.loadOrRegisterPlayer(uuid, "Dummy");
         assertTrue(res.getKey().contains(uuid));

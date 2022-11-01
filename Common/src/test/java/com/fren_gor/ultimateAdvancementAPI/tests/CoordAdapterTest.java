@@ -32,18 +32,18 @@ public class CoordAdapterTest {
     private ServerMock server;
 
     @BeforeEach
-    public void setUp() {
+    void init() {
         server = Utils.mockServer();
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         MockBukkit.unmock();
         server = null;
     }
 
     @Test
-    public void basicCoordTest() {
+    void basicCoordTest() {
         var coord = new Coord(0, 0);
         assertEquals(0, coord.x(), 0);
         assertEquals(0, coord.y(), 0);
@@ -56,7 +56,7 @@ public class CoordAdapterTest {
     }
 
     @Test
-    public void NaNCoordTest() {
+    void NaNCoordTest() {
         assertThrows(IllegalArgumentException.class, () -> {
             new Coord(Float.NaN, 0);
         });
@@ -69,7 +69,7 @@ public class CoordAdapterTest {
     }
 
     @Test
-    public void infiniteCoordTest() {
+    void infiniteCoordTest() {
         // +infinite
         assertThrows(IllegalArgumentException.class, () -> {
             new Coord(Float.POSITIVE_INFINITY, 0);
@@ -94,7 +94,7 @@ public class CoordAdapterTest {
     }
 
     @Test
-    public void coordAdapterTest() {
+    void coordAdapterTest() {
         testCoordAdapterHelper(List.of(new Coord(0, 0), new Coord(5, 7), new Coord(-2, -11)));
         testCoordAdapterHelper(List.of(new Coord(0, 0), new Coord(0, 0), new Coord(0, 0)));
         testCoordAdapterHelper(List.of(new Coord(100, 98), new Coord(54, 43), new Coord(32, 8)));
@@ -138,7 +138,7 @@ public class CoordAdapterTest {
     }
 
     @Test
-    public void docCodeTest() {
+    void docCodeTest() {
         Plugin myPlugin = MockBukkit.createMockPlugin("myPlugin");
         AdvancementMain main = Utils.newAdvancementMain(myPlugin, DatabaseManager::new);
 
@@ -180,7 +180,7 @@ public class CoordAdapterTest {
     }
 
     @Test
-    public void offsetTest() {
+    void offsetTest() {
         Plugin pl = MockBukkit.createMockPlugin("plugin");
         var parent = new AdvancementKey(pl, "akey");
         var child = new AdvancementKey(pl, "anotherkey");

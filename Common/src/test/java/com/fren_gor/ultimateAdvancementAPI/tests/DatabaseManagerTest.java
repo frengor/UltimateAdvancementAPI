@@ -32,7 +32,7 @@ public class DatabaseManagerTest {
     private static Field executorField;
 
     @BeforeAll
-    public static void beforeAll() throws Exception {
+    static void initAll() throws Exception {
         dbManagerConstructor = DatabaseManager.class.getDeclaredConstructor(AdvancementMain.class, IDatabase.class);
         dbManagerConstructor.setAccessible(true);
 
@@ -51,7 +51,7 @@ public class DatabaseManagerTest {
     private AdvancementKey KEY3;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void init() throws Exception {
         server = Utils.mockServer();
         advancementMain = Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), main -> dbManagerConstructor.newInstance(main, fallible = new FallibleDBImpl(new InMemory(main.getLogger()))));
         databaseManager = advancementMain.getDatabaseManager();
@@ -65,7 +65,7 @@ public class DatabaseManagerTest {
     }
 
     @AfterEach
-    public void tearDown() throws Exception {
+    void tearDown() throws Exception {
         advancementMain.disable();
         advancementMain = null;
         databaseManager = null;
@@ -75,7 +75,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void playerLoadingTest() throws Exception {
+    void playerLoadingTest() throws Exception {
         PlayerMock pl1 = loadPlayer();
         assertTrue(databaseManager.isLoaded(pl1.getUniqueId()));
 
@@ -89,7 +89,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void advancementSetProgressionTest() throws Exception {
+    void advancementSetProgressionTest() throws Exception {
         PlayerMock p = loadPlayer();
 
         Entry<Integer, CompletableFuture<Integer>> entry = databaseManager.setProgression(KEY1, p, 10);
@@ -99,7 +99,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void advancementSetProgressionWithFailureTest() throws Exception {
+    void advancementSetProgressionWithFailureTest() throws Exception {
         PlayerMock p = loadPlayer();
 
         Paused paused = pauseFutureTasks();
@@ -124,7 +124,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void advancementIncrementProgressionTest() throws Exception {
+    void advancementIncrementProgressionTest() throws Exception {
         PlayerMock p = loadPlayer();
 
         Entry<Integer, CompletableFuture<Integer>> entry = databaseManager.incrementProgression(KEY1, p, 10);
@@ -134,7 +134,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void advancementIncrementProgressionWithFailureTest() throws Exception {
+    void advancementIncrementProgressionWithFailureTest() throws Exception {
         PlayerMock p = loadPlayer();
 
         Paused paused = pauseFutureTasks();
@@ -159,7 +159,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void updatePlayerTeamTest() {
+    void updatePlayerTeamTest() {
         PlayerMock pl1 = loadPlayer();
         PlayerMock pl2 = loadPlayer();
         PlayerMock pl3 = loadPlayer();
@@ -208,7 +208,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void updatePlayerTeamWithFailureTest() {
+    void updatePlayerTeamWithFailureTest() {
         PlayerMock pl1 = loadPlayer();
         PlayerMock pl2 = loadPlayer();
         PlayerMock pl3 = loadPlayer();
@@ -247,7 +247,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void moveInNewTeamTest() throws Exception {
+    void moveInNewTeamTest() throws Exception {
         PlayerMock pl1 = loadPlayer();
         TeamProgression pro = databaseManager.getTeamProgression(pl1);
 
@@ -265,7 +265,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void moveInNewTeamWithFailureTest() throws Exception {
+    void moveInNewTeamWithFailureTest() throws Exception {
         PlayerMock pl1 = loadPlayer();
         TeamProgression pro = databaseManager.getTeamProgression(pl1);
         assertTrue(pro.isValid());
@@ -284,7 +284,7 @@ public class DatabaseManagerTest {
         assertTrue(pro.contains(pl1));
     }
 
-    public PlayerMock loadPlayer() {
+    private PlayerMock loadPlayer() {
         AtomicBoolean finished = new AtomicBoolean(false);
         AtomicBoolean skip = new AtomicBoolean(false);
         AtomicBoolean hadSuccess = new AtomicBoolean(false);
