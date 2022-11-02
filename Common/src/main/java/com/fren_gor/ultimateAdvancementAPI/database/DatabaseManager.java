@@ -39,6 +39,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -51,6 +52,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
@@ -171,10 +173,10 @@ public final class DatabaseManager implements Closeable {
         });
         eventManager.register(this, PluginDisableEvent.class, EventPriority.HIGHEST, e -> {
             synchronized (DatabaseManager.this) {
-                List<UUID> list = new LinkedList<>();
+                List<UUID> list = new ArrayList<>(tempLoaded.size());
                 for (Entry<UUID, TempUserMetadata> en : tempLoaded.entrySet()) {
                     // Make sure they will be unloaded
-                    if (en.getValue().pluginRequests.remove(e.getPlugin()) != null) {
+                    if (en.getValue().pluginAutoRequests.remove(e.getPlugin()) != null || en.getValue().pluginManualRequests.remove(e.getPlugin()) != null) {
                         list.add(en.getKey());
                     }
                 }
@@ -1252,83 +1254,50 @@ public final class DatabaseManager implements Closeable {
 
     private static final class TempUserMetadata {
 
-        // Integer format: first 16 bits for automatic requests count and 16 bits for plugin requests count
-        final Map<Plugin, Integer> pluginRequests = new HashMap<>();
-        boolean isOnline;
+        final Map<Plugin, Integer> pluginAutoRequests = new HashMap<>();
+        final Map<Plugin, Integer> pluginManualRequests = new HashMap<>();
+        final AtomicInteger internalRequests = new AtomicInteger(0);
+        volatile boolean isOnline;
 
         public TempUserMetadata(UUID uuid) {
             this.isOnline = Bukkit.getPlayer(uuid) != null;
         }
 
-        public void addRequest(@NotNull Plugin plugin, boolean auto) {
-            pluginRequests.compute(plugin, (p, i) -> {
+        public synchronized void addRequest(@NotNull Plugin plugin, boolean auto) {
+            Map<Plugin, Integer> map = auto ? pluginAutoRequests: pluginManualRequests;
+            map.compute(plugin, (p, i) -> {
                 if (i == null) {
                     i = 0;
                 }
-                return auto ? addAuto(i) : addManual(i);
+                return i + 1;
             });
         }
 
-        public void removeRequest(@NotNull Plugin plugin, boolean auto) {
-            Integer i = pluginRequests.get(plugin);
-            if (i != null) {
-                i = auto ? removeAuto(i) : removeManual(i);
-                if (Integer.compareUnsigned(i, 0) <= 0) {
-                    pluginRequests.remove(plugin);
-                } else {
-                    pluginRequests.put(plugin, i);
+        public synchronized void removeRequest(@NotNull Plugin plugin, boolean auto) {
+            Map<Plugin, Integer> map = auto ? pluginAutoRequests: pluginManualRequests;
+            map.compute(plugin, (p, i) -> {
+                if (i == null) {
+                    return null;
                 }
-            }
+                i--;
+                return i <= 0 ? null : i;
+            });
         }
 
-        public int getRequests(@NotNull Plugin plugin) {
-            return pluginRequests.getOrDefault(plugin, 0);
+        public synchronized int getRequests(@NotNull Plugin plugin) {
+            return getAuto(plugin) + getManual(plugin);
         }
 
-        public int getAuto(@NotNull Plugin plugin) {
-            return getRequests(plugin) >>> 16;
+        public synchronized int getAuto(@NotNull Plugin plugin) {
+            return pluginAutoRequests.getOrDefault(plugin, 0);
         }
 
-        public int getManual(@NotNull Plugin plugin) {
-            return getRequests(plugin) & 0xFFFF;
+        public synchronized int getManual(@NotNull Plugin plugin) {
+            return pluginManualRequests.getOrDefault(plugin, 0);
         }
 
-        public boolean canBeRemoved() {
-            return pluginRequests.isEmpty();
-        }
-
-        private int addAuto(int i) {
-            char tmp = (char) (i >>> 16);
-            if (tmp == Character.MAX_VALUE) {
-                throw new RuntimeException("Max per-plugin automatic simultaneous requests amount exceeded.");
-            }
-            return ((tmp + 1) << 16) | (i & 0xFFFF);
-        }
-
-        private int addManual(int i) {
-            char tmp = (char) (i & 0xFFFF);
-            if (tmp == Character.MAX_VALUE) {
-                throw new RuntimeException("Max per-plugin manual simultaneous requests amount exceeded.");
-            }
-            return (tmp + 1) | (i & 0xFFFF0000);
-        }
-
-        private int removeAuto(int i) {
-            char tmp = (char) (i >>> 16);
-            return tmp == 0 ? (i & 0xFFFF) : ((tmp - 1) << 16) | (i & 0xFFFF);
-        }
-
-        private int removeManual(int i) {
-            char tmp = (char) (i & 0xFFFF);
-            return tmp == 0 ? (i & 0xFFFF0000) : (tmp - 1) | (i & 0xFFFF0000);
-        }
-
-        @Override
-        public String toString() {
-            return "TempUserMetadata{" +
-                    "pluginRequests=" + pluginRequests +
-                    ", isOnline=" + isOnline +
-                    '}';
+        public synchronized boolean canBeRemoved() {
+            return internalRequests.get() == 0 && pluginManualRequests.isEmpty() && pluginAutoRequests.isEmpty();
         }
     }
 }
