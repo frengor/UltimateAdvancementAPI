@@ -45,6 +45,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -101,12 +102,7 @@ public final class DatabaseManager implements Closeable {
      * @throws Exception If anything goes wrong.
      */
     public DatabaseManager(@NotNull AdvancementMain main) throws Exception {
-        Preconditions.checkNotNull(main, "AdvancementMain is null.");
-        this.main = main;
-        this.eventManager = main.getEventManager();
-
-        database = new InMemory(main.getLogger());
-        commonSetUp();
+        this(main, new InMemory(main.getLogger()));
     }
 
     /**
@@ -117,13 +113,7 @@ public final class DatabaseManager implements Closeable {
      * @throws Exception If anything goes wrong.
      */
     public DatabaseManager(@NotNull AdvancementMain main, @NotNull File dbFile) throws Exception {
-        Preconditions.checkNotNull(main, "AdvancementMain is null.");
-        Preconditions.checkNotNull(dbFile, "Database file is null.");
-        this.main = main;
-        this.eventManager = main.getEventManager();
-
-        database = new SQLite(dbFile, main.getLogger());
-        commonSetUp();
+        this(main, new SQLite(Objects.requireNonNull(dbFile, "Database file is null."), main.getLogger()));
     }
 
     /**
@@ -140,11 +130,14 @@ public final class DatabaseManager implements Closeable {
      * @throws Exception If anything goes wrong.
      */
     public DatabaseManager(@NotNull AdvancementMain main, @NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout) throws Exception {
+        this(main, new MySQL(username, password, databaseName, host, port, poolSize, connectionTimeout, main.getLogger(), main.getLibbyManager()));
+    }
+
+    private DatabaseManager(@NotNull AdvancementMain main, @NotNull IDatabase database) throws Exception {
         Preconditions.checkNotNull(main, "AdvancementMain is null.");
         this.main = main;
         this.eventManager = main.getEventManager();
-
-        database = new MySQL(username, password, databaseName, host, port, poolSize, connectionTimeout, main.getLogger(), main.getLibbyManager());
+        this.database = database;
         commonSetUp();
     }
 
@@ -415,7 +408,20 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID otherTeamMember) throws UserNotLoadedException {
-        return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), getTeamProgression(otherTeamMember));
+        return updatePlayerTeam(playerToMove, getTeamProgression(otherTeamMember));
+    }
+
+    /**
+     * Moves the provided player from their team to the specified one.
+     *
+     * @param playerToMove The {@link UUID} of the player to move.
+     * @param otherTeamProgression The {@link TeamProgression} of the target team.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the cache.
+     */
+    @NotNull
+    public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
+        return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), otherTeamProgression);
     }
 
     /**
@@ -436,18 +442,10 @@ public final class DatabaseManager implements Closeable {
         Preconditions.checkNotNull(playerToMove, "Player to move is null.");
         validateTeamProgression(otherTeamProgression);
 
-        final TeamProgression oldProgression;
         synchronized (DatabaseManager.this) {
-            oldProgression = progressionCache.get(playerToMove);
-        }
-
-        if (oldProgression == null) {
-            throw new UserNotLoadedException(playerToMove);
-        }
-
-        if (otherTeamProgression.contains(playerToMove)) {
-            // Player is already in that team
-            return CompletableFuture.completedFuture(null);
+            if (!progressionCache.containsKey(playerToMove)) {
+                throw new UserNotLoadedException(playerToMove);
+            }
         }
 
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
@@ -465,7 +463,7 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
 
-            // Get old progression again since it may be changed
+            // Get old progression
             final TeamProgression oldTeam;
             synchronized (DatabaseManager.this) {
                 oldTeam = progressionCache.get(playerToMove);
@@ -516,13 +514,11 @@ public final class DatabaseManager implements Closeable {
 
     private CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID uuid, @Nullable Player ptr) throws UserNotLoadedException {
         Preconditions.checkNotNull(uuid, "UUID is null.");
-        final TeamProgression oldProgression;
-        synchronized (DatabaseManager.this) {
-            oldProgression = progressionCache.get(uuid);
-        }
 
-        if (oldProgression == null) {
-            throw new UserNotLoadedException(uuid);
+        synchronized (DatabaseManager.this) {
+            if (!progressionCache.containsKey(uuid)) {
+                throw new UserNotLoadedException(uuid);
+            }
         }
 
         CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
@@ -541,7 +537,7 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
 
-            // Get old progression again since it may be changed
+            // Get old progression
             final TeamProgression oldTeam;
             synchronized (DatabaseManager.this) {
                 oldTeam = progressionCache.get(uuid);
@@ -615,7 +611,7 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Updates the progression of the specified advancement.
+     * Sets the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player who made the advancement.
@@ -629,7 +625,7 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Updates the progression of the specified advancement.
+     * Sets the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param player The player who made the advancement.
@@ -643,7 +639,7 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Updates the progression of the specified advancement.
+     * Sets the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
@@ -662,7 +658,7 @@ public final class DatabaseManager implements Closeable {
         CompletableFuture<Integer> completableFuture = new CompletableFuture<>();
 
         CompletableFuture.runAsync(() -> {
-            if (result.progressionUpdate().oldValue != newProgression) { // Don't update the db if the saved progression won't change
+            if (result.progressionUpdate().getOldValue() != newProgression) { // Don't update the db if the saved progression won't change
                 try {
                     database.updateAdvancement(key, progression.getTeamId(), result.newCachedValue());
                 } catch (SQLException e) {
@@ -686,7 +682,35 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Updates the progression of the specified advancement.
+     * Increments the progression of the specified advancement.
+     *
+     * @param key The advancement key.
+     * @param uuid The {@link UUID} of the player who made the advancement.
+     * @param newProgression The increment of the progression.
+     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the cache.
+     */
+    @NotNull
+    public Entry<Integer, CompletableFuture<Integer>> incrementProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+        return incrementProgression(key, getTeamProgression(uuid), newProgression);
+    }
+
+    /**
+     * Increments the progression of the specified advancement.
+     *
+     * @param key The advancement key.
+     * @param player The player who made the advancement.
+     * @param newProgression The increment of the progression.
+     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the cache.
+     */
+    @NotNull
+    public Entry<Integer, CompletableFuture<Integer>> incrementProgression(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+        return incrementProgression(key, uuidFromPlayer(player), newProgression);
+    }
+
+    /**
+     * Increments the progression of the specified advancement.
      *
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
@@ -1162,9 +1186,9 @@ public final class DatabaseManager implements Closeable {
         final boolean teamUnloaded, newTeamLoaded;
         synchronized (DatabaseManager.this) {
             // Replace team atomically
-            oldTeam.movePlayer(newTeam, uuid);
             progressionCache.put(uuid, newTeam);
             newTeamLoaded = newTeam.inCache.getAndSet(true);
+            oldTeam.movePlayer(newTeam, uuid);
 
             // Check for team unloading
             teamUnloaded = oldTeam.noMemberMatch(progressionCache::containsKey);

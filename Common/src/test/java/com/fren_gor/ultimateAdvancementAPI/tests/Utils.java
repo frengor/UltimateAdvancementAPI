@@ -1,24 +1,22 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
+import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
-import org.bukkit.command.SimpleCommandMap;
+import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.SimplePluginManager;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -77,20 +75,18 @@ public final class Utils {
 
     public static void mockServer(@NotNull Runnable runnable) {
         assertNotNull(runnable);
-        try (MockedStatic<Bukkit> bukkitMock = mockServer()) {
+        ServerMock server = mockServer();
+        try {
             runnable.run();
+        } finally {
+            MockBukkit.unmock();
         }
     }
 
-    public static MockedStatic<Bukkit> mockServer() {
-        MockedStatic<Bukkit> bukkitMock = Mockito.mockStatic(Bukkit.class);
-        Server server = InterfaceImplementer.newFakeServer();
-        bukkitMock.when(Bukkit::getServer).thenReturn(server);
-        assertSame("Server mock failed", Bukkit.getServer(), server);
-        PluginManager plManager = new SimplePluginManager(server, new SimpleCommandMap(server));
-        bukkitMock.when(Bukkit::getPluginManager).thenReturn(plManager);
-        bukkitMock.when(Bukkit::getLogger).thenReturn(Logger.getLogger("BukkitLogger"));
-        return bukkitMock;
+    public static ServerMock mockServer() {
+        ServerMock server = MockBukkit.mock(new VersionedServerMock());
+        MockBukkit.ensureMocking();
+        return server;
     }
 
     /**
@@ -101,39 +97,31 @@ public final class Utils {
      * }</pre></blockquote>
      *
      * @param plugin The plugin
+     * @param databaseManagerSupplier The database manager supplier.
      */
-    public static AdvancementMain newAdvancementMain(@NotNull Plugin plugin) {
-        return newAdvancementMain(plugin, new EventManager(plugin));
-    }
-
-    /**
-     * Must be called inside a:
-     * <blockquote><pre>
-     * Utils.mockServer(() -> {
-     *     newAdvancementMain(...)
-     * }</pre></blockquote>
-     *
-     * @param plugin The plugin
-     * @param manager The event manager
-     */
-    public static AdvancementMain newAdvancementMain(@NotNull Plugin plugin, @NotNull EventManager manager) {
-        assertNotNull("newAdvancementMain(...) must be called inside Utils.mockServer(...)", Bukkit.getServer());
+    public static AdvancementMain newAdvancementMain(@NotNull Plugin plugin, @NotNull DatabaseManagerSupplier databaseManagerSupplier) {
+        assertNotNull(Bukkit.getServer(), "newAdvancementMain(...) must be called inside Utils.mockServer(...)");
         assertNotNull(plugin);
-        assertNotNull(manager);
+        assertNotNull(databaseManagerSupplier);
         AdvancementMain main = new AdvancementMain(plugin);
         try {
             ((AtomicBoolean) mainLOADED.get(main)).set(true);
             ((AtomicBoolean) mainENABLED.get(main)).set(true);
             ((AtomicBoolean) mainINVALID_VERSION.get(main)).set(false);
 
-            mainEventManager.set(main, manager);
-            mainDatabaseManager.set(main, new DatabaseManager(main));
+            mainEventManager.set(main, new EventManager(plugin));
             mainLibbyManager.set(main, testLibraryManager);
+            mainDatabaseManager.set(main, Objects.requireNonNull(databaseManagerSupplier.apply(main)));
         } catch (Exception e) {
             e.printStackTrace();
             fail("Cannot instantiate AdvancementMain for tests.");
         }
         return main;
+    }
+
+    public interface DatabaseManagerSupplier {
+        @NotNull
+        DatabaseManager apply(AdvancementMain main) throws Exception;
     }
 
     private Utils() {

@@ -8,6 +8,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +42,9 @@ public final class TeamProgression {
     final ProgressionUpdaterManager progressionUpdaterManager = new ProgressionUpdaterManager();
 
     // Should be updated only from inside ProgressionUpdate having synchronized over ProgressionUpdate.this
+    //
+    // Updates related to different advancements may happen simultaneously, synchronization over the whole collection is
+    // always already present since the Map is an instance of ConcurrentHashMap
     private final Map<AdvancementKey, Integer> advancements;
 
     /**
@@ -53,6 +57,7 @@ public final class TeamProgression {
      * @throws IllegalOperationException If this constructor is called by a class not in the
      *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
      */
+    @Internal
     public TeamProgression(int teamId, @NotNull UUID member) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         Preconditions.checkNotNull(member, "Member is null.");
@@ -73,6 +78,7 @@ public final class TeamProgression {
      * @throws IllegalOperationException If this constructor is called by a class not in the
      *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
      */
+    @Internal
     public TeamProgression(@NotNull Map<AdvancementKey, Integer> advancements, int teamId, @NotNull Collection<UUID> members) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         Preconditions.checkNotNull(advancements, "Advancements is null.");
@@ -110,7 +116,7 @@ public final class TeamProgression {
         }
     }
 
-    private int getRawProgression(@NotNull AdvancementKey key) {
+    int getRawProgression(@NotNull AdvancementKey key) {
         Preconditions.checkNotNull(key, "AdvancementKey is null.");
 
         Integer progression = advancements.get(key);
@@ -378,7 +384,7 @@ public final class TeamProgression {
 
         final class ProgressionUpdate {
             final AdvancementKey advancementKey;
-            int oldValue;
+            private int oldValue;
             final ArrayDeque<ProgressionUpdateInfo> updateQueue = new ArrayDeque<>();
 
             public ProgressionUpdate(AdvancementKey key, int oldValue) {
@@ -388,9 +394,16 @@ public final class TeamProgression {
 
             private synchronized ScheduleResult scheduleUpdate(ProgressionUpdateInfo info) {
                 updateQueue.addFirst(info);
+
+                // Note that no `advancements.put(advancementKey, ...)` operation is possible between
+                // the get and the put down below since we have synchronized over ProgressionUpdate.this
+                // (see the comment on top of `advancements` declaration)
+
+                Integer nullableOldValue = advancements.get(advancementKey);
+                int oldValue = nullableOldValue == null ? 0 : nullableOldValue;
                 int value = info.applyUpdate(oldValue);
-                Integer oldValue = advancements.put(advancementKey, value);
-                return new ScheduleResult(this, oldValue == null ? 0 : oldValue, value);
+                advancements.put(advancementKey, value);
+                return new ScheduleResult(this, oldValue, value);
             }
 
             public synchronized int updateEndedSuccessfully() {
@@ -418,6 +431,10 @@ public final class TeamProgression {
                     }
                 }
             }
+
+            public synchronized int getOldValue() {
+                return oldValue;
+            }
         }
 
         // value is an increment when operation==INCREMENT and the progression to set when operation==SET
@@ -427,13 +444,18 @@ public final class TeamProgression {
 
             public int applyUpdate(int currentValue) {
                 if (operation == INCREMENT) {
-                    return Math.max(currentValue + value, 0);
+                    try {
+                        return Math.max(Math.addExact(currentValue, value), 0);
+                    } catch (ArithmeticException ignored) {
+                        return Integer.MAX_VALUE;
+                    }
                 } else { // operation == SET
                     return value;
                 }
             }
         }
 
-        record ScheduleResult(ProgressionUpdate progressionUpdate, int oldValue, int newCachedValue) {}
+        record ScheduleResult(ProgressionUpdate progressionUpdate, int oldValue, int newCachedValue) {
+        }
     }
 }

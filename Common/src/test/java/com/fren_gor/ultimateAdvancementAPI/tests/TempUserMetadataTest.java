@@ -1,15 +1,16 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
+import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.ServerMock;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.mockito.MockedStatic;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -18,7 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TempUserMetadataTest {
 
@@ -26,12 +27,12 @@ public class TempUserMetadataTest {
     private static final Map<String, Method> methods = new HashMap<>();
     private static final int PLAYER_TO_REGISTER = 4;
 
-    private MockedStatic<Bukkit> bukkitMock;
+    private ServerMock server;
     private final Map<UUID, Player> players = new HashMap<>();
     private Object testUserMetadataInstance;
 
-    @BeforeClass
-    public static void beforeClass() throws Exception {
+    @BeforeAll
+    static void initAll() throws Exception {
         Class<?> tempUserMetadataClass = Class.forName("com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager$TempUserMetadata");
 
         constructor = tempUserMetadataClass.getConstructor(UUID.class);
@@ -42,33 +43,37 @@ public class TempUserMetadataTest {
         }
     }
 
-    @Before
-    public void setUp() throws Exception {
-        assertTrue("Invalid PLAYER_TO_REGISTER", PLAYER_TO_REGISTER > 1);
+    @AfterAll
+    static void tearDownAll() {
+        methods.clear();
+    }
 
-        bukkitMock = Utils.mockServer();
+    @BeforeEach
+    void init() throws Exception {
+        assertTrue(PLAYER_TO_REGISTER > 1, "Invalid PLAYER_TO_REGISTER");
+
+        server = Utils.mockServer();
         for (int i = 0; i < PLAYER_TO_REGISTER; i++) {
-            UUID uuid = UUID.randomUUID();
-            Player pl = InterfaceImplementer.newFakePlayer(uuid);
+            Player pl = server.addPlayer();
+            UUID uuid = pl.getUniqueId();
 
-            bukkitMock.when(() -> Bukkit.getPlayer(uuid)).thenReturn(pl);
-            assertEquals("Mock failed", Bukkit.getPlayer(uuid), pl);
+            assertEquals(Bukkit.getPlayer(uuid), pl, "Mock failed");
             players.put(uuid, pl);
         }
 
         testUserMetadataInstance = constructor.newInstance(Objects.requireNonNull(players.keySet().iterator().next(), "Couldn't find any player in players map."));
     }
 
-    @After
-    public void tearDown() throws Exception {
-        bukkitMock.close();
-        bukkitMock = null;
+    @AfterEach
+    void tearDown() throws Exception {
+        MockBukkit.unmock();
+        server = null;
         players.clear();
         testUserMetadataInstance = null;
     }
 
     @Test
-    public void addAutoTest() throws Exception {
+    void addAutoTest() throws Exception {
         final Method m = getMethod("addAuto");
         int old = 0x0000_ABCD;
         for (int i = 0; i < Character.MAX_VALUE; i++) {
@@ -87,7 +92,7 @@ public class TempUserMetadataTest {
     }
 
     @Test
-    public void addManualTest() throws Exception {
+    void addManualTest() throws Exception {
         final Method m = getMethod("addManual");
         int old = 0xABCD_0000;
         for (int i = 0; i < Character.MAX_VALUE; i++) {
@@ -106,7 +111,7 @@ public class TempUserMetadataTest {
     }
 
     @Test
-    public void removeAutoTest() throws Exception {
+    void removeAutoTest() throws Exception {
         final Method m = getMethod("removeAuto");
         int old = 0xFFFF_ABCD;
         for (int i = 0; i < Character.MAX_VALUE; i++) {
@@ -119,7 +124,7 @@ public class TempUserMetadataTest {
     }
 
     @Test
-    public void removeManualTest() throws Exception {
+    void removeManualTest() throws Exception {
         final Method m = getMethod("removeManual");
         int old = 0xABCD_FFFF;
         for (int i = 0; i < Character.MAX_VALUE; i++) {
@@ -132,10 +137,10 @@ public class TempUserMetadataTest {
     }
 
     @Test
-    public void addRequest() throws Exception {
+    void addRequest() throws Exception {
         final Method m = getMethod("addRequest");
-        final Plugin p1 = InterfaceImplementer.newFakePlugin("Test1");
-        final Plugin p2 = InterfaceImplementer.newFakePlugin("Test2");
+        final Plugin p1 = MockBukkit.createMockPlugin("Test1");
+        final Plugin p2 = MockBukkit.createMockPlugin("Test2");
         assertAutoManual(0, 0, p1);
         assertAutoManual(0, 0, p2);
         for (int i = 1; i <= Character.MAX_VALUE; i++) {
@@ -150,7 +155,7 @@ public class TempUserMetadataTest {
             m.invoke(testUserMetadataInstance, p2, false);
             assertAutoManual(Character.MAX_VALUE, i, p2);
         }
-        assertAutoManual(0, 0, InterfaceImplementer.newFakePlugin("Another")); // Just to be sure
+        assertAutoManual(0, 0, MockBukkit.createMockPlugin("Another")); // Just to be sure
         assertThrows(RuntimeException.class, () -> {
             try {
                 m.invoke(testUserMetadataInstance, p1, true);
@@ -168,11 +173,11 @@ public class TempUserMetadataTest {
     }
 
     @Test
-    public void removeRequest() throws Exception {
+    void removeRequest() throws Exception {
         final Method add = getMethod("addRequest");
         final Method m = getMethod("removeRequest");
-        final Plugin p1 = InterfaceImplementer.newFakePlugin("Test1");
-        final Plugin p2 = InterfaceImplementer.newFakePlugin("Test2");
+        final Plugin p1 = MockBukkit.createMockPlugin("Test1");
+        final Plugin p2 = MockBukkit.createMockPlugin("Test2");
 
         // Prepare tests, addRequest method is tested above
         for (int i = 0; i < Character.MAX_VALUE; i++) {
@@ -204,14 +209,14 @@ public class TempUserMetadataTest {
     private void assertAutoManual(int auto, int manual, @NotNull Plugin pl) throws Exception {
         final Method gA = getMethod("getAuto");
         final Method gM = getMethod("getManual");
-        Assert.assertEquals(auto, gA.invoke(testUserMetadataInstance, pl));
-        Assert.assertEquals(manual, gM.invoke(testUserMetadataInstance, pl));
+        assertEquals(auto, gA.invoke(testUserMetadataInstance, pl));
+        assertEquals(manual, gM.invoke(testUserMetadataInstance, pl));
     }
 
     private Method getMethod(String method) {
         Method m = methods.get(method);
         if (m == null) {
-            Assert.fail("Couldn't find method '" + method + '\'');
+            fail("Couldn't find method '" + method + '\'');
         }
         return m;
     }

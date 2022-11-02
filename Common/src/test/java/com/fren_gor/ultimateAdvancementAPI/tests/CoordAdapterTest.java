@@ -1,48 +1,49 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
+import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter.Coord;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.MockedStatic;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CoordAdapterTest {
 
-    private MockedStatic<Bukkit> bukkitMock;
+    private ServerMock server;
 
-    @Before
-    public void setUp() throws Exception {
-        bukkitMock = Utils.mockServer();
+    @BeforeEach
+    void init() {
+        server = Utils.mockServer();
     }
 
-    @After
-    public void tearDown() throws Exception {
-        bukkitMock.close();
-        bukkitMock = null;
+    @AfterEach
+    void tearDown() {
+        MockBukkit.unmock();
+        server = null;
     }
 
     @Test
-    public void basicCoordTest() {
+    void basicCoordTest() {
         var coord = new Coord(0, 0);
         assertEquals(0, coord.x(), 0);
         assertEquals(0, coord.y(), 0);
@@ -55,7 +56,7 @@ public class CoordAdapterTest {
     }
 
     @Test
-    public void NaNCoordTest() {
+    void NaNCoordTest() {
         assertThrows(IllegalArgumentException.class, () -> {
             new Coord(Float.NaN, 0);
         });
@@ -68,7 +69,7 @@ public class CoordAdapterTest {
     }
 
     @Test
-    public void infiniteCoordTest() {
+    void infiniteCoordTest() {
         // +infinite
         assertThrows(IllegalArgumentException.class, () -> {
             new Coord(Float.POSITIVE_INFINITY, 0);
@@ -93,7 +94,7 @@ public class CoordAdapterTest {
     }
 
     @Test
-    public void coordAdapterTest() {
+    void coordAdapterTest() {
         testCoordAdapterHelper(List.of(new Coord(0, 0), new Coord(5, 7), new Coord(-2, -11)));
         testCoordAdapterHelper(List.of(new Coord(0, 0), new Coord(0, 0), new Coord(0, 0)));
         testCoordAdapterHelper(List.of(new Coord(100, 98), new Coord(54, 43), new Coord(32, 8)));
@@ -123,7 +124,7 @@ public class CoordAdapterTest {
 
         // Test converted values
         for (Set<AdvancementKey> set : Sets.combinations(map.keySet(), 2)) {
-            assertEquals("Guava Sets#combinations bugged!", 2, set.size());
+            assertEquals(2, set.size(), "Guava Sets#combinations bugged!");
             var iter = set.iterator();
             AdvancementKey key1 = iter.next();
             AdvancementKey key2 = iter.next();
@@ -137,45 +138,50 @@ public class CoordAdapterTest {
     }
 
     @Test
-    public void docCodeTest() {
-        Plugin myPlugin = InterfaceImplementer.newFakePlugin("myPlugin");
-        AdvancementMain main = Utils.newAdvancementMain(myPlugin);
-        AdvancementTab myTab = main.createAdvancementTab(myPlugin, "mytab");
+    void docCodeTest() {
+        Plugin myPlugin = MockBukkit.createMockPlugin("myPlugin");
+        AdvancementMain main = Utils.newAdvancementMain(myPlugin, DatabaseManager::new);
 
-        // Keys of the advancements to create
-        var advKey1 = new AdvancementKey(myPlugin, "first_advancement");
-        var advKey2 = new AdvancementKey(myPlugin, "second_advancement");
-        var advKey3 = new AdvancementKey(myPlugin, "third_advancement");
+        try {
+            AdvancementTab myTab = main.createAdvancementTab(myPlugin, "mytab");
 
-        // Create the CoordAdapter instance
-        CoordAdapter adapter = CoordAdapter.builder()
-                .add(advKey1, 0, 0)  // Will become (0, 1)
-                .add(advKey2, 1, -1) // Will become (1, 0)
-                .add(advKey3, 1, 1)  // Will become (1, 2)
-                .build();
+            // Keys of the advancements to create
+            var advKey1 = new AdvancementKey(myPlugin, "first_advancement");
+            var advKey2 = new AdvancementKey(myPlugin, "second_advancement");
+            var advKey3 = new AdvancementKey(myPlugin, "third_advancement");
 
-        // Create the AdvancementDisplays
-        var advDisplay1 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title1").coords(adapter, advKey1).build();
-        var advDisplay2 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title2").coords(adapter, advKey2).build();
-        var advDisplay3 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title3").coords(adapter, advKey3).build();
+            // Create the CoordAdapter instance
+            CoordAdapter adapter = CoordAdapter.builder()
+                    .add(advKey1, 0, 0)  // Will become (0, 1)
+                    .add(advKey2, 1, -1) // Will become (1, 0)
+                    .add(advKey3, 1, 1)  // Will become (1, 2)
+                    .build();
 
-        // Create the advancements
-        var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1, "textures/block/stone.png");
-        var adv2 = new BaseAdvancement(advKey2.getKey(), advDisplay2, adv1);
-        var adv3 = new BaseAdvancement(advKey3.getKey(), advDisplay3, adv1, 5);
+            // Create the AdvancementDisplays
+            var advDisplay1 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title1").coords(adapter, advKey1).build();
+            var advDisplay2 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title2").coords(adapter, advKey2).build();
+            var advDisplay3 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title3").coords(adapter, advKey3).build();
 
-        // Just to be sure the comments above are correct
-        assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(0, 1));
-        assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(1, 0));
-        assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(1, 2));
-        assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(advDisplay1));
-        assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(advDisplay2));
-        assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(advDisplay3));
+            // Create the advancements
+            var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1, "textures/block/stone.png");
+            var adv2 = new BaseAdvancement(advKey2.getKey(), advDisplay2, adv1);
+            var adv3 = new BaseAdvancement(advKey3.getKey(), advDisplay3, adv1, 5);
+
+            // Just to be sure the comments above are correct
+            assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(0, 1));
+            assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(1, 0));
+            assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(1, 2));
+            assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(advDisplay1));
+            assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(advDisplay2));
+            assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(advDisplay3));
+        } finally {
+            main.disable();
+        }
     }
 
     @Test
-    public void offsetTest() {
-        Plugin pl = InterfaceImplementer.newFakePlugin("plugin");
+    void offsetTest() {
+        Plugin pl = MockBukkit.createMockPlugin("plugin");
         var parent = new AdvancementKey(pl, "akey");
         var child = new AdvancementKey(pl, "anotherkey");
 

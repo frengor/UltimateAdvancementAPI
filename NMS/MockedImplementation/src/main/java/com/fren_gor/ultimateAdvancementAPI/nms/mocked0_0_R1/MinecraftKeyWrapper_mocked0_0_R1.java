@@ -1,23 +1,25 @@
-package com.fren_gor.ultimateAdvancementAPI.nms.serverVersion1_17_R1;
+package com.fren_gor.ultimateAdvancementAPI.nms.mocked0_0_R1;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
-public class MinecraftKeyWrapper_serverVersion1_17_R1 extends MinecraftKeyWrapper {
+import java.util.regex.Pattern;
+
+public class MinecraftKeyWrapper_mocked0_0_R1 extends MinecraftKeyWrapper {
+
+    private static final Pattern VALID_NAMESPACE = Pattern.compile("[a-z0-9_.-]{1,127}");
+    private static final Pattern VALID_KEY = Pattern.compile("[a-z0-9_.\\-/]{1,127}");
 
     private final String namespace, key;
 
-    public MinecraftKeyWrapper_serverVersion1_17_R1(@NotNull Object key) {
+    public MinecraftKeyWrapper_mocked0_0_R1(@NotNull Object key) {
         throw new UnsupportedOperationException();
     }
 
-    public MinecraftKeyWrapper_serverVersion1_17_R1(@NotNull String namespace, @NotNull String key) {
-        AdvancementKey.checkNamespace(namespace);
-        AdvancementKey.checkKey(key);
-        Preconditions.checkArgument(AdvancementKey.VALID_NAMESPACE.matcher(namespace).matches());
-        Preconditions.checkArgument(AdvancementKey.VALID_KEY.matcher(key).matches());
+    public MinecraftKeyWrapper_mocked0_0_R1(@NotNull String namespace, @NotNull String key) {
+        Preconditions.checkArgument(VALID_NAMESPACE.matcher(namespace).matches());
+        Preconditions.checkArgument(VALID_KEY.matcher(key).matches());
         this.namespace = namespace;
         this.key = key;
     }
@@ -25,7 +27,7 @@ public class MinecraftKeyWrapper_serverVersion1_17_R1 extends MinecraftKeyWrappe
     @Override
     @NotNull
     public Object toNMS() {
-        throw new UnsupportedOperationException();
+        return this;
     }
 
     @Override
