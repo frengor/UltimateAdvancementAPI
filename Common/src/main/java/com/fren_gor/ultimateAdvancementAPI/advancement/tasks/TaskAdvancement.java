@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
+import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
@@ -102,15 +103,15 @@ public class TaskAdvancement extends BaseAdvancement {
         validateProgressionValueStrict(progression, maxProgression);
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
-        Entry<Integer, CompletableFuture<Integer>> result = ds.setProgression(key, pro, progression);
+        ProgressionUpdateResult result = ds.setProgression(key, pro, progression);
 
         try {
-            Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.getKey(), progression, this));
+            Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), progression, this));
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
 
-        handlePlayer(pro, player, progression, result.getKey(), giveRewards, null);
+        handlePlayer(pro, player, progression, result.oldProgression(), giveRewards, null);
         getMultiTasksAdvancement().reloadTasks(pro, player, giveRewards);
     }
 

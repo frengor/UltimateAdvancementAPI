@@ -4,6 +4,7 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
+import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
@@ -446,15 +447,15 @@ public abstract class Advancement {
         validateProgressionValueStrict(progression, maxProgression);
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
-        Entry<Integer, CompletableFuture<Integer>> result = ds.setProgression(key, pro, progression);
+        ProgressionUpdateResult result = ds.setProgression(key, pro, progression);
 
         try {
-            Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.getKey(), progression, this));
+            Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), progression, this));
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
 
-        handlePlayer(pro, player, progression, result.getKey(), giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+        handlePlayer(pro, player, progression, result.oldProgression(), giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
     }
 
     /**
