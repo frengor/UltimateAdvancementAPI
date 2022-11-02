@@ -616,7 +616,8 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player who made the advancement.
      * @param newProgression The new progression.
-     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
+     * @return The {@link ProgressionUpdateResult} with the old progression and a {@link CompletableFuture} that will
+     *         complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     @NotNull
@@ -630,7 +631,8 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param player The player who made the advancement.
      * @param newProgression The new progression.
-     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
+     * @return The {@link ProgressionUpdateResult} with the old progression and a {@link CompletableFuture} that will
+     *         complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     @NotNull
@@ -644,7 +646,8 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
      * @param newProgression The new progression.
-     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
+     * @return The {@link ProgressionUpdateResult} with the old progression and a {@link CompletableFuture} that will
+     *         complete when the database update finishes.
      */
     @NotNull
     public ProgressionUpdateResult setProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
@@ -687,7 +690,8 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player who made the advancement.
      * @param newProgression The increment of the progression.
-     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
+     * @return The {@link ProgressionUpdateResult} with the old progression and a {@link CompletableFuture} that will
+     *         complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     @NotNull
@@ -701,7 +705,8 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param player The player who made the advancement.
      * @param newProgression The increment of the progression.
-     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
+     * @return The {@link ProgressionUpdateResult} with the old progression and a {@link CompletableFuture} that will
+     *         complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     @NotNull
@@ -715,7 +720,8 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
      * @param increment The increment of the progression.
-     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the result of the operation.
+     * @return The {@link ProgressionUpdateResult} with the old progression and a {@link CompletableFuture} that will
+     *         complete when the database update finishes.
      */
     @NotNull
     public ProgressionUpdateResult incrementProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
