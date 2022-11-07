@@ -505,6 +505,8 @@ public final class AdvancementMain {
     public void updatePlayer(@NotNull Player player) {
         checkInitialisation();
         Preconditions.checkNotNull(player, "Player is null.");
+        Preconditions.checkArgument(player.isOnline(), "Player isn't online");
+
         for (AdvancementTab tab : tabs.values()) {
             if (tab.isActive() && tab.isShownTo(player)) {
                 tab.updateAdvancementsToTeam(player);

@@ -4,7 +4,6 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.UltimateAdvancementAPI;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption.Option;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression.ProgressionUpdaterManager.ScheduleResult;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
@@ -19,7 +18,6 @@ import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUpdateEvent.Acti
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -73,27 +71,20 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
  *    assert teamP1 != teamP2;
  * }</pre></blockquote>
  * By default, players are kept in cache until they quit.
- * However, this behavior can be overridden through the {@link #loadOfflinePlayer(UUID, CacheFreeingOption)} method,
+ * However, this behavior can be overridden through the {@link #loadOfflinePlayer(UUID, Plugin, CacheFreeingOption)} method,
  * which forces a player to stay in cache even if they quit. If the player is not online, they'll be loaded.
- * <p>There is, however, a limit on the maximum amount of requests a plugin can do.
- * For more information, see {@link DatabaseManager#getLoadingRequestsAmount(Plugin, UUID, CacheFreeingOption.Option)}.
  * <p>This class is thread safe.
  */
 public final class DatabaseManager implements Closeable {
 
-    /**
-     * Max possible loading requests a plugin can make simultaneously per offline player.
-     * <p>Limit is applied to automatic and manual requests separately and doesn't apply to requests which don't cache.
-     */
-    public static final int MAX_SIMULTANEOUS_LOADING_REQUESTS = Character.MAX_VALUE;
     private static final int LOAD_EVENTS_DELAY = 3;
 
     // A single-thread executor is used to maintain executed queries sequential
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private final AdvancementMain main;
-    private final Map<UUID, TeamProgression> progressionCache = new HashMap<>();
-    private final Map<UUID, TempUserMetadata> tempLoaded = new HashMap<>();
+    private final Map<Integer, LoadedTeam> teamsLoaded = new HashMap<>();
+    private final Map<UUID, LoadedPlayer> playersLoaded = new HashMap<>();
     private final EventManager eventManager;
     private final IDatabase database;
 
@@ -147,42 +138,64 @@ public final class DatabaseManager implements Closeable {
         // Run it sync to avoid using uninitialized database
         database.setUp();
 
-        eventManager.register(this, PlayerLoginEvent.class, EventPriority.LOWEST, e -> CompletableFuture.runAsync(() -> {
-            try {
-                loadPlayerMainFunction(e.getPlayer());
-            } catch (Exception ex) {
-                System.err.println("Cannot load player " + e.getPlayer().getName() + ':');
-                ex.printStackTrace();
-                runSync(main, LOAD_EVENTS_DELAY, () -> Bukkit.getPluginManager().callEvent(new PlayerLoadingFailedEvent(e.getPlayer(), ex)));
-            }
-        }, executor));
-        eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
+        eventManager.register(this, PlayerLoginEvent.class, EventPriority.LOWEST, e -> {
+            LoadedPlayer loadedPlayer;
+
             synchronized (DatabaseManager.this) {
-                TempUserMetadata meta = tempLoaded.get(e.getPlayer().getUniqueId());
-                if (meta != null) {
-                    meta.isOnline = false;
-                    // If meta isn't null then a plugin is using the player's TeamProgression
-                } else {
-                    TeamProgression t = progressionCache.remove(e.getPlayer().getUniqueId());
-                    if (t != null && t.noMemberMatch(progressionCache::containsKey)) {
-                        t.inCache.set(false); // Invalidate TeamProgression
-                        callEventCatchingExceptions(new AsyncTeamUnloadEvent(t));
+                loadedPlayer = addPlayerToCache(e.getPlayer().getUniqueId(), true);
+
+                // Keep in cache for the loadOrRegisterPlayer(...) operation
+                loadedPlayer.addInternalRequest();
+            }
+
+            CompletableFuture.runAsync(() -> {
+                synchronized (DatabaseManager.this) {
+                    // Search the player in already loaded teams to see if it's there
+                    // The searching is done here since more players from the same team may join at the same moment
+                    // and running the searching on the executor's thread improves the possibility of a cache hit
+                    LoadedTeam loadedTeam = searchPlayerTeam(e.getPlayer().getUniqueId());
+                    if (loadedTeam != null) {
+                        // Player team is already loaded
+                        updateLoadedPlayerTeam(loadedPlayer, loadedTeam, false);
+                        firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
+                        removeInternalRequest(loadedPlayer);
+                        return;
                     }
                 }
+
+                try {
+                    // Player team isn't loaded yet
+                    loadOrRegisterPlayerTeam(e.getPlayer().getUniqueId(), e.getPlayer(), loadedPlayer, false);
+                    firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
+                } catch (Exception ex) {
+                    System.err.println("Cannot load player " + e.getPlayer().getName() + ':');
+                    ex.printStackTrace();
+                    runSync(main, LOAD_EVENTS_DELAY, () -> callEventCatchingExceptions(new PlayerLoadingFailedEvent(e.getPlayer(), ex)));
+                } finally {
+                    removeInternalRequest(loadedPlayer);
+                }
+            }, executor);
+        });
+        eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
+            synchronized (DatabaseManager.this) {
+                // loadedPlayer should always non-null, but it's better to check it
+                LoadedPlayer loadedPlayer = Objects.requireNonNull(playersLoaded.get(e.getPlayer().getUniqueId()));
+                loadedPlayer.setOnline(false);
+                removeInternalRequest(loadedPlayer);
             }
         });
         eventManager.register(this, PluginDisableEvent.class, EventPriority.HIGHEST, e -> {
             synchronized (DatabaseManager.this) {
-                List<UUID> list = new ArrayList<>(tempLoaded.size());
-                for (Entry<UUID, TempUserMetadata> en : tempLoaded.entrySet()) {
-                    // Make sure they will be unloaded
-                    if (en.getValue().pluginAutoRequests.remove(e.getPlugin()) != null || en.getValue().pluginManualRequests.remove(e.getPlugin()) != null) {
-                        list.add(en.getKey());
+                List<LoadedPlayer> list = new ArrayList<>(playersLoaded.size());
+                for (LoadedPlayer loadedPlayer : playersLoaded.values()) {
+                    if (loadedPlayer.removeAllPluginRequests(e.getPlugin()) != 0 && loadedPlayer.canBeUnloaded()) {
+                        // Player can be unloaded
+                        list.add(loadedPlayer);
                     }
                 }
-                for (UUID u : list) {
+                for (LoadedPlayer loadedPlayer : list) {
                     // Handle unload
-                    unloadOfflinePlayer(u, e.getPlugin());
+                    unloadPlayer(loadedPlayer);
                 }
             }
         });
@@ -226,105 +239,120 @@ public final class DatabaseManager implements Closeable {
             e.printStackTrace();
         }
         synchronized (this) {
-            tempLoaded.clear();
-            progressionCache.forEach((u, t) -> t.inCache.set(false)); // Invalidate TeamProgression
-            progressionCache.clear();
+            teamsLoaded.forEach((u, t) -> t.getTeamProgression().inCache.set(false)); // Invalidate TeamProgression
+            playersLoaded.clear();
+            teamsLoaded.clear();
         }
     }
 
-    /**
-     * Main function to load the provided player from the database.
-     * <p><strong>Should be called async.</strong>
-     *
-     * @param player The player to load.
-     * @throws SQLException If anything goes wrong.
-     */
-    private void loadPlayerMainFunction(final @NotNull Player player) throws SQLException {
-        Entry<TeamProgression, Boolean> entry = loadOrRegisterPlayer(player);
-        final TeamProgression pro = entry.getKey();
+    private void firePlayerLoadingCompletedEvent(@NotNull Player player, @NotNull LoadedPlayer loadedPlayer) {
+        loadedPlayer.addInternalRequest(); // Keep in cache while waiting for the BukkitRunnable
+
         runSync(main, LOAD_EVENTS_DELAY, () -> {
-            Bukkit.getPluginManager().callEvent(new PlayerLoadingCompletedEvent(player, pro));
-            if (entry.getValue()) {
-                callEventCatchingExceptions(new AsyncTeamUpdateEvent(pro, player.getUniqueId(), Action.JOIN));
+            if (!player.isOnline()) {
+                removeInternalRequest(loadedPlayer);
+                return;
+            }
+
+            synchronized (DatabaseManager.this) {
+                LoadedTeam loadedTeam = loadedPlayer.getPlayerTeam();
+                if (loadedTeam == null) {
+                    removeInternalRequest(loadedPlayer);
+                    return;
+                }
+
+                callEventCatchingExceptions(new PlayerLoadingCompletedEvent(player, loadedTeam.getTeamProgression()));
+
+                // No need to call addInternalRequest here since the request can be reused and removed later
+                CompletableFuture.runAsync(() -> {
+                    processUnredeemed(loadedPlayer, player);
+                }, executor).handle((v, t) -> {
+                    removeInternalRequest(loadedPlayer);
+                    return null;
+                });
             }
             main.updatePlayer(player);
-            CompletableFuture.runAsync(() -> processUnredeemed(player, pro), executor);
         });
     }
 
-    /**
-     * Load the provided player from the database. If they are not present, this method registers they.
-     * <p><strong>Should be called async.</strong>
-     *
-     * @param player The player.
-     * @return A pair containing the loaded {@link TeamProgression} and a {@code boolean},
-     *         which is {@code true} if and only if the player was not found in the database.
-     * @throws SQLException If anything goes wrong.
-     */
-    @NotNull
-    private synchronized Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull Player player) throws SQLException {
-        final UUID uuid = player.getUniqueId();
-
-        TeamProgression pro = progressionCache.get(uuid);
-        if (pro != null) {
-            // Don't let the player to be unloaded from cache
-            TempUserMetadata meta = tempLoaded.get(uuid);
-            if (meta != null) {
-                meta.isOnline = true;
-            }
-            return new SimpleEntry<>(pro, false);
-        }
-
-        pro = searchTeamProgressionDeeply(uuid);
-        if (pro != null) {
-            progressionCache.put(uuid, pro); // Direct caching
-            updatePlayerName(player);
-            return new SimpleEntry<>(pro, false);
-        }
-
-        Entry<TeamProgression, Boolean> e = database.loadOrRegisterPlayer(uuid, player.getName());
-        updatePlayerName(player);
-        e.getKey().inCache.set(true); // Set TeamProgression valid
-        progressionCache.put(uuid, e.getKey());
-        callEventCatchingExceptions(new AsyncTeamLoadEvent(e.getKey()));
-        return e;
-    }
-
-    /**
-     * Search if the provided player's team is already in cache (so if any other team member is loaded)
-     * and returns the {@link TeamProgression} object.
-     *
-     * @param uuid The player {@link UUID}.
-     * @return The player team if found, {@code null} otherwise.
-     */
     @Nullable
-    private synchronized TeamProgression searchTeamProgressionDeeply(@NotNull UUID uuid) {
-        for (TeamProgression progression : progressionCache.values()) {
-            if (progression.contains(uuid)) {
-                return progression;
+    private synchronized LoadedTeam searchPlayerTeam(@NotNull UUID uuid) {
+        // Search in every loaded TeamProgression if the player is in one of them
+        for (LoadedTeam loadedTeam : teamsLoaded.values()) {
+            if (loadedTeam.getTeamProgression().contains(uuid)) {
+                // The player team is already loaded
+                return loadedTeam;
             }
         }
         return null;
     }
 
     /**
+     * Load the provided player from the database. If they are not present, this method registers they.
+     * <p><strong>Should be called async.</strong>
+     *
+     * @param uuid The UUID of the player to be loaded or registered.
+     * @param player The player to be loaded or registered.
+     * @param loadedPlayer The {@link LoadedPlayer} object associated with player.
+     * @param loadOnly Weather to only load the player and fail if not present in the database.
+     * @return The {@link LoadedTeam} of the player's team.
+     * @throws SQLException If anything goes wrong.
+     */
+    @NotNull
+    private LoadedTeam loadOrRegisterPlayerTeam(@NotNull UUID uuid, Player player, @NotNull LoadedPlayer loadedPlayer, boolean loadOnly) throws SQLException {
+        TeamProgression progression;
+        boolean fireJoinEvent;
+        if (loadOnly) {
+            progression = database.loadUUID(uuid);
+            fireJoinEvent = false;
+        } else {
+            Entry<TeamProgression, Boolean> e = database.loadOrRegisterPlayer(uuid, Objects.requireNonNull(player, "Player is null.").getName()); // FIXME getName may return null
+            progression = e.getKey();
+            fireJoinEvent = e.getValue();
+        }
+        // updatePlayerName(player); TODO make this line works
+
+        synchronized (DatabaseManager.this) {
+            final LoadedTeam loadedTeam = addTeamToCache(progression);
+            updateLoadedPlayerTeam(loadedPlayer, loadedTeam, fireJoinEvent);
+            return loadedTeam;
+        }
+    }
+
+    /**
      * Process unredeemed advancements for the provided player and team. The player is assumed to be in the team.
      * <p><strong>Should be called async.</strong>
      *
+     * @param loadedPlayer The loaded player. Must be present in cache! That is not checked!
      * @param player The player.
-     * @param pro The player's team.
      */
-    private void processUnredeemed(final @NotNull Player player, final @NotNull TeamProgression pro) {
+    private void processUnredeemed(final @NotNull LoadedPlayer loadedPlayer, final @NotNull Player player) {
+
+        // FIXME This function needs to be rewritten completely, it's buggy and full of duplicated lines
+
+        final LoadedTeam loadedTeam;
+        synchronized (this) {
+            if (!player.isOnline() || loadedPlayer.getPlayerTeam() == null) {
+                // The player is not online or in a team
+                return;
+            }
+            loadedPlayer.addInternalRequest(); // Don't let the player to be unloaded
+            loadedTeam = loadedPlayer.getPlayerTeam();
+            loadedTeam.addInternalRequest();
+        }
+
         final List<Entry<AdvancementKey, Boolean>> list;
         try {
-            list = database.getUnredeemed(pro.getTeamId());
-        } catch (SQLException e) {
+            list = database.getUnredeemed(loadedTeam.getTeamProgression().getTeamId());
+        } catch (Exception e) {
             System.err.println("Cannot fetch unredeemed advancements:");
             e.printStackTrace();
+            removeInternalRequest(loadedPlayer);
+            removeInternalRequest(loadedTeam);
             return;
         }
 
-        if (list.size() != 0)
+        if (list.size() != 0) {
             runSync(main, () -> {
                 Iterator<Entry<AdvancementKey, Boolean>> it = list.iterator();
                 final List<Entry<Advancement, Boolean>> advs = new LinkedList<>();
@@ -337,22 +365,34 @@ public final class DatabaseManager implements Closeable {
                         advs.add(new SimpleEntry<>(a, k.getValue()));
                     }
                 }
-                if (advs.size() != 0)
+                if (advs.size() != 0) {
                     CompletableFuture.runAsync(() -> {
                         try {
-                            database.unsetUnredeemed(list, pro.getTeamId());
-                        } catch (SQLException e) {
+                            database.unsetUnredeemed(list, loadedTeam.getTeamProgression().getTeamId());
+                        } catch (Exception e) {
                             System.err.println("Cannot unset unredeemed advancements:");
                             e.printStackTrace();
+                            removeInternalRequest(loadedPlayer);
+                            removeInternalRequest(loadedTeam);
                             return;
                         }
                         runSync(main, () -> {
                             for (Entry<Advancement, Boolean> e : advs) {
                                 e.getKey().onGrant(player, e.getValue());
                             }
+                            removeInternalRequest(loadedPlayer);
+                            removeInternalRequest(loadedTeam);
                         });
                     }, executor);
+                } else {
+                    removeInternalRequest(loadedPlayer);
+                    removeInternalRequest(loadedTeam);
+                }
             });
+        } else {
+            removeInternalRequest(loadedPlayer);
+            removeInternalRequest(loadedTeam);
+        }
     }
 
     /**
@@ -442,12 +482,25 @@ public final class DatabaseManager implements Closeable {
     @NotNull
     private CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @Nullable Player ptm, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
         Preconditions.checkNotNull(playerToMove, "Player to move is null.");
-        validateTeamProgression(otherTeamProgression);
 
+        final LoadedTeam loadedNewTeam;
+        final LoadedPlayer loadedPlayer;
         synchronized (DatabaseManager.this) {
-            if (!progressionCache.containsKey(playerToMove)) {
+            validateTeamProgression(otherTeamProgression);
+
+            loadedNewTeam = teamsLoaded.get(otherTeamProgression.getTeamId());
+            if (loadedNewTeam == null) {
+                throw new IllegalArgumentException("Invalid TeamProgression.");
+            }
+
+            loadedPlayer = playersLoaded.get(playerToMove);
+            if (loadedPlayer == null) {
                 throw new UserNotLoadedException(playerToMove);
             }
+
+            // Put these line here after the checks to avoid having to do calls to removeInternalRequest before throwing exceptions
+            loadedNewTeam.addInternalRequest();
+            loadedPlayer.addInternalRequest();
         }
 
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
@@ -465,27 +518,29 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
 
-            // Get old progression
-            final TeamProgression oldTeam;
-            synchronized (DatabaseManager.this) {
-                oldTeam = progressionCache.get(playerToMove);
+            updateLoadedPlayerTeam(loadedPlayer, loadedNewTeam, true);
 
-                if (!otherTeamProgression.isValid()) {
-                    completableFuture.completeExceptionally(new IllegalArgumentException("Destination team's TeamProgression is invalid."));
-                }
-            }
-            replacePlayerTeam(oldTeam, otherTeamProgression, playerToMove);
-
-            if (ptm != null) {
-                processUnredeemed(ptm, otherTeamProgression);
-
+            if (ptm != null && ptm.isOnline()) {
                 runSync(main, () -> {
+                    // Double check on main thread to be sure
+                    if (!ptm.isOnline()) {
+                        return;
+                    }
+
                     main.updatePlayer(ptm);
                 });
+
+                processUnredeemed(loadedPlayer, ptm);
             }
 
             completableFuture.complete(null);
-        }, executor);
+        }, executor).handle((v, t) -> {
+            synchronized (DatabaseManager.this) {
+                removeInternalRequest(loadedPlayer);
+                removeInternalRequest(loadedNewTeam);
+            }
+            return null;
+        });
 
         return completableFuture;
     }
@@ -517,10 +572,14 @@ public final class DatabaseManager implements Closeable {
     private CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID uuid, @Nullable Player ptr) throws UserNotLoadedException {
         Preconditions.checkNotNull(uuid, "UUID is null.");
 
+        final LoadedPlayer loadedPlayer;
         synchronized (DatabaseManager.this) {
-            if (!progressionCache.containsKey(uuid)) {
+            loadedPlayer = playersLoaded.get(uuid);
+            if (loadedPlayer == null) {
                 throw new UserNotLoadedException(uuid);
             }
+
+            loadedPlayer.addInternalRequest();
         }
 
         CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
@@ -533,27 +592,35 @@ public final class DatabaseManager implements Closeable {
                 System.err.println("Cannot remove player " + (ptr == null ? uuid : ptr.getName()) + " from their team:");
                 e.printStackTrace();
                 completableFuture.completeExceptionally(new DatabaseException(e));
+                removeInternalRequest(loadedPlayer);
                 return;
             } catch (Exception e) {
                 completableFuture.completeExceptionally(new DatabaseException(e));
+                removeInternalRequest(loadedPlayer);
                 return;
             }
 
-            // Get old progression
-            final TeamProgression oldTeam;
             synchronized (DatabaseManager.this) {
-                oldTeam = progressionCache.get(uuid);
+                final LoadedTeam loadedTeam = addTeamToCache(newPro);
+                updateLoadedPlayerTeam(loadedPlayer, loadedTeam, true);
             }
-            replacePlayerTeam(oldTeam, newPro, uuid);
 
-            if (ptr != null) {
+            if (ptr != null && ptr.isOnline()) {
                 runSync(main, () -> {
+                    // Double check on main thread to be sure
+                    if (!ptr.isOnline()) {
+                        return;
+                    }
+
                     main.updatePlayer(ptr);
                 });
             }
 
             completableFuture.complete(newPro);
-        }, executor);
+        }, executor).handle((v, t) -> {
+            removeInternalRequest(loadedPlayer);
+            return null;
+        });
 
         return completableFuture;
     }
@@ -580,19 +647,18 @@ public final class DatabaseManager implements Closeable {
      */
     public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull UUID uuid) throws IllegalStateException {
         Preconditions.checkNotNull(uuid, "UUID is null.");
-        AdvancementUtils.checkSync();
-        if (Bukkit.getPlayer(uuid) != null) {
-            throw new IllegalStateException("Player is online.");
-        }
-
-        synchronized (DatabaseManager.this) {
-            if (tempLoaded.containsKey(uuid))
-                throw new IllegalStateException("Player is temporary loaded.");
-        }
 
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
         CompletableFuture.runAsync(() -> {
+            synchronized (DatabaseManager.this) {
+                if (Bukkit.getPlayer(uuid) != null) {
+                    completableFuture.completeExceptionally(new IllegalStateException("Player is online."));
+                }
+                if (playersLoaded.containsKey(uuid)) {
+                    completableFuture.completeExceptionally(new IllegalStateException("Player is temporary loaded."));
+                }
+            }
             try {
                 database.unregisterPlayer(uuid);
             } catch (SQLException e) {
@@ -654,11 +720,21 @@ public final class DatabaseManager implements Closeable {
     @NotNull
     public ProgressionUpdateResult setProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
         Preconditions.checkNotNull(key, "Key is null.");
-        validateTeamProgression(progression);
-        Preconditions.checkArgument(progression.getSize() > 0, "TeamProgression doesn't contain any player.");
-        AdvancementUtils.checkSync();
 
-        ScheduleResult result = progression.progressionUpdaterManager.scheduleSetUpdate(key, newProgression);
+        final LoadedTeam loadedNewTeam;
+        final ScheduleResult result;
+        synchronized (DatabaseManager.this) {
+            validateTeamProgression(progression);
+
+            loadedNewTeam = teamsLoaded.get(progression.getTeamId());
+            if (loadedNewTeam == null) {
+                throw new IllegalArgumentException("Invalid TeamProgression.");
+            }
+
+            loadedNewTeam.addInternalRequest();
+
+            result = progression.progressionUpdaterManager.scheduleSetUpdate(key, newProgression);
+        }
 
         CompletableFuture<Integer> completableFuture = new CompletableFuture<>();
 
@@ -681,7 +757,10 @@ public final class DatabaseManager implements Closeable {
             int resultingProgression = result.progressionUpdate().updateEndedSuccessfully();
             result.progressionUpdate().checkDisposal();
             completableFuture.complete(resultingProgression);
-        }, executor);
+        }, executor).handle((v, t) -> {
+            removeInternalRequest(loadedNewTeam);
+            return null;
+        });
 
         return new ProgressionUpdateResult(result.oldValue(), completableFuture);
     }
@@ -728,11 +807,21 @@ public final class DatabaseManager implements Closeable {
     @NotNull
     public ProgressionUpdateResult incrementProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
         Preconditions.checkNotNull(key, "Key is null.");
-        validateTeamProgression(progression);
-        Preconditions.checkArgument(progression.getSize() > 0, "TeamProgression doesn't contain any player.");
-        AdvancementUtils.checkSync();
 
-        ScheduleResult result = progression.progressionUpdaterManager.scheduleIncrementUpdate(key, increment);
+        final LoadedTeam loadedNewTeam;
+        final ScheduleResult result;
+        synchronized (DatabaseManager.this) {
+            validateTeamProgression(progression);
+
+            loadedNewTeam = teamsLoaded.get(progression.getTeamId());
+            if (loadedNewTeam == null) {
+                throw new IllegalArgumentException("Invalid TeamProgression.");
+            }
+
+            loadedNewTeam.addInternalRequest();
+
+            result = progression.progressionUpdaterManager.scheduleIncrementUpdate(key, increment);
+        }
 
         CompletableFuture<Integer> completableFuture = new CompletableFuture<>();
 
@@ -784,9 +873,11 @@ public final class DatabaseManager implements Closeable {
     @NotNull
     public synchronized TeamProgression getTeamProgression(@NotNull UUID uuid) throws UserNotLoadedException {
         Preconditions.checkNotNull(uuid, "UUID is null.");
-        TeamProgression pro = progressionCache.get(uuid);
-        AdvancementUtils.checkTeamProgressionNotNull(pro, uuid);
-        return pro;
+        LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+        if (loadedPlayer == null || loadedPlayer.getPlayerTeam() == null) {
+            throw new UserNotLoadedException(uuid);
+        }
+        return loadedPlayer.getPlayerTeam().getTeamProgression();
     }
 
     /**
@@ -822,7 +913,8 @@ public final class DatabaseManager implements Closeable {
      */
     @Contract(pure = true, value = "null -> false")
     public synchronized boolean isLoaded(UUID uuid) {
-        return progressionCache.containsKey(uuid);
+        LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+        return loadedPlayer != null && loadedPlayer.getPlayerTeam() != null;
     }
 
     /**
@@ -844,41 +936,40 @@ public final class DatabaseManager implements Closeable {
      */
     @Contract(pure = true, value = "null -> false")
     public synchronized boolean isLoadedAndOnline(UUID uuid) {
-        if (isLoaded(uuid)) {
-            TempUserMetadata t = tempLoaded.get(uuid);
-            return t == null || t.isOnline;
-        }
-        return false;
+        LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+        return loadedPlayer != null && loadedPlayer.getPlayerTeam() != null && loadedPlayer.isOnline();
     }
 
     /**
-     * Returns the number of currently active loading requests done by a plugin for the specified player with the provided {@link CacheFreeingOption.Option}.
-     * <p>There is a maximum per-plugin amount of requests that can be done for each player, which is {@link #MAX_SIMULTANEOUS_LOADING_REQUESTS}.
-     * <p>This limit is applied to <a href="./CacheFreeingOption.Option.html#AUTOMATIC"><code>CacheFreeingOption.Option#AUTOMATIC</code></a> and <a href="./CacheFreeingOption.Option.html#MANUAL"><code>CacheFreeingOption.Option#MANUAL</code></a> separately
-     * (so a plugin can do maximum {@link #MAX_SIMULTANEOUS_LOADING_REQUESTS} automatic requests and {@link #MAX_SIMULTANEOUS_LOADING_REQUESTS} manual requests simultaneously).
-     * Since <a href="./CacheFreeingOption.Option.html#DONT_CACHE"><code>CacheFreeingOption.Option#DONT_CACHE</code></a> doesn't cache, no limit is applied to it.
+     * Returns the number of currently active loading requests done by a plugin for the specified player with the provided {@link CacheFreeingOption}.
+     * Since <a href="./CacheFreeingOption.Option.html#DONT_CACHE"><code>CacheFreeingOption.Option#DONT_CACHE</code></a> doesn't cache, this method
+     * always returns {@code 0} when {@link CacheFreeingOption#DONT_CACHE} is passed as parameter.
      *
-     * @param plugin The plugin.
      * @param uuid The {@link UUID} of the player.
-     * @param type The {@link CacheFreeingOption.Option}.
+     * @param requester The plugin.
+     * @param type The {@link CacheFreeingOption}.
      * @return The number of the currently active player loading requests.
-     * @see UltimateAdvancementAPI#getLoadingRequestsAmount(UUID, CacheFreeingOption.Option)
      */
     @Contract(pure = true)
-    @Range(from = 0, to = MAX_SIMULTANEOUS_LOADING_REQUESTS)
-    public synchronized int getLoadingRequestsAmount(@NotNull Plugin plugin, @NotNull UUID uuid, @NotNull CacheFreeingOption.Option type) {
-        Preconditions.checkNotNull(plugin, "Plugin is null.");
+    public int getLoadingRequestsAmount(@NotNull UUID uuid, @NotNull Plugin requester, @NotNull CacheFreeingOption type) {
+        Preconditions.checkNotNull(requester, "Plugin is null.");
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(type, "CacheFreeingOption.Option is null.");
-        TempUserMetadata t = tempLoaded.get(uuid);
-        if (t == null) {
+
+        if (type == CacheFreeingOption.MANUAL) {
+            synchronized (DatabaseManager.this) {
+                Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
+                LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+                if (loadedPlayer == null) {
+                    throw new UserNotLoadedException(uuid);
+                }
+                return loadedPlayer.getPluginRequests(requester);
+            }
+        } else {
+            // Check for enabled plugin to make sure the exception is raised
+            Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
             return 0;
         }
-        return switch (type) {
-            case AUTOMATIC -> t.getAuto(plugin);
-            case MANUAL -> t.getManual(plugin);
-            default -> 0;
-        };
     }
 
     /**
@@ -1062,37 +1153,65 @@ public final class DatabaseManager implements Closeable {
      * Loads the provided player from the database into the caching system.
      * <p>Different things happens based on the specified {@link CacheFreeingOption}:
      * <ul>
-     *     <li><strong>{@link CacheFreeingOption#DONT_CACHE()}:</strong> the player isn't loaded in the caching system, but loads and returns only the player team's {@link TeamProgression};</li>
-     *     <li><strong>{@link CacheFreeingOption#AUTOMATIC(Plugin, long)}:</strong> the player is loaded for a certain amount of ticks;</li>
-     *     <li><strong>{@link CacheFreeingOption#MANUAL(Plugin)}:</strong> the player is loaded and kept until {@link #unloadOfflinePlayer(UUID, Plugin)} is called.</li>
+     *     <li><strong>{@link CacheFreeingOption#DONT_CACHE}:</strong> the player isn't loaded in the caching system, but loads and returns only the player team's {@link TeamProgression};</li>
+     *     <li><strong>{@link CacheFreeingOption#MANUAL}:</strong> the player is loaded and kept until {@link #unloadOfflinePlayer(UUID, Plugin)} is called.</li>
      * </ul>
      *
      * @param uuid The {@link UUID} of the player to load.
+     * @param requester The plugin making the request.
      * @param option The chosen {@link CacheFreeingOption}.
      * @return A {@link CompletableFuture} which provides the player team's {@link TeamProgression}.
      * @see UltimateAdvancementAPI#loadOfflinePlayer(UUID, CacheFreeingOption, Consumer)
      */
     @NotNull
-    public synchronized CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull UUID uuid, @NotNull CacheFreeingOption option) {
+    public synchronized CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester, @NotNull CacheFreeingOption option) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(requester, "Plugin is null.");
         Preconditions.checkNotNull(option, "CacheFreeingOption is null.");
-        TeamProgression pro = progressionCache.get(uuid);
-        if (pro != null) {
-            handleCacheFreeingOption(uuid, null, option); // Handle requests
-            return CompletableFuture.completedFuture(pro);
-        }
-        pro = searchTeamProgressionDeeply(uuid);
-        if (pro != null) {
-            handleCacheFreeingOption(uuid, pro, option); // Direct caching and handle requests
-            return CompletableFuture.completedFuture(pro);
-        }
 
         CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
 
+        final LoadedPlayer loadedPlayer; // final so it can be used in the lambda below
+        synchronized (DatabaseManager.this) {
+            if (!requester.isEnabled()) {
+                throw new IllegalStateException("Plugin is not enabled.");
+            }
+
+            LoadedPlayer lPlayer = playersLoaded.get(uuid);
+            if (lPlayer == null) {
+                // Player is not in cache, add it
+                lPlayer = addPlayerToCache(uuid, Bukkit.getPlayer(uuid) != null);
+            } else if (lPlayer.getPlayerTeam() != null) {
+                // Already in cache and loaded, just return
+                lPlayer.addPluginRequest(requester);
+                completableFuture.complete(lPlayer.getPlayerTeam().getTeamProgression());
+                return completableFuture;
+            }
+            loadedPlayer = lPlayer;
+            loadedPlayer.addPluginRequest(requester);
+
+            // Keep in cache for the loadOrRegisterPlayer(...) operation
+            loadedPlayer.addInternalRequest();
+        }
+
         CompletableFuture.runAsync(() -> {
-            TeamProgression t;
+            synchronized (DatabaseManager.this) {
+                // Search the player in already loaded teams to see if it's there
+                // The searching is done here since more players from the same team may join at the same moment
+                // and running the searching on the executor's thread improves the possibility of a cache hit
+                LoadedTeam loadedTeam = searchPlayerTeam(uuid);
+                if (loadedTeam != null) {
+                    // Player team is already loaded
+                    updateLoadedPlayerTeam(loadedPlayer, loadedTeam, false);
+                    removeInternalRequest(loadedPlayer);
+                    return;
+                }
+            }
+
+            final TeamProgression progression;
             try {
-                t = database.loadUUID(uuid);
+                // Player team isn't loaded yet
+                progression = loadOrRegisterPlayerTeam(uuid, null /*fine since loadOnly is true*/, loadedPlayer, true /*loadOnly*/).getTeamProgression();
             } catch (SQLException e) {
                 System.err.println("Cannot load offline player " + uuid + ':');
                 e.printStackTrace();
@@ -1101,35 +1220,13 @@ public final class DatabaseManager implements Closeable {
             } catch (Exception e) {
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
+            } finally {
+                removeInternalRequest(loadedPlayer);
             }
-            handleCacheFreeingOption(uuid, t, option); // Direct caching and handle requests
-            if (option.option != Option.DONT_CACHE) {
-                t.inCache.set(true); // Set TeamProgression valid
-                callEventCatchingExceptions(new AsyncTeamLoadEvent(t));
-            }
-            completableFuture.complete(t);
+            completableFuture.complete(progression);
         }, executor);
 
         return completableFuture;
-    }
-
-    private void handleCacheFreeingOption(@NotNull UUID uuid, @Nullable TeamProgression pro, @NotNull CacheFreeingOption option) {
-        switch (option.option) {
-            case AUTOMATIC -> {
-                runSync(main, option.ticks, () -> internalUnloadOfflinePlayer(uuid, option.requester, true));
-                addCachingRequest(uuid, pro, option, true);
-            }
-            case MANUAL -> addCachingRequest(uuid, pro, option, false);
-        }
-    }
-
-    // TeamProgression == null iff it doesn't need to be stored (since it is already stored)
-    private synchronized void addCachingRequest(@NotNull UUID uuid, @Nullable TeamProgression pro, @NotNull CacheFreeingOption option, boolean auto) {
-        TempUserMetadata meta = tempLoaded.computeIfAbsent(uuid, TempUserMetadata::new);
-        meta.addRequest(option.requester, auto);
-        if (pro != null) {
-            progressionCache.put(uuid, pro);
-        }
     }
 
     /**
@@ -1140,7 +1237,7 @@ public final class DatabaseManager implements Closeable {
      */
     @Contract(pure = true, value = "null -> false")
     public synchronized boolean isOfflinePlayerLoaded(UUID uuid) {
-        return tempLoaded.containsKey(uuid);
+        return playersLoaded.containsKey(uuid);
     }
 
     /**
@@ -1153,65 +1250,119 @@ public final class DatabaseManager implements Closeable {
      */
     @Contract(pure = true, value = "null, null -> false; null, !null -> false; !null, null -> false")
     public synchronized boolean isOfflinePlayerLoaded(UUID uuid, Plugin requester) {
-        TempUserMetadata t = tempLoaded.get(uuid);
-        return t != null && Integer.compareUnsigned(t.getRequests(requester), 0) > 0;
+        LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+        return loadedPlayer != null && loadedPlayer.getPluginRequests(requester) > 0;
     }
 
     /**
      * Unloads the provided player from the caching system.
-     * <p>Note that this method will only unload players loaded with {@link CacheFreeingOption#MANUAL(Plugin)}.
+     * <p>Note that this method will only unload players loaded with {@link CacheFreeingOption#MANUAL}.
      *
      * @param uuid The {@link UUID} of the player to unload.
      * @param requester The plugin which requested the loading.
      * @see UltimateAdvancementAPI#unloadOfflinePlayer(UUID)
      */
     public void unloadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
-        internalUnloadOfflinePlayer(uuid, requester, false);
+        internalUnloadOfflinePlayer(uuid, requester);
     }
 
-    private synchronized void internalUnloadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester, boolean auto) {
+    private void internalUnloadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
-        TempUserMetadata meta = tempLoaded.get(uuid);
-        if (meta != null) {
-            meta.removeRequest(requester, auto);
-            if (meta.canBeRemoved()) {
-                tempLoaded.remove(uuid);
-                if (!meta.isOnline) {
-                    TeamProgression t = progressionCache.remove(uuid);
-                    if (t != null && t.noMemberMatch(progressionCache::containsKey)) {
-                        t.inCache.set(false); // Invalidate TeamProgression
-                        callEventCatchingExceptions(new AsyncTeamUnloadEvent(t));
-                    }
-                }
-            }
+        synchronized (DatabaseManager.this) {
+            Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
+
+            LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+            if (loadedPlayer != null)
+                removePluginRequest(loadedPlayer, requester);
         }
     }
 
-    private void replacePlayerTeam(@NotNull TeamProgression oldTeam, @NotNull TeamProgression newTeam, @NotNull UUID uuid) {
-        callEventCatchingExceptions(new AsyncTeamUpdateEvent(oldTeam, uuid, Action.LEAVE));
+    @NotNull
+    private synchronized LoadedTeam addTeamToCache(TeamProgression progression) {
+        LoadedTeam loadedTeam = new LoadedTeam(progression);
+        LoadedTeam oldValue = teamsLoaded.putIfAbsent(progression.getTeamId(), loadedTeam);
+        if (oldValue != null) {
+            // A team was present
+            loadedTeam = oldValue;
+        } else {
+            progression.inCache.set(true);
+            callEventCatchingExceptions(new AsyncTeamLoadEvent(progression));
+        }
+        return loadedTeam;
+    }
 
-        final boolean teamUnloaded, newTeamLoaded;
-        synchronized (DatabaseManager.this) {
-            // Replace team atomically
-            progressionCache.put(uuid, newTeam);
-            newTeamLoaded = newTeam.inCache.getAndSet(true);
-            oldTeam.movePlayer(newTeam, uuid);
+    @NotNull
+    private synchronized LoadedPlayer addPlayerToCache(@NotNull UUID uuid, boolean isOnline) {
+        LoadedPlayer loadedPlayer = new LoadedPlayer(uuid);
+        LoadedPlayer oldValue = playersLoaded.putIfAbsent(uuid, loadedPlayer);
+        if (oldValue != null) {
+            // A player was present
+            loadedPlayer = oldValue;
+        }
+        loadedPlayer.setOnline(isOnline);
+        loadedPlayer.addInternalRequest(); // Make sure the player will not be removed from cache
+        return loadedPlayer;
+    }
 
-            // Check for team unloading
-            teamUnloaded = oldTeam.noMemberMatch(progressionCache::containsKey);
+    private synchronized void removeInternalRequest(@NotNull LoadedTeam loadedTeam) {
+        if (loadedTeam.removeInternalRequest() == 0 && loadedTeam.canBeUnloaded()) {
+            unloadTeam(loadedTeam);
+        }
+    }
+
+    private synchronized void removeInternalRequest(@NotNull LoadedPlayer loadedPlayer) {
+        if (loadedPlayer.removeInternalRequest() == 0 && loadedPlayer.canBeUnloaded()) {
+            unloadPlayer(loadedPlayer);
+        }
+    }
+
+    private synchronized void removePluginRequest(@NotNull LoadedTeam loadedTeam, @NotNull Plugin plugin) {
+        if (loadedTeam.removePluginRequest(plugin) == 0 && loadedTeam.canBeUnloaded()) {
+            unloadTeam(loadedTeam);
+        }
+    }
+
+    private synchronized void removePluginRequest(@NotNull LoadedPlayer loadedPlayer, @NotNull Plugin plugin) {
+        if (loadedPlayer.removePluginRequest(plugin) == 0 && loadedPlayer.canBeUnloaded()) {
+            unloadPlayer(loadedPlayer);
+        }
+    }
+
+    private synchronized void unloadTeam(@NotNull LoadedTeam loadedTeam) {
+        final TeamProgression teamProgression = loadedTeam.getTeamProgression();
+        teamProgression.inCache.set(false);
+        teamsLoaded.remove(teamProgression.getTeamId());
+        callEventCatchingExceptions(new AsyncTeamUnloadEvent(teamProgression));
+    }
+
+    private synchronized void unloadPlayer(@NotNull LoadedPlayer loadedPlayer) {
+        playersLoaded.remove(loadedPlayer.getUuid());
+        @Nullable final LoadedTeam loadedTeam = loadedPlayer.getPlayerTeam();
+        loadedPlayer.setPlayerTeam(null);
+        if (loadedTeam != null) {
+            removeInternalRequest(loadedTeam);
+        }
+    }
+
+    private synchronized void updateLoadedPlayerTeam(@NotNull LoadedPlayer player, @NotNull LoadedTeam newTeam, boolean fireJoinEvent) {
+        if (player.getPlayerTeam() != null) {
+            // The player is already in a team
+            final LoadedTeam old = player.getPlayerTeam();
+
+            callEventCatchingExceptions(new AsyncTeamUpdateEvent(old.getTeamProgression(), player.getUuid(), Action.LEAVE));
+            old.getTeamProgression().movePlayer(newTeam.getTeamProgression(), player.getUuid());
+
+            removeInternalRequest(old);
+        } else {
+            newTeam.getTeamProgression().addMember(player.getUuid());
         }
 
-        if (newTeamLoaded) {
-            callEventCatchingExceptions(new AsyncTeamLoadEvent(newTeam));
-        }
+        newTeam.addInternalRequest();
+        player.setPlayerTeam(newTeam);
 
-        callEventCatchingExceptions(new AsyncTeamUpdateEvent(newTeam, uuid, Action.JOIN));
-
-        if (teamUnloaded) {
-            oldTeam.inCache.set(false); // Invalidate TeamProgression
-            callEventCatchingExceptions(new AsyncTeamUnloadEvent(oldTeam));
-        }
+        if (fireJoinEvent)
+            callEventCatchingExceptions(new AsyncTeamUpdateEvent(newTeam.getTeamProgression(), player.getUuid(), Action.JOIN));
     }
 
     static <E extends Event> void callEventCatchingExceptions(@NotNull E event) {
@@ -1252,52 +1403,107 @@ public final class DatabaseManager implements Closeable {
         }
     }
 
-    private static final class TempUserMetadata {
+    private static final class LoadedTeam extends CacheableEntry {
+        private final TeamProgression teamProgression;
 
-        final Map<Plugin, Integer> pluginAutoRequests = new HashMap<>();
-        final Map<Plugin, Integer> pluginManualRequests = new HashMap<>();
-        final AtomicInteger internalRequests = new AtomicInteger(0);
-        volatile boolean isOnline;
-
-        public TempUserMetadata(UUID uuid) {
-            this.isOnline = Bukkit.getPlayer(uuid) != null;
+        public LoadedTeam(@NotNull TeamProgression progression) {
+            this.teamProgression = progression;
         }
 
-        public synchronized void addRequest(@NotNull Plugin plugin, boolean auto) {
-            Map<Plugin, Integer> map = auto ? pluginAutoRequests: pluginManualRequests;
-            map.compute(plugin, (p, i) -> {
-                if (i == null) {
-                    i = 0;
-                }
-                return i + 1;
-            });
+        @NotNull
+        public TeamProgression getTeamProgression() {
+            return teamProgression;
+        }
+    }
+
+    private static final class LoadedPlayer extends CacheableEntry {
+
+        @Nullable // Null here means the player is not loaded but probably online
+        private volatile LoadedTeam playerTeam;
+
+        private final UUID uuid;
+        private volatile boolean online = false;
+
+        public LoadedPlayer(@NotNull UUID uuid) {
+            this.uuid = uuid;
         }
 
-        public synchronized void removeRequest(@NotNull Plugin plugin, boolean auto) {
-            Map<Plugin, Integer> map = auto ? pluginAutoRequests: pluginManualRequests;
-            map.compute(plugin, (p, i) -> {
-                if (i == null) {
-                    return null;
-                }
-                i--;
-                return i <= 0 ? null : i;
-            });
+        @NotNull
+        public UUID getUuid() {
+            return uuid;
         }
 
-        public synchronized int getRequests(@NotNull Plugin plugin) {
-            return getAuto(plugin) + getManual(plugin);
+        @Nullable
+        public LoadedTeam getPlayerTeam() {
+            return playerTeam;
         }
 
-        public synchronized int getAuto(@NotNull Plugin plugin) {
-            return pluginAutoRequests.getOrDefault(plugin, 0);
+        public void setPlayerTeam(@Nullable LoadedTeam playerTeam) {
+            this.playerTeam = playerTeam;
         }
 
-        public synchronized int getManual(@NotNull Plugin plugin) {
-            return pluginManualRequests.getOrDefault(plugin, 0);
+        public boolean isOnline() {
+            return online;
         }
 
-        public synchronized boolean canBeRemoved() {
-            return internalRequests.get() == 0 && pluginManualRequests.isEmpty() && pluginAutoRequests.isEmpty();
+        public void setOnline(boolean online) {
+            this.online = online;
+        }
+    }
+
+    private static class CacheableEntry {
+        private final Map<Plugin, Integer> pluginRequests = new HashMap<>();
+
+        // Internal requests are used to keep the entry loaded
+        private final AtomicInteger internalRequests = new AtomicInteger(0);
+
+        public int addPluginRequest(@NotNull Plugin plugin) {
+            synchronized (pluginRequests) {
+                return pluginRequests.merge(plugin, 1, Integer::sum);
+            }
+        }
+
+        public int removePluginRequest(@NotNull Plugin plugin) {
+            synchronized (pluginRequests) {
+                Integer res = pluginRequests.computeIfPresent(plugin, (key, value) -> {
+                    // value shouldn't be null here since we don't put null values in the map
+                    return value <= 1 ? null : value - 1;
+                });
+                return res == null ? 0 : res;
+            }
+        }
+
+        public int addInternalRequest() {
+            return internalRequests.incrementAndGet();
+        }
+
+        public int removeInternalRequest() {
+            return internalRequests.decrementAndGet();
+        }
+
+        public int getInternalRequests() {
+            return internalRequests.get();
+        }
+
+        public int getPluginRequests(@NotNull Plugin plugin) {
+            synchronized (pluginRequests) {
+                return pluginRequests.getOrDefault(plugin, 0);
+            }
+        }
+
+        public int removeAllPluginRequests(@NotNull Plugin plugin) {
+            synchronized (pluginRequests) {
+                Integer i = pluginRequests.remove(plugin);
+                return i == null ? 0 : i;
+            }
+        }
+
+        public boolean hasPluginRequests() {
+            return !pluginRequests.isEmpty();
+        }
+
+        public boolean canBeUnloaded() {
+            return getInternalRequests() == 0 && !hasPluginRequests();
         }
     }
 }
