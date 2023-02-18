@@ -1,6 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
+import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
+import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,10 +16,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class InMemoryTest {
 
+    private ServerMock server;
     private InMemory db;
 
     @BeforeEach
     void init() throws Exception {
+        server = Utils.mockServer();
         db = new InMemory(Logger.getLogger("InMemoryTest"));
         db.setUp();
     }
@@ -25,6 +30,8 @@ public class InMemoryTest {
     void tearDown() throws Exception {
         db.close();
         db = null;
+        MockBukkit.unmock();
+        server = null;
     }
 
     @Test
