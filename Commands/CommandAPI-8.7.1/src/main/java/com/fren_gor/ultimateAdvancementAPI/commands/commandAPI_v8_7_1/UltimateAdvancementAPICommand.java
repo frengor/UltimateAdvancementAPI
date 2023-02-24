@@ -3,13 +3,16 @@ package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_7_1;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.BooleanArgument;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument;
 import dev.jorel.commandapi.arguments.IntegerArgument;
+import dev.jorel.commandapi.arguments.OfflinePlayerArgument;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -111,10 +114,32 @@ public class UltimateAdvancementAPICommand {
                 new CommandAPICommand("set").withPermission(PERMISSION_PROGRESSION_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("progression", 0), new EntitySelectorArgument.ManyPlayers("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, Object[] args) -> setProgression(sender, (Advancement) args[0], (int) args[1], (Collection<Player>) args[2], (boolean) args[3]))
         );
 
+        CommandAPICommand offlinePlayer = new CommandAPICommand("offlinePlayer").withPermission(PERMISSION_OFFLINE_PLAYER).executes((sender, args) -> {
+            sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi offlinePlayer <load|unload> <player>");
+        }).withSubcommands(new CommandAPICommand("load").withPermission(PERMISSION_OFFLINE_PLAYER_LOAD).executes((sender, args) -> {
+                    sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi offlinePlayer <load> <player>");
+                }),
+                new CommandAPICommand("load").withPermission(PERMISSION_OFFLINE_PLAYER_LOAD).withArguments(new OfflinePlayerArgument("player"))
+                        .executes((sender, args) -> {
+                            OfflinePlayer player = (OfflinePlayer) args[0];
+                            main.getDatabaseManager().loadOfflinePlayer(player.getUniqueId(), CacheFreeingOption.MANUAL(main.getOwningPlugin()));
+                        }),
+
+                new CommandAPICommand("unload").withPermission(PERMISSION_OFFLINE_PLAYER_UNLOAD).executes((sender, args) -> {
+                    sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi offlinePlayer <unload> <player>");
+                }),
+                new CommandAPICommand("unload").withPermission(PERMISSION_OFFLINE_PLAYER_UNLOAD).withArguments(new OfflinePlayerArgument("player"))
+                        .executes((sender, args) -> {
+                            OfflinePlayer player = (OfflinePlayer) args[0];
+                            main.getDatabaseManager().unloadOfflinePlayer(player.getUniqueId(), main.getOwningPlugin());
+                        })
+        );
+
         mainCommand.withSubcommands(
                 progression,
                 grant,
-                revoke
+                revoke,
+                offlinePlayer
         );
 
         mainCommand.withHelp("Command to handle advancements.", "Command to grant/revoke/update player's advancements.");

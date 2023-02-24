@@ -29,6 +29,10 @@ public class CommandAPIManager {
     public static final String PERMISSION_REVOKE_TAB = "ultimateadvancementapi.revoke.tab";
     public static final String PERMISSION_REVOKE_ONE = "ultimateadvancementapi.revoke.one";
 
+    public static final String PERMISSION_OFFLINE_PLAYER = "ultimateadvancementapi.loadofflineplayer";
+    public static final String PERMISSION_OFFLINE_PLAYER_LOAD = "ultimateadvancementapi.loadofflineplayer.load";
+    public static final String PERMISSION_OFFLINE_PLAYER_UNLOAD = "ultimateadvancementapi.loadofflineplayer.unload";
+
     /**
      * Loads the correct version of the API and the correct implementation of the commands.
      *
