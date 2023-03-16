@@ -17,7 +17,7 @@ public class Versions {
 
     private static final String API_VERSION = "2.2.2";
 
-    private static final List<String> SUPPORTED_NMS_VERSIONS = List.of("v1_15_R1", "v1_16_R1", "v1_16_R2", "v1_16_R3", "v1_17_R1", "v1_18_R1", "v1_18_R2", "v1_19_R1", "v1_19_R2");
+    private static final List<String> SUPPORTED_NMS_VERSIONS = List.of("v1_15_R1", "v1_16_R1", "v1_16_R2", "v1_16_R3", "v1_17_R1", "v1_18_R1", "v1_18_R2", "v1_19_R1", "v1_19_R2", "v1_19_R3");
 
     private static final Map<String, List<String>> NMS_TO_VERSIONS = Map.of(
             "v1_15_R1", List.of("1.15", "1.15.1", "1.15.2"),
@@ -28,7 +28,8 @@ public class Versions {
             "v1_18_R1", List.of("1.18", "1.18.1"),
             "v1_18_R2", List.of("1.18.2"),
             "v1_19_R1", List.of("1.19","1.19.2"),
-            "v1_19_R2", List.of("1.19.3")
+            "v1_19_R2", List.of("1.19.3"),
+            "v1_19_R3", List.of("1.19.4")
     );
 
     private static final Map<String, String> NMS_TO_FANCY = Map.of(
@@ -40,7 +41,8 @@ public class Versions {
             "v1_18_R1", "1.18-1.18.1",
             "v1_18_R2", "1.18.2",
             "v1_19_R1", "1.19-1.19.2",
-            "v1_19_R2", "1.19.3"
+            "v1_19_R2", "1.19.3",
+            "v1_19_R3", "1.19.4"
     );
 
     private static final List<String> SUPPORTED_VERSIONS = SUPPORTED_NMS_VERSIONS.stream()

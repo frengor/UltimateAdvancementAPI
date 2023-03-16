@@ -25,7 +25,7 @@
         <!-- Command Modules -->
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-commandapi-8-7-1</artifactId>
+            <artifactId>ultimateadvancementapi-commands-commandapi-8-8-0</artifactId>
             <version>${apiVersion}</version>
             <scope>compile</scope>
         </dependency>
