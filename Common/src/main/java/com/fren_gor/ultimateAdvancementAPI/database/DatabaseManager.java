@@ -4,7 +4,6 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.UltimateAdvancementAPI;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression.ProgressionUpdaterManager.ScheduleResult;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.SQLite;
@@ -55,6 +54,7 @@ import java.util.function.Consumer;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValue;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
@@ -684,12 +684,11 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player who made the advancement.
      * @param newProgression The new progression.
-     * @return The {@link ProgressionUpdateResult} with the old progression and a {@link CompletableFuture} that will
-     *         complete when the database update finishes.
+     * @return A {@link CompletableFuture} that will complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     @NotNull
-    public ProgressionUpdateResult setProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
         return setProgression(key, getTeamProgression(uuid), newProgression);
     }
 
@@ -699,12 +698,11 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param player The player who made the advancement.
      * @param newProgression The new progression.
-     * @return The {@link ProgressionUpdateResult} with the old progression and a {@link CompletableFuture} that will
-     *         complete when the database update finishes.
+     * @return A {@link CompletableFuture} that will complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     @NotNull
-    public ProgressionUpdateResult setProgression(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
         return setProgression(key, uuidFromPlayer(player), newProgression);
     }
 
@@ -714,15 +712,14 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
      * @param newProgression The new progression.
-     * @return The {@link ProgressionUpdateResult} with the old progression and a {@link CompletableFuture} that will
-     *         complete when the database update finishes.
+     * @return A {@link CompletableFuture} that will complete when the database update finishes.
      */
     @NotNull
-    public ProgressionUpdateResult setProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
         Preconditions.checkNotNull(key, "Key is null.");
+        validateProgressionValue(newProgression);
 
         final LoadedTeam loadedNewTeam;
-        final ScheduleResult result;
         synchronized (DatabaseManager.this) {
             validateTeamProgression(progression);
 
@@ -732,37 +729,31 @@ public final class DatabaseManager implements Closeable {
             }
 
             loadedNewTeam.addInternalRequest();
-
-            result = progression.progressionUpdaterManager.scheduleSetUpdate(key, newProgression);
         }
 
-        CompletableFuture<Integer> completableFuture = new CompletableFuture<>();
+        CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
 
         CompletableFuture.runAsync(() -> {
-            if (result.progressionUpdate().getOldValue() != newProgression) { // Don't update the db if the saved progression won't change
-                try {
-                    database.updateAdvancement(key, progression.getTeamId(), result.newCachedValue());
-                } catch (SQLException e) {
-                    System.err.println("Cannot set progression of advancement " + key + " to team " + progression.getTeamId() + ':');
-                    e.printStackTrace();
-                    result.progressionUpdate().updateEndedExceptionally();
-                    completableFuture.completeExceptionally(new DatabaseException(e));
-                    return;
-                } catch (Exception e) {
-                    result.progressionUpdate().updateEndedExceptionally();
-                    completableFuture.completeExceptionally(new DatabaseException(e));
-                    return;
-                }
+            int old = loadedNewTeam.teamProgression.getRawProgression(key);
+            try {
+                database.updateAdvancement(key, progression.getTeamId(), newProgression);
+            } catch (SQLException e) {
+                System.err.println("Cannot set progression of advancement " + key + " to team " + progression.getTeamId() + ':');
+                e.printStackTrace();
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
+            } catch (Exception e) {
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             }
-            int resultingProgression = result.progressionUpdate().updateEndedSuccessfully();
-            result.progressionUpdate().checkDisposal();
-            completableFuture.complete(resultingProgression);
+            loadedNewTeam.teamProgression.updateProgression(key, newProgression);
+            completableFuture.complete(new ProgressionUpdateResult(old, newProgression));
         }, executor).handle((v, t) -> {
             removeInternalRequest(loadedNewTeam);
             return null;
         });
 
-        return new ProgressionUpdateResult(result.oldValue(), completableFuture);
+        return completableFuture;
     }
 
     /**
@@ -770,14 +761,13 @@ public final class DatabaseManager implements Closeable {
      *
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player who made the advancement.
-     * @param newProgression The increment of the progression.
-     * @return The {@link ProgressionUpdateResult} with the old progression and a {@link CompletableFuture} that will
-     *         complete when the database update finishes.
+     * @param increment The increment of the progression. May be negative.
+     * @return A {@link CompletableFuture} that will complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     @NotNull
-    public ProgressionUpdateResult incrementProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
-        return incrementProgression(key, getTeamProgression(uuid), newProgression);
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, int increment) throws UserNotLoadedException {
+        return incrementProgression(key, getTeamProgression(uuid), increment);
     }
 
     /**
@@ -785,14 +775,13 @@ public final class DatabaseManager implements Closeable {
      *
      * @param key The advancement key.
      * @param player The player who made the advancement.
-     * @param newProgression The increment of the progression.
-     * @return The {@link ProgressionUpdateResult} with the old progression and a {@link CompletableFuture} that will
-     *         complete when the database update finishes.
+     * @param increment The increment of the progression. May be negative.
+     * @return A {@link CompletableFuture} that will complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     @NotNull
-    public ProgressionUpdateResult incrementProgression(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
-        return incrementProgression(key, uuidFromPlayer(player), newProgression);
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull Player player, int increment) throws UserNotLoadedException {
+        return incrementProgression(key, uuidFromPlayer(player), increment);
     }
 
     /**
@@ -800,16 +789,14 @@ public final class DatabaseManager implements Closeable {
      *
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
-     * @param increment The increment of the progression.
-     * @return The {@link ProgressionUpdateResult} with the old progression and a {@link CompletableFuture} that will
-     *         complete when the database update finishes.
+     * @param increment The increment of the progression. May be negative.
+     * @return A {@link CompletableFuture} that will complete when the database update finishes.
      */
     @NotNull
-    public ProgressionUpdateResult incrementProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int increment) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, int increment) {
         Preconditions.checkNotNull(key, "Key is null.");
 
         final LoadedTeam loadedNewTeam;
-        final ScheduleResult result;
         synchronized (DatabaseManager.this) {
             validateTeamProgression(progression);
 
@@ -819,34 +806,36 @@ public final class DatabaseManager implements Closeable {
             }
 
             loadedNewTeam.addInternalRequest();
-
-            result = progression.progressionUpdaterManager.scheduleIncrementUpdate(key, increment);
         }
 
-        CompletableFuture<Integer> completableFuture = new CompletableFuture<>();
+        CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
 
         CompletableFuture.runAsync(() -> {
+            final int old = loadedNewTeam.teamProgression.getRawProgression(key);
+            int incremented = old;
             if (increment != 0) { // Don't update the db if the saved progression won't change
+                incremented += increment;
+                if (incremented < 0) {
+                    // Don't throw an error if incremented < 0, simply put it to 0
+                    incremented = 0;
+                }
                 try {
-                    database.updateAdvancement(key, progression.getTeamId(), result.newCachedValue());
+                    database.updateAdvancement(key, progression.getTeamId(), incremented);
                 } catch (SQLException e) {
                     System.err.println("Cannot increment progression of advancement " + key + " to team " + progression.getTeamId() + ':');
                     e.printStackTrace();
-                    result.progressionUpdate().updateEndedExceptionally();
                     completableFuture.completeExceptionally(new DatabaseException(e));
                     return;
                 } catch (Exception e) {
-                    result.progressionUpdate().updateEndedExceptionally();
                     completableFuture.completeExceptionally(new DatabaseException(e));
                     return;
                 }
             }
-            int resultingProgression = result.progressionUpdate().updateEndedSuccessfully();
-            result.progressionUpdate().checkDisposal();
-            completableFuture.complete(resultingProgression);
+            loadedNewTeam.teamProgression.updateProgression(key, incremented);
+            completableFuture.complete(new ProgressionUpdateResult(old, incremented));
         }, executor);
 
-        return new ProgressionUpdateResult(result.oldValue(), completableFuture);
+        return completableFuture;
     }
 
     /**
@@ -1370,36 +1359,6 @@ public final class DatabaseManager implements Closeable {
             Bukkit.getPluginManager().callEvent(event);
         } catch (Exception exception) {
             exception.printStackTrace();
-        }
-    }
-
-    /**
-     * The result of an advancement's progression update.
-     *
-     * @param oldProgression The old progression of the advancement.
-     * @param futureUpdatedProgression A {@link CompletableFuture} which will be completed with the updated progression
-     *         if the database update completes successfully, otherwise it will be completed exceptionally.
-     */
-    public record ProgressionUpdateResult(int oldProgression, CompletableFuture<Integer> futureUpdatedProgression) {
-        /**
-         * Gets the old progression of the advancement.
-         *
-         * @return The old progression of the advancement.
-         */
-        @Override
-        public int oldProgression() {
-            return oldProgression;
-        }
-
-        /**
-         * Returns a {@link CompletableFuture} which will be completed with the updated progression if the database
-         * update completes successfully, otherwise it will be completed exceptionally.
-         *
-         * @return A {@link CompletableFuture} which will be completed when the database update ends.
-         */
-        @Override
-        public CompletableFuture<Integer> futureUpdatedProgression() {
-            return futureUpdatedProgression;
         }
     }
 

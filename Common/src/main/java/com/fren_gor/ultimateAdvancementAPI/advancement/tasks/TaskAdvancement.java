@@ -3,7 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
-import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager.ProgressionUpdateResult;
+import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
@@ -19,11 +19,11 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
@@ -98,21 +98,59 @@ public class TaskAdvancement extends BaseAdvancement {
      * {@inheritDoc}
      */
     @Override
-    protected void setProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveRewards) {
+    protected CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull TeamProgression pro, @Nullable Player player, int increment, boolean giveRewards) {
+        validateTeamProgression(pro);
+
+        final DatabaseManager ds = advancementTab.getDatabaseManager();
+        var completableFuture = ds.incrementProgression(key, pro, increment);
+
+        runSync(completableFuture, advancementTab.getOwningPlugin(), (result, err) -> {
+            if (err != null) {
+                err.printStackTrace();
+                return; // Don't go on in case of a db error
+            }
+
+            try {
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), TaskAdvancement.this));
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            }
+
+            handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, null);
+            getMultiTasksAdvancement().reloadTasks(pro, player, result, giveRewards);
+        });
+
+        return completableFuture;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveRewards) {
         validateTeamProgression(pro);
         validateProgressionValueStrict(progression, maxProgression);
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
-        ProgressionUpdateResult result = ds.setProgression(key, pro, progression);
+        var completableFuture = ds.setProgression(key, pro, progression);
 
-        try {
-            Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), progression, this));
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        }
+        runSync(completableFuture, advancementTab.getOwningPlugin(), (result, err) -> {
+            if (err != null) {
+                err.printStackTrace();
+                return; // Don't go on in case of a db error
+            }
 
-        handlePlayer(pro, player, progression, result.oldProgression(), giveRewards, null);
-        getMultiTasksAdvancement().reloadTasks(pro, player, giveRewards);
+            try {
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), TaskAdvancement.this));
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            }
+
+            handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, null);
+            getMultiTasksAdvancement().reloadTasks(pro, player, result, giveRewards);
+        });
+
+        return completableFuture;
     }
 
     /**

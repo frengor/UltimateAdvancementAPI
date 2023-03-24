@@ -240,9 +240,8 @@ public class AdvancementUtils {
         Preconditions.checkNotNull(plugin, "Plugin is null.");
         Preconditions.checkNotNull(consumer, "BiConsumer is null.");
 
-        return completableFuture.handle((result, err) -> {
+        return completableFuture.whenComplete((result, err) -> {
             Bukkit.getScheduler().runTaskLater(plugin, () -> consumer.accept(result, err), delay);
-            return null;
         });
     }
 

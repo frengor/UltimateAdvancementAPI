@@ -14,9 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
-import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -27,6 +25,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValue;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
@@ -39,12 +38,6 @@ public final class TeamProgression {
     final AtomicBoolean inCache = new AtomicBoolean(false);
     private final int teamId;
     private final Set<UUID> players;
-    final ProgressionUpdaterManager progressionUpdaterManager = new ProgressionUpdaterManager();
-
-    // Should be updated only from inside ProgressionUpdate having synchronized over ProgressionUpdate.this
-    //
-    // Updates related to different advancements may happen simultaneously, synchronization over the whole collection is
-    // always already present since the Map is an instance of ConcurrentHashMap
     private final Map<AdvancementKey, Integer> advancements;
 
     /**
@@ -278,6 +271,18 @@ public final class TeamProgression {
     }
 
     /**
+     * Sets the progression of the provided advancement for the team.
+     * <p>MUST BE CALLED ONLY FROM THE DatabaseManager#executor THREAD!
+     *
+     * @param key The key of the advancement.
+     * @param progression The new progression to be set.
+     */
+    void updateProgression(@NotNull AdvancementKey key, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
+        validateProgressionValue(progression);
+        Integer i = advancements.put(key, progression);
+    }
+
+    /**
      * Moves a player from this team to another atomically.
      *
      * @param newTeam The new team's {@link TeamProgression}.
@@ -357,105 +362,5 @@ public final class TeamProgression {
      */
     public int getTeamId() {
         return teamId;
-    }
-
-    final class ProgressionUpdaterManager {
-        private final Map<AdvancementKey, ProgressionUpdate> progressionUpdates = new HashMap<>();
-
-        public ProgressionUpdaterManager() {
-        }
-
-        public ScheduleResult scheduleSetUpdate(AdvancementKey key, int newValue) {
-            return scheduleUpdate(key, new ProgressionUpdateInfo(ProgressionUpdateInfo.SET, newValue));
-        }
-
-        public ScheduleResult scheduleIncrementUpdate(AdvancementKey key, int increment) {
-            return scheduleUpdate(key, new ProgressionUpdateInfo(ProgressionUpdateInfo.INCREMENT, increment));
-        }
-
-        private ScheduleResult scheduleUpdate(AdvancementKey key, ProgressionUpdateInfo updateInfo) {
-            synchronized (progressionUpdates) {
-                ProgressionUpdate update = progressionUpdates.computeIfAbsent(key, advancementKey -> {
-                    return new ProgressionUpdate(advancementKey, getRawProgression(advancementKey));
-                });
-                return update.scheduleUpdate(updateInfo);
-            }
-        }
-
-        final class ProgressionUpdate {
-            final AdvancementKey advancementKey;
-            private int oldValue;
-            final ArrayDeque<ProgressionUpdateInfo> updateQueue = new ArrayDeque<>();
-
-            public ProgressionUpdate(AdvancementKey key, int oldValue) {
-                this.advancementKey = key;
-                this.oldValue = oldValue;
-            }
-
-            private synchronized ScheduleResult scheduleUpdate(ProgressionUpdateInfo info) {
-                updateQueue.addFirst(info);
-
-                // Note that no `advancements.put(advancementKey, ...)` operation is possible between
-                // the get and the put down below since we have synchronized over ProgressionUpdate.this
-                // (see the comment on top of `advancements` declaration)
-
-                Integer nullableOldValue = advancements.get(advancementKey);
-                int oldValue = nullableOldValue == null ? 0 : nullableOldValue;
-                int value = info.applyUpdate(oldValue);
-                advancements.put(advancementKey, value);
-                return new ScheduleResult(this, oldValue, value);
-            }
-
-            public synchronized int updateEndedSuccessfully() {
-                ProgressionUpdateInfo info = updateQueue.removeLast();
-                oldValue = info.applyUpdate(oldValue);
-                return oldValue;
-            }
-
-            public synchronized int updateEndedExceptionally() {
-                int value = oldValue;
-                updateQueue.removeLast();
-                for (ProgressionUpdateInfo info : updateQueue) {
-                    value = info.applyUpdate(value);
-                }
-                advancements.put(advancementKey, value);
-                return value;
-            }
-
-            public void checkDisposal() {
-                synchronized (progressionUpdates) {
-                    synchronized (ProgressionUpdate.this) {
-                        if (updateQueue.isEmpty()) {
-                            progressionUpdates.remove(advancementKey);
-                        }
-                    }
-                }
-            }
-
-            public synchronized int getOldValue() {
-                return oldValue;
-            }
-        }
-
-        // value is an increment when operation==INCREMENT and the progression to set when operation==SET
-        private record ProgressionUpdateInfo(int operation, int value) {
-            public static final int INCREMENT = 0;
-            public static final int SET = 1;
-
-            public int applyUpdate(int currentValue) {
-                if (operation == INCREMENT) {
-                    try {
-                        return Math.max(Math.addExact(currentValue, value), 0);
-                    } catch (ArithmeticException ignored) {
-                        return Integer.MAX_VALUE;
-                    }
-                } else { // operation == SET
-                    return value;
-                }
-            }
-        }
-
-        record ScheduleResult(ProgressionUpdate progressionUpdate, int oldValue, int newCachedValue) {
-        }
     }
 }

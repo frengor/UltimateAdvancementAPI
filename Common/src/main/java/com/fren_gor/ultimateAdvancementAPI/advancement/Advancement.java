@@ -4,7 +4,7 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
-import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager.ProgressionUpdateResult;
+import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
@@ -259,8 +259,7 @@ public abstract class Advancement {
      * @param player The player who is responsible for the increment.
      * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
-    @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementProgression(@NotNull Player player) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player) {
         return incrementProgression(player, true);
     }
 
@@ -271,8 +270,7 @@ public abstract class Advancement {
      * @param giveReward Whether to give rewards if the advancement gets completed.
      * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
-    @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementProgression(@NotNull Player player, boolean giveReward) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player, boolean giveReward) {
         return incrementProgression(player, 1, giveReward);
     }
 
@@ -284,8 +282,7 @@ public abstract class Advancement {
      * @param increment The progression increment. Must be greater than {@code 0}.
      * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
-    @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementProgression(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
         return incrementProgression(player, increment, true);
     }
 
@@ -297,8 +294,7 @@ public abstract class Advancement {
      * @param giveReward Whether to give rewards if the advancement gets completed.
      * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
-    @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementProgression(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
         return incrementProgression(progressionFromPlayer(player, this), player, increment, giveReward);
     }
 
@@ -310,8 +306,7 @@ public abstract class Advancement {
      *         online member of the same team if there are any, or it will be set unredeemed.
      * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
-    @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementProgression(@NotNull UUID uuid) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid) {
         return incrementProgression(uuid, true);
     }
 
@@ -323,8 +318,7 @@ public abstract class Advancement {
      * @param giveReward Whether to give rewards if the advancement gets completed.
      * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
-    @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementProgression(@NotNull UUID uuid, boolean giveReward) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid, boolean giveReward) {
         return incrementProgression(uuid, 1, giveReward);
     }
 
@@ -337,8 +331,7 @@ public abstract class Advancement {
      * @param increment The progression increment. Must be greater than {@code 0}.
      * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
-    @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementProgression(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
         return incrementProgression(uuid, increment, true);
     }
 
@@ -351,8 +344,7 @@ public abstract class Advancement {
      * @param giveReward Whether to give rewards if the advancement gets completed.
      * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
-    @Range(from = 0, to = Integer.MAX_VALUE)
-    public int incrementProgression(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
         return incrementProgression(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), increment, giveReward);
     }
 
@@ -364,25 +356,32 @@ public abstract class Advancement {
      *
      * @param pro The {@link TeamProgression} of the team.
      * @param player The team member responsible for the increment. May be {@code null}.
-     * @param increment The progression increment. Must be greater than {@code 0}.
+     * @param increment The progression increment. May be negative.
      * @param giveRewards Whether to give rewards if the advancement gets completed.
      * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
-    @Range(from = 0, to = Integer.MAX_VALUE)
-    protected int incrementProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveRewards) {
+    protected CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull TeamProgression pro, @Nullable Player player, int increment, boolean giveRewards) {
         validateTeamProgression(pro);
-        validateIncrement(increment);
 
-        int progression = getProgression(pro);
-        if (progression >= maxProgression) {
-            return progression;
-        }
-        int newProgression = progression + increment;
-        if (newProgression > maxProgression) {
-            newProgression = maxProgression;
-        }
-        setProgression(pro, player, newProgression, giveRewards);
-        return newProgression;
+        final DatabaseManager ds = advancementTab.getDatabaseManager();
+        var completableFuture = ds.incrementProgression(key, pro, increment);
+
+        runSync(completableFuture, advancementTab.getOwningPlugin(), (result, err) -> {
+            if (err != null) {
+                err.printStackTrace();
+                return; // Don't go on in case of a db error
+            }
+
+            try {
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), Advancement.this));
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            }
+
+            handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+        });
+
+        return completableFuture;
     }
 
     /**
@@ -392,8 +391,8 @@ public abstract class Advancement {
      * @param player The player who is responsible for the update.
      * @param progression The new non-negative progression to set.
      */
-    public void setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
-        setProgression(player, progression, true);
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
+        return setProgression(player, progression, true);
     }
 
     /**
@@ -403,8 +402,8 @@ public abstract class Advancement {
      * @param progression The new non-negative progression to set.
      * @param giveReward Whether to give rewards if the advancement gets completed.
      */
-    public void setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
-        setProgression(progressionFromPlayer(player, this), player, progression, giveReward);
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
+        return setProgression(progressionFromPlayer(player, this), player, progression, giveReward);
     }
 
     /**
@@ -415,8 +414,8 @@ public abstract class Advancement {
      *         online member of the same team if there are any, or it will be set unredeemed.
      * @param progression The new non-negative progression to set.
      */
-    public void setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
-        setProgression(uuid, progression, true);
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
+        return setProgression(uuid, progression, true);
     }
 
     /**
@@ -427,8 +426,8 @@ public abstract class Advancement {
      * @param progression The new non-negative progression to set.
      * @param giveReward Whether to give rewards if the advancement gets completed.
      */
-    public void setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
-        setProgression(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), progression, giveReward);
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
+        return setProgression(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), progression, giveReward);
     }
 
     /**
@@ -442,20 +441,29 @@ public abstract class Advancement {
      * @param progression The new non-negative progression to set.
      * @param giveRewards Whether to give rewards if the advancement gets completed.
      */
-    protected void setProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveRewards) {
+    protected CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveRewards) {
         validateTeamProgression(pro);
         validateProgressionValueStrict(progression, maxProgression);
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
-        ProgressionUpdateResult result = ds.setProgression(key, pro, progression);
+        var completableFuture = ds.setProgression(key, pro, progression);
 
-        try {
-            Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), progression, this));
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        }
+        runSync(completableFuture, advancementTab.getOwningPlugin(), (result, err) -> {
+            if (err != null) {
+                err.printStackTrace();
+                return; // Don't go on in case of a db error
+            }
 
-        handlePlayer(pro, player, progression, result.oldProgression(), giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+            try {
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), Advancement.this));
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            }
+
+            handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+        });
+
+        return completableFuture;
     }
 
     /**

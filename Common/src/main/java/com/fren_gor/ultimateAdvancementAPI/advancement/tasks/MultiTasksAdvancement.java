@@ -2,9 +2,11 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskProgressionUpdateException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.google.common.base.Preconditions;
@@ -21,7 +23,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateIncrement;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
@@ -30,21 +35,6 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
  * using {@link #registerTasks(Set)} in order to initialise an instance of this class.
  */
 public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
-
-    /**
-     * Whether to enable arbitrary progression updates in {@link MultiTasksAdvancement#setProgression(TeamProgression, Player, int, boolean)}.
-     *
-     * @see MultiTasksAdvancement#setProgression(TeamProgression, Player, int, boolean)
-     */
-    protected boolean ENABLE_ARBITRARY_SET_PROGRESSION = false;
-
-    /**
-     * Whether to disable {@link ArbitraryMultiTaskProgressionUpdateException} in {@link MultiTasksAdvancement#setProgression(TeamProgression, Player, int, boolean)}.
-     * <p>Ignored when {@link #ENABLE_ARBITRARY_SET_PROGRESSION} is set to {@code true}.
-     *
-     * @see MultiTasksAdvancement#setProgression(TeamProgression, Player, int, boolean)
-     */
-    protected boolean DISABLE_EXCEPTION_ON_ARBITRARY_SET_PROGRESSION = false;
 
     /**
      * The tasks of this advancement.
@@ -164,73 +154,97 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     /**
      * Sets a progression for the provided player's team. Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s,
      * it is not possible (by default) to set any progression, but {@code 0} or {@link MultiTasksAdvancement#maxProgression}. Setting any progression between those will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
-     * <p>
-     * To enable arbitrary progression updates, set {@link MultiTasksAdvancement#ENABLE_ARBITRARY_SET_PROGRESSION} to {@code true} ({@code false} by default).
-     * To prevent the throwing of {@link ArbitraryMultiTaskProgressionUpdateException}s set {@link MultiTasksAdvancement#DISABLE_EXCEPTION_ON_ARBITRARY_SET_PROGRESSION} to {@code true}.
-     * </p>
+     *
+     * @param progression The {@link TeamProgression} of the player.
+     * @param player The player, {@code null} if it's not online. (Note: it must have been loaded into cache)
+     * @param increment The new progression to set. Must be between 0 and {@link MultiTasksAdvancement#maxProgression}.
+     * @param giveRewards Whether to give rewards to player if the team's progression reaches {@link MultiTasksAdvancement#maxProgression}.
+     * @return
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided new progression is not {@code 0} or {@link MultiTasksAdvancement#maxProgression}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
+    @Override
+    protected CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull TeamProgression progression, @Nullable Player player, @Range(from = 0, to = 0) int increment, boolean giveRewards) throws ArbitraryMultiTaskProgressionUpdateException {
+        checkInitialisation();
+        validateTeamProgression(progression);
+        validateIncrement(increment);
+
+        if (increment != 0) {
+            throw new ArbitraryMultiTaskProgressionUpdateException();
+        }
+
+        CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
+
+        var res = advancementTab.getDatabaseManager().incrementProgression(tasks.iterator().next().getKey(), progression, 0);
+        runSync(res, getAdvancementTab().getOwningPlugin(), (result, err) -> {
+            if (err != null) {
+                completableFuture.completeExceptionally(new DatabaseException(new RuntimeException("An exception occurred while setting the progression of 1 or more tasks.")));
+                return;
+            }
+
+            int progr = getProgression(progression);
+            completableFuture.complete(new ProgressionUpdateResult(progr, progr));
+        });
+
+        return completableFuture;
+    }
+
+    /**
+     * Sets a progression for the provided player's team. Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s,
+     * it is not possible (by default) to set any progression, but {@code 0} or {@link MultiTasksAdvancement#maxProgression}. Setting any progression between those will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
      *
      * @param progression The {@link TeamProgression} of the player.
      * @param player The player, {@code null} if it's not online. (Note: it must have been loaded into cache)
      * @param newProgression The new progression to set. Must be between 0 and {@link MultiTasksAdvancement#maxProgression}.
      * @param giveRewards Whether to give rewards to player if the team's progression reaches {@link MultiTasksAdvancement#maxProgression}.
-     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided new progression is not {@code 0} or {@link MultiTasksAdvancement#maxProgression} and either {@link MultiTasksAdvancement#ENABLE_ARBITRARY_SET_PROGRESSION} or {@link MultiTasksAdvancement#DISABLE_EXCEPTION_ON_ARBITRARY_SET_PROGRESSION} are not set to {@code true}.
+     * @return
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided new progression is not {@code 0} or {@link MultiTasksAdvancement#maxProgression}.
      * @throws IllegalStateException If the multi-task advancement is not initialised.
      */
     @Override
-    protected void setProgression(@NotNull TeamProgression progression, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, boolean giveRewards) throws ArbitraryMultiTaskProgressionUpdateException {
+    protected CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull TeamProgression progression, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, boolean giveRewards) throws ArbitraryMultiTaskProgressionUpdateException {
         checkInitialisation();
         validateTeamProgression(progression);
         validateProgressionValueStrict(newProgression, maxProgression);
 
-        int current = getProgression(progression);
-        if (current == newProgression) {
-            return; // Unnecessary update
-        }
+        final CompletableFuture<ProgressionUpdateResult>[] results = new CompletableFuture[this.tasks.size()];
+        int i = 0;
 
-        doReloads = false;
-        try {
-            if (newProgression == maxProgression) {
-                for (TaskAdvancement t : tasks) {
-                    t.setProgression(progression, player, t.getMaxProgression(), giveRewards);
-                }
-            } else if (newProgression == 0) {
-                for (TaskAdvancement t : tasks) {
-                    t.setProgression(progression, player, 0, giveRewards);
-                }
-            } else if (ENABLE_ARBITRARY_SET_PROGRESSION) {
-                if (newProgression < current) {
-                    for (TaskAdvancement t : tasks) {
-                        int tc = t.getProgression(progression);
-                        if (current - tc > newProgression) {
-                            t.setProgression(progression, player, 0, false);
-                        } else if (current - tc <= newProgression) {
-                            t.setProgression(progression, player, tc + newProgression - current, false);
-                            break;
-                        }
-                    }
-                } else /*if (newProgression > current)*/ {
-                    for (TaskAdvancement t : tasks) {
-                        int ta = t.getProgression(progression);
-                        int tc = t.getMaxProgression() - ta;
-                        if (current + tc < newProgression) {
-                            t.setProgression(progression, player, t.getMaxProgression(), giveRewards);
-                        } else if (current + tc >= newProgression) {
-                            t.setProgression(progression, player, ta + newProgression - current, giveRewards);
-                            break;
-                        }
-                    }
-                }
-            } else {
-                if (DISABLE_EXCEPTION_ON_ARBITRARY_SET_PROGRESSION)
-                    return;
-                throw new ArbitraryMultiTaskProgressionUpdateException();
+        if (newProgression == maxProgression) {
+            for (TaskAdvancement t : tasks) {
+                results[i++] = t.setProgression(progression, player, t.getMaxProgression(), giveRewards);
             }
-        } finally {
-            doReloads = true;
+        } else if (newProgression == 0) {
+            for (TaskAdvancement t : tasks) {
+                results[i++] = t.setProgression(progression, player, 0, giveRewards);
+            }
+        } else {
+            throw new ArbitraryMultiTaskProgressionUpdateException();
         }
-        updateProgressionCache(progression, newProgression);
 
-        handlePlayer(progression, player, newProgression, current, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+        CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
+
+        CompletableFuture.allOf(results).whenComplete((result, err) -> {
+            if (err != null) {
+                completableFuture.completeExceptionally(new DatabaseException(new RuntimeException("An exception occurred while setting the progression of 1 or more tasks.")));
+                return;
+            }
+
+            int oldProgr = 0, newProgr = 0;
+            try {
+                for (CompletableFuture<ProgressionUpdateResult> res : results) {
+                    final ProgressionUpdateResult progr = res.get();
+                    oldProgr += progr.oldProgression();
+                    newProgr += progr.newProgression();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                completableFuture.complete(new ProgressionUpdateResult(oldProgr, newProgr));
+            }
+        });
+
+        return completableFuture;
     }
 
     /**
@@ -239,18 +253,18 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * @throws IllegalStateException If the multi-task advancement is not initialised.
      */
     @Override
-    protected void reloadTasks(@NotNull TeamProgression progression, @Nullable Player player, boolean giveRewards) {
+    protected void reloadTasks(@NotNull TeamProgression progression, @Nullable Player player, @NotNull ProgressionUpdateResult result, boolean giveRewards) {
         checkInitialisation();
-        if (doReloads) { // Skip reloads when update comes from ourselves
-            validateTeamProgression(progression);
+        Preconditions.checkNotNull(result, "ProgressionUpdateResult is null");
+        validateTeamProgression(progression);
 
-            int current = getProgression(progression);
-            resetProgressionCache(progression);
+        resetProgressionCache(progression);
+        int newProgression = getProgression(progression);
+        int oldProgression = newProgression - result.oldProgression();
 
-            // Update MultiTasksAdvancement to players since a task has been updated
-            // Note that the return of getProgression should be changed from the previous call
-            handlePlayer(progression, player, getProgression(progression), current, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
-        }
+        // Update MultiTasksAdvancement to players since a task has been updated
+        // Note that the return of getProgression should be changed from the previous call
+        handlePlayer(progression, player, newProgression, oldProgression, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
     }
 
     /**
