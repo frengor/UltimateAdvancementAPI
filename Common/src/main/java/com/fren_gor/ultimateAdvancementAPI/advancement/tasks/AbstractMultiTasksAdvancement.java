@@ -53,10 +53,12 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      * <p>This method should be invoked when the progression of a task changes.
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
+     * @param task The task which triggered the reload.
      * @param player The player responsible for the task's progression update.
+     * @param result The result of the update.
      */
-    public void reloadTasks(@NotNull Player player, @NotNull ProgressionUpdateResult result) {
-        reloadTasks(player, result, true);
+    public void reloadTasks(@NotNull Advancement task, @NotNull Player player, @NotNull ProgressionUpdateResult result) {
+        reloadTasks(task, player, result, true);
     }
 
     /**
@@ -64,41 +66,49 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      * <p>This method should be invoked when the progression of a task changes.
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
+     * @param task The task which triggered the reload.
      * @param uuid The {@link UUID} of the player responsible for the task's progression update.
+     * @param result The result of the update.
      */
-    public void reloadTasks(@NotNull UUID uuid, @NotNull ProgressionUpdateResult result) {
-        reloadTasks(uuid, result, true);
+    public void reloadTasks(@NotNull Advancement task, @NotNull UUID uuid, @NotNull ProgressionUpdateResult result) {
+        reloadTasks(task, uuid, result, true);
     }
 
     /**
      * Reloads and updates the tasks to the provided player's team members.
      * <p>This method should be invoked when the progression of a task changes.
      *
+     * @param task The task which triggered the reload.
      * @param player The player responsible for the task's progression update.
      * @param giveRewards Whether to give the player the advancement rewards if the advancement gets completed.
+     * @param result The result of the update.
      */
-    public void reloadTasks(@NotNull Player player, @NotNull ProgressionUpdateResult result, boolean giveRewards) {
-        reloadTasks(progressionFromPlayer(player, this), player, result, giveRewards);
+    public void reloadTasks(@NotNull Advancement task, @NotNull Player player, @NotNull ProgressionUpdateResult result, boolean giveRewards) {
+        reloadTasks(task, progressionFromPlayer(player, this), player, result, giveRewards);
     }
 
     /**
      * Reloads and updates the tasks to the provided player's team members.
      * <p>This method should be invoked when the progression of a task changes.
      *
+     * @param task The task which triggered the reload.
      * @param uuid The {@link UUID} of the player responsible for the task's progression update.
      * @param giveRewards Whether to give the player the advancement rewards if the advancement gets completed.
+     * @param result The result of the update.
      */
-    public void reloadTasks(@NotNull UUID uuid, @NotNull ProgressionUpdateResult result, boolean giveRewards) {
-        reloadTasks(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), result, giveRewards);
+    public void reloadTasks(@NotNull Advancement task, @NotNull UUID uuid, @NotNull ProgressionUpdateResult result, boolean giveRewards) {
+        reloadTasks(task, progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), result, giveRewards);
     }
 
     /**
      * Reloads and updates the tasks to the provided team members.
      * <p>This method should be invoked when the progression of a task changes.
      *
+     * @param task The task which triggered the reload.
      * @param progression The {@link TeamProgression} of the team.
      * @param player The player responsible for the task's progression update, or {@code null} if there's not.
      *         In this case, the implementation can choose a random online member.
+     * @param result The result of the update.
      */
-    protected abstract void reloadTasks(@NotNull TeamProgression progression, @Nullable Player player, @NotNull ProgressionUpdateResult result, boolean giveRewards);
+    protected abstract void reloadTasks(@NotNull Advancement task, @NotNull TeamProgression progression, @Nullable Player player, @NotNull ProgressionUpdateResult result, boolean giveRewards);
 }

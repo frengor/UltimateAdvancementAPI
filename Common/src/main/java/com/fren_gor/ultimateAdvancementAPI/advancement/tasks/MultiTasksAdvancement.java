@@ -4,22 +4,29 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.AsyncProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskProgressionUpdateException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventPriority;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.UnmodifiableView;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -40,13 +47,15 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * The tasks of this advancement.
      */
     protected final Set<TaskAdvancement> tasks = new HashSet<>();
+    protected final Set<AdvancementKey> tasksKeys = new HashSet<>();
 
     /**
      * The cache for the team's progressions (the key is the team unique id).
      */
     protected final Map<Integer, Integer> progressionsCache = Collections.synchronizedMap(new HashMap<>());
+    protected final Map<Integer, Map<AdvancementKey, List<PendingUpdate>>> pendingUpdates = Collections.synchronizedMap(new HashMap<>());
 
-    private boolean initialised = false, doReloads = true;
+    private boolean initialised = false;
 
     /**
      * Creates a new {@code MultiTasksAdvancement}.
@@ -97,7 +106,32 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             throw new IllegalArgumentException("Expected max progression (" + maxProgression + ") doesn't match the tasks' total one (" + progression + ").");
         }
         this.tasks.addAll(tasks);
-        registerEvent(AsyncTeamUnloadEvent.class, e -> progressionsCache.remove(e.getTeamProgression().getTeamId()));
+        for (TaskAdvancement adv : tasks) {
+            this.tasksKeys.add(adv.getKey());
+        }
+
+        registerEvent(AsyncTeamUnloadEvent.class, EventPriority.HIGHEST, e -> {
+            progressionsCache.remove(e.getTeamProgression().getTeamId());
+            pendingUpdates.remove(e.getTeamProgression().getTeamId());
+        });
+
+        registerEvent(AsyncProgressionUpdateEvent.class, e -> {
+            if (!tasksKeys.contains(e.getAdvancementKey())) {
+                return;
+            }
+            int newProgr;
+            synchronized (progressionsCache) {
+                progressionsCache.remove(e.getTeamProgression().getTeamId());
+                newProgr = getProgression(e.getTeamProgression());
+            }
+            synchronized (pendingUpdates) {
+                var map = pendingUpdates.computeIfAbsent(e.getTeamProgression().getTeamId(), k -> new HashMap<>());
+                var list = map.computeIfAbsent(e.getAdvancementKey(), key -> new LinkedList<>());
+                int oldProgr = newProgr - e.getNewProgression() + e.getOldProgression();
+                list.add(new PendingUpdate(e.getOldProgression(), e.getNewProgression(), oldProgr, newProgr));
+            }
+        });
+
         initialised = true;
     }
 
@@ -253,18 +287,33 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * @throws IllegalStateException If the multi-task advancement is not initialised.
      */
     @Override
-    protected void reloadTasks(@NotNull TeamProgression progression, @Nullable Player player, @NotNull ProgressionUpdateResult result, boolean giveRewards) {
+    protected void reloadTasks(@NotNull Advancement task, @NotNull TeamProgression progression, @Nullable Player player, @NotNull ProgressionUpdateResult result, boolean giveRewards) {
+        AdvancementUtils.checkSync();
         checkInitialisation();
-        Preconditions.checkNotNull(result, "ProgressionUpdateResult is null");
         validateTeamProgression(progression);
+        Preconditions.checkNotNull(task, "Advancement is null");
+        Preconditions.checkNotNull(result, "ProgressionUpdateResult is null");
 
-        resetProgressionCache(progression);
-        int newProgression = getProgression(progression);
-        int oldProgression = newProgression - result.oldProgression();
+        Preconditions.checkArgument(this.tasksKeys.contains(task.getKey()), task.getKey() + " is not a TaskAdvancement of this MultiTaskAdvancement");
 
-        // Update MultiTasksAdvancement to players since a task has been updated
-        // Note that the return of getProgression should be changed from the previous call
-        handlePlayer(progression, player, newProgression, oldProgression, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+        synchronized (pendingUpdates) {
+            var map = pendingUpdates.get(progression.getTeamId());
+            if (map == null) {
+                return;
+            }
+            var list = map.get(task.getKey());
+            if (list == null) {
+                return;
+            }
+            var iterator = list.listIterator();
+            while (iterator.hasNext()) {
+                PendingUpdate update = iterator.next();
+                if (update.oldProgression == result.oldProgression() && update.newProgression == result.newProgression()) {
+                    iterator.remove();
+                    handlePlayer(progression, player, update.globalNewProgression, update.globalOldProgression, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+                }
+            }
+        }
     }
 
     /**
@@ -282,18 +331,6 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     public void resetProgressionCache(@NotNull TeamProgression pro) {
         validateTeamProgression(pro);
         progressionsCache.remove(pro.getTeamId());
-    }
-
-    /**
-     * Updates the progression cache for the provided team.
-     *
-     * @param pro The team to update.
-     * @param progression The new progression to store in cache.
-     */
-    protected void updateProgressionCache(@NotNull TeamProgression pro, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
-        validateTeamProgression(pro);
-        validateProgressionValueStrict(progression, maxProgression);
-        progressionsCache.put(pro.getTeamId(), progression);
     }
 
     private void checkInitialisation() {
@@ -323,6 +360,8 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         for (TaskAdvancement t : tasks) {
             t.onDispose();
         }
+        pendingUpdates.clear();
+        progressionsCache.clear();
         super.onDispose();
     }
 
@@ -333,5 +372,8 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      */
     public boolean isInitialised() {
         return initialised;
+    }
+
+    private record PendingUpdate(int oldProgression, int newProgression, int globalOldProgression, int globalNewProgression) {
     }
 }

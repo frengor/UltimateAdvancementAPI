@@ -111,13 +111,13 @@ public class TaskAdvancement extends BaseAdvancement {
             }
 
             try {
-                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), TaskAdvancement.this));
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), this));
             } catch (IllegalStateException e) {
                 e.printStackTrace();
             }
 
             handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, null);
-            getMultiTasksAdvancement().reloadTasks(pro, player, result, giveRewards);
+            getMultiTasksAdvancement().reloadTasks(this, pro, player, result, giveRewards);
         });
 
         return completableFuture;
@@ -141,13 +141,13 @@ public class TaskAdvancement extends BaseAdvancement {
             }
 
             try {
-                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), TaskAdvancement.this));
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), this));
             } catch (IllegalStateException e) {
                 e.printStackTrace();
             }
 
             handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, null);
-            getMultiTasksAdvancement().reloadTasks(pro, player, result, giveRewards);
+            getMultiTasksAdvancement().reloadTasks(this, pro, player, result, giveRewards);
         });
 
         return completableFuture;
