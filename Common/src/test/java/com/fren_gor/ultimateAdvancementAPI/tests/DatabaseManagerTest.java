@@ -5,15 +5,16 @@ import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
-import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl;
 import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl.DBOperation;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
+import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import org.jetbrains.annotations.Contract;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,10 +94,9 @@ public class DatabaseManagerTest {
     void advancementSetProgressionTest() throws Exception {
         PlayerMock p = loadPlayer();
 
-        ProgressionUpdateResult updateResult = databaseManager.setProgression(KEY1, p, 10);
-
-        assertEquals(0, updateResult.oldProgression());
-        assertEquals(10, waitCompletion(updateResult.futureUpdatedProgression()).get());
+        ProgressionUpdateResult result = waitCompletion(databaseManager.setProgression(KEY1, p, 10)).get();
+        assertEquals(0, result.oldProgression());
+        assertEquals(10, result.newProgression());
     }
 
     @Test
@@ -107,32 +107,38 @@ public class DatabaseManagerTest {
 
         fallible.setFallibleOps(DBOperation.UPDATE_ADVANCEMENT);
         fallible.addToPlanning(true, false, true);
-        ProgressionUpdateResult updateResult1 = databaseManager.setProgression(KEY2, p, 10);
+        CompletableFuture<ProgressionUpdateResult> updateResult1 = databaseManager.setProgression(KEY2, p, 10);
 
         // This should fail
-        ProgressionUpdateResult updateResult2 = databaseManager.setProgression(KEY2, p, 20);
+        CompletableFuture<ProgressionUpdateResult> updateResult2 = databaseManager.setProgression(KEY2, p, 20);
 
-        ProgressionUpdateResult updateResult3 = databaseManager.setProgression(KEY2, p, 30);
+        CompletableFuture<ProgressionUpdateResult> updateResult3 = databaseManager.setProgression(KEY2, p, 30);
 
         paused.resume();
 
-        assertEquals(0, updateResult1.oldProgression());
-        assertEquals(10, updateResult2.oldProgression());
-        assertEquals(20, updateResult3.oldProgression());
+        waitCompletion(updateResult1);
+        waitCompletion(updateResult2);
+        waitCompletion(updateResult3);
 
-        assertEquals(10, waitCompletion(updateResult1.futureUpdatedProgression()).get());
-        assertTrue(waitCompletion(updateResult2.futureUpdatedProgression()).isCompletedExceptionally());
-        assertEquals(30, waitCompletion(updateResult3.futureUpdatedProgression()).get());
+        assertFalse(updateResult1.isCompletedExceptionally());
+        assertTrue(updateResult2.isCompletedExceptionally());
+        assertFalse(updateResult3.isCompletedExceptionally());
+
+        assertEquals(0, updateResult1.get().oldProgression());
+        assertEquals(10, updateResult3.get().oldProgression());
+
+        assertEquals(10, updateResult1.get().newProgression());
+        assertEquals(30, updateResult3.get().newProgression());
     }
 
     @Test
     void advancementIncrementProgressionTest() throws Exception {
         PlayerMock p = loadPlayer();
 
-        ProgressionUpdateResult updateResult = databaseManager.incrementProgression(KEY1, p, 10);
+        ProgressionUpdateResult updateResult = waitCompletion(databaseManager.incrementProgression(KEY1, p, 10)).get();
 
         assertEquals(0, updateResult.oldProgression());
-        assertEquals(10, waitCompletion(updateResult.futureUpdatedProgression()).get());
+        assertEquals(10, updateResult.newProgression());
     }
 
     @Test
@@ -143,22 +149,28 @@ public class DatabaseManagerTest {
 
         fallible.setFallibleOps(DBOperation.UPDATE_ADVANCEMENT);
         fallible.addToPlanning(true, false, true);
-        ProgressionUpdateResult updateResult1 = databaseManager.incrementProgression(KEY2, p, 10);
+        CompletableFuture<ProgressionUpdateResult> updateResult1 = databaseManager.incrementProgression(KEY2, p, 10);
 
         // This should fail
-        ProgressionUpdateResult updateResult2 = databaseManager.incrementProgression(KEY2, p, 20);
+        CompletableFuture<ProgressionUpdateResult> updateResult2 = databaseManager.incrementProgression(KEY2, p, 20);
 
-        ProgressionUpdateResult updateResult3 = databaseManager.incrementProgression(KEY2, p, 30);
+        CompletableFuture<ProgressionUpdateResult> updateResult3 = databaseManager.incrementProgression(KEY2, p, 30);
 
         paused.resume();
 
-        assertEquals(0, updateResult1.oldProgression());
-        assertEquals(10, updateResult2.oldProgression());
-        assertEquals(30, updateResult3.oldProgression());
+        waitCompletion(updateResult1);
+        waitCompletion(updateResult2);
+        waitCompletion(updateResult3);
 
-        assertEquals(10, waitCompletion(updateResult1.futureUpdatedProgression()).get());
-        assertTrue(waitCompletion(updateResult2.futureUpdatedProgression()).isCompletedExceptionally());
-        assertEquals(40, waitCompletion(updateResult3.futureUpdatedProgression()).get());
+        assertFalse(updateResult1.isCompletedExceptionally());
+        assertTrue(updateResult2.isCompletedExceptionally());
+        assertFalse(updateResult3.isCompletedExceptionally());
+
+        assertEquals(0, updateResult1.get().oldProgression());
+        assertEquals(10, updateResult3.get().oldProgression());
+
+        assertEquals(10, updateResult1.get().newProgression());
+        assertEquals(40, updateResult3.get().newProgression());
     }
 
     @Test
@@ -338,7 +350,11 @@ public class DatabaseManagerTest {
         return p;
     }
 
+    @Contract("null -> null; !null -> param1")
     private <T> CompletableFuture<T> waitCompletion(CompletableFuture<T> completableFuture) {
+        if (completableFuture == null) {
+            return null;
+        }
         while (!completableFuture.isDone()) {
             server.getScheduler().performTicks(10);
             Thread.yield();
