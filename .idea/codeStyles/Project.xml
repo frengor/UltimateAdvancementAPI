@@ -18,6 +18,8 @@
           <package name="javax.swing" withSubpackages="false" static="false" />
         </value>
       </option>
+      <option name="RECORD_COMPONENTS_WRAP" value="0" />
+      <option name="ALIGN_MULTILINE_RECORDS" value="false" />
       <option name="JD_ALIGN_PARAM_COMMENTS" value="false" />
       <option name="JD_ALIGN_EXCEPTION_COMMENTS" value="false" />
       <option name="JD_INDENT_ON_CONTINUATION" value="true" />
