@@ -47,7 +47,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * The tasks of this advancement.
      */
     protected final Set<TaskAdvancement> tasks = new HashSet<>();
-    protected final Set<AdvancementKey> tasksKeys = new HashSet<>();
+    private final Set<AdvancementKey> tasksKeys = new HashSet<>();
 
     /**
      * The cache for the team's progressions (the key is the team unique id).
