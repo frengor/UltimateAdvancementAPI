@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_5_1;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_8_0;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
