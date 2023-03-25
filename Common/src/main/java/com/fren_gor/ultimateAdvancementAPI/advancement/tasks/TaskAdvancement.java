@@ -116,8 +116,12 @@ public class TaskAdvancement extends BaseAdvancement {
                 e.printStackTrace();
             }
 
-            handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, null);
-            getMultiTasksAdvancement().reloadTasks(this, pro, player, result, giveRewards);
+            // Use try-finally to make sure to call reloadTasks, since not doing so will leak memory
+            try {
+                handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, null);
+            } finally {
+                getMultiTasksAdvancement().reloadTasks(this, pro, player, result, giveRewards);
+            }
         });
 
         return completableFuture;
@@ -146,8 +150,12 @@ public class TaskAdvancement extends BaseAdvancement {
                 e.printStackTrace();
             }
 
-            handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, null);
-            getMultiTasksAdvancement().reloadTasks(this, pro, player, result, giveRewards);
+            // Use try-finally to make sure to call reloadTasks, since not doing so will leak memory
+            try {
+                handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, null);
+            } finally {
+                getMultiTasksAdvancement().reloadTasks(this, pro, player, result, giveRewards);
+            }
         });
 
         return completableFuture;
