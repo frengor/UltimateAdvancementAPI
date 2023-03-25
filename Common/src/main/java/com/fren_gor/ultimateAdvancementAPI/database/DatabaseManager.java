@@ -9,6 +9,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.SQLite;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.AsyncProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncPlayerUnregisteredEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
@@ -747,6 +748,9 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
             loadedNewTeam.teamProgression.updateProgression(key, newProgression);
+
+            callEventCatchingExceptions(new AsyncProgressionUpdateEvent(progression, old, newProgression, key));
+
             completableFuture.complete(new ProgressionUpdateResult(old, newProgression));
         }, executor).handle((v, t) -> {
             removeInternalRequest(loadedNewTeam);
@@ -832,6 +836,9 @@ public final class DatabaseManager implements Closeable {
                 }
             }
             loadedNewTeam.teamProgression.updateProgression(key, incremented);
+
+            callEventCatchingExceptions(new AsyncProgressionUpdateEvent(progression, old, incremented, key));
+
             completableFuture.complete(new ProgressionUpdateResult(old, incremented));
         }, executor);
 
