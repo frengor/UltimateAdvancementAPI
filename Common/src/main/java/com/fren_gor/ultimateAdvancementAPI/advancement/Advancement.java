@@ -480,6 +480,7 @@ public abstract class Advancement {
      *         The default action updates the tab's advancement to the team (see {@link AfterHandle#UPDATE_ADVANCEMENTS_TO_TEAM}).
      */
     protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int newProgression, int oldProgression, boolean giveRewards, @Nullable AfterHandle afterHandle) {
+        AdvancementUtils.checkSync();
         validateTeamProgression(pro);
         if (newProgression >= this.maxProgression && oldProgression < this.maxProgression) {
             if (player != null) {
