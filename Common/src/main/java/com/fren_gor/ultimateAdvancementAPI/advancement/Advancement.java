@@ -37,7 +37,6 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -48,7 +47,6 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progress
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromUUID;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateIncrement;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 

@@ -201,12 +201,6 @@ public class AdvancementUtils {
         }
     }
 
-    public static void validateIncrement(int increment) {
-        if (increment <= 0) {
-            throw new IllegalArgumentException("Increment cannot be zero or less.");
-        }
-    }
-
     @Contract("null -> fail; !null -> param1")
     public static TeamProgression validateTeamProgression(TeamProgression pro) {
         Preconditions.checkNotNull(pro, "TeamProgression is null.");

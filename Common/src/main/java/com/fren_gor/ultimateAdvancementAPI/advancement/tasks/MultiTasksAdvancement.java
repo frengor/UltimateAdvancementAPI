@@ -21,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.UnmodifiableView;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +32,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateIncrement;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
@@ -201,7 +199,6 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     protected CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull TeamProgression progression, @Nullable Player player, @Range(from = 0, to = 0) int increment, boolean giveRewards) throws ArbitraryMultiTaskProgressionUpdateException {
         checkInitialisation();
         validateTeamProgression(progression);
-        validateIncrement(increment);
 
         if (increment != 0) {
             throw new ArbitraryMultiTaskProgressionUpdateException();
