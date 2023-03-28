@@ -272,14 +272,14 @@ public final class TeamProgression {
 
     /**
      * Sets the progression of the provided advancement for the team.
-     * <p>MUST BE CALLED ONLY FROM THE DatabaseManager#executor THREAD!
+     * <p><strong>MUST BE CALLED ONLY FROM THE DatabaseManager#executor THREAD!</strong>
      *
      * @param key The key of the advancement.
      * @param progression The new progression to be set.
      */
     void updateProgression(@NotNull AdvancementKey key, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
         validateProgressionValue(progression);
-        Integer i = advancements.put(key, progression);
+        advancements.put(key, progression);
     }
 
     /**

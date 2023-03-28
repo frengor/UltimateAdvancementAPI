@@ -17,7 +17,9 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 
 /**
  * Called when a team's progression of an advancement changes.
- * <p>This event differs from {@link AdvancementProgressionUpdateEvent} because it is called asynchronously by the {@link DatabaseManager}.
+ * <p>This event differs from {@link AdvancementProgressionUpdateEvent} because it is called asynchronously by {@link DatabaseManager}.
+ *
+ * @since 3.0.0
  */
 public class AsyncProgressionUpdateEvent extends Event {
 

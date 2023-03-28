@@ -25,6 +25,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -225,10 +226,60 @@ public class AdvancementUtils {
         runSync(main.getOwningPlugin(), delay, runnable);
     }
 
+    /**
+     * Schedules the provided consumer to execute on the main thread when the {@link CompletableFuture} completes.
+     * <p>Example usage:
+     * <blockquote><pre>
+     * runSync(completableFuture, myPlugin, (result, err) -> {
+     *     if (err != null) {
+     *         // An error occurred
+     *         // Code which handle the error
+     *         return;
+     *     }
+     *
+     *     // Code which handle the result
+     * });
+     * </pre></blockquote>
+     *
+     * @param completableFuture The {@link CompletableFuture} which will complete in the future.
+     * @param plugin The plugin which will schedule the task on Bukkit.
+     * @param consumer The {@link BiConsumer} to execute. It is called with the result (or {@code null} if none) and the
+     *         exception (or {@code null} if none) of the provided {@link CompletableFuture}.
+     * @param <T> The value returned by the {@link CompletableFuture}.
+     * @return A {@link CompletableFuture} with the same result or exception as the provided one.
+     * @see BukkitScheduler
+     * @since 3.0.0
+     */
     public static <T> CompletableFuture<T> runSync(@NotNull CompletableFuture<T> completableFuture, @NotNull Plugin plugin, @NotNull BiConsumer<T, Throwable> consumer) {
         return runSync(completableFuture, 0, plugin, consumer);
     }
 
+    /**
+     * Schedules the provided consumer to execute on the main thread when the {@link CompletableFuture} completes.
+     * <p>Example usage:
+     * <blockquote><pre>
+     * runSync(completableFuture, 0, myPlugin, (result, err) -> {
+     *     if (err != null) {
+     *         // An error occurred
+     *         // Code which handle the error
+     *         return;
+     *     }
+     *
+     *     // Code which handle the result
+     * });
+     * </pre></blockquote>
+     *
+     * @param completableFuture The {@link CompletableFuture} which will complete in the future.
+     * @param delay The delay in ticks to wait between the {@link CompletableFuture} competition and the execution of
+     *         the provided consumer.
+     * @param plugin The plugin which will schedule the task on Bukkit.
+     * @param consumer The {@link BiConsumer} to execute. It is called with the result (or {@code null} if none) and the
+     *         exception (or {@code null} if none) of the provided {@link CompletableFuture}.
+     * @param <T> The value returned by the {@link CompletableFuture}.
+     * @return A {@link CompletableFuture} with the same result or exception as the provided one.
+     * @see BukkitScheduler
+     * @since 3.0.0
+     */
     public static <T> CompletableFuture<T> runSync(@NotNull CompletableFuture<T> completableFuture, long delay, @NotNull Plugin plugin, @NotNull BiConsumer<T, Throwable> consumer) {
         Preconditions.checkNotNull(completableFuture, "CompletableFuture is null.");
         Preconditions.checkNotNull(plugin, "Plugin is null.");

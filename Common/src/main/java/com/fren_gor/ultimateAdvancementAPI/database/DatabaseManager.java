@@ -59,7 +59,8 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
- * The database manager. It handles the connection to the database and caches the requested values to improve performances.
+ * The database manager. It handles the connection to the database and caches the requested values to improve performance.
+ * <p>All the implemented operation are <a href="https://en.wikipedia.org/wiki/ACID">ACID</a>.
  * <p>The caching system caches teams using {@link TeamProgression}s and keeps a link between each online player and the
  * associated {@link TeamProgression}. Two players who are part of the same team will always be associated to the same {@link TeamProgression} object.
  * More formally, the object returned by {@link #getTeamProgression(Player)} is the same if and only the players are members of the same team:
@@ -399,7 +400,7 @@ public final class DatabaseManager implements Closeable {
     /**
      * Updates the name of the specified player in the database.
      *
-     * @param player The player to progressionUpdate.
+     * @param player The player to update.
      * @return A {@link CompletableFuture} which provides the result of the operation.
      * @see UltimateAdvancementAPI#updatePlayerName(Player)
      */
@@ -412,7 +413,7 @@ public final class DatabaseManager implements Closeable {
             try {
                 database.updatePlayerName(player.getUniqueId(), player.getName());
             } catch (SQLException e) {
-                System.err.println("Cannot progressionUpdate player " + player.getName() + " name:");
+                System.err.println("Cannot update player " + player.getName() + " name:");
                 e.printStackTrace();
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
@@ -428,6 +429,7 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Moves the provided player from their team to the second player's one.
+     * <p>The player is not moved immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param playerToMove The player to move.
      * @param otherTeamMember A player of the destination team.
@@ -442,6 +444,7 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Moves the provided player from their team to the second player's one.
+     * <p>The player is not moved immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param playerToMove The {@link UUID} of the player to move.
      * @param otherTeamMember The {@link UUID} of a player of the destination team.
@@ -456,6 +459,7 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Moves the provided player from their team to the specified one.
+     * <p>The player is not moved immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param playerToMove The {@link UUID} of the player to move.
      * @param otherTeamProgression The {@link TeamProgression} of the target team.
@@ -469,6 +473,7 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Moves the provided player from their team to the specified one.
+     * <p>The player is not moved immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param playerToMove The player to move.
      * @param otherTeamProgression The {@link TeamProgression} of the target team.
@@ -548,6 +553,7 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Moves the provided player into a new team.
+     * <p>The player is not moved immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param player The player.
      * @return A {@link CompletableFuture} which provides the new player team's {@link TeamProgression}.
@@ -560,6 +566,7 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Moves the provided player into a new team.
+     * <p>The player is not moved immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player.
      * @return A {@link CompletableFuture} which provides the new player team's {@link TeamProgression}.
@@ -681,6 +688,7 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Sets the progression of the specified advancement.
+     * <p>The progression is not updated immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player who made the advancement.
@@ -695,6 +703,7 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Sets the progression of the specified advancement.
+     * <p>The progression is not updated immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param key The advancement key.
      * @param player The player who made the advancement.
@@ -709,6 +718,7 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Sets the progression of the specified advancement.
+     * <p>The progression is not updated immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
@@ -762,12 +772,14 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Increments the progression of the specified advancement.
+     * <p>The progression is not updated immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player who made the advancement.
      * @param increment The increment of the progression. May be negative.
      * @return A {@link CompletableFuture} that will complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
+     * @since 3.0.0
      */
     @NotNull
     public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, int increment) throws UserNotLoadedException {
@@ -776,12 +788,14 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Increments the progression of the specified advancement.
+     * <p>The progression is not updated immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param key The advancement key.
      * @param player The player who made the advancement.
      * @param increment The increment of the progression. May be negative.
      * @return A {@link CompletableFuture} that will complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
+     * @since 3.0.0
      */
     @NotNull
     public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull Player player, int increment) throws UserNotLoadedException {
@@ -790,11 +804,13 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Increments the progression of the specified advancement.
+     * <p>The progression is not updated immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
      * @param increment The increment of the progression. May be negative.
      * @return A {@link CompletableFuture} that will complete when the database update finishes.
+     * @since 3.0.0
      */
     @NotNull
     public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, int increment) {
@@ -1258,7 +1274,7 @@ public final class DatabaseManager implements Closeable {
      * @param requester The plugin which requested the loading.
      * @see UltimateAdvancementAPI#unloadOfflinePlayer(UUID)
      */
-    public void unloadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
+    public synchronized void unloadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
         internalUnloadOfflinePlayer(uuid, requester);
     }
 

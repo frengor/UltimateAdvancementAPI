@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Range;
  *
  * @param oldProgression The old progression before the update.
  * @param newProgression The new progression after the update.
+ * @since 3.0.0
  */
 public record ProgressionUpdateResult(@Range(from = 0, to = Integer.MAX_VALUE) int oldProgression,
                                       @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {

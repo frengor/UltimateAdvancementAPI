@@ -4,6 +4,8 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 
 /**
  * This exception thrown by {@link DatabaseManager}.
+ *
+ * @since 3.0.0
  */
 public class DatabaseException extends RuntimeException {
 

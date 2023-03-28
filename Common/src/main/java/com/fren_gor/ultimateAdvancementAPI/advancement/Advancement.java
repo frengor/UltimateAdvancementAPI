@@ -7,6 +7,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
@@ -253,9 +254,12 @@ public abstract class Advancement {
     /**
      * Increases the progression of the provided player's team by one.
      * <p>If the advancement gets completed, advancement rewards will be given.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param player The player who is responsible for the increment.
-     * @return The new progression. It is always less or equal to {@link #maxProgression}.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
     public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player) {
         return incrementProgression(player, true);
@@ -263,10 +267,13 @@ public abstract class Advancement {
 
     /**
      * Increases the progression of the provided player's team by one.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param player The player who is responsible for the increment.
      * @param giveReward Whether to give rewards if the advancement gets completed.
-     * @return The new progression. It is always less or equal to {@link #maxProgression}.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
     public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player, boolean giveReward) {
         return incrementProgression(player, 1, giveReward);
@@ -275,34 +282,45 @@ public abstract class Advancement {
     /**
      * Increases the progression of the provided player's team.
      * <p>If the advancement gets completed, advancement rewards will be given.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param player The player who is responsible for the increment.
-     * @param increment The progression increment. Must be greater than {@code 0}.
-     * @return The new progression. It is always less or equal to {@link #maxProgression}.
+     * @param increment The progression increment. May be less than {@code 0}. If the final progression would be lower
+     *         than {@code 0}, the progression will be set to {@code 0}.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
-    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player, int increment) {
         return incrementProgression(player, increment, true);
     }
 
     /**
      * Increases the progression of the provided player's team.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param player The player who is responsible for the increment.
-     * @param increment The progression increment. Must be greater than {@code 0}.
+     * @param increment The progression increment. May be less than {@code 0}. If the final progression would be lower
+     *         than {@code 0}, the progression will be set to {@code 0}.
      * @param giveReward Whether to give rewards if the advancement gets completed.
-     * @return The new progression. It is always less or equal to {@link #maxProgression}.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
-    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player, int increment, boolean giveReward) {
         return incrementProgression(progressionFromPlayer(player, this), player, increment, giveReward);
     }
 
     /**
      * Increases the progression of the provided player's team by one.
      * <p>If the advancement gets completed, advancement rewards will be given.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
      *         online member of the same team if there are any, or it will be set unredeemed.
-     * @return The new progression. It is always less or equal to {@link #maxProgression}.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
     public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid) {
         return incrementProgression(uuid, true);
@@ -310,11 +328,14 @@ public abstract class Advancement {
 
     /**
      * Increases the progression of the provided player's team by one.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
      *         online member of the same team if there are any, or it will be set unredeemed.
      * @param giveReward Whether to give rewards if the advancement gets completed.
-     * @return The new progression. It is always less or equal to {@link #maxProgression}.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
     public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid, boolean giveReward) {
         return incrementProgression(uuid, 1, giveReward);
@@ -323,40 +344,52 @@ public abstract class Advancement {
     /**
      * Increases the progression of the provided player's team.
      * <p>If the advancement gets completed, advancement rewards will be given.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
      *         online member of the same team if there are any, or it will be set unredeemed.
-     * @param increment The progression increment. Must be greater than {@code 0}.
-     * @return The new progression. It is always less or equal to {@link #maxProgression}.
+     * @param increment The progression increment. May be less than {@code 0}. If the final progression would be lower
+     *         than {@code 0}, the progression will be set to {@code 0}.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
-    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid, int increment) {
         return incrementProgression(uuid, increment, true);
     }
 
     /**
      * Increases the progression of the provided player's team.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
      *         online member of the same team if there are any, or it will be set unredeemed.
-     * @param increment The progression increment. Must be greater than {@code 0}.
+     * @param increment The progression increment. May be less than {@code 0}. If the final progression would be lower
+     *         than {@code 0}, the progression will be set to {@code 0}.
      * @param giveReward Whether to give rewards if the advancement gets completed.
-     * @return The new progression. It is always less or equal to {@link #maxProgression}.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
-    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid, @Range(from = 1, to = Integer.MAX_VALUE) int increment, boolean giveReward) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid, int increment, boolean giveReward) {
         return incrementProgression(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), increment, giveReward);
     }
 
     /**
      * Increases the progression of the provided team.
      * <p>The provided player must be an online member of the team. If no members are online or no particular player is
-     * to be preferred, it can be put to {@code null}. In this case, rewards will be given to a pseudorandom online member
-     * if there are any or the advancement will be set unredeemed.
+     * to be preferred, it can be put to {@code null}. In this case, rewards will be given to a random online team member
+     * (if there are any) or the advancement will be set unredeemed.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param pro The {@link TeamProgression} of the team.
      * @param player The team member responsible for the increment. May be {@code null}.
-     * @param increment The progression increment. May be negative.
+     * @param increment The progression increment. May be less than {@code 0}. If the final progression would be lower
+     *         than {@code 0}, the progression will be set to {@code 0}.
      * @param giveRewards Whether to give rewards if the advancement gets completed.
-     * @return The new progression. It is always less or equal to {@link #maxProgression}.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
     protected CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull TeamProgression pro, @Nullable Player player, int increment, boolean giveRewards) {
         validateTeamProgression(pro);
@@ -385,9 +418,13 @@ public abstract class Advancement {
     /**
      * Sets a progression for the provided player's team.
      * <p>If the advancement gets completed, advancement rewards will be given.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param player The player who is responsible for the update.
      * @param progression The new non-negative progression to set.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
     public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
         return setProgression(player, progression, true);
@@ -395,10 +432,14 @@ public abstract class Advancement {
 
     /**
      * Sets a progression for the provided player's team.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param player The player who is responsible for the update.
      * @param progression The new non-negative progression to set.
      * @param giveReward Whether to give rewards if the advancement gets completed.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
     public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
         return setProgression(progressionFromPlayer(player, this), player, progression, giveReward);
@@ -407,10 +448,14 @@ public abstract class Advancement {
     /**
      * Sets a progression for the provided player's team.
      * <p>If the advancement gets completed, advancement rewards will be given.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player responsible for the update. If the player is not online, rewards will be given to a pseudorandom
      *         online member of the same team if there are any, or it will be set unredeemed.
      * @param progression The new non-negative progression to set.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
     public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
         return setProgression(uuid, progression, true);
@@ -418,11 +463,15 @@ public abstract class Advancement {
 
     /**
      * Sets a progression for the provided player's team.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player responsible for the update. If the player is not online, rewards will be given to a pseudorandom
      *         online member of the same team if there are any, or it will be set unredeemed.
      * @param progression The new non-negative progression to set.
      * @param giveReward Whether to give rewards if the advancement gets completed.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
     public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
         return setProgression(progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), progression, giveReward);
@@ -431,13 +480,17 @@ public abstract class Advancement {
     /**
      * Sets a new progression for the provided team.
      * <p>The provided player must be an online member of the team. If no members are online or no particular player is
-     * to be preferred, it can be put to {@code null}. In this case, rewards will be given to a pseudorandom online member
-     * if there are any or the advancement will be set unredeemed.
+     * to be preferred, it can be put to {@code null}. In this case, rewards will be given to a random online team member
+     * (if there are any) or the advancement will be set unredeemed.
+     * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param pro The {@link TeamProgression} that belongs to the team.
      * @param player The team member responsible for the update. May be {@code null}.
      * @param progression The new non-negative progression to set.
      * @param giveRewards Whether to give rewards if the advancement gets completed.
+     * @return A {@link CompletableFuture} which will complete with the result of the operation.
+     * @see ProgressionUpdateResult
+     * @see CompletableFuture
      */
     protected CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveRewards) {
         validateTeamProgression(pro);
@@ -478,6 +531,7 @@ public abstract class Advancement {
      * @param giveRewards Whether to give rewards if the advancement gets completed.
      * @param afterHandle The action to perform after the reward process, or {@code null} to don't do any action.
      *         The default action updates the tab's advancement to the team (see {@link AfterHandle#UPDATE_ADVANCEMENTS_TO_TEAM}).
+     * @throws AsyncExecutionException If this method is called outside the main thread.
      */
     protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int newProgression, int oldProgression, boolean giveRewards, @Nullable AfterHandle afterHandle) {
         AdvancementUtils.checkSync();

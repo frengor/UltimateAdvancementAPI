@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
@@ -45,12 +46,18 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * The tasks of this advancement.
      */
     protected final Set<TaskAdvancement> tasks = new HashSet<>();
+    // Must be immutable once filled
     private final Set<AdvancementKey> tasksKeys = new HashSet<>();
 
     /**
      * The cache for the team's progressions (the key is the team unique id).
      */
     protected final Map<Integer, Integer> progressionsCache = Collections.synchronizedMap(new HashMap<>());
+    /**
+     * The map of pending updates.
+     *
+     * @since 3.0.0
+     */
     protected final Map<Integer, Map<AdvancementKey, List<PendingUpdate>>> pendingUpdates = Collections.synchronizedMap(new HashMap<>());
 
     private boolean initialised = false;
@@ -184,19 +191,119 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     }
 
     /**
-     * Sets a progression for the provided player's team. Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s,
-     * it is not possible (by default) to set any progression, but {@code 0} or {@link MultiTasksAdvancement#maxProgression}. Setting any progression between those will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to use any
+     * increment except {@code 0}. Using any other increment will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
      *
-     * @param progression The {@link TeamProgression} of the player.
-     * @param player The player, {@code null} if it's not online. (Note: it must have been loaded into cache)
-     * @param increment The new progression to set. Must be between 0 and {@link MultiTasksAdvancement#maxProgression}.
-     * @param giveRewards Whether to give rewards to player if the team's progression reaches {@link MultiTasksAdvancement#maxProgression}.
-     * @return
-     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided new progression is not {@code 0} or {@link MultiTasksAdvancement#maxProgression}.
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided increment is not {@code 0}.
      * @throws IllegalStateException If the multi-task advancement is not initialised.
      */
     @Override
-    protected CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull TeamProgression progression, @Nullable Player player, @Range(from = 0, to = 0) int increment, boolean giveRewards) throws ArbitraryMultiTaskProgressionUpdateException {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player) {
+        return super.incrementProgression(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to use any
+     * increment except {@code 0}. Using any other increment will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     *
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided increment is not {@code 0}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
+    @Override
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player, boolean giveReward) {
+        return super.incrementProgression(player, giveReward);
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to use any
+     * increment except {@code 0}. Using any other increment will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     *
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided increment is not {@code 0}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
+    @Override
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player, int increment) {
+        return super.incrementProgression(player, increment);
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to use any
+     * increment except {@code 0}. Using any other increment will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     *
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided increment is not {@code 0}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
+    @Override
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull Player player, int increment, boolean giveReward) {
+        return super.incrementProgression(player, increment, giveReward);
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to use any
+     * increment except {@code 0}. Using any other increment will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     *
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided increment is not {@code 0}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
+    @Override
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid) {
+        return super.incrementProgression(uuid);
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to use any
+     * increment except {@code 0}. Using any other increment will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     *
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided increment is not {@code 0}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
+    @Override
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid, boolean giveReward) {
+        return super.incrementProgression(uuid, giveReward);
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to use any
+     * increment except {@code 0}. Using any other increment will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     *
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided increment is not {@code 0}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
+    @Override
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid, int increment) {
+        return super.incrementProgression(uuid, increment);
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to use any
+     * increment except {@code 0}. Using any other increment will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     *
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided increment is not {@code 0}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
+    @Override
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull UUID uuid, int increment, boolean giveReward) {
+        return super.incrementProgression(uuid, increment, giveReward);
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to use any
+     * increment except {@code 0}. Using any other increment will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     *
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided increment is not {@code 0}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
+    @Override
+    protected CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull TeamProgression progression, @Nullable Player player, int increment, boolean giveRewards) throws ArbitraryMultiTaskProgressionUpdateException {
         checkInitialisation();
         validateTeamProgression(progression);
 
@@ -221,14 +328,67 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     }
 
     /**
-     * Sets a progression for the provided player's team. Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s,
-     * it is not possible (by default) to set any progression, but {@code 0} or {@link MultiTasksAdvancement#maxProgression}. Setting any progression between those will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to set any
+     * progression except {@code 0} or {@link MultiTasksAdvancement#maxProgression}. Setting any progression other than
+     * those will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
      *
-     * @param progression The {@link TeamProgression} of the player.
-     * @param player The player, {@code null} if it's not online. (Note: it must have been loaded into cache)
-     * @param newProgression The new progression to set. Must be between 0 and {@link MultiTasksAdvancement#maxProgression}.
-     * @param giveRewards Whether to give rewards to player if the team's progression reaches {@link MultiTasksAdvancement#maxProgression}.
-     * @return
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided new progression is not {@code 0} or {@link MultiTasksAdvancement#maxProgression}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
+    @Override
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
+        return super.setProgression(player, progression);
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to set any
+     * progression except {@code 0} or {@link MultiTasksAdvancement#maxProgression}. Setting any progression other than
+     * those will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     *
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided new progression is not {@code 0} or {@link MultiTasksAdvancement#maxProgression}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
+    @Override
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
+        return super.setProgression(player, progression, giveReward);
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to set any
+     * progression except {@code 0} or {@link MultiTasksAdvancement#maxProgression}. Setting any progression other than
+     * those will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     *
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided new progression is not {@code 0} or {@link MultiTasksAdvancement#maxProgression}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
+    @Override
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
+        return super.setProgression(uuid, progression);
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to set any
+     * progression except {@code 0} or {@link MultiTasksAdvancement#maxProgression}. Setting any progression other than
+     * those will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     *
+     * @throws ArbitraryMultiTaskProgressionUpdateException When the provided new progression is not {@code 0} or {@link MultiTasksAdvancement#maxProgression}.
+     * @throws IllegalStateException If the multi-task advancement is not initialised.
+     */
+    @Override
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression, boolean giveReward) {
+        return super.setProgression(uuid, progression, giveReward);
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@link MultiTasksAdvancement} handles a set of {@link TaskAdvancement}s, it is not possible to set any
+     * progression except {@code 0} or {@link MultiTasksAdvancement#maxProgression}. Setting any progression other than
+     * those will result in an {@link ArbitraryMultiTaskProgressionUpdateException}.
+     *
      * @throws ArbitraryMultiTaskProgressionUpdateException When the provided new progression is not {@code 0} or {@link MultiTasksAdvancement#maxProgression}.
      * @throws IllegalStateException If the multi-task advancement is not initialised.
      */
@@ -285,8 +445,8 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      */
     @Override
     protected void reloadTasks(@NotNull Advancement task, @NotNull TeamProgression progression, @Nullable Player player, @NotNull ProgressionUpdateResult result, boolean giveRewards) {
-        AdvancementUtils.checkSync();
         checkInitialisation();
+        AdvancementUtils.checkSync();
         validateTeamProgression(progression);
         Preconditions.checkNotNull(task, "Advancement is null");
         Preconditions.checkNotNull(result, "ProgressionUpdateResult is null");

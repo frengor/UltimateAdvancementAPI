@@ -4,6 +4,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Logger;
 
+/**
+ * Class used to establish a connection to a database stored in-memory.
+ */
 public class InMemory extends SQLite {
 
     /**
