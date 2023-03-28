@@ -196,6 +196,7 @@
                         </dependencySourceIncludes>
                         <dependencySourceExcludes>
                             <dependencySourceExclude>com.frengor:ultimateadvancementapi-nms-1_*</dependencySourceExclude>
+                            <dependencySourceExclude>com.frengor:ultimateadvancementapi-nms-mocked*</dependencySourceExclude>
                         </dependencySourceExcludes>
 
                         <bottom>
