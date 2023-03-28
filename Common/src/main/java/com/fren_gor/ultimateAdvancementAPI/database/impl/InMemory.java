@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.database.impl;
 
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Logger;
@@ -7,6 +8,7 @@ import java.util.logging.Logger;
 /**
  * Class used to establish a connection to a database stored in-memory.
  */
+@Internal
 public class InMemory extends SQLite {
 
     /**

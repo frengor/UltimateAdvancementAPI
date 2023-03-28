@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.database;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -26,6 +27,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFrom
  * </ul>
  * <p>The connection to the database should be opened in the constructor of the implementing class.
  */
+@Internal
 public interface IDatabase {
 
     /**

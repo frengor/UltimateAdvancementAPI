@@ -9,6 +9,7 @@ import com.google.common.base.Preconditions;
 import net.byteflux.libby.Library;
 import net.byteflux.libby.LibraryManager;
 import net.byteflux.libby.classloader.IsolatedClassLoader;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -33,6 +34,7 @@ import java.util.logging.Logger;
 /**
  * Class used to establish a connection to a MySQL database.
  */
+@Internal
 public class MySQL implements IDatabase {
 
     private final Logger logger;
