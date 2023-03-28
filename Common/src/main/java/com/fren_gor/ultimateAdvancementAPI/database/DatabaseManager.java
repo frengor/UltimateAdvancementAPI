@@ -180,7 +180,7 @@ public final class DatabaseManager implements Closeable {
         });
         eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
             synchronized (DatabaseManager.this) {
-                // loadedPlayer should always non-null, but it's better to check it
+                // loadedPlayer should be always non-null, but it's better to check it
                 LoadedPlayer loadedPlayer = Objects.requireNonNull(playersLoaded.get(e.getPlayer().getUniqueId()));
                 loadedPlayer.setOnline(false);
                 removeInternalRequest(loadedPlayer);

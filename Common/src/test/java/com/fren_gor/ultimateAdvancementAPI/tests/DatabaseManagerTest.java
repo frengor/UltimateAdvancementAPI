@@ -14,6 +14,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import org.jetbrains.annotations.Contract;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -97,6 +98,7 @@ public class DatabaseManagerTest {
         ProgressionUpdateResult result = waitCompletion(databaseManager.setProgression(KEY1, p, 10)).get();
         assertEquals(0, result.oldProgression());
         assertEquals(10, result.newProgression());
+        p.disconnect();
     }
 
     @Test
@@ -129,6 +131,7 @@ public class DatabaseManagerTest {
 
         assertEquals(10, updateResult1.get().newProgression());
         assertEquals(30, updateResult3.get().newProgression());
+        p.disconnect();
     }
 
     @Test
@@ -139,6 +142,7 @@ public class DatabaseManagerTest {
 
         assertEquals(0, updateResult.oldProgression());
         assertEquals(10, updateResult.newProgression());
+        p.disconnect();
     }
 
     @Test
@@ -171,6 +175,7 @@ public class DatabaseManagerTest {
 
         assertEquals(10, updateResult1.get().newProgression());
         assertEquals(40, updateResult3.get().newProgression());
+        p.disconnect();
     }
 
     @Test
@@ -220,6 +225,10 @@ public class DatabaseManagerTest {
         assertFalse(newTpl3.contains(pl1.getUniqueId()));
         assertFalse(newTpl3.contains(pl2.getUniqueId()));
         assertTrue(newTpl3.contains(pl3.getUniqueId()));
+
+        pl1.disconnect();
+        pl2.disconnect();
+        pl3.disconnect();
     }
 
     @Test
@@ -260,14 +269,18 @@ public class DatabaseManagerTest {
         assertFalse(tpl3.contains(pl1.getUniqueId()));
         assertFalse(tpl3.contains(pl2.getUniqueId()));
         assertTrue(tpl3.contains(pl3.getUniqueId()));
+
+        pl1.disconnect();
+        pl2.disconnect();
+        pl3.disconnect();
     }
 
     @Test
     void moveInNewTeamTest() throws Exception {
-        PlayerMock pl1 = loadPlayer();
-        TeamProgression pro = databaseManager.getTeamProgression(pl1);
+        PlayerMock p = loadPlayer();
+        TeamProgression pro = databaseManager.getTeamProgression(p);
 
-        CompletableFuture<TeamProgression> cf = databaseManager.movePlayerInNewTeam(pl1);
+        CompletableFuture<TeamProgression> cf = databaseManager.movePlayerInNewTeam(p);
 
         waitCompletion(cf);
 
@@ -275,30 +288,36 @@ public class DatabaseManagerTest {
         TeamProgression newPro = cf.get();
 
         assertNotEquals(pro, newPro);
-        assertFalse(pro.contains(pl1));
-        assertTrue(newPro.contains(pl1));
+        assertFalse(pro.contains(p));
+        assertTrue(newPro.contains(p));
         assertTrue(newPro.isValid());
+
+        p.disconnect();
     }
 
     @Test
     void moveInNewTeamWithFailureTest() throws Exception {
-        PlayerMock pl1 = loadPlayer();
-        TeamProgression pro = databaseManager.getTeamProgression(pl1);
+        PlayerMock p = loadPlayer();
+        TeamProgression pro = databaseManager.getTeamProgression(p);
         assertTrue(pro.isValid());
 
         Paused paused = pauseFutureTasks();
 
         fallible.setFallibleOps(DBOperation.MOVE_PLAYER_IN_NEW_TEAM);
         fallible.addToPlanning(false, false);
-        CompletableFuture<TeamProgression> cf = databaseManager.movePlayerInNewTeam(pl1);
+        CompletableFuture<TeamProgression> cf = databaseManager.movePlayerInNewTeam(p);
 
         paused.resume();
 
         waitCompletion(cf);
 
+        assertTrue(p.isOnline());
+
         assertTrue(cf.isCompletedExceptionally());
         assertTrue(pro.isValid());
-        assertTrue(pro.contains(pl1));
+        assertTrue(pro.contains(p));
+
+        p.disconnect();
     }
 
     private PlayerMock loadPlayer() {
@@ -314,6 +333,8 @@ public class DatabaseManagerTest {
             // These events should run after a few ticks, so there shouldn't be any problem having them registered
             // after the player addition
             advancementMain.getEventManager().register(listener, PlayerLoadingCompletedEvent.class, e -> {
+                AdvancementUtils.checkSync();
+
                 if (e.getPlayer().getUniqueId().equals(p.getUniqueId())) {
                     if (skip.getAndSet(true)) {
                         fail("PlayerLoadingCompletedEvent called too many times for player " + e.getPlayer().getName() + '.');
@@ -326,6 +347,8 @@ public class DatabaseManagerTest {
             });
 
             advancementMain.getEventManager().register(listener, PlayerLoadingFailedEvent.class, e -> {
+                AdvancementUtils.checkSync();
+
                 if (e.getPlayer().getUniqueId().equals(p.getUniqueId())) {
                     if (skip.getAndSet(true)) {
                         fail("PlayerLoadingCompletedEvent called too many times for player " + e.getPlayer().getName() + '.');
@@ -350,7 +373,7 @@ public class DatabaseManagerTest {
         return p;
     }
 
-    @Contract("null -> null; !null -> param1")
+    @Contract("_ -> param1")
     private <T> CompletableFuture<T> waitCompletion(CompletableFuture<T> completableFuture) {
         if (completableFuture == null) {
             return null;

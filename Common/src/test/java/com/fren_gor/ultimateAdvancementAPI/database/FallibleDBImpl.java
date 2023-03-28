@@ -28,33 +28,33 @@ public class FallibleDBImpl implements IDatabase {
         this.inner = Objects.requireNonNull(inner);
     }
 
-    public void addToPlanning(boolean... planning) {
+    public synchronized void addToPlanning(boolean... planning) {
         for (boolean b : planning) {
             this.planning.addLast(b);
         }
     }
 
-    public void setPlanning(boolean... planning) {
+    public synchronized void setPlanning(boolean... planning) {
         clearPlanning();
         for (boolean b : planning) {
             this.planning.addLast(b);
         }
     }
 
-    public void clearPlanning() {
+    public synchronized void clearPlanning() {
         this.planning.clear();
     }
 
-    public void addFallibleOps(DBOperation... operations) {
+    public synchronized void addFallibleOps(DBOperation... operations) {
         this.filter.addAll(Arrays.asList(operations));
     }
 
-    public void setFallibleOps(DBOperation... operations) {
+    public synchronized void setFallibleOps(DBOperation... operations) {
         clearFallibleOps();
         this.filter.addAll(Arrays.asList(operations));
     }
 
-    public void clearFallibleOps() {
+    public synchronized void clearFallibleOps() {
         this.filter.clear();
     }
 
@@ -181,7 +181,7 @@ public class FallibleDBImpl implements IDatabase {
         inner.clearUpTeams();
     }
 
-    private void checkPlanning(DBOperation operation) throws SQLException {
+    private synchronized void checkPlanning(DBOperation operation) throws SQLException {
         if (filter.contains(operation) && !planning.isEmpty() && !planning.removeFirst()) {
             throw new PlannedFailureException();
         }
