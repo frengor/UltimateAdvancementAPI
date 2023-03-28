@@ -398,6 +398,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         validateTeamProgression(progression);
         validateProgressionValueStrict(newProgression, maxProgression);
 
+        @SuppressWarnings("unchecked")
         final CompletableFuture<ProgressionUpdateResult>[] results = new CompletableFuture[this.tasks.size()];
         int i = 0;
 
