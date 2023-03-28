@@ -31,6 +31,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
@@ -46,8 +47,10 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * The tasks of this advancement.
      */
     protected final Set<TaskAdvancement> tasks = new HashSet<>();
-    // Must be immutable once filled
-    private final Set<AdvancementKey> tasksKeys = new HashSet<>();
+
+    // Initialized with values in registerTasks(...)
+    // Must always be immutable
+    private Set<AdvancementKey> tasksKeys = Collections.emptySet();
 
     /**
      * The cache for the team's progressions (the key is the team unique id).
@@ -92,6 +95,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         if (initialised) {
             throw new IllegalStateException("MultiTaskAdvancement is already initialised.");
         }
+        AdvancementUtils.checkSync();
         Preconditions.checkNotNull(tasks, "Set<TaskAdvancement> is null.");
         int progression = 0;
         for (TaskAdvancement t : tasks) {
@@ -111,9 +115,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             throw new IllegalArgumentException("Expected max progression (" + maxProgression + ") doesn't match the tasks' total one (" + progression + ").");
         }
         this.tasks.addAll(tasks);
-        for (TaskAdvancement adv : tasks) {
-            this.tasksKeys.add(adv.getKey());
-        }
+        this.tasksKeys = tasks.stream().map(Advancement::getKey).collect(Collectors.toUnmodifiableSet());
 
         registerEvent(AsyncTeamUnloadEvent.class, EventPriority.HIGHEST, e -> {
             progressionsCache.remove(e.getTeamProgression().getTeamId());
