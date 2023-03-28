@@ -8,6 +8,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +26,7 @@ import java.util.function.Predicate;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValue;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
  * The {@code TeamProgression} class stores information about a team and its advancement progressions.
@@ -48,6 +50,7 @@ public final class TeamProgression {
      * @throws IllegalOperationException If this constructor is called by a class not in the
      *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
      */
+    @Internal
     public TeamProgression(int teamId, @NotNull UUID member) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         Preconditions.checkNotNull(member, "Member is null.");
@@ -68,6 +71,7 @@ public final class TeamProgression {
      * @throws IllegalOperationException If this constructor is called by a class not in the
      *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
      */
+    @Internal
     public TeamProgression(@NotNull Map<AdvancementKey, Integer> advancements, int teamId, @NotNull Collection<UUID> members) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         Preconditions.checkNotNull(advancements, "Advancements is null.");
@@ -103,6 +107,13 @@ public final class TeamProgression {
         } else {
             return 0;
         }
+    }
+
+    int getRawProgression(@NotNull AdvancementKey key) {
+        Preconditions.checkNotNull(key, "AdvancementKey is null.");
+
+        Integer progression = advancements.get(key);
+        return progression != null ? progression : 0;
     }
 
     /**
@@ -237,19 +248,6 @@ public final class TeamProgression {
     }
 
     /**
-     * Sets the progression of the provided advancement for the team.
-     *
-     * @param key The key of the advancement.
-     * @param progression The new progression to be set.
-     * @return The previous progression.
-     */
-    int updateProgression(@NotNull AdvancementKey key, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
-        validateProgressionValue(progression);
-        Integer i = advancements.put(key, progression);
-        return i == null ? 0 : i;
-    }
-
-    /**
      * Removes the provided player from the team.
      *
      * @param uuid The {@link UUID} of the player to be removed.
@@ -269,6 +267,37 @@ public final class TeamProgression {
         Preconditions.checkNotNull(uuid, "UUID is null.");
         synchronized (players) {
             players.add(uuid);
+        }
+    }
+
+    /**
+     * Sets the progression of the provided advancement for the team.
+     * <p><strong>MUST BE CALLED ONLY FROM THE DatabaseManager#executor THREAD!</strong>
+     *
+     * @param key The key of the advancement.
+     * @param progression The new progression to be set.
+     */
+    void updateProgression(@NotNull AdvancementKey key, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
+        validateProgressionValue(progression);
+        advancements.put(key, progression);
+    }
+
+    /**
+     * Moves a player from this team to another atomically.
+     *
+     * @param newTeam The new team's {@link TeamProgression}.
+     * @param uuid The player's uuid.
+     */
+    void movePlayer(@NotNull TeamProgression newTeam, @NotNull UUID uuid) {
+        validateTeamProgression(newTeam);
+        Preconditions.checkNotNull(uuid, "UUID is null.");
+
+        // Synchronize on both this.players and newTeam.players to perform the move atomically
+        synchronized (this.players) {
+            synchronized (newTeam.players) {
+                players.remove(uuid);
+                newTeam.players.add(uuid);
+            }
         }
     }
 

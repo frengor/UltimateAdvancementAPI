@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -16,9 +17,11 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 
 /**
  * Called when a team's progression of an advancement changes.
- * <p>This event differs from {@link AdvancementProgressionUpdateEvent} because it is called by {@link DatabaseManager#updateProgressionWithCompletable(AdvancementKey, TeamProgression, int)}.
+ * <p>This event differs from {@link AdvancementProgressionUpdateEvent} because it is called asynchronously by {@link DatabaseManager}.
+ *
+ * @since 3.0.0
  */
-public class ProgressionUpdateEvent extends Event {
+public class AsyncProgressionUpdateEvent extends Event {
 
     private final TeamProgression team;
 
@@ -35,7 +38,8 @@ public class ProgressionUpdateEvent extends Event {
      * @param newProgression The new progression after the update.
      * @param advancementKey The {@link AdvancementKey} of the updated {@link Advancement}.
      */
-    public ProgressionUpdateEvent(@NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, @NotNull AdvancementKey advancementKey) {
+    public AsyncProgressionUpdateEvent(@NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, @NotNull AdvancementKey advancementKey) {
+        super(!Bukkit.isPrimaryThread());
         this.team = validateTeamProgression(team);
         this.oldProgression = validateProgressionValue(oldProgression);
         this.newProgression = validateProgressionValue(newProgression);
@@ -107,7 +111,7 @@ public class ProgressionUpdateEvent extends Event {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ProgressionUpdateEvent that = (ProgressionUpdateEvent) o;
+        AsyncProgressionUpdateEvent that = (AsyncProgressionUpdateEvent) o;
 
         if (oldProgression != that.oldProgression) return false;
         if (newProgression != that.newProgression) return false;

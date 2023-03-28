@@ -4,24 +4,20 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.UltimateAdvancementAPI;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption.Option;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.SQLite;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.AsyncProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncPlayerUnregisteredEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUpdateEvent.Action;
-import com.fren_gor.ultimateAdvancementAPI.events.team.TeamLoadEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -37,25 +33,34 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
+import java.io.Closeable;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValue;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
- * The database manager. It handles the connection to the database and caches the requested values to improve performances.
+ * The database manager. It handles the connection to the database and caches the requested values to improve performance.
+ * <p>All the implemented operation are <a href="https://en.wikipedia.org/wiki/ACID">ACID</a>.
  * <p>The caching system caches teams using {@link TeamProgression}s and keeps a link between each online player and the
  * associated {@link TeamProgression}. Two players who are part of the same team will always be associated to the same {@link TeamProgression} object.
  * More formally, the object returned by {@link #getTeamProgression(Player)} is the same if and only the players are members of the same team:
@@ -68,24 +73,20 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
  *    assert teamP1 != teamP2;
  * }</pre></blockquote>
  * By default, players are kept in cache until they quit.
- * However, this behavior can be overridden through the {@link #loadOfflinePlayer(UUID, CacheFreeingOption)} method,
+ * However, this behavior can be overridden through the {@link #loadOfflinePlayer(UUID, Plugin, CacheFreeingOption)} method,
  * which forces a player to stay in cache even if they quit. If the player is not online, they'll be loaded.
- * <p>There is, however, a limit on the maximum amount of requests a plugin can do.
- * For more information, see {@link DatabaseManager#getLoadingRequestsAmount(Plugin, UUID, CacheFreeingOption.Option)}.
  * <p>This class is thread safe.
  */
-public final class DatabaseManager {
+public final class DatabaseManager implements Closeable {
 
-    /**
-     * Max possible loading requests a plugin can make simultaneously per offline player.
-     * <p>Limit is applied to automatic and manual requests separately and doesn't apply to requests which don't cache.
-     */
-    public static final int MAX_SIMULTANEOUS_LOADING_REQUESTS = Character.MAX_VALUE;
     private static final int LOAD_EVENTS_DELAY = 3;
 
+    // A single-thread executor is used to maintain executed queries sequential
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
     private final AdvancementMain main;
-    private final Map<UUID, TeamProgression> progressionCache = new HashMap<>();
-    private final Map<UUID, TempUserMetadata> tempLoaded = new HashMap<>();
+    private final Map<Integer, LoadedTeam> teamsLoaded = new HashMap<>();
+    private final Map<UUID, LoadedPlayer> playersLoaded = new HashMap<>();
     private final EventManager eventManager;
     private final IDatabase database;
 
@@ -96,12 +97,7 @@ public final class DatabaseManager {
      * @throws Exception If anything goes wrong.
      */
     public DatabaseManager(@NotNull AdvancementMain main) throws Exception {
-        Preconditions.checkNotNull(main, "AdvancementMain is null.");
-        this.main = main;
-        this.eventManager = main.getEventManager();
-
-        database = new InMemory(main.getLogger());
-        commonSetUp();
+        this(main, new InMemory(main.getLogger()));
     }
 
     /**
@@ -112,13 +108,7 @@ public final class DatabaseManager {
      * @throws Exception If anything goes wrong.
      */
     public DatabaseManager(@NotNull AdvancementMain main, @NotNull File dbFile) throws Exception {
-        Preconditions.checkNotNull(main, "AdvancementMain is null.");
-        Preconditions.checkNotNull(dbFile, "Database file is null.");
-        this.main = main;
-        this.eventManager = main.getEventManager();
-
-        database = new SQLite(dbFile, main.getLogger());
-        commonSetUp();
+        this(main, new SQLite(Objects.requireNonNull(dbFile, "Database file is null."), main.getLogger()));
     }
 
     /**
@@ -135,11 +125,14 @@ public final class DatabaseManager {
      * @throws Exception If anything goes wrong.
      */
     public DatabaseManager(@NotNull AdvancementMain main, @NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout) throws Exception {
+        this(main, new MySQL(username, password, databaseName, host, port, poolSize, connectionTimeout, main.getLogger(), main.getLibbyManager()));
+    }
+
+    private DatabaseManager(@NotNull AdvancementMain main, @NotNull IDatabase database) throws Exception {
         Preconditions.checkNotNull(main, "AdvancementMain is null.");
         this.main = main;
         this.eventManager = main.getEventManager();
-
-        database = new MySQL(username, password, databaseName, host, port, poolSize, connectionTimeout, main.getLogger(), main.getLibbyManager());
+        this.database = database;
         commonSetUp();
     }
 
@@ -147,43 +140,64 @@ public final class DatabaseManager {
         // Run it sync to avoid using uninitialized database
         database.setUp();
 
-        eventManager.register(this, PlayerLoginEvent.class, EventPriority.LOWEST, e -> CompletableFuture.runAsync(() -> {
-            try {
-                loadPlayerMainFunction(e.getPlayer());
-            } catch (Exception ex) {
-                System.err.println("Cannot load player " + e.getPlayer().getName() + ':');
-                ex.printStackTrace();
-                runSync(main, LOAD_EVENTS_DELAY, () -> Bukkit.getPluginManager().callEvent(new PlayerLoadingFailedEvent(e.getPlayer(), ex)));
-            }
-        }));
-        eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
+        eventManager.register(this, PlayerLoginEvent.class, EventPriority.LOWEST, e -> {
+            LoadedPlayer loadedPlayer;
+
             synchronized (DatabaseManager.this) {
-                TempUserMetadata meta = tempLoaded.get(e.getPlayer().getUniqueId());
-                if (meta != null) {
-                    meta.isOnline = false;
-                    // If meta isn't null then a plugin is using the player's TeamProgression
-                } else {
-                    TeamProgression t = progressionCache.remove(e.getPlayer().getUniqueId());
-                    if (t != null && t.noMemberMatch(progressionCache::containsKey)) {
-                        t.inCache.set(false); // Invalidate TeamProgression
-                        callEventCatchingExceptions(new AsyncTeamUnloadEvent(t));
-                        Bukkit.getPluginManager().callEvent(new TeamUnloadEvent(t));
+                loadedPlayer = addPlayerToCache(e.getPlayer().getUniqueId(), true);
+
+                // Keep in cache for the loadOrRegisterPlayer(...) operation
+                loadedPlayer.addInternalRequest();
+            }
+
+            CompletableFuture.runAsync(() -> {
+                synchronized (DatabaseManager.this) {
+                    // Search the player in already loaded teams to see if it's there
+                    // The searching is done here since more players from the same team may join at the same moment
+                    // and running the searching on the executor's thread improves the possibility of a cache hit
+                    LoadedTeam loadedTeam = searchPlayerTeam(e.getPlayer().getUniqueId());
+                    if (loadedTeam != null) {
+                        // Player team is already loaded
+                        updateLoadedPlayerTeam(loadedPlayer, loadedTeam, false);
+                        firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
+                        removeInternalRequest(loadedPlayer);
+                        return;
                     }
                 }
+
+                try {
+                    // Player team isn't loaded yet
+                    loadOrRegisterPlayerTeam(e.getPlayer().getUniqueId(), e.getPlayer(), loadedPlayer, false);
+                    firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
+                } catch (Exception ex) {
+                    System.err.println("Cannot load player " + e.getPlayer().getName() + ':');
+                    ex.printStackTrace();
+                    runSync(main, LOAD_EVENTS_DELAY, () -> callEventCatchingExceptions(new PlayerLoadingFailedEvent(e.getPlayer(), ex)));
+                } finally {
+                    removeInternalRequest(loadedPlayer);
+                }
+            }, executor);
+        });
+        eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
+            synchronized (DatabaseManager.this) {
+                // loadedPlayer should always non-null, but it's better to check it
+                LoadedPlayer loadedPlayer = Objects.requireNonNull(playersLoaded.get(e.getPlayer().getUniqueId()));
+                loadedPlayer.setOnline(false);
+                removeInternalRequest(loadedPlayer);
             }
         });
         eventManager.register(this, PluginDisableEvent.class, EventPriority.HIGHEST, e -> {
             synchronized (DatabaseManager.this) {
-                List<UUID> list = new LinkedList<>();
-                for (Entry<UUID, TempUserMetadata> en : tempLoaded.entrySet()) {
-                    // Make sure they will be unloaded
-                    if (en.getValue().pluginRequests.remove(e.getPlugin()) != null) {
-                        list.add(en.getKey());
+                List<LoadedPlayer> list = new ArrayList<>(playersLoaded.size());
+                for (LoadedPlayer loadedPlayer : playersLoaded.values()) {
+                    if (loadedPlayer.removeAllPluginRequests(e.getPlugin()) != 0 && loadedPlayer.canBeUnloaded()) {
+                        // Player can be unloaded
+                        list.add(loadedPlayer);
                     }
                 }
-                for (UUID u : list) {
+                for (LoadedPlayer loadedPlayer : list) {
                     // Handle unload
-                    unloadOfflinePlayer(u, e.getPlugin());
+                    unloadPlayer(loadedPlayer);
                 }
             }
         });
@@ -194,14 +208,31 @@ public final class DatabaseManager {
                 System.err.println("Cannot clear up unused team ids:");
                 e.printStackTrace();
             }
-        });
+        }, executor);
     }
 
     /**
      * Closes the connection to the database and frees the cache.
      * <p>This method does not call {@link Event}s.
      */
-    public void unregister() {
+    public void close() {
+        // Shutdown executor before database connection
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                // There are other tasks
+                executor.shutdownNow();
+                if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                    System.err.println("It was not possible to terminate some tasks.");
+                }
+            }
+        } catch (InterruptedException ignored) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt(); // Preserve interrupt status
+        } catch (Exception ignored) {
+            executor.shutdownNow();
+        }
+
         if (eventManager.isEnabled())
             eventManager.unregister(this);
         try {
@@ -210,107 +241,120 @@ public final class DatabaseManager {
             e.printStackTrace();
         }
         synchronized (this) {
-            tempLoaded.clear();
-            progressionCache.forEach((u, t) -> t.inCache.set(false)); // Invalidate TeamProgression
-            progressionCache.clear();
+            teamsLoaded.forEach((u, t) -> t.getTeamProgression().inCache.set(false)); // Invalidate TeamProgression
+            playersLoaded.clear();
+            teamsLoaded.clear();
         }
     }
 
-    /**
-     * Main function to load the provided player from the database.
-     * <p><strong>Should be called async.</strong>
-     *
-     * @param player The player to load.
-     * @throws SQLException If anything goes wrong.
-     */
-    private void loadPlayerMainFunction(final @NotNull Player player) throws SQLException {
-        Entry<TeamProgression, Boolean> entry = loadOrRegisterPlayer(player);
-        final TeamProgression pro = entry.getKey();
+    private void firePlayerLoadingCompletedEvent(@NotNull Player player, @NotNull LoadedPlayer loadedPlayer) {
+        loadedPlayer.addInternalRequest(); // Keep in cache while waiting for the BukkitRunnable
+
         runSync(main, LOAD_EVENTS_DELAY, () -> {
-            Bukkit.getPluginManager().callEvent(new PlayerLoadingCompletedEvent(player, pro));
-            if (entry.getValue()) {
-                callEventCatchingExceptions(new AsyncTeamUpdateEvent(pro, player.getUniqueId(), Action.JOIN));
-                callEventCatchingExceptions(new TeamUpdateEvent(pro, player.getUniqueId(), TeamUpdateEvent.Action.JOIN));
+            if (!player.isOnline()) {
+                removeInternalRequest(loadedPlayer);
+                return;
+            }
+
+            synchronized (DatabaseManager.this) {
+                LoadedTeam loadedTeam = loadedPlayer.getPlayerTeam();
+                if (loadedTeam == null) {
+                    removeInternalRequest(loadedPlayer);
+                    return;
+                }
+
+                callEventCatchingExceptions(new PlayerLoadingCompletedEvent(player, loadedTeam.getTeamProgression()));
+
+                // No need to call addInternalRequest here since the request can be reused and removed later
+                CompletableFuture.runAsync(() -> {
+                    processUnredeemed(loadedPlayer, player);
+                }, executor).handle((v, t) -> {
+                    removeInternalRequest(loadedPlayer);
+                    return null;
+                });
             }
             main.updatePlayer(player);
-            CompletableFuture.runAsync(() -> processUnredeemed(player, pro));
         });
     }
 
-    /**
-     * Load the provided player from the database. If they are not present, this method registers they.
-     * <p><strong>Should be called async.</strong>
-     *
-     * @param player The player.
-     * @return A pair containing the loaded {@link TeamProgression} and a {@code boolean},
-     *         which is {@code true} if and only if the player was not found in the database.
-     * @throws SQLException If anything goes wrong.
-     */
-    @NotNull
-    private synchronized Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull Player player) throws SQLException {
-        final UUID uuid = player.getUniqueId();
-
-        TeamProgression pro = progressionCache.get(uuid);
-        if (pro != null) {
-            // Don't let player to be unloaded from cache
-            TempUserMetadata meta = tempLoaded.get(uuid);
-            if (meta != null) {
-                meta.isOnline = true;
-            }
-            return new SimpleEntry<>(pro, false);
-        }
-
-        pro = searchTeamProgressionDeeply(uuid);
-        if (pro != null) {
-            progressionCache.put(uuid, pro); // Direct caching
-            updatePlayerName(player);
-            return new SimpleEntry<>(pro, false);
-        }
-
-        Entry<TeamProgression, Boolean> e = database.loadOrRegisterPlayer(uuid, player.getName());
-        updatePlayerName(player);
-        e.getKey().inCache.set(true); // Set TeamProgression valid
-        progressionCache.put(uuid, e.getKey());
-        callEventCatchingExceptions(new AsyncTeamLoadEvent(e.getKey()));
-        runSync(main, () -> Bukkit.getPluginManager().callEvent(new TeamLoadEvent(e.getKey())));
-        return e;
-    }
-
-    /**
-     * Search if the provided player's team is already in cache (so if any other team member is loaded)
-     * and returns the {@link TeamProgression} object.
-     *
-     * @param uuid The player {@link UUID}.
-     * @return The player team if found, {@code null} otherwise.
-     */
     @Nullable
-    private synchronized TeamProgression searchTeamProgressionDeeply(@NotNull UUID uuid) {
-        for (TeamProgression progression : progressionCache.values()) {
-            if (progression.contains(uuid)) {
-                return progression;
+    private synchronized LoadedTeam searchPlayerTeam(@NotNull UUID uuid) {
+        // Search in every loaded TeamProgression if the player is in one of them
+        for (LoadedTeam loadedTeam : teamsLoaded.values()) {
+            if (loadedTeam.getTeamProgression().contains(uuid)) {
+                // The player team is already loaded
+                return loadedTeam;
             }
         }
         return null;
     }
 
     /**
+     * Load the provided player from the database. If they are not present, this method registers they.
+     * <p><strong>Should be called async.</strong>
+     *
+     * @param uuid The UUID of the player to be loaded or registered.
+     * @param player The player to be loaded or registered.
+     * @param loadedPlayer The {@link LoadedPlayer} object associated with player.
+     * @param loadOnly Weather to only load the player and fail if not present in the database.
+     * @return The {@link LoadedTeam} of the player's team.
+     * @throws SQLException If anything goes wrong.
+     */
+    @NotNull
+    private LoadedTeam loadOrRegisterPlayerTeam(@NotNull UUID uuid, Player player, @NotNull LoadedPlayer loadedPlayer, boolean loadOnly) throws SQLException {
+        TeamProgression progression;
+        boolean fireJoinEvent;
+        if (loadOnly) {
+            progression = database.loadUUID(uuid);
+            fireJoinEvent = false;
+        } else {
+            Entry<TeamProgression, Boolean> e = database.loadOrRegisterPlayer(uuid, Objects.requireNonNull(player, "Player is null.").getName()); // FIXME getName may return null
+            progression = e.getKey();
+            fireJoinEvent = e.getValue();
+        }
+        // updatePlayerName(player); TODO make this line works
+
+        synchronized (DatabaseManager.this) {
+            final LoadedTeam loadedTeam = addTeamToCache(progression);
+            updateLoadedPlayerTeam(loadedPlayer, loadedTeam, fireJoinEvent);
+            return loadedTeam;
+        }
+    }
+
+    /**
      * Process unredeemed advancements for the provided player and team. The player is assumed to be in the team.
      * <p><strong>Should be called async.</strong>
      *
+     * @param loadedPlayer The loaded player. Must be present in cache! That is not checked!
      * @param player The player.
-     * @param pro The player's team.
      */
-    private void processUnredeemed(final @NotNull Player player, final @NotNull TeamProgression pro) {
+    private void processUnredeemed(final @NotNull LoadedPlayer loadedPlayer, final @NotNull Player player) {
+
+        // FIXME This function needs to be rewritten completely, it's buggy and full of duplicated lines
+
+        final LoadedTeam loadedTeam;
+        synchronized (this) {
+            if (!player.isOnline() || loadedPlayer.getPlayerTeam() == null) {
+                // The player is not online or in a team
+                return;
+            }
+            loadedPlayer.addInternalRequest(); // Don't let the player to be unloaded
+            loadedTeam = loadedPlayer.getPlayerTeam();
+            loadedTeam.addInternalRequest();
+        }
+
         final List<Entry<AdvancementKey, Boolean>> list;
         try {
-            list = database.getUnredeemed(pro.getTeamId());
-        } catch (SQLException e) {
+            list = database.getUnredeemed(loadedTeam.getTeamProgression().getTeamId());
+        } catch (Exception e) {
             System.err.println("Cannot fetch unredeemed advancements:");
             e.printStackTrace();
+            removeInternalRequest(loadedPlayer);
+            removeInternalRequest(loadedTeam);
             return;
         }
 
-        if (list.size() != 0)
+        if (list.size() != 0) {
             runSync(main, () -> {
                 Iterator<Entry<AdvancementKey, Boolean>> it = list.iterator();
                 final List<Entry<Advancement, Boolean>> advs = new LinkedList<>();
@@ -323,248 +367,281 @@ public final class DatabaseManager {
                         advs.add(new SimpleEntry<>(a, k.getValue()));
                     }
                 }
-                if (advs.size() != 0)
+                if (advs.size() != 0) {
                     CompletableFuture.runAsync(() -> {
                         try {
-                            database.unsetUnredeemed(list, pro.getTeamId());
-                        } catch (SQLException e) {
+                            database.unsetUnredeemed(list, loadedTeam.getTeamProgression().getTeamId());
+                        } catch (Exception e) {
                             System.err.println("Cannot unset unredeemed advancements:");
                             e.printStackTrace();
+                            removeInternalRequest(loadedPlayer);
+                            removeInternalRequest(loadedTeam);
                             return;
                         }
                         runSync(main, () -> {
                             for (Entry<Advancement, Boolean> e : advs) {
                                 e.getKey().onGrant(player, e.getValue());
                             }
+                            removeInternalRequest(loadedPlayer);
+                            removeInternalRequest(loadedTeam);
                         });
-                    });
+                    }, executor);
+                } else {
+                    removeInternalRequest(loadedPlayer);
+                    removeInternalRequest(loadedTeam);
+                }
             });
+        } else {
+            removeInternalRequest(loadedPlayer);
+            removeInternalRequest(loadedTeam);
+        }
     }
 
     /**
      * Updates the name of the specified player in the database.
      *
      * @param player The player to update.
-     * @return A {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
      * @see UltimateAdvancementAPI#updatePlayerName(Player)
      */
     @NotNull
-    public CompletableFuture<Result> updatePlayerName(@NotNull Player player) {
+    public CompletableFuture<Void> updatePlayerName(@NotNull Player player) {
         Preconditions.checkNotNull(player, "Player cannot be null.");
-        return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
             try {
                 database.updatePlayerName(player.getUniqueId(), player.getName());
             } catch (SQLException e) {
                 System.err.println("Cannot update player " + player.getName() + " name:");
                 e.printStackTrace();
-                return new Result(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             } catch (Exception e) {
-                return new Result(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             }
-            return Result.SUCCESSFUL;
-        });
+            completableFuture.complete(null);
+        }, executor);
+
+        return completableFuture;
     }
 
     /**
      * Moves the provided player from their team to the second player's one.
+     * <p>The player is not moved immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param playerToMove The player to move.
      * @param otherTeamMember A player of the destination team.
-     * @return A {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      * @see UltimateAdvancementAPI#updatePlayerTeam(Player, Player, Consumer)
      */
     @NotNull
-    public CompletableFuture<Result> updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player otherTeamMember) throws UserNotLoadedException {
+    public CompletableFuture<Void> updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player otherTeamMember) throws UserNotLoadedException {
         return updatePlayerTeam(playerToMove, getTeamProgression(otherTeamMember));
     }
 
     /**
      * Moves the provided player from their team to the second player's one.
+     * <p>The player is not moved immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param playerToMove The {@link UUID} of the player to move.
      * @param otherTeamMember The {@link UUID} of a player of the destination team.
-     * @return A {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      * @see UltimateAdvancementAPI#updatePlayerTeam(UUID, UUID, Consumer)
      */
     @NotNull
-    public CompletableFuture<Result> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID otherTeamMember) throws UserNotLoadedException {
-        return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), getTeamProgression(otherTeamMember));
+    public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID otherTeamMember) throws UserNotLoadedException {
+        return updatePlayerTeam(playerToMove, getTeamProgression(otherTeamMember));
     }
 
     /**
      * Moves the provided player from their team to the specified one.
+     * <p>The player is not moved immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
-     * @param playerToMove The player to move.
+     * @param playerToMove The {@link UUID} of the player to move.
      * @param otherTeamProgression The {@link TeamProgression} of the target team.
-     * @return A {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     @NotNull
-    public CompletableFuture<Result> updatePlayerTeam(@NotNull Player playerToMove, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
+    public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
+        return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), otherTeamProgression);
+    }
+
+    /**
+     * Moves the provided player from their team to the specified one.
+     * <p>The player is not moved immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
+     *
+     * @param playerToMove The player to move.
+     * @param otherTeamProgression The {@link TeamProgression} of the target team.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
+     * @throws UserNotLoadedException If the player was not loaded into the cache.
+     */
+    @NotNull
+    public CompletableFuture<Void> updatePlayerTeam(@NotNull Player playerToMove, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
         return updatePlayerTeam(uuidFromPlayer(playerToMove), playerToMove, otherTeamProgression);
     }
 
     @NotNull
-    private CompletableFuture<Result> updatePlayerTeam(@NotNull UUID playerToMove, @Nullable Player ptm, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
+    private CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @Nullable Player ptm, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
         Preconditions.checkNotNull(playerToMove, "Player to move is null.");
-        validateTeamProgression(otherTeamProgression);
 
+        final LoadedTeam loadedNewTeam;
+        final LoadedPlayer loadedPlayer;
         synchronized (DatabaseManager.this) {
-            if (!progressionCache.containsKey(playerToMove)) {
+            validateTeamProgression(otherTeamProgression);
+
+            loadedNewTeam = teamsLoaded.get(otherTeamProgression.getTeamId());
+            if (loadedNewTeam == null) {
+                throw new IllegalArgumentException("Invalid TeamProgression.");
+            }
+
+            loadedPlayer = playersLoaded.get(playerToMove);
+            if (loadedPlayer == null) {
                 throw new UserNotLoadedException(playerToMove);
             }
+
+            // Put these line here after the checks to avoid having to do calls to removeInternalRequest before throwing exceptions
+            loadedNewTeam.addInternalRequest();
+            loadedPlayer.addInternalRequest();
         }
 
-        if (otherTeamProgression.contains(playerToMove)) {
-            // Player is already in that team
-            return CompletableFuture.completedFuture(Result.SUCCESSFUL);
-        }
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
-        return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture.runAsync(() -> {
             try {
                 database.movePlayer(playerToMove, otherTeamProgression.getTeamId());
             } catch (SQLException e) {
                 System.err.println("Cannot move player " + (ptm == null ? playerToMove : ptm) + " into team " + otherTeamProgression.getTeamId());
                 e.printStackTrace();
-                return new Result(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             } catch (Exception e) {
-                return new Result(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             }
 
-            final TeamProgression pro;
-            boolean teamUnloaded;
-            synchronized (DatabaseManager.this) {
-                pro = progressionCache.get(playerToMove);
-                if (pro != null) {
-                    callEventCatchingExceptions(new AsyncTeamUpdateEvent(pro, playerToMove, Action.LEAVE));
-                }
+            updateLoadedPlayerTeam(loadedPlayer, loadedNewTeam, true);
 
-                otherTeamProgression.addMember(playerToMove);
-                progressionCache.put(playerToMove, otherTeamProgression);
-
-                if (pro != null) {
-                    pro.removeMember(playerToMove);
-                    teamUnloaded = pro.noMemberMatch(progressionCache::containsKey);
-                    if (teamUnloaded) {
-                        pro.inCache.set(false); // Invalidate TeamProgression
-                        callEventCatchingExceptions(new AsyncTeamUnloadEvent(pro));
+            if (ptm != null && ptm.isOnline()) {
+                runSync(main, () -> {
+                    // Double check on main thread to be sure
+                    if (!ptm.isOnline()) {
+                        return;
                     }
-                } else {
-                    teamUnloaded = false;
-                }
-                callEventCatchingExceptions(new AsyncTeamUpdateEvent(otherTeamProgression, playerToMove, Action.JOIN));
-            }
 
-            runSync(main, () -> {
-                if (pro != null)
-                    Bukkit.getPluginManager().callEvent(new TeamUpdateEvent(pro, playerToMove, TeamUpdateEvent.Action.LEAVE));
-                if (teamUnloaded)
-                    Bukkit.getPluginManager().callEvent(new TeamUnloadEvent(pro));
-                Bukkit.getPluginManager().callEvent(new TeamUpdateEvent(otherTeamProgression, playerToMove, TeamUpdateEvent.Action.JOIN));
-                if (ptm != null)
                     main.updatePlayer(ptm);
-            });
+                });
 
-            if (ptm != null) {
-                processUnredeemed(ptm, otherTeamProgression);
+                processUnredeemed(loadedPlayer, ptm);
             }
-            return Result.SUCCESSFUL;
+
+            completableFuture.complete(null);
+        }, executor).handle((v, t) -> {
+            synchronized (DatabaseManager.this) {
+                removeInternalRequest(loadedPlayer);
+                removeInternalRequest(loadedNewTeam);
+            }
+            return null;
         });
+
+        return completableFuture;
     }
 
     /**
      * Moves the provided player into a new team.
+     * <p>The player is not moved immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param player The player.
-     * @return A {@link CompletableFuture}&lt;{@link ObjectResult}&gt; which provides the new player team's {@link TeamProgression}.
+     * @return A {@link CompletableFuture} which provides the new player team's {@link TeamProgression}.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      * @see UltimateAdvancementAPI#movePlayerInNewTeam(Player)
      */
-    public CompletableFuture<ObjectResult<@NotNull TeamProgression>> movePlayerInNewTeam(@NotNull Player player) throws UserNotLoadedException {
+    public CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull Player player) throws UserNotLoadedException {
         return movePlayerInNewTeam(uuidFromPlayer(player), player);
     }
 
     /**
      * Moves the provided player into a new team.
+     * <p>The player is not moved immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player.
-     * @return A {@link CompletableFuture}&lt;{@link ObjectResult}&gt; which provides the new player team's {@link TeamProgression}.
+     * @return A {@link CompletableFuture} which provides the new player team's {@link TeamProgression}.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      * @see UltimateAdvancementAPI#movePlayerInNewTeam(UUID)
      */
-    public CompletableFuture<ObjectResult<@NotNull TeamProgression>> movePlayerInNewTeam(@NotNull UUID uuid) throws UserNotLoadedException {
+    public CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID uuid) throws UserNotLoadedException {
         return movePlayerInNewTeam(uuid, Bukkit.getPlayer(uuid));
     }
 
-    private CompletableFuture<ObjectResult<@NotNull TeamProgression>> movePlayerInNewTeam(@NotNull UUID uuid, @Nullable Player ptr) throws UserNotLoadedException {
+    private CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID uuid, @Nullable Player ptr) throws UserNotLoadedException {
         Preconditions.checkNotNull(uuid, "UUID is null.");
+
+        final LoadedPlayer loadedPlayer;
         synchronized (DatabaseManager.this) {
-            if (!progressionCache.containsKey(uuid)) {
+            loadedPlayer = playersLoaded.get(uuid);
+            if (loadedPlayer == null) {
                 throw new UserNotLoadedException(uuid);
             }
+
+            loadedPlayer.addInternalRequest();
         }
 
-        return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
             final TeamProgression newPro;
             try {
                 newPro = database.movePlayerInNewTeam(uuid);
             } catch (SQLException e) {
                 System.err.println("Cannot remove player " + (ptr == null ? uuid : ptr.getName()) + " from their team:");
                 e.printStackTrace();
-                return new ObjectResult<>(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                removeInternalRequest(loadedPlayer);
+                return;
             } catch (Exception e) {
-                return new ObjectResult<>(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                removeInternalRequest(loadedPlayer);
+                return;
             }
-            final TeamProgression pro;
-            final boolean teamUnloaded;
+
             synchronized (DatabaseManager.this) {
-                pro = progressionCache.get(uuid);
-                if (pro != null) {
-                    callEventCatchingExceptions(new AsyncTeamUpdateEvent(pro, uuid, Action.LEAVE));
-                }
-
-                newPro.inCache.set(true); // Set TeamProgression valid
-                progressionCache.put(uuid, newPro);
-
-                if (pro != null) {
-                    pro.removeMember(uuid);
-                    teamUnloaded = pro.noMemberMatch(progressionCache::containsKey);
-                    if (teamUnloaded) {
-                        pro.inCache.set(false); // Invalidate TeamProgression
-                        callEventCatchingExceptions(new AsyncTeamUnloadEvent(pro));
-                    }
-                } else {
-                    teamUnloaded = false;
-                }
-                callEventCatchingExceptions(new AsyncTeamLoadEvent(newPro));
-                callEventCatchingExceptions(new AsyncTeamUpdateEvent(newPro, uuid, Action.JOIN));
+                final LoadedTeam loadedTeam = addTeamToCache(newPro);
+                updateLoadedPlayerTeam(loadedPlayer, loadedTeam, true);
             }
 
-            runSync(main, () -> {
-                if (pro != null)
-                    Bukkit.getPluginManager().callEvent(new TeamUpdateEvent(pro, uuid, TeamUpdateEvent.Action.LEAVE));
-                if (teamUnloaded)
-                    Bukkit.getPluginManager().callEvent(new TeamUnloadEvent(pro));
-                Bukkit.getPluginManager().callEvent(new TeamLoadEvent(newPro));
-                Bukkit.getPluginManager().callEvent(new TeamUpdateEvent(newPro, uuid, TeamUpdateEvent.Action.JOIN));
-                if (ptr != null)
+            if (ptr != null && ptr.isOnline()) {
+                runSync(main, () -> {
+                    // Double check on main thread to be sure
+                    if (!ptr.isOnline()) {
+                        return;
+                    }
+
                     main.updatePlayer(ptr);
-            });
-            return new ObjectResult<>(newPro);
+                });
+            }
+
+            completableFuture.complete(newPro);
+        }, executor).handle((v, t) -> {
+            removeInternalRequest(loadedPlayer);
+            return null;
         });
+
+        return completableFuture;
     }
 
     /**
      * Unregisters the provided player. The player must be offline and not loaded into the cache.
      *
      * @param player The player to unregister.
-     * @return A {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws IllegalStateException If the player is online or loaded into the cache.
      * @see UltimateAdvancementAPI#unregisterOfflinePlayer(OfflinePlayer)
      */
-    public CompletableFuture<Result> unregisterOfflinePlayer(@NotNull OfflinePlayer player) throws IllegalStateException {
+    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull OfflinePlayer player) throws IllegalStateException {
         return unregisterOfflinePlayer(uuidFromPlayer(player));
     }
 
@@ -572,136 +649,216 @@ public final class DatabaseManager {
      * Unregisters the provided player. The player must be offline and not loaded into the cache.
      *
      * @param uuid The {@link UUID} of the player to unregister.
-     * @return A {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws IllegalStateException If the player is online or loaded into the cache.
      * @see UltimateAdvancementAPI#unregisterOfflinePlayer(UUID)
      */
-    public CompletableFuture<Result> unregisterOfflinePlayer(@NotNull UUID uuid) throws IllegalStateException {
+    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull UUID uuid) throws IllegalStateException {
         Preconditions.checkNotNull(uuid, "UUID is null.");
-        AdvancementUtils.checkSync();
-        if (Bukkit.getPlayer(uuid) != null)
-            throw new IllegalStateException("Player is online.");
-        synchronized (DatabaseManager.this) {
-            if (tempLoaded.containsKey(uuid))
-                throw new IllegalStateException("Player is temporary loaded.");
-        }
 
-        return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
+            synchronized (DatabaseManager.this) {
+                if (Bukkit.getPlayer(uuid) != null) {
+                    completableFuture.completeExceptionally(new IllegalStateException("Player is online."));
+                }
+                if (playersLoaded.containsKey(uuid)) {
+                    completableFuture.completeExceptionally(new IllegalStateException("Player is temporary loaded."));
+                }
+            }
             try {
                 database.unregisterPlayer(uuid);
             } catch (SQLException e) {
                 System.err.println("Cannot unregister player " + uuid + ':');
                 e.printStackTrace();
-                return new Result(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             } catch (Exception e) {
-                return new Result(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             }
 
             callEventCatchingExceptions(new AsyncPlayerUnregisteredEvent(uuid));
-            return Result.SUCCESSFUL;
-        });
+            completableFuture.complete(null);
+        }, executor);
+
+        return completableFuture;
     }
 
     /**
-     * Updates the progression of the specified advancement.
-     *
-     * @param key The advancement key.
-     * @param player The player who made the advancement.
-     * @param newProgression The new progression.
-     * @return The old progression.
-     * @throws UserNotLoadedException If the player was not loaded into the cache.
-     */
-    public int updateProgression(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
-        return updateProgression(key, uuidFromPlayer(player), newProgression);
-    }
-
-    /**
-     * Updates the progression of the specified advancement.
+     * Sets the progression of the specified advancement.
+     * <p>The progression is not updated immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player who made the advancement.
      * @param newProgression The new progression.
-     * @return The old progression.
+     * @return A {@link CompletableFuture} that will complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
-    public int updateProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
-        return updateProgression(key, getTeamProgression(uuid), newProgression);
+    @NotNull
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+        return setProgression(key, getTeamProgression(uuid), newProgression);
     }
 
     /**
-     * Updates the progression of the specified advancement.
-     *
-     * @param key The advancement key.
-     * @param progression The {@link TeamProgression} of the team which made the advancement.
-     * @param newProgression The new progression.
-     * @return The old progression.
-     */
-    public int updateProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
-        return updateProgressionWithCompletable(key, progression, newProgression).getKey();
-    }
-
-    /**
-     * Updates the progression of the specified advancement.
+     * Sets the progression of the specified advancement.
+     * <p>The progression is not updated immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param key The advancement key.
      * @param player The player who made the advancement.
      * @param newProgression The new progression.
-     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @return A {@link CompletableFuture} that will complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      */
     @NotNull
-    public Entry<Integer, CompletableFuture<Result>> updateProgressionWithCompletable(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
-        return updateProgressionWithCompletable(key, uuidFromPlayer(player), newProgression);
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull AdvancementKey key, @NotNull Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
+        return setProgression(key, uuidFromPlayer(player), newProgression);
     }
 
     /**
-     * Updates the progression of the specified advancement.
-     *
-     * @param key The advancement key.
-     * @param uuid The {@link UUID} of the player who made the advancement.
-     * @param newProgression The new progression.
-     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the {@link Result} of the operation.
-     * @throws UserNotLoadedException If the player was not loaded into the cache.
-     */
-    @NotNull
-    public Entry<Integer, CompletableFuture<Result>> updateProgressionWithCompletable(@NotNull AdvancementKey key, @NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) throws UserNotLoadedException {
-        return updateProgressionWithCompletable(key, getTeamProgression(uuid), newProgression);
-    }
-
-    /**
-     * Updates the progression of the specified advancement.
+     * Sets the progression of the specified advancement.
+     * <p>The progression is not updated immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
      * @param newProgression The new progression.
-     * @return A pair containing the old progression and a {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @return A {@link CompletableFuture} that will complete when the database update finishes.
      */
     @NotNull
-    public Entry<Integer, CompletableFuture<Result>> updateProgressionWithCompletable(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
+    public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
         Preconditions.checkNotNull(key, "Key is null.");
-        validateTeamProgression(progression);
-        Preconditions.checkArgument(progression.getSize() > 0, "TeamProgression doesn't contain any player.");
-        AdvancementUtils.checkSync();
+        validateProgressionValue(newProgression);
 
-        int old = progression.updateProgression(key, newProgression);
+        final LoadedTeam loadedNewTeam;
+        synchronized (DatabaseManager.this) {
+            validateTeamProgression(progression);
 
-        if (old != newProgression) { // Don't update if the progression isn't being changed
-            callEventCatchingExceptions(new ProgressionUpdateEvent(progression, old, newProgression, key));
+            loadedNewTeam = teamsLoaded.get(progression.getTeamId());
+            if (loadedNewTeam == null) {
+                throw new IllegalArgumentException("Invalid TeamProgression.");
+            }
 
-            return new SimpleEntry<>(old, CompletableFuture.supplyAsync(() -> {
-                try {
-                    database.updateAdvancement(key, progression.getTeamId(), newProgression);
-                } catch (SQLException e) {
-                    System.err.println("Cannot update advancement " + key + " to team " + progression.getTeamId() + ':');
-                    e.printStackTrace();
-                    return new Result(e);
-                } catch (Exception e) {
-                    return new Result(e);
-                }
-                return Result.SUCCESSFUL;
-            }));
+            loadedNewTeam.addInternalRequest();
         }
-        return new SimpleEntry<>(old, CompletableFuture.completedFuture(Result.SUCCESSFUL));
+
+        CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
+            int old = loadedNewTeam.teamProgression.getRawProgression(key);
+            try {
+                database.updateAdvancement(key, progression.getTeamId(), newProgression);
+            } catch (SQLException e) {
+                System.err.println("Cannot set progression of advancement " + key + " to team " + progression.getTeamId() + ':');
+                e.printStackTrace();
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
+            } catch (Exception e) {
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
+            }
+            loadedNewTeam.teamProgression.updateProgression(key, newProgression);
+
+            callEventCatchingExceptions(new AsyncProgressionUpdateEvent(progression, old, newProgression, key));
+
+            completableFuture.complete(new ProgressionUpdateResult(old, newProgression));
+        }, executor).handle((v, t) -> {
+            removeInternalRequest(loadedNewTeam);
+            return null;
+        });
+
+        return completableFuture;
+    }
+
+    /**
+     * Increments the progression of the specified advancement.
+     * <p>The progression is not updated immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
+     *
+     * @param key The advancement key.
+     * @param uuid The {@link UUID} of the player who made the advancement.
+     * @param increment The increment of the progression. May be negative.
+     * @return A {@link CompletableFuture} that will complete when the database update finishes.
+     * @throws UserNotLoadedException If the player was not loaded into the cache.
+     * @since 3.0.0
+     */
+    @NotNull
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, int increment) throws UserNotLoadedException {
+        return incrementProgression(key, getTeamProgression(uuid), increment);
+    }
+
+    /**
+     * Increments the progression of the specified advancement.
+     * <p>The progression is not updated immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
+     *
+     * @param key The advancement key.
+     * @param player The player who made the advancement.
+     * @param increment The increment of the progression. May be negative.
+     * @return A {@link CompletableFuture} that will complete when the database update finishes.
+     * @throws UserNotLoadedException If the player was not loaded into the cache.
+     * @since 3.0.0
+     */
+    @NotNull
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull Player player, int increment) throws UserNotLoadedException {
+        return incrementProgression(key, uuidFromPlayer(player), increment);
+    }
+
+    /**
+     * Increments the progression of the specified advancement.
+     * <p>The progression is not updated immediately in the cache, only when the database operation ends and the {@link CompletableFuture} returns.
+     *
+     * @param key The advancement key.
+     * @param progression The {@link TeamProgression} of the team which made the advancement.
+     * @param increment The increment of the progression. May be negative.
+     * @return A {@link CompletableFuture} that will complete when the database update finishes.
+     * @since 3.0.0
+     */
+    @NotNull
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, int increment) {
+        Preconditions.checkNotNull(key, "Key is null.");
+
+        final LoadedTeam loadedNewTeam;
+        synchronized (DatabaseManager.this) {
+            validateTeamProgression(progression);
+
+            loadedNewTeam = teamsLoaded.get(progression.getTeamId());
+            if (loadedNewTeam == null) {
+                throw new IllegalArgumentException("Invalid TeamProgression.");
+            }
+
+            loadedNewTeam.addInternalRequest();
+        }
+
+        CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
+            final int old = loadedNewTeam.teamProgression.getRawProgression(key);
+            int incremented = old;
+            if (increment != 0) { // Don't update the db if the saved progression won't change
+                incremented += increment;
+                if (incremented < 0) {
+                    // Don't throw an error if incremented < 0, simply put it to 0
+                    incremented = 0;
+                }
+                try {
+                    database.updateAdvancement(key, progression.getTeamId(), incremented);
+                } catch (SQLException e) {
+                    System.err.println("Cannot increment progression of advancement " + key + " to team " + progression.getTeamId() + ':');
+                    e.printStackTrace();
+                    completableFuture.completeExceptionally(new DatabaseException(e));
+                    return;
+                } catch (Exception e) {
+                    completableFuture.completeExceptionally(new DatabaseException(e));
+                    return;
+                }
+            }
+            loadedNewTeam.teamProgression.updateProgression(key, incremented);
+
+            callEventCatchingExceptions(new AsyncProgressionUpdateEvent(progression, old, incremented, key));
+
+            completableFuture.complete(new ProgressionUpdateResult(old, incremented));
+        }, executor);
+
+        return completableFuture;
     }
 
     /**
@@ -728,9 +885,11 @@ public final class DatabaseManager {
     @NotNull
     public synchronized TeamProgression getTeamProgression(@NotNull UUID uuid) throws UserNotLoadedException {
         Preconditions.checkNotNull(uuid, "UUID is null.");
-        TeamProgression pro = progressionCache.get(uuid);
-        AdvancementUtils.checkTeamProgressionNotNull(pro, uuid);
-        return pro;
+        LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+        if (loadedPlayer == null || loadedPlayer.getPlayerTeam() == null) {
+            throw new UserNotLoadedException(uuid);
+        }
+        return loadedPlayer.getPlayerTeam().getTeamProgression();
     }
 
     /**
@@ -766,7 +925,8 @@ public final class DatabaseManager {
      */
     @Contract(pure = true, value = "null -> false")
     public synchronized boolean isLoaded(UUID uuid) {
-        return progressionCache.containsKey(uuid);
+        LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+        return loadedPlayer != null && loadedPlayer.getPlayerTeam() != null;
     }
 
     /**
@@ -788,41 +948,40 @@ public final class DatabaseManager {
      */
     @Contract(pure = true, value = "null -> false")
     public synchronized boolean isLoadedAndOnline(UUID uuid) {
-        if (isLoaded(uuid)) {
-            TempUserMetadata t = tempLoaded.get(uuid);
-            return t == null || t.isOnline;
-        }
-        return false;
+        LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+        return loadedPlayer != null && loadedPlayer.getPlayerTeam() != null && loadedPlayer.isOnline();
     }
 
     /**
-     * Returns the number of currently active loading requests done by a plugin for the specified player with the provided {@link CacheFreeingOption.Option}.
-     * <p>There is a maximum per-plugin amount of requests that can be done for each player, which is {@link #MAX_SIMULTANEOUS_LOADING_REQUESTS}.
-     * <p>This limit is applied to <a href="./CacheFreeingOption.Option.html#AUTOMATIC"><code>CacheFreeingOption.Option#AUTOMATIC</code></a> and <a href="./CacheFreeingOption.Option.html#MANUAL"><code>CacheFreeingOption.Option#MANUAL</code></a> separately
-     * (so a plugin can do maximum {@link #MAX_SIMULTANEOUS_LOADING_REQUESTS} automatic requests and {@link #MAX_SIMULTANEOUS_LOADING_REQUESTS} manual requests simultaneously).
-     * Since <a href="./CacheFreeingOption.Option.html#DONT_CACHE"><code>CacheFreeingOption.Option#DONT_CACHE</code></a> doesn't cache, no limit is applied to it.
+     * Returns the number of currently active loading requests done by a plugin for the specified player with the provided {@link CacheFreeingOption}.
+     * Since <a href="./CacheFreeingOption.Option.html#DONT_CACHE"><code>CacheFreeingOption.Option#DONT_CACHE</code></a> doesn't cache, this method
+     * always returns {@code 0} when {@link CacheFreeingOption#DONT_CACHE} is passed as parameter.
      *
-     * @param plugin The plugin.
      * @param uuid The {@link UUID} of the player.
-     * @param type The {@link CacheFreeingOption.Option}.
+     * @param requester The plugin.
+     * @param type The {@link CacheFreeingOption}.
      * @return The number of the currently active player loading requests.
-     * @see UltimateAdvancementAPI#getLoadingRequestsAmount(UUID, CacheFreeingOption.Option)
      */
     @Contract(pure = true)
-    @Range(from = 0, to = MAX_SIMULTANEOUS_LOADING_REQUESTS)
-    public synchronized int getLoadingRequestsAmount(@NotNull Plugin plugin, @NotNull UUID uuid, @NotNull CacheFreeingOption.Option type) {
-        Preconditions.checkNotNull(plugin, "Plugin is null.");
+    public int getLoadingRequestsAmount(@NotNull UUID uuid, @NotNull Plugin requester, @NotNull CacheFreeingOption type) {
+        Preconditions.checkNotNull(requester, "Plugin is null.");
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(type, "CacheFreeingOption.Option is null.");
-        TempUserMetadata t = tempLoaded.get(uuid);
-        if (t == null) {
+
+        if (type == CacheFreeingOption.MANUAL) {
+            synchronized (DatabaseManager.this) {
+                Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
+                LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+                if (loadedPlayer == null) {
+                    throw new UserNotLoadedException(uuid);
+                }
+                return loadedPlayer.getPluginRequests(requester);
+            }
+        } else {
+            // Check for enabled plugin to make sure the exception is raised
+            Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
             return 0;
         }
-        return switch (type) {
-            case AUTOMATIC -> t.getAuto(plugin);
-            case MANUAL -> t.getManual(plugin);
-            default -> 0;
-        };
     }
 
     /**
@@ -830,13 +989,13 @@ public final class DatabaseManager {
      *
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player.
-     * @return A {@link CompletableFuture}&lt;{@link ObjectResult}&gt; which provides a boolean value that is {@code true} if the
+     * @return A {@link CompletableFuture} which provides a boolean value that is {@code true} if the
      *         provided advancement is unredeemed for the specified player, false otherwise.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      * @see UltimateAdvancementAPI#isUnredeemed(Advancement, UUID, Consumer)
      */
     @NotNull
-    public CompletableFuture<ObjectResult<@NotNull Boolean>> isUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid) throws UserNotLoadedException {
+    public CompletableFuture<Boolean> isUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid) throws UserNotLoadedException {
         return isUnredeemed(key, getTeamProgression(uuid));
     }
 
@@ -845,25 +1004,34 @@ public final class DatabaseManager {
      *
      * @param key The advancement key.
      * @param pro The {@link TeamProgression} of the team.
-     * @return A {@link CompletableFuture}&lt;{@link ObjectResult}&gt; which provides a boolean value that is {@code true} if the
+     * @return A {@link CompletableFuture} which provides a boolean value that is {@code true} if the
      *         provided advancement is unredeemed for the specified player, false otherwise.
      */
     @NotNull
-    public CompletableFuture<ObjectResult<@NotNull Boolean>> isUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
+    public CompletableFuture<Boolean> isUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
         Preconditions.checkNotNull(key, "AdvancementKey is null.");
         validateTeamProgression(pro);
-        return CompletableFuture.supplyAsync(() -> {
+
+        CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
+            boolean res;
             try {
-                return new ObjectResult<>(database.isUnredeemed(key, pro.getTeamId()));
+                res = database.isUnredeemed(key, pro.getTeamId());
             } catch (SQLException e) {
                 System.err.println("Cannot fetch unredeemed advancements of team " + pro.getTeamId() + ':');
                 e.printStackTrace();
-                return new ObjectResult<>(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             } catch (Exception e) {
                 e.printStackTrace();
-                return new ObjectResult<>(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             }
-        });
+            completableFuture.complete(res);
+        }, executor);
+
+        return completableFuture;
     }
 
     /**
@@ -872,12 +1040,12 @@ public final class DatabaseManager {
      * @param key The advancement key.
      * @param giveRewards Whether advancement rewards will be given on redeem.
      * @param uuid The {@link UUID} of the player.
-     * @return A {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      * @see UltimateAdvancementAPI#setUnredeemed(Advancement, UUID, boolean, Consumer)
      */
     @NotNull
-    public CompletableFuture<Result> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull UUID uuid) throws UserNotLoadedException {
+    public CompletableFuture<Void> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull UUID uuid) throws UserNotLoadedException {
         return setUnredeemed(key, giveRewards, getTeamProgression(uuid));
     }
 
@@ -887,24 +1055,31 @@ public final class DatabaseManager {
      * @param key The advancement key.
      * @param giveRewards Whether advancement rewards will be given on redeem.
      * @param pro The {@link TeamProgression} of the team.
-     * @return A {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
      */
     @NotNull
-    public CompletableFuture<Result> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull TeamProgression pro) {
+    public CompletableFuture<Void> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull TeamProgression pro) {
         Preconditions.checkNotNull(key, "AdvancementKey is null.");
         validateTeamProgression(pro);
-        return CompletableFuture.supplyAsync(() -> {
+
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
             try {
                 database.setUnredeemed(key, giveRewards, pro.getTeamId());
             } catch (SQLException e) {
                 System.err.println("Cannot set unredeemed advancement " + key + " to team " + pro.getTeamId() + ':');
                 e.printStackTrace();
-                return new Result(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             } catch (Exception e) {
-                return new Result(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             }
-            return Result.SUCCESSFUL;
-        });
+            completableFuture.complete(null);
+        }, executor);
+
+        return completableFuture;
     }
 
     /**
@@ -912,12 +1087,12 @@ public final class DatabaseManager {
      *
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player.
-     * @return A {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      * @see UltimateAdvancementAPI#unsetUnredeemed(Advancement, UUID, Consumer)
      */
     @NotNull
-    public CompletableFuture<Result> unsetUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid) throws UserNotLoadedException {
+    public CompletableFuture<Void> unsetUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid) throws UserNotLoadedException {
         return unsetUnredeemed(key, getTeamProgression(uuid));
     }
 
@@ -926,115 +1101,144 @@ public final class DatabaseManager {
      *
      * @param key The advancement key.
      * @param pro The {@link TeamProgression} of the team.
-     * @return A {@link CompletableFuture} which provides the {@link Result} of the operation.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
      */
     @NotNull
-    public CompletableFuture<Result> unsetUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
+    public CompletableFuture<Void> unsetUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
         Preconditions.checkNotNull(key, "AdvancementKey is null.");
         validateTeamProgression(pro);
-        return CompletableFuture.supplyAsync(() -> {
+
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
             try {
                 database.unsetUnredeemed(key, pro.getTeamId());
             } catch (SQLException e) {
                 System.err.println("Cannot set unredeemed advancement " + key + " to team " + pro.getTeamId() + ':');
                 e.printStackTrace();
-                return new Result(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             } catch (Exception e) {
-                return new Result(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             }
-            return Result.SUCCESSFUL;
-        });
+            completableFuture.complete(null);
+        }, executor);
+
+        return completableFuture;
     }
 
     /**
      * Gets the in-database stored name of the provided player.
      *
      * @param uuid The {@link UUID} of the player.
-     * @return A {@link CompletableFuture}&lt;{@link ObjectResult}&gt; which provides the stored name of the player.
+     * @return A {@link CompletableFuture} which provides the stored name of the player.
      * @see UltimateAdvancementAPI#getStoredPlayerName(UUID, Consumer)
      */
     @NotNull
-    public CompletableFuture<ObjectResult<@NotNull String>> getStoredPlayerName(@NotNull UUID uuid) {
+    public CompletableFuture<String> getStoredPlayerName(@NotNull UUID uuid) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
-        return CompletableFuture.supplyAsync(() -> {
+
+        CompletableFuture<String> completableFuture = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
+            String name;
             try {
-                return new ObjectResult<>(database.getPlayerName(uuid));
+                name = database.getPlayerName(uuid);
             } catch (SQLException e) {
                 System.err.println("Cannot fetch player name of " + uuid + ':');
                 e.printStackTrace();
-                return new ObjectResult<>(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             } catch (Exception e) {
-                return new ObjectResult<>(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             }
-        });
+
+            completableFuture.complete(name);
+        }, executor);
+
+        return completableFuture;
     }
 
     /**
      * Loads the provided player from the database into the caching system.
      * <p>Different things happens based on the specified {@link CacheFreeingOption}:
      * <ul>
-     *     <li><strong>{@link CacheFreeingOption#DONT_CACHE()}:</strong> the player isn't loaded in the caching system, but loads and returns only the player team's {@link TeamProgression};</li>
-     *     <li><strong>{@link CacheFreeingOption#AUTOMATIC(Plugin, long)}:</strong> the player is loaded for a certain amount of ticks;</li>
-     *     <li><strong>{@link CacheFreeingOption#MANUAL(Plugin)}:</strong> the player is loaded and kept until {@link #unloadOfflinePlayer(UUID, Plugin)} is called.</li>
+     *     <li><strong>{@link CacheFreeingOption#DONT_CACHE}:</strong> the player isn't loaded in the caching system, but loads and returns only the player team's {@link TeamProgression};</li>
+     *     <li><strong>{@link CacheFreeingOption#MANUAL}:</strong> the player is loaded and kept until {@link #unloadOfflinePlayer(UUID, Plugin)} is called.</li>
      * </ul>
      *
      * @param uuid The {@link UUID} of the player to load.
+     * @param requester The plugin making the request.
      * @param option The chosen {@link CacheFreeingOption}.
-     * @return A {@link CompletableFuture}&lt;{@link ObjectResult}&gt; which provides the player team's {@link TeamProgression}.
+     * @return A {@link CompletableFuture} which provides the player team's {@link TeamProgression}.
      * @see UltimateAdvancementAPI#loadOfflinePlayer(UUID, CacheFreeingOption, Consumer)
      */
     @NotNull
-    public synchronized CompletableFuture<ObjectResult<@NotNull TeamProgression>> loadOfflinePlayer(@NotNull UUID uuid, @NotNull CacheFreeingOption option) {
+    public synchronized CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester, @NotNull CacheFreeingOption option) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(requester, "Plugin is null.");
         Preconditions.checkNotNull(option, "CacheFreeingOption is null.");
-        TeamProgression pro = progressionCache.get(uuid);
-        if (pro != null) {
-            handleCacheFreeingOption(uuid, null, option); // Handle requests
-            return CompletableFuture.completedFuture(new ObjectResult<>(pro));
+
+        CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
+
+        final LoadedPlayer loadedPlayer; // final so it can be used in the lambda below
+        synchronized (DatabaseManager.this) {
+            if (!requester.isEnabled()) {
+                throw new IllegalStateException("Plugin is not enabled.");
+            }
+
+            LoadedPlayer lPlayer = playersLoaded.get(uuid);
+            if (lPlayer == null) {
+                // Player is not in cache, add it
+                lPlayer = addPlayerToCache(uuid, Bukkit.getPlayer(uuid) != null);
+            } else if (lPlayer.getPlayerTeam() != null) {
+                // Already in cache and loaded, just return
+                lPlayer.addPluginRequest(requester);
+                completableFuture.complete(lPlayer.getPlayerTeam().getTeamProgression());
+                return completableFuture;
+            }
+            loadedPlayer = lPlayer;
+            loadedPlayer.addPluginRequest(requester);
+
+            // Keep in cache for the loadOrRegisterPlayer(...) operation
+            loadedPlayer.addInternalRequest();
         }
-        pro = searchTeamProgressionDeeply(uuid);
-        if (pro != null) {
-            handleCacheFreeingOption(uuid, pro, option); // Direct caching and handle requests
-            return CompletableFuture.completedFuture(new ObjectResult<>(pro));
-        }
-        return CompletableFuture.supplyAsync(() -> {
-            TeamProgression t;
+
+        CompletableFuture.runAsync(() -> {
+            synchronized (DatabaseManager.this) {
+                // Search the player in already loaded teams to see if it's there
+                // The searching is done here since more players from the same team may join at the same moment
+                // and running the searching on the executor's thread improves the possibility of a cache hit
+                LoadedTeam loadedTeam = searchPlayerTeam(uuid);
+                if (loadedTeam != null) {
+                    // Player team is already loaded
+                    updateLoadedPlayerTeam(loadedPlayer, loadedTeam, false);
+                    removeInternalRequest(loadedPlayer);
+                    return;
+                }
+            }
+
+            final TeamProgression progression;
             try {
-                t = database.loadUUID(uuid);
+                // Player team isn't loaded yet
+                progression = loadOrRegisterPlayerTeam(uuid, null /*fine since loadOnly is true*/, loadedPlayer, true /*loadOnly*/).getTeamProgression();
             } catch (SQLException e) {
                 System.err.println("Cannot load offline player " + uuid + ':');
                 e.printStackTrace();
-                return new ObjectResult<>(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
             } catch (Exception e) {
-                return new ObjectResult<>(e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
+            } finally {
+                removeInternalRequest(loadedPlayer);
             }
-            handleCacheFreeingOption(uuid, t, option); // Direct caching and handle requests
-            if (option.option != Option.DONT_CACHE) {
-                t.inCache.set(true); // Set TeamProgression valid
-                callEventCatchingExceptions(new AsyncTeamLoadEvent(t));
-                runSync(main, () -> Bukkit.getPluginManager().callEvent(new TeamLoadEvent(t)));
-            }
-            return new ObjectResult<>(t);
-        });
-    }
+            completableFuture.complete(progression);
+        }, executor);
 
-    private void handleCacheFreeingOption(@NotNull UUID uuid, @Nullable TeamProgression pro, @NotNull CacheFreeingOption option) {
-        switch (option.option) {
-            case AUTOMATIC -> {
-                runSync(main, option.ticks, () -> internalUnloadOfflinePlayer(uuid, option.requester, true));
-                addCachingRequest(uuid, pro, option, true);
-            }
-            case MANUAL -> addCachingRequest(uuid, pro, option, false);
-        }
-    }
-
-    // TeamProgression == null iff it doesn't need to be stored (since it is already stored)
-    private synchronized void addCachingRequest(@NotNull UUID uuid, @Nullable TeamProgression pro, @NotNull CacheFreeingOption option, boolean auto) {
-        TempUserMetadata meta = tempLoaded.computeIfAbsent(uuid, TempUserMetadata::new);
-        meta.addRequest(option.requester, auto);
-        if (pro != null) {
-            progressionCache.put(uuid, pro);
-        }
+        return completableFuture;
     }
 
     /**
@@ -1045,7 +1249,7 @@ public final class DatabaseManager {
      */
     @Contract(pure = true, value = "null -> false")
     public synchronized boolean isOfflinePlayerLoaded(UUID uuid) {
-        return tempLoaded.containsKey(uuid);
+        return playersLoaded.containsKey(uuid);
     }
 
     /**
@@ -1058,47 +1262,122 @@ public final class DatabaseManager {
      */
     @Contract(pure = true, value = "null, null -> false; null, !null -> false; !null, null -> false")
     public synchronized boolean isOfflinePlayerLoaded(UUID uuid, Plugin requester) {
-        TempUserMetadata t = tempLoaded.get(uuid);
-        return t != null && Integer.compareUnsigned(t.getRequests(requester), 0) > 0;
+        LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+        return loadedPlayer != null && loadedPlayer.getPluginRequests(requester) > 0;
     }
 
     /**
      * Unloads the provided player from the caching system.
-     * <p>Note that this method will only unload players loaded with {@link CacheFreeingOption#MANUAL(Plugin)}.
+     * <p>Note that this method will only unload players loaded with {@link CacheFreeingOption#MANUAL}.
      *
      * @param uuid The {@link UUID} of the player to unload.
      * @param requester The plugin which requested the loading.
      * @see UltimateAdvancementAPI#unloadOfflinePlayer(UUID)
      */
-    public void unloadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
-        internalUnloadOfflinePlayer(uuid, requester, false);
+    public synchronized void unloadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
+        internalUnloadOfflinePlayer(uuid, requester);
     }
 
-    private synchronized void internalUnloadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester, boolean auto) {
+    private void internalUnloadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
-        TempUserMetadata meta = tempLoaded.get(uuid);
-        if (meta != null) {
-            meta.removeRequest(requester, auto);
-            if (meta.canBeRemoved()) {
-                tempLoaded.remove(uuid);
-                if (!meta.isOnline) {
-                    TeamProgression t = progressionCache.remove(uuid);
-                    if (t != null && t.noMemberMatch(progressionCache::containsKey)) {
-                        t.inCache.set(false); // Invalidate TeamProgression
-                        callEventCatchingExceptions(new AsyncTeamUnloadEvent(t));
-                        if (Bukkit.isPrimaryThread()) {
-                            callEventCatchingExceptions(new TeamUnloadEvent(t));
-                        } else {
-                            runSync(main, () -> callEventCatchingExceptions(new TeamUnloadEvent(t)));
-                        }
-                    }
-                }
-            }
+        synchronized (DatabaseManager.this) {
+            Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
+
+            LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+            if (loadedPlayer != null)
+                removePluginRequest(loadedPlayer, requester);
         }
     }
 
-    private static <E extends Event> void callEventCatchingExceptions(E event) {
+    @NotNull
+    private synchronized LoadedTeam addTeamToCache(TeamProgression progression) {
+        LoadedTeam loadedTeam = new LoadedTeam(progression);
+        LoadedTeam oldValue = teamsLoaded.putIfAbsent(progression.getTeamId(), loadedTeam);
+        if (oldValue != null) {
+            // A team was present
+            loadedTeam = oldValue;
+        } else {
+            progression.inCache.set(true);
+            callEventCatchingExceptions(new AsyncTeamLoadEvent(progression));
+        }
+        return loadedTeam;
+    }
+
+    @NotNull
+    private synchronized LoadedPlayer addPlayerToCache(@NotNull UUID uuid, boolean isOnline) {
+        LoadedPlayer loadedPlayer = new LoadedPlayer(uuid);
+        LoadedPlayer oldValue = playersLoaded.putIfAbsent(uuid, loadedPlayer);
+        if (oldValue != null) {
+            // A player was present
+            loadedPlayer = oldValue;
+        }
+        loadedPlayer.setOnline(isOnline);
+        loadedPlayer.addInternalRequest(); // Make sure the player will not be removed from cache
+        return loadedPlayer;
+    }
+
+    private synchronized void removeInternalRequest(@NotNull LoadedTeam loadedTeam) {
+        if (loadedTeam.removeInternalRequest() == 0 && loadedTeam.canBeUnloaded()) {
+            unloadTeam(loadedTeam);
+        }
+    }
+
+    private synchronized void removeInternalRequest(@NotNull LoadedPlayer loadedPlayer) {
+        if (loadedPlayer.removeInternalRequest() == 0 && loadedPlayer.canBeUnloaded()) {
+            unloadPlayer(loadedPlayer);
+        }
+    }
+
+    private synchronized void removePluginRequest(@NotNull LoadedTeam loadedTeam, @NotNull Plugin plugin) {
+        if (loadedTeam.removePluginRequest(plugin) == 0 && loadedTeam.canBeUnloaded()) {
+            unloadTeam(loadedTeam);
+        }
+    }
+
+    private synchronized void removePluginRequest(@NotNull LoadedPlayer loadedPlayer, @NotNull Plugin plugin) {
+        if (loadedPlayer.removePluginRequest(plugin) == 0 && loadedPlayer.canBeUnloaded()) {
+            unloadPlayer(loadedPlayer);
+        }
+    }
+
+    private synchronized void unloadTeam(@NotNull LoadedTeam loadedTeam) {
+        final TeamProgression teamProgression = loadedTeam.getTeamProgression();
+        teamProgression.inCache.set(false);
+        teamsLoaded.remove(teamProgression.getTeamId());
+        callEventCatchingExceptions(new AsyncTeamUnloadEvent(teamProgression));
+    }
+
+    private synchronized void unloadPlayer(@NotNull LoadedPlayer loadedPlayer) {
+        playersLoaded.remove(loadedPlayer.getUuid());
+        @Nullable final LoadedTeam loadedTeam = loadedPlayer.getPlayerTeam();
+        loadedPlayer.setPlayerTeam(null);
+        if (loadedTeam != null) {
+            removeInternalRequest(loadedTeam);
+        }
+    }
+
+    private synchronized void updateLoadedPlayerTeam(@NotNull LoadedPlayer player, @NotNull LoadedTeam newTeam, boolean fireJoinEvent) {
+        if (player.getPlayerTeam() != null) {
+            // The player is already in a team
+            final LoadedTeam old = player.getPlayerTeam();
+
+            callEventCatchingExceptions(new AsyncTeamUpdateEvent(old.getTeamProgression(), player.getUuid(), Action.LEAVE));
+            old.getTeamProgression().movePlayer(newTeam.getTeamProgression(), player.getUuid());
+
+            removeInternalRequest(old);
+        } else {
+            newTeam.getTeamProgression().addMember(player.getUuid());
+        }
+
+        newTeam.addInternalRequest();
+        player.setPlayerTeam(newTeam);
+
+        if (fireJoinEvent)
+            callEventCatchingExceptions(new AsyncTeamUpdateEvent(newTeam.getTeamProgression(), player.getUuid(), Action.JOIN));
+    }
+
+    static <E extends Event> void callEventCatchingExceptions(@NotNull E event) {
         try {
             Bukkit.getPluginManager().callEvent(event);
         } catch (Exception exception) {
@@ -1106,85 +1385,107 @@ public final class DatabaseManager {
         }
     }
 
-    private static final class TempUserMetadata {
+    private static final class LoadedTeam extends CacheableEntry {
+        private final TeamProgression teamProgression;
 
-        // Integer format: first 16 bits for automatic requests count and 16 bits for plugin requests count
-        final Map<Plugin, Integer> pluginRequests = new HashMap<>();
-        boolean isOnline;
-
-        public TempUserMetadata(UUID uuid) {
-            this.isOnline = Bukkit.getPlayer(uuid) != null;
+        public LoadedTeam(@NotNull TeamProgression progression) {
+            this.teamProgression = progression;
         }
 
-        public void addRequest(@NotNull Plugin plugin, boolean auto) {
-            pluginRequests.compute(plugin, (p, i) -> {
-                if (i == null) {
-                    i = 0;
-                }
-                return auto ? addAuto(i) : addManual(i);
-            });
+        @NotNull
+        public TeamProgression getTeamProgression() {
+            return teamProgression;
+        }
+    }
+
+    private static final class LoadedPlayer extends CacheableEntry {
+
+        @Nullable // Null here means the player is not loaded but probably online
+        private volatile LoadedTeam playerTeam;
+
+        private final UUID uuid;
+        private volatile boolean online = false;
+
+        public LoadedPlayer(@NotNull UUID uuid) {
+            this.uuid = uuid;
         }
 
-        public void removeRequest(@NotNull Plugin plugin, boolean auto) {
-            Integer i = pluginRequests.get(plugin);
-            if (i != null) {
-                i = auto ? removeAuto(i) : removeManual(i);
-                if (Integer.compareUnsigned(i, 0) <= 0) {
-                    pluginRequests.remove(plugin);
-                } else {
-                    pluginRequests.put(plugin, i);
-                }
+        @NotNull
+        public UUID getUuid() {
+            return uuid;
+        }
+
+        @Nullable
+        public LoadedTeam getPlayerTeam() {
+            return playerTeam;
+        }
+
+        public void setPlayerTeam(@Nullable LoadedTeam playerTeam) {
+            this.playerTeam = playerTeam;
+        }
+
+        public boolean isOnline() {
+            return online;
+        }
+
+        public void setOnline(boolean online) {
+            this.online = online;
+        }
+    }
+
+    private static class CacheableEntry {
+        private final Map<Plugin, Integer> pluginRequests = new HashMap<>();
+
+        // Internal requests are used to keep the entry loaded
+        private final AtomicInteger internalRequests = new AtomicInteger(0);
+
+        public int addPluginRequest(@NotNull Plugin plugin) {
+            synchronized (pluginRequests) {
+                return pluginRequests.merge(plugin, 1, Integer::sum);
             }
         }
 
-        public int getRequests(@NotNull Plugin plugin) {
-            return pluginRequests.getOrDefault(plugin, 0);
-        }
-
-        public int getAuto(@NotNull Plugin plugin) {
-            return getRequests(plugin) >>> 16;
-        }
-
-        public int getManual(@NotNull Plugin plugin) {
-            return getRequests(plugin) & 0xFFFF;
-        }
-
-        public boolean canBeRemoved() {
-            return pluginRequests.isEmpty();
-        }
-
-        private int addAuto(int i) {
-            char tmp = (char) (i >>> 16);
-            if (tmp == Character.MAX_VALUE) {
-                throw new RuntimeException("Max per-plugin automatic simultaneous requests amount exceeded.");
+        public int removePluginRequest(@NotNull Plugin plugin) {
+            synchronized (pluginRequests) {
+                Integer res = pluginRequests.computeIfPresent(plugin, (key, value) -> {
+                    // value shouldn't be null here since we don't put null values in the map
+                    return value <= 1 ? null : value - 1;
+                });
+                return res == null ? 0 : res;
             }
-            return ((tmp + 1) << 16) | (i & 0xFFFF);
         }
 
-        private int addManual(int i) {
-            char tmp = (char) (i & 0xFFFF);
-            if (tmp == Character.MAX_VALUE) {
-                throw new RuntimeException("Max per-plugin manual simultaneous requests amount exceeded.");
+        public int addInternalRequest() {
+            return internalRequests.incrementAndGet();
+        }
+
+        public int removeInternalRequest() {
+            return internalRequests.decrementAndGet();
+        }
+
+        public int getInternalRequests() {
+            return internalRequests.get();
+        }
+
+        public int getPluginRequests(@NotNull Plugin plugin) {
+            synchronized (pluginRequests) {
+                return pluginRequests.getOrDefault(plugin, 0);
             }
-            return (tmp + 1) | (i & 0xFFFF0000);
         }
 
-        private int removeAuto(int i) {
-            char tmp = (char) (i >>> 16);
-            return tmp == 0 ? (i & 0xFFFF) : ((tmp - 1) << 16) | (i & 0xFFFF);
+        public int removeAllPluginRequests(@NotNull Plugin plugin) {
+            synchronized (pluginRequests) {
+                Integer i = pluginRequests.remove(plugin);
+                return i == null ? 0 : i;
+            }
         }
 
-        private int removeManual(int i) {
-            char tmp = (char) (i & 0xFFFF);
-            return tmp == 0 ? (i & 0xFFFF0000) : (tmp - 1) | (i & 0xFFFF0000);
+        public boolean hasPluginRequests() {
+            return !pluginRequests.isEmpty();
         }
 
-        @Override
-        public String toString() {
-            return "TempUserMetadata{" +
-                    "pluginRequests=" + pluginRequests +
-                    ", isOnline=" + isOnline +
-                    '}';
+        public boolean canBeUnloaded() {
+            return getInternalRequests() == 0 && !hasPluginRequests();
         }
     }
 }

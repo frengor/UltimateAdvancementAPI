@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalKeyException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 import org.sqlite.SQLiteConfig;
@@ -32,6 +33,7 @@ import java.util.logging.Logger;
 /**
  * Class used to establish a connection to a SQLite database.
  */
+@Internal
 public class SQLite implements IDatabase {
 
     private final Logger logger;
