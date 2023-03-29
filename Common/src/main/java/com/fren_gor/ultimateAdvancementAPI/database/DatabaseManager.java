@@ -268,9 +268,8 @@ public final class DatabaseManager implements Closeable {
                 // No need to call addInternalRequest here since the request can be reused and removed later
                 CompletableFuture.runAsync(() -> {
                     processUnredeemed(loadedPlayer, player);
-                }, executor).handle((v, t) -> {
+                }, executor).whenComplete((v, t) -> {
                     removeInternalRequest(loadedPlayer);
-                    return null;
                 });
             }
             main.updatePlayer(player);
@@ -540,12 +539,11 @@ public final class DatabaseManager implements Closeable {
             }
 
             completableFuture.complete(null);
-        }, executor).handle((v, t) -> {
+        }, executor).whenComplete((v, t) -> {
             synchronized (DatabaseManager.this) {
                 removeInternalRequest(loadedPlayer);
                 removeInternalRequest(loadedNewTeam);
             }
-            return null;
         });
 
         return completableFuture;
@@ -600,11 +598,9 @@ public final class DatabaseManager implements Closeable {
                 System.err.println("Cannot remove player " + (ptr == null ? uuid : ptr.getName()) + " from their team:");
                 e.printStackTrace();
                 completableFuture.completeExceptionally(new DatabaseException(e));
-                removeInternalRequest(loadedPlayer);
                 return;
             } catch (Exception e) {
                 completableFuture.completeExceptionally(new DatabaseException(e));
-                removeInternalRequest(loadedPlayer);
                 return;
             }
 
@@ -625,9 +621,8 @@ public final class DatabaseManager implements Closeable {
             }
 
             completableFuture.complete(newPro);
-        }, executor).handle((v, t) -> {
+        }, executor).whenComplete((v, t) -> {
             removeInternalRequest(loadedPlayer);
-            return null;
         });
 
         return completableFuture;
@@ -662,9 +657,11 @@ public final class DatabaseManager implements Closeable {
             synchronized (DatabaseManager.this) {
                 if (Bukkit.getPlayer(uuid) != null) {
                     completableFuture.completeExceptionally(new IllegalStateException("Player is online."));
+                    return;
                 }
                 if (playersLoaded.containsKey(uuid)) {
                     completableFuture.completeExceptionally(new IllegalStateException("Player is temporary loaded."));
+                    return;
                 }
             }
             try {
@@ -762,9 +759,8 @@ public final class DatabaseManager implements Closeable {
             callEventCatchingExceptions(new AsyncProgressionUpdateEvent(progression, old, newProgression, key));
 
             completableFuture.complete(new ProgressionUpdateResult(old, newProgression));
-        }, executor).handle((v, t) -> {
+        }, executor).whenComplete((v, t) -> {
             removeInternalRequest(loadedNewTeam);
-            return null;
         });
 
         return completableFuture;
@@ -856,7 +852,9 @@ public final class DatabaseManager implements Closeable {
             callEventCatchingExceptions(new AsyncProgressionUpdateEvent(progression, old, incremented, key));
 
             completableFuture.complete(new ProgressionUpdateResult(old, incremented));
-        }, executor);
+        }, executor).whenComplete((v, t) -> {
+            removeInternalRequest(loadedNewTeam);
+        });
 
         return completableFuture;
     }
@@ -1010,7 +1008,18 @@ public final class DatabaseManager implements Closeable {
     @NotNull
     public CompletableFuture<Boolean> isUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
         Preconditions.checkNotNull(key, "AdvancementKey is null.");
-        validateTeamProgression(pro);
+
+        final LoadedTeam loadedNewTeam;
+        synchronized (DatabaseManager.this) {
+            validateTeamProgression(pro);
+
+            loadedNewTeam = teamsLoaded.get(pro.getTeamId());
+            if (loadedNewTeam == null) {
+                throw new IllegalArgumentException("Invalid TeamProgression.");
+            }
+
+            loadedNewTeam.addInternalRequest();
+        }
 
         CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
 
@@ -1029,7 +1038,9 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
             completableFuture.complete(res);
-        }, executor);
+        }, executor).whenComplete((v, t) -> {
+            removeInternalRequest(loadedNewTeam);
+        });
 
         return completableFuture;
     }
@@ -1060,7 +1071,18 @@ public final class DatabaseManager implements Closeable {
     @NotNull
     public CompletableFuture<Void> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull TeamProgression pro) {
         Preconditions.checkNotNull(key, "AdvancementKey is null.");
-        validateTeamProgression(pro);
+
+        final LoadedTeam loadedNewTeam;
+        synchronized (DatabaseManager.this) {
+            validateTeamProgression(pro);
+
+            loadedNewTeam = teamsLoaded.get(pro.getTeamId());
+            if (loadedNewTeam == null) {
+                throw new IllegalArgumentException("Invalid TeamProgression.");
+            }
+
+            loadedNewTeam.addInternalRequest();
+        }
 
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
@@ -1077,7 +1099,9 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
             completableFuture.complete(null);
-        }, executor);
+        }, executor).whenComplete((v, t) -> {
+            removeInternalRequest(loadedNewTeam);
+        });
 
         return completableFuture;
     }
@@ -1106,7 +1130,18 @@ public final class DatabaseManager implements Closeable {
     @NotNull
     public CompletableFuture<Void> unsetUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
         Preconditions.checkNotNull(key, "AdvancementKey is null.");
-        validateTeamProgression(pro);
+
+        final LoadedTeam loadedNewTeam;
+        synchronized (DatabaseManager.this) {
+            validateTeamProgression(pro);
+
+            loadedNewTeam = teamsLoaded.get(pro.getTeamId());
+            if (loadedNewTeam == null) {
+                throw new IllegalArgumentException("Invalid TeamProgression.");
+            }
+
+            loadedNewTeam.addInternalRequest();
+        }
 
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
@@ -1123,7 +1158,9 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
             completableFuture.complete(null);
-        }, executor);
+        }, executor).whenComplete((v, t) -> {
+            removeInternalRequest(loadedNewTeam);
+        });
 
         return completableFuture;
     }
@@ -1215,7 +1252,6 @@ public final class DatabaseManager implements Closeable {
                 if (loadedTeam != null) {
                     // Player team is already loaded
                     updateLoadedPlayerTeam(loadedPlayer, loadedTeam, false);
-                    removeInternalRequest(loadedPlayer);
                     return;
                 }
             }
@@ -1232,11 +1268,11 @@ public final class DatabaseManager implements Closeable {
             } catch (Exception e) {
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
-            } finally {
-                removeInternalRequest(loadedPlayer);
             }
             completableFuture.complete(progression);
-        }, executor);
+        }, executor).whenComplete((v, t) -> {
+            removeInternalRequest(loadedPlayer);
+        });
 
         return completableFuture;
     }
