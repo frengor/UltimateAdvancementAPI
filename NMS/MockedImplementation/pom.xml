@@ -45,6 +45,28 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
             </plugin>
+
+            <!-- Create target/apidocs directory to suppress javadoc plugin errors about javadoc not being built for this module -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>create-jars</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Creating a fake javadoc directory prevents any further attempts at creating the javadoc for this module -->
+                            <target>
+                                <mkdir dir="${project.build.directory}/apidocs"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
