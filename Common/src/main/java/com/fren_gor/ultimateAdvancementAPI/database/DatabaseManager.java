@@ -1351,13 +1351,8 @@ public final class DatabaseManager implements Closeable {
 
     @NotNull
     private synchronized LoadedTeam addTeamToCache(TeamProgression progression) {
-        LoadedTeam loadedTeam = new LoadedTeam(progression);
-        LoadedTeam oldValue = teamsLoaded.putIfAbsent(progression.getTeamId(), loadedTeam);
-        if (oldValue != null) {
-            // A team was present
-            loadedTeam = oldValue;
-        } else {
-            progression.inCache.set(true);
+        LoadedTeam loadedTeam = teamsLoaded.computeIfAbsent(progression.getTeamId(), id -> new LoadedTeam(progression));
+        if (!progression.inCache.getAndSet(true)) {
             callEventCatchingExceptions(new AsyncTeamLoadEvent(progression));
         }
         return loadedTeam;
@@ -1365,12 +1360,7 @@ public final class DatabaseManager implements Closeable {
 
     @NotNull
     private synchronized LoadedPlayer addPlayerToCache(@NotNull UUID uuid, boolean isOnline) {
-        LoadedPlayer loadedPlayer = new LoadedPlayer(uuid);
-        LoadedPlayer oldValue = playersLoaded.putIfAbsent(uuid, loadedPlayer);
-        if (oldValue != null) {
-            // A player was present
-            loadedPlayer = oldValue;
-        }
+        LoadedPlayer loadedPlayer = playersLoaded.computeIfAbsent(uuid, LoadedPlayer::new);
         loadedPlayer.setOnline(isOnline);
         loadedPlayer.addInternalRequest(); // Make sure the player will not be removed from cache
         return loadedPlayer;
