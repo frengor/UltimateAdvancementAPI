@@ -152,15 +152,19 @@ public final class DatabaseManager implements Closeable {
 
             CompletableFuture.runAsync(() -> {
                 synchronized (DatabaseManager.this) {
-                    // Search the player in already loaded teams to see if it's there
+                    if (!loadedPlayer.isOnline()) {
+                        // Make sure the player is still online. Shouldn't be a problem here, but better be sure
+                        return;
+                    }
+
+                    // Search the player in already loaded teams to see if they're there.
                     // The searching is done here since more players from the same team may join at the same moment
-                    // and running the searching on the executor's thread improves the possibility of a cache hit
+                    // and running the searching on the executor thread increases the possibilities of a cache hit
                     LoadedTeam loadedTeam = searchPlayerTeam(e.getPlayer().getUniqueId());
                     if (loadedTeam != null) {
                         // Player team is already loaded
                         updateLoadedPlayerTeam(loadedPlayer, loadedTeam, false);
                         firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
-                        removeInternalRequest(loadedPlayer);
                         return;
                     }
                 }
@@ -172,11 +176,15 @@ public final class DatabaseManager implements Closeable {
                 } catch (Exception ex) {
                     System.err.println("Cannot load player " + e.getPlayer().getName() + ':');
                     ex.printStackTrace();
-                    runSync(main, LOAD_EVENTS_DELAY, () -> callEventCatchingExceptions(new PlayerLoadingFailedEvent(e.getPlayer(), ex)));
-                } finally {
-                    removeInternalRequest(loadedPlayer);
+                    runSync(main, LOAD_EVENTS_DELAY, () -> {
+                        if (e.getPlayer().isOnline()) { // Make sure the player is still online
+                            callEventCatchingExceptions(new PlayerLoadingFailedEvent(e.getPlayer(), ex));
+                        }
+                    });
                 }
-            }, executor);
+            }, executor).whenComplete((v, k) -> {
+                removeInternalRequest(loadedPlayer);
+            });
         });
         eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
             synchronized (DatabaseManager.this) {
@@ -251,12 +259,12 @@ public final class DatabaseManager implements Closeable {
         loadedPlayer.addInternalRequest(); // Keep in cache while waiting for the BukkitRunnable
 
         runSync(main, LOAD_EVENTS_DELAY, () -> {
-            if (!player.isOnline()) {
-                removeInternalRequest(loadedPlayer);
-                return;
-            }
-
             synchronized (DatabaseManager.this) {
+                if (!player.isOnline()) {
+                    removeInternalRequest(loadedPlayer);
+                    return;
+                }
+
                 LoadedTeam loadedTeam = loadedPlayer.getPlayerTeam();
                 if (loadedTeam == null) {
                     removeInternalRequest(loadedPlayer);
@@ -328,18 +336,14 @@ public final class DatabaseManager implements Closeable {
      * @param player The player.
      */
     private void processUnredeemed(final @NotNull LoadedPlayer loadedPlayer, final @NotNull Player player) {
-
-        // FIXME This function needs to be rewritten completely, it's buggy and full of duplicated lines
-
         final LoadedTeam loadedTeam;
-        synchronized (this) {
-            if (!player.isOnline() || loadedPlayer.getPlayerTeam() == null) {
+        synchronized (DatabaseManager.this) {
+            loadedTeam = loadedPlayer.getPlayerTeam();
+            if (!loadedPlayer.isOnline() || loadedTeam == null) {
                 // The player is not online or in a team
                 return;
             }
             loadedPlayer.addInternalRequest(); // Don't let the player to be unloaded
-            loadedTeam = loadedPlayer.getPlayerTeam();
-            loadedTeam.addInternalRequest();
         }
 
         final List<Entry<AdvancementKey, Boolean>> list;
@@ -349,51 +353,70 @@ public final class DatabaseManager implements Closeable {
             System.err.println("Cannot fetch unredeemed advancements:");
             e.printStackTrace();
             removeInternalRequest(loadedPlayer);
-            removeInternalRequest(loadedTeam);
             return;
         }
 
-        if (list.size() != 0) {
-            runSync(main, () -> {
-                Iterator<Entry<AdvancementKey, Boolean>> it = list.iterator();
-                final List<Entry<Advancement, Boolean>> advs = new LinkedList<>();
-                while (it.hasNext()) {
-                    Entry<AdvancementKey, Boolean> k = it.next();
-                    Advancement a = main.getAdvancement(k.getKey());
-                    if (a == null || !a.getAdvancementTab().isShownTo(player)) {
-                        it.remove();
-                    } else {
-                        advs.add(new SimpleEntry<>(a, k.getValue()));
-                    }
+        if (list.isEmpty()) {
+            removeInternalRequest(loadedPlayer);
+            return;
+        }
+
+        runSync(main, () -> {
+            if (!player.isOnline()) {
+                removeInternalRequest(loadedPlayer);
+                return;
+            }
+
+            final List<Entry<Advancement, Boolean>> advs = new ArrayList<>(list.size());
+            Iterator<Entry<AdvancementKey, Boolean>> it = list.iterator();
+            while (it.hasNext()) {
+                Entry<AdvancementKey, Boolean> k = it.next();
+                Advancement a = main.getAdvancement(k.getKey());
+                if (a == null || !a.getAdvancementTab().isShownTo(player)) {
+                    it.remove();
+                } else {
+                    advs.add(new SimpleEntry<>(a, k.getValue()));
                 }
-                if (advs.size() != 0) {
-                    CompletableFuture.runAsync(() -> {
-                        try {
-                            database.unsetUnredeemed(list, loadedTeam.getTeamProgression().getTeamId());
-                        } catch (Exception e) {
-                            System.err.println("Cannot unset unredeemed advancements:");
-                            e.printStackTrace();
-                            removeInternalRequest(loadedPlayer);
-                            removeInternalRequest(loadedTeam);
+            }
+            if (advs.isEmpty()) {
+                removeInternalRequest(loadedPlayer);
+                return;
+            }
+
+            CompletableFuture.runAsync(() -> {
+                if (!loadedPlayer.isOnline()) { // no synchronized needed since LoadedPlayer#online is volatile
+                    return;
+                }
+
+                try {
+                    database.unsetUnredeemed(list, loadedTeam.getTeamProgression().getTeamId());
+                } catch (Exception e) {
+                    System.err.println("Couldn't unset unredeemed advancements for player " + player.getName() + ":");
+                    e.printStackTrace();
+                    removeInternalRequest(loadedPlayer);
+                    return;
+                }
+                runSync(main, () -> {
+                    try {
+                        if (!player.isOnline()) {
+                            // TODO: recovery actions
                             return;
                         }
-                        runSync(main, () -> {
-                            for (Entry<Advancement, Boolean> e : advs) {
+
+                        for (Entry<Advancement, Boolean> e : advs) {
+                            try {
                                 e.getKey().onGrant(player, e.getValue());
+                            } catch (Exception err) {
+                                System.err.println("onGrant method of advancement '" + e.getKey().getKey() + "' has thrown an error:");
+                                err.printStackTrace();
                             }
-                            removeInternalRequest(loadedPlayer);
-                            removeInternalRequest(loadedTeam);
-                        });
-                    }, executor);
-                } else {
-                    removeInternalRequest(loadedPlayer);
-                    removeInternalRequest(loadedTeam);
-                }
-            });
-        } else {
-            removeInternalRequest(loadedPlayer);
-            removeInternalRequest(loadedTeam);
-        }
+                        }
+                    } finally {
+                        removeInternalRequest(loadedPlayer);
+                    }
+                });
+            }, executor);
+        });
     }
 
     /**
