@@ -5,6 +5,8 @@ import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -190,6 +192,13 @@ public class FallibleDBImpl implements IDatabase {
     public static final class PlannedFailureException extends SQLException {
         public PlannedFailureException() {
             super("Planned failure!");
+        }
+
+        @Override
+        public void printStackTrace() {
+            // Don't print the entire stack trace, the failure is fine. However, at the same time,
+            // print at least that the failure is planned to avoid possible confusion with other printed messages
+            System.err.println(PlannedFailureException.class.getName() + ": Planned failure");
         }
     }
 
