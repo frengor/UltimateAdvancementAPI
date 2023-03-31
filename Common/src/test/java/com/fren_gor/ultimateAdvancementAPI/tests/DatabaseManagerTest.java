@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.tests;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
+import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl;
@@ -13,6 +14,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import org.jetbrains.annotations.Contract;
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -69,6 +72,14 @@ public class DatabaseManagerTest {
 
     @AfterEach
     void tearDown() throws Exception {
+        // Wait for pending tasks before closing the server
+        // This cycle should ideally let tasks waiting for the server main thread to finish
+        waitForPendingTasks();
+        for (int i = 0; i < 20; i++) {
+            server.getScheduler().performOneTick();
+            waitForPendingTasks();
+        }
+
         advancementMain.disable();
         advancementMain = null;
         databaseManager = null;
@@ -85,10 +96,8 @@ public class DatabaseManagerTest {
         PlayerMock pl2 = loadPlayer();
         assertTrue(databaseManager.isLoaded(pl2.getUniqueId()));
 
-        pl1.disconnect();
-        assertFalse(databaseManager.isLoaded(pl1.getUniqueId()));
-        pl2.disconnect();
-        assertFalse(databaseManager.isLoaded(pl2.getUniqueId()));
+        disconnectPlayer(pl1);
+        disconnectPlayer(pl2);
     }
 
     @Test
@@ -321,18 +330,19 @@ public class DatabaseManagerTest {
     }
 
     private PlayerMock loadPlayer() {
-        AtomicBoolean finished = new AtomicBoolean(false);
+        CompletableFuture<Void> finished = new CompletableFuture<>();
         AtomicBoolean skip = new AtomicBoolean(false);
         AtomicBoolean hadSuccess = new AtomicBoolean(false);
 
         final Object listener = new Object();
+        final EventManager manager = advancementMain.getEventManager();
 
         final PlayerMock p = server.addPlayer();
 
         try {
             // These events should run after a few ticks, so there shouldn't be any problem having them registered
             // after the player addition
-            advancementMain.getEventManager().register(listener, PlayerLoadingCompletedEvent.class, e -> {
+            manager.register(listener, PlayerLoadingCompletedEvent.class, e -> {
                 AdvancementUtils.checkSync();
 
                 if (e.getPlayer().getUniqueId().equals(p.getUniqueId())) {
@@ -340,13 +350,13 @@ public class DatabaseManagerTest {
                         fail("PlayerLoadingCompletedEvent called too many times for player " + e.getPlayer().getName() + '.');
                     }
                     hadSuccess.set(true);
-                    finished.set(true);
+                    finished.complete(null);
                 } else {
                     fail("Another player loading completed: " + e.getPlayer().getName() + " (" + e.getPlayer().getUniqueId() + ')');
                 }
             });
 
-            advancementMain.getEventManager().register(listener, PlayerLoadingFailedEvent.class, e -> {
+            manager.register(listener, PlayerLoadingFailedEvent.class, e -> {
                 AdvancementUtils.checkSync();
 
                 if (e.getPlayer().getUniqueId().equals(p.getUniqueId())) {
@@ -354,23 +364,54 @@ public class DatabaseManagerTest {
                         fail("PlayerLoadingCompletedEvent called too many times for player " + e.getPlayer().getName() + '.');
                     }
                     hadSuccess.set(false);
-                    finished.set(true);
+                    finished.complete(null);
                 } else {
                     fail("Another player loading failed: " + e.getPlayer().getName() + " (" + e.getPlayer().getUniqueId() + ')');
                 }
             });
 
-            while (!finished.get()) {
-                server.getScheduler().performTicks(10);
-                Thread.yield();
-            }
+            waitCompletion(finished);
 
             assertTrue(hadSuccess.get());
             assertTrue(skip.get());
         } finally {
-            advancementMain.getEventManager().unregister(listener);
+            manager.unregister(listener);
         }
         return p;
+    }
+
+    // Correct to use only if the player's team has only the player itself as member
+    private void disconnectPlayer(PlayerMock player) {
+        assertEquals(1, databaseManager.getTeamProgression(player).getSize(), "Incorrect usage of disconnectPlayer inside tests");
+
+        CompletableFuture<Void> finished = new CompletableFuture<>();
+        AtomicBoolean skip = new AtomicBoolean(false);
+
+        final Object listener = new Object();
+        final EventManager manager = advancementMain.getEventManager();
+
+        try {
+            // These events should run after a few ticks, so there shouldn't be any problem having them registered
+            // after the player addition
+            manager.register(listener, AsyncTeamUnloadEvent.class, e -> {
+                if (e.getTeamProgression().contains(player.getUniqueId())) {
+                    if (skip.getAndSet(true)) {
+                        fail("AsyncTeamUnloadEvent called too many times for player " + player.getName() + '.');
+                    }
+                    finished.complete(null);
+                } else {
+                    fail("Another AsyncTeamUnloadEvent got called: (" + e.getTeamProgression().getTeamId() + ')');
+                }
+            });
+
+            player.disconnect();
+
+            waitCompletion(finished);
+
+            assertTrue(skip.get());
+        } finally {
+            manager.unregister(listener);
+        }
     }
 
     @Contract("_ -> param1")
