@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.jetbrains.annotations.Unmodifiable;
 import org.jetbrains.annotations.UnmodifiableView;
 
 import java.io.File;
@@ -51,7 +52,7 @@ public final class AdvancementMain {
     private DatabaseManager databaseManager;
     private BukkitLibraryManager libbyManager;
     private final String libFolder;
-    private final Map<String, AdvancementTab> tabs = new HashMap<>();
+    private final Map<String, AdvancementTab> tabs = Collections.synchronizedMap(new HashMap<>());
     private final Map<Plugin, List<AdvancementTab>> pluginMap = new HashMap<>();
 
     /**
@@ -249,16 +250,18 @@ public final class AdvancementMain {
             if (eventManager != null)
                 eventManager.disable();
             pluginMap.clear();
-            Iterator<AdvancementTab> it = tabs.values().iterator();
-            while (it.hasNext()) {
-                try {
-                    AdvancementTab tab = it.next();
-                    if (tab.isActive()) {
-                        tab.dispose();
+            synchronized (tabs) {
+                Iterator<AdvancementTab> it = tabs.values().iterator();
+                while (it.hasNext()) {
+                    try {
+                        AdvancementTab tab = it.next();
+                        if (tab.isActive()) {
+                            tab.dispose();
+                        }
+                        it.remove();
+                    } catch (Exception t) {
+                        t.printStackTrace();
                     }
-                    it.remove();
-                } catch (Exception t) {
-                    t.printStackTrace();
                 }
             }
             if (databaseManager != null)
@@ -415,6 +418,8 @@ public final class AdvancementMain {
      */
     @Nullable
     public Advancement getAdvancement(@NotNull AdvancementKey namespacedKey) {
+        // IMPLEMENTATION DETAIL: this method must be thread-safe to call, see DatabaseManager#processUnredeemed
+
         checkInitialisation();
         Preconditions.checkNotNull(namespacedKey, "AdvancementKey is null.");
         AdvancementTab tab = tabs.get(namespacedKey.getNamespace());
@@ -431,11 +436,11 @@ public final class AdvancementMain {
      * @see UltimateAdvancementAPI#getAdvancementTabNamespaces()
      */
     @NotNull
-    @UnmodifiableView
+    @Unmodifiable
     @Contract(pure = true)
     public Set<@NotNull String> getAdvancementTabNamespaces() {
         checkInitialisation();
-        return Collections.unmodifiableSet(tabs.keySet());
+        return Set.copyOf(tabs.keySet());
     }
 
     /**
@@ -451,28 +456,30 @@ public final class AdvancementMain {
     public List<@NotNull String> filterNamespaces(@Nullable String input) {
         checkInitialisation();
         List<String> l = new LinkedList<>();
-        if (input == null || input.isEmpty()) {
-            for (Entry<String, AdvancementTab> e : tabs.entrySet()) {
-                if (e.getValue().isActive()) {
-                    l.addAll(e.getValue().getAdvancementsAsStrings());
-                }
-            }
-        } else {
-            int index = input.indexOf(':');
-            if (index != -1) {
-                String sub = input.substring(0, index);
+        synchronized (tabs) {
+            if (input == null || input.isEmpty()) {
                 for (Entry<String, AdvancementTab> e : tabs.entrySet()) {
-                    if (e.getValue().isActive() && e.getKey().equals(sub)) {
-                        for (String s : e.getValue().getAdvancementsAsStrings()) {
-                            if (s.startsWith(input))
-                                l.add(s);
-                        }
+                    if (e.getValue().isActive()) {
+                        l.addAll(e.getValue().getAdvancementsAsStrings());
                     }
                 }
             } else {
-                for (Entry<String, AdvancementTab> e : tabs.entrySet()) {
-                    if (e.getValue().isActive() && e.getKey().startsWith(input)) {
-                        l.addAll(e.getValue().getAdvancementsAsStrings());
+                int index = input.indexOf(':');
+                if (index != -1) {
+                    String sub = input.substring(0, index);
+                    for (Entry<String, AdvancementTab> e : tabs.entrySet()) {
+                        if (e.getValue().isActive() && e.getKey().equals(sub)) {
+                            for (String s : e.getValue().getAdvancementsAsStrings()) {
+                                if (s.startsWith(input))
+                                    l.add(s);
+                            }
+                        }
+                    }
+                } else {
+                    for (Entry<String, AdvancementTab> e : tabs.entrySet()) {
+                        if (e.getValue().isActive() && e.getKey().startsWith(input)) {
+                            l.addAll(e.getValue().getAdvancementsAsStrings());
+                        }
                     }
                 }
             }
@@ -487,11 +494,11 @@ public final class AdvancementMain {
      * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#getTabs()
      */
-    @UnmodifiableView
+    @Unmodifiable
     @NotNull
     public Collection<@NotNull AdvancementTab> getTabs() {
         checkInitialisation();
-        return Collections.unmodifiableCollection(tabs.values());
+        return List.copyOf(tabs.values());
     }
 
     /**
@@ -507,14 +514,18 @@ public final class AdvancementMain {
         Preconditions.checkNotNull(player, "Player is null.");
         Preconditions.checkArgument(player.isOnline(), "Player isn't online");
 
-        for (AdvancementTab tab : tabs.values()) {
-            if (tab.isActive() && tab.isShownTo(player)) {
-                tab.updateAdvancementsToTeam(player);
+        synchronized (tabs) {
+            for (AdvancementTab tab : tabs.values()) {
+                if (tab.isActive() && tab.isShownTo(player)) {
+                    tab.updateAdvancementsToTeam(player);
+                }
             }
         }
     }
 
     private static void checkInitialisation() {
+        // IMPLEMENTATION DETAIL: this method must be thread-safe to call, since used in AdvancementMain#getAdvancement
+
         if (!isLoaded() || !isEnabled()) {
             throw new IllegalStateException("UltimateAdvancementAPI is not enabled.");
         }
@@ -571,6 +582,8 @@ public final class AdvancementMain {
      * @return Whether the API is loaded.
      */
     public static boolean isLoaded() {
+        // IMPLEMENTATION DETAIL: this method must be thread-safe to call, since used in AdvancementMain#getAdvancement
+
         return LOADED.get() && !INVALID_VERSION.get();
     }
 
@@ -580,6 +593,8 @@ public final class AdvancementMain {
      * @return Whether the API is enabled.
      */
     public static boolean isEnabled() {
+        // IMPLEMENTATION DETAIL: this method must be thread-safe to call, since used in AdvancementMain#getAdvancement
+
         return ENABLED.get();
     }
 

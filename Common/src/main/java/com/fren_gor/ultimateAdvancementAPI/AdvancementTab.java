@@ -67,7 +67,7 @@ public final class AdvancementTab {
     private final EventManager eventManager;
     private final String namespace;
     private final DatabaseManager databaseManager;
-    private final Map<AdvancementKey, Advancement> advancements = new HashMap<>();
+    private volatile Map<AdvancementKey, Advancement> advancements = Collections.emptyMap();
     private final Map<Player, Set<MinecraftKeyWrapper>> players = new HashMap<>();
     private final AdvsUpdateRunnable updateManager;
 
@@ -94,6 +94,8 @@ public final class AdvancementTab {
      * @return Whether the tab is initialised and not disposed.
      */
     public boolean isActive() {
+        // IMPLEMENTATION DETAIL: this method must be thread-safe to call, see DatabaseManager#processUnredeemed and AdvancementMain#getAdvancement
+
         return initialised && !disposed;
     }
 
@@ -243,6 +245,8 @@ public final class AdvancementTab {
     @Nullable
     @Contract(pure = true, value = "null -> null")
     public Advancement getAdvancement(AdvancementKey namespacedKey) {
+        // IMPLEMENTATION DETAIL: this method must be thread-safe to call, see DatabaseManager#processUnredeemed and AdvancementMain#getAdvancement
+
         checkInitialisation();
         return advancements.get(namespacedKey);
     }
@@ -401,11 +405,10 @@ public final class AdvancementTab {
             }
         }
 
-        // Just to be sure
-        this.advancements.clear();
+        final Map<AdvancementKey, Advancement> map = new HashMap<>();
 
         this.rootAdvancement = rootAdvancement;
-        this.advancements.put(rootAdvancement.getKey(), rootAdvancement);
+        map.put(rootAdvancement.getKey(), rootAdvancement);
 
         final PluginManager pluginManager = Bukkit.getPluginManager();
 
@@ -419,7 +422,7 @@ public final class AdvancementTab {
         }
 
         for (BaseAdvancement adv : advancements) {
-            if (this.advancements.put(adv.getKey(), adv) != null) {
+            if (map.put(adv.getKey(), adv) != null) {
                 onRegisterFail();
                 throw new DuplicatedException("Advancement " + adv.getKey() + " is duplicated.");
             }
@@ -433,6 +436,8 @@ public final class AdvancementTab {
                 throw e;
             }
         }
+
+        this.advancements = Collections.unmodifiableMap(map);
 
         // Initialise before validation since advancementTab's methods have to be called
         // Make sure to revert it in case of an invalid advancement is found. See onRegisterFail()
@@ -467,7 +472,7 @@ public final class AdvancementTab {
     private void onRegisterFail() {
         // Revert initialised to false in case of an invalid advancement is found
         initialised = false;
-        advancements.clear();
+        advancements = Collections.emptyMap();
         rootAdvancement = null;
     }
 
@@ -587,7 +592,7 @@ public final class AdvancementTab {
                 e.printStackTrace();
             }
         }
-        advancements.clear();
+        advancements = Collections.emptyMap();
         rootAdvancement = null;
         advNamespacedKeys = null;
         advsWithoutRoot = null;
@@ -727,6 +732,8 @@ public final class AdvancementTab {
     }
 
     private void checkInitialisation() {
+        // IMPLEMENTATION DETAIL: this method must be thread-safe to call, since used in AdvancementTab#getAdvancement
+
         if (disposed)
             throw new DisposedException("AdvancementTab is disposed");
         if (!initialised)
