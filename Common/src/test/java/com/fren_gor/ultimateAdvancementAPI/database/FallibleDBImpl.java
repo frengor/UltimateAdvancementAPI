@@ -198,7 +198,20 @@ public class FallibleDBImpl implements IDatabase {
         public void printStackTrace() {
             // Don't print the entire stack trace, the failure is fine. However, at the same time,
             // print at least that the failure is planned to avoid possible confusion with other printed messages
-            System.err.println(PlannedFailureException.class.getName() + ": Planned failure");
+            System.err.println(PlannedFailureException.class.getName() + ": " + this.getMessage());
+        }
+    }
+
+    public static final class RuntimePlannedFailureException extends RuntimeException {
+        public RuntimePlannedFailureException() {
+            super("Planned runtime failure!");
+        }
+
+        @Override
+        public void printStackTrace() {
+            // Don't print the entire stack trace, the failure is fine. However, at the same time,
+            // print at least that the failure is planned to avoid possible confusion with other printed messages
+            System.err.println(RuntimePlannedFailureException.class.getName() + ": " + this.getMessage());
         }
     }
 

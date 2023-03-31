@@ -385,11 +385,21 @@ public class MySQL implements IDatabase {
     @Override
     public void unsetUnredeemed(@NotNull List<Entry<AdvancementKey, Boolean>> keyList, int teamId) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("DELETE FROM `Unredeemed` WHERE `Namespace`=? AND `Key`=? AND `TeamID`=?;")) {
-            for (Entry<AdvancementKey, ?> key : keyList) {
-                ps.setString(1, key.getKey().getNamespace());
-                ps.setString(2, key.getKey().getKey());
-                ps.setInt(3, teamId);
-                ps.execute();
+            try {
+                conn.setAutoCommit(false); // Make the full transaction atomic
+
+                for (Entry<AdvancementKey, ?> key : keyList) {
+                    ps.setString(1, key.getKey().getNamespace());
+                    ps.setString(2, key.getKey().getKey());
+                    ps.setInt(3, teamId);
+                    ps.execute();
+                }
+                conn.commit();
+            } catch (Throwable t) {
+                conn.rollback();
+                throw t;
+            } finally {
+                conn.setAutoCommit(true);
             }
         }
     }
