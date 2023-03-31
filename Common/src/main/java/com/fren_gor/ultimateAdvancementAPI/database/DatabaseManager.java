@@ -346,7 +346,7 @@ public final class DatabaseManager implements Closeable {
             loadedPlayer.addInternalRequest(); // Don't let the player to be unloaded
         }
 
-        final List<Entry<AdvancementKey, Boolean>> list;
+        final LinkedList<Entry<AdvancementKey, Boolean>> list;
         try {
             list = database.getUnredeemed(loadedTeam.getTeamProgression().getTeamId());
         } catch (Exception e) {

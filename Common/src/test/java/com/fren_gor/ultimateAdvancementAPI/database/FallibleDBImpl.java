@@ -112,7 +112,7 @@ public class FallibleDBImpl implements IDatabase {
     }
 
     @Override
-    public List<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException {
+    public LinkedList<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException {
         checkPlanning(DBOperation.GET_UNREDEEMED);
         return inner.getUnredeemed(teamId);
     }

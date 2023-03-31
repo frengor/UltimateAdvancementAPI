@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Range;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -134,7 +135,7 @@ public interface IDatabase {
      *         (see {@link #setUnredeemed(AdvancementKey, boolean, int)}).
      * @throws SQLException If an SQL exception occurs.
      */
-    List<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException;
+    LinkedList<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException;
 
     /**
      * Sets the provided advancement unredeemed for the specified team.

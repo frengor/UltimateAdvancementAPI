@@ -263,11 +263,11 @@ public class SQLite implements IDatabase {
      * {@inheritDoc}
      */
     @Override
-    public List<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException {
+    public LinkedList<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("SELECT `Namespace`, `Key`, `GiveRewards` FROM `Unredeemed` WHERE `TeamID`=?;")) {
             ps.setInt(1, teamId);
             ResultSet r = ps.executeQuery();
-            List<Entry<AdvancementKey, Boolean>> list = new LinkedList<>();
+            LinkedList<Entry<AdvancementKey, Boolean>> list = new LinkedList<>();
             while (r.next()) {
                 String namespace = r.getString(1);
                 String key = r.getString(2);
