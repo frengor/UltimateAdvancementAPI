@@ -38,6 +38,7 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -332,7 +333,7 @@ public final class DatabaseManager implements Closeable {
      * @param player The player.
      */
     private void processUnredeemed(final @NotNull LoadedPlayer loadedPlayer, final @NotNull Player player) {
-        // addInternalRequest is not needed here since the called must pass one to us
+        // addInternalRequest is not needed here since the caller must pass one to us
         CompletableFuture.runAsync(() -> {
             final LoadedTeam loadedTeam;
             synchronized (DatabaseManager.this) {
@@ -342,6 +343,9 @@ public final class DatabaseManager implements Closeable {
                     return;
                 }
             }
+
+            // Do all the computation in one go on the executor thread. This avoids granting the advancements more than
+            // once per unredeemed (dupes), since other calls to processUnredeemed must wait for this to finish
 
             final LinkedList<Entry<AdvancementKey, Boolean>> list;
             try {
@@ -367,37 +371,58 @@ public final class DatabaseManager implements Closeable {
                     advs.add(new SimpleEntry<>(a, k.getValue()));
                 }
             }
-            if (advs.isEmpty()) {
+            if (advs.isEmpty() || !loadedPlayer.isOnline()) {
                 return;
             }
 
             try {
-                database.unsetUnredeemed(list, loadedTeam.getTeamProgression().getTeamId());
+                database.unsetUnredeemed(Collections.unmodifiableList(list), loadedTeam.getTeamProgression().getTeamId());
             } catch (Exception e) {
                 System.err.println("Couldn't unset unredeemed advancements for player " + player.getName() + ":");
                 e.printStackTrace();
                 return;
             }
 
+            // Make sure the player stays loaded while waiting for the main thread
             loadedPlayer.addInternalRequest();
 
             runSync(main, () -> {
-                try {
-                    if (!player.isOnline()) {
-                        // TODO: recovery actions
-                        return;
-                    }
+                synchronized (DatabaseManager.this) {
+                    try {
+                        // Check if the player has gone offline or has changed team
+                        if (!player.isOnline() || !loadedTeam.getTeamProgression().contains(loadedPlayer.getUuid())) {
+                            // Then restore unredeemed advancements into the db
+                            // If something goes wrong here, the unredeemed advs will be lost, but this is reasonable
+                            // since this doesn't allow dupes
 
-                    for (Entry<Advancement, Boolean> e : advs) {
-                        try {
-                            e.getKey().onGrant(player, e.getValue());
-                        } catch (Exception err) {
-                            System.err.println("onGrant method of advancement '" + e.getKey().getKey() + "' has thrown an error:");
-                            err.printStackTrace();
+                            loadedPlayer.addInternalRequest();
+                            CompletableFuture.runAsync(() -> {
+                                for (Entry<AdvancementKey, Boolean> entry : list) {
+                                    int teamId = loadedTeam.getTeamProgression().getTeamId();
+                                    try {
+                                        database.setUnredeemed(entry.getKey(), entry.getValue(), teamId);
+                                    } catch (Exception e) {
+                                        System.err.println("Error restoring unredeemed advancement '" + entry.getKey() + "' for team " + teamId + ':');
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }, executor).whenComplete((r, e) -> {
+                                removeInternalRequest(loadedPlayer);
+                            });
+                            return;
                         }
+
+                        for (Entry<Advancement, Boolean> e : advs) {
+                            try {
+                                e.getKey().onGrant(player, e.getValue());
+                            } catch (Exception err) {
+                                System.err.println("onGrant method of advancement '" + e.getKey().getKey() + "' has thrown an error:");
+                                err.printStackTrace();
+                            }
+                        }
+                    } finally {
+                        removeInternalRequest(loadedPlayer);
                     }
-                } finally {
-                    removeInternalRequest(loadedPlayer);
                 }
             });
         }, executor).whenComplete((r, e) -> {
