@@ -326,14 +326,14 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Process unredeemed advancements for the provided player and team. The player is assumed to be in the team.
-     * <p><strong>Should be called async.</strong>
+     * Process unredeemed advancements for the provided player.
+     * <p><strong>The caller must "pass" one internal request when calling this method.</strong>
      *
      * @param loadedPlayer The loaded player. Must be present in cache! That is not checked!
      * @param player The player.
      */
     private void processUnredeemed(final @NotNull LoadedPlayer loadedPlayer, final @NotNull Player player) {
-        // addInternalRequest is not needed here since the caller must pass one to us
+        // addInternalRequest is not needed here since the caller must "pass" one to us
         CompletableFuture.runAsync(() -> {
             final LoadedTeam loadedTeam;
             synchronized (DatabaseManager.this) {
@@ -569,6 +569,8 @@ public final class DatabaseManager implements Closeable {
                     main.updatePlayer(ptm);
                 });
 
+                // processUnredeemed expects to have an internal request "passed" to it
+                loadedPlayer.addInternalRequest();
                 processUnredeemed(loadedPlayer, ptm);
             }
 
