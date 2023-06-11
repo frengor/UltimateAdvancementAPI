@@ -15,7 +15,7 @@ import java.util.Objects;
  */
 public class Versions {
 
-    private static final String API_VERSION = "2.2.3";
+    private static final String API_VERSION = "2.2.4";
 
     private static final List<String> SUPPORTED_NMS_VERSIONS = List.of("v1_15_R1", "v1_16_R1", "v1_16_R2", "v1_16_R3", "v1_17_R1", "v1_18_R1", "v1_18_R2", "v1_19_R1", "v1_19_R2", "v1_19_R3", "v1_20_R1");
 
@@ -27,7 +27,7 @@ public class Versions {
             Map.entry("v1_17_R1", List.of("1.17", "1.17.1")),
             Map.entry("v1_18_R1", List.of("1.18", "1.18.1")),
             Map.entry("v1_18_R2", List.of("1.18.2")),
-            Map.entry("v1_19_R1", List.of("1.19","1.19.2")),
+            Map.entry("v1_19_R1", List.of("1.19", "1.19.2")),
             Map.entry("v1_19_R2", List.of("1.19.3")),
             Map.entry("v1_19_R3", List.of("1.19.4")),
             Map.entry("v1_20_R1", List.of("1.20"))
