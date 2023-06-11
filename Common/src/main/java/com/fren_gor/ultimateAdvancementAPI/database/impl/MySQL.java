@@ -426,7 +426,7 @@ public class MySQL implements IDatabase {
      */
     @Override
     public TeamProgression movePlayerInNewTeam(@NotNull UUID uuid) throws SQLException {
-        try (Connection conn = openConnection(); PreparedStatement psInsert = conn.prepareStatement("INSERT INTO `Teams` () VALUES ();")) {
+        try (Connection conn = openConnection(); PreparedStatement psInsert = conn.prepareStatement("INSERT INTO `Teams` () VALUES ();", Statement.RETURN_GENERATED_KEYS)) {
             psInsert.executeUpdate();
             ResultSet r = psInsert.getGeneratedKeys();
             if (!r.next()) {

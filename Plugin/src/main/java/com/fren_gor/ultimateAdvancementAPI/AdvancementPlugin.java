@@ -55,7 +55,7 @@ public class AdvancementPlugin extends JavaPlugin {
 
         commandAPIManager = CommandAPIManager.loadManager(main.getLibbyManager());
         if (commandAPIManager != null) // In case commands couldn't be loaded
-            commandAPIManager.onLoad(main);
+            commandAPIManager.onLoad(main, this);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class AdvancementPlugin extends JavaPlugin {
         }
 
         if (commandAPIManager != null) {// In case commands couldn't be loaded
-            commandAPIManager.onEnable(this);
+            commandAPIManager.onEnable();
             commandsEnabled = true;
         }
 
@@ -110,7 +110,7 @@ public class AdvancementPlugin extends JavaPlugin {
             return;
         }
         if (commandAPIManager != null && commandsEnabled) // In case commands are not loaded/enabled
-            commandAPIManager.onDisable(this);
+            commandAPIManager.onDisable();
         main.disable();
         main = null;
     }
