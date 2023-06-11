@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_8_0;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_0_2;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
@@ -19,14 +19,14 @@ public class AdvancementArgument {
             try {
                 @Nullable Advancement adv = main.getAdvancement(input.input());
                 if (adv == null) {
-                    throw new CustomArgumentException(new MessageBuilder("Unknown advancement: ").appendArgInput().appendHere());
+                    throw CustomArgumentException.fromMessageBuilder(new MessageBuilder("Unknown advancement: ").appendArgInput().appendHere());
                 } else if (!adv.isValid()) {
-                    throw new CustomArgumentException(new MessageBuilder("Invalid advancement: ").appendArgInput().appendHere());
+                    throw CustomArgumentException.fromMessageBuilder(new MessageBuilder("Invalid advancement: ").appendArgInput().appendHere());
                 } else {
                     return adv;
                 }
             } catch (IllegalArgumentException e) {
-                throw new CustomArgumentException(new MessageBuilder("Illegal advancement: ").appendArgInput().appendHere());
+                throw CustomArgumentException.fromMessageBuilder(new MessageBuilder("Illegal advancement: ").appendArgInput().appendHere());
             }
         }).replaceSuggestions(ArgumentSuggestions.strings(sender -> main.filterNamespaces(null).toArray(new String[0])));
     }

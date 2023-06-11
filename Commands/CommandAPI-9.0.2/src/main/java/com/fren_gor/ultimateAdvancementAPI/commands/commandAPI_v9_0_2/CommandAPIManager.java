@@ -1,10 +1,11 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_8_0;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_0_2;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.*;
 import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.CommandAPIConfig;
+import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 public class CommandAPIManager implements ILoadable {
@@ -13,19 +14,19 @@ public class CommandAPIManager implements ILoadable {
     }
 
     @Override
-    public void onLoad(@NotNull AdvancementMain main) {
-        CommandAPI.onLoad(new CommandAPIConfig().verboseOutput(false).silentLogs(true));
+    public void onLoad(@NotNull AdvancementMain main, @NotNull JavaPlugin plugin) {
+        CommandAPI.onLoad(new CommandAPIBukkitConfig(plugin).verboseOutput(false).silentLogs(true));
 
         new UltimateAdvancementAPICommand(main).register();
     }
 
     @Override
-    public void onEnable(@NotNull Plugin plugin) {
-        CommandAPI.onEnable(plugin);
+    public void onEnable() {
+        CommandAPI.onEnable();
     }
 
     @Override
-    public void onDisable(@NotNull Plugin plugin) {
+    public void onDisable() {
         for (var command : CommandAPI.getRegisteredCommands()) {
             CommandAPI.unregister(command.commandName());
             for (var alias : command.aliases())
