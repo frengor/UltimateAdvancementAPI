@@ -1,10 +1,9 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_0_2;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_0_3;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.*;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
