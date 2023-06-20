@@ -54,8 +54,15 @@ public class AdvancementPlugin extends JavaPlugin {
         }
 
         commandAPIManager = CommandAPIManager.loadManager(main.getLibbyManager());
-        if (commandAPIManager != null) // In case commands couldn't be loaded
-            commandAPIManager.onLoad(main, this);
+        if (commandAPIManager != null) { // In case commands couldn't be loaded
+            try {
+                commandAPIManager.onLoad(main, this);
+            } catch (Exception e) {
+                Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] An exception occurred while loading commands for UltimateAdvancementAPI, continuing without them:");
+                e.printStackTrace();
+                commandAPIManager = null;
+            }
+        }
     }
 
     @Override
@@ -75,15 +82,20 @@ public class AdvancementPlugin extends JavaPlugin {
         try {
             configManager.enable(main);
         } catch (RuntimeException e) {
-            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "An exception occurred while enabling UltimateAdvancementAPI:");
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] An exception occurred while enabling UltimateAdvancementAPI:");
             e.printStackTrace();
             // main.disable() is already called by AdvancementMain#failEnable(Exception)
             return;
         }
 
-        if (commandAPIManager != null) {// In case commands couldn't be loaded
-            commandAPIManager.onEnable();
-            commandsEnabled = true;
+        if (commandAPIManager != null) { // In case commands couldn't be loaded
+            try {
+                commandAPIManager.onEnable();
+                commandsEnabled = true;
+            } catch (Exception e) {
+                Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] An exception occurred while enabling commands for UltimateAdvancementAPI, continuing without them:");
+                e.printStackTrace();
+            }
         }
 
         if (configManager.getDisableVanillaAdvancements()) {
@@ -93,7 +105,7 @@ public class AdvancementPlugin extends JavaPlugin {
                     try {
                         AdvancementUtils.disableVanillaAdvancements();
                     } catch (Exception e) {
-                        Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Couldn't disable vanilla advancements:");
+                        Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] Couldn't disable vanilla advancements:");
                         e.printStackTrace();
                     }
                 }
@@ -109,8 +121,9 @@ public class AdvancementPlugin extends JavaPlugin {
         if (!correctVersion) {
             return;
         }
-        if (commandAPIManager != null && commandsEnabled) // In case commands are not loaded/enabled
+        if (commandAPIManager != null && commandsEnabled) { // In case commands are not loaded/enabled
             commandAPIManager.onDisable();
+        }
         main.disable();
         main = null;
     }
