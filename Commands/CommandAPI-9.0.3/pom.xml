@@ -10,9 +10,9 @@
         <version>parent-SNAPSHOT</version>
     </parent>
 
-    <artifactId>ultimateadvancementapi-commands-commandapi-9-0-2</artifactId>
-    <name>UltimateAdvancementAPI-Commands-CommandAPI-9-0-2</name>
-    <version>2.2.4</version>
+    <artifactId>ultimateadvancementapi-commands-commandapi-9-0-3</artifactId>
+    <name>UltimateAdvancementAPI-Commands-CommandAPI-9-0-3</name>
+    <version>2.2.5</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>dev.jorel</groupId>
             <artifactId>commandapi-bukkit-shade</artifactId>
-            <version>9.0.2</version>
+            <version>9.0.3</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
