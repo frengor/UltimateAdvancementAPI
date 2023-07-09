@@ -12,7 +12,7 @@
 
     <artifactId>ultimateadvancementapi-nms-mocked</artifactId>
     <name>UltimateAdvancementAPI-NMS-Mocked</name>
-    <version>2.2.3</version>
+    <version>2.2.5</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
