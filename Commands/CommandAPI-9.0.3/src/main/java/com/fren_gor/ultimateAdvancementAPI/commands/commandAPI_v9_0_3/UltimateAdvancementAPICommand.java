@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_8_0;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_0_3;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
@@ -9,6 +9,7 @@ import dev.jorel.commandapi.arguments.BooleanArgument;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument;
 import dev.jorel.commandapi.arguments.IntegerArgument;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
+import dev.jorel.commandapi.executors.CommandArguments;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -19,8 +20,8 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.*;
-import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_8_0.AdvancementArgument.getAdvancementArgument;
-import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_8_0.AdvancementTabArgument.getAdvancementTabArgument;
+import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_0_3.AdvancementArgument.getAdvancementArgument;
+import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_0_3.AdvancementTabArgument.getAdvancementTabArgument;
 
 public class UltimateAdvancementAPICommand {
 
@@ -39,56 +40,56 @@ public class UltimateAdvancementAPICommand {
         CommandAPICommand grant = new CommandAPICommand("grant").withPermission(PERMISSION_GRANT).executes((sender, args) -> {
             sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi grant <all|tab|one> ...");
         }).withSubcommands(
-                new CommandAPICommand("all").withPermission(PERMISSION_GRANT_ALL).executesPlayer((Player player, Object[] args) -> grantAll(player, player, true)).executes((sender, args) -> {
+                new CommandAPICommand("all").withPermission(PERMISSION_GRANT_ALL).executesPlayer((Player player, CommandArguments args) -> grantAll(player, player, true)).executes((sender, args) -> {
                     sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi grant all <player> [giveRewards]");
                 }),
-                new CommandAPICommand("all").withPermission(PERMISSION_GRANT_ALL).withArguments(new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, Object[] args) -> grantAll(sender, (Collection<Player>) args[0], true)),
-                new CommandAPICommand("all").withPermission(PERMISSION_GRANT_ALL).withArguments(new EntitySelectorArgument.ManyPlayers("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, Object[] args) -> grantAll(sender, (Collection<Player>) args[0], (boolean) args[1])),
+                new CommandAPICommand("all").withPermission(PERMISSION_GRANT_ALL).withArguments(new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, CommandArguments args) -> grantAll(sender, (Collection<Player>) args.get("player"), true)),
+                new CommandAPICommand("all").withPermission(PERMISSION_GRANT_ALL).withArguments(new EntitySelectorArgument.ManyPlayers("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, CommandArguments args) -> grantAll(sender, (Collection<Player>) args.get("player"), (boolean) args.get("giveRewards"))),
 
                 new CommandAPICommand("tab").withPermission(PERMISSION_GRANT_TAB).executesPlayer((player, args) -> {
                     player.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi grant tab <advancementTab> [player] [giveRewards]");
                 }).executes((sender, args) -> {
                     sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi grant tab <advancementTab> <player> [giveRewards]");
                 }),
-                new CommandAPICommand("tab").withPermission(PERMISSION_GRANT_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab")).executesPlayer((Player player, Object[] args) -> grantTab(player, (AdvancementTab) args[0], player, true)),
-                new CommandAPICommand("tab").withPermission(PERMISSION_GRANT_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab"), new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, Object[] args) -> grantTab(sender, (AdvancementTab) args[0], (Collection<Player>) args[1], true)),
-                new CommandAPICommand("tab").withPermission(PERMISSION_GRANT_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab"), new EntitySelectorArgument.ManyPlayers("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, Object[] args) -> grantTab(sender, (AdvancementTab) args[0], (Collection<Player>) args[1], (boolean) args[2])),
+                new CommandAPICommand("tab").withPermission(PERMISSION_GRANT_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab")).executesPlayer((Player player, CommandArguments args) -> grantTab(player, (AdvancementTab) args.get("advancementTab"), player, true)),
+                new CommandAPICommand("tab").withPermission(PERMISSION_GRANT_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab"), new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, CommandArguments args) -> grantTab(sender, (AdvancementTab) args.get("advancementTab"), (Collection<Player>) args.get("player"), true)),
+                new CommandAPICommand("tab").withPermission(PERMISSION_GRANT_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab"), new EntitySelectorArgument.ManyPlayers("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, CommandArguments args) -> grantTab(sender, (AdvancementTab) args.get("advancementTab"), (Collection<Player>) args.get("player"), (boolean) args.get("giveRewards"))),
 
                 new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).executesPlayer((player, args) -> {
                     player.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi grant one <advancement> [player] [giveRewards]");
                 }).executes((sender, args) -> {
                     sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi grant one <advancement> <player> [giveRewards]");
                 }),
-                new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).withArguments(getAdvancementArgument(main, "advancement")).executesPlayer((Player player, Object[] args) -> grantOne(player, (Advancement) args[0], player, true)),
-                new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).withArguments(getAdvancementArgument(main, "advancement"), new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, Object[] args) -> grantOne(sender, (Advancement) args[0], (Collection<Player>) args[1], true)),
-                new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).withArguments(getAdvancementArgument(main, "advancement"), new EntitySelectorArgument.ManyPlayers("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, Object[] args) -> grantOne(sender, (Advancement) args[0], (Collection<Player>) args[1], (boolean) args[2]))
+                new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).withArguments(getAdvancementArgument(main, "advancement")).executesPlayer((Player player, CommandArguments args) -> grantOne(player, (Advancement) args.get("advancement"), player, true)),
+                new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).withArguments(getAdvancementArgument(main, "advancement"), new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, CommandArguments args) -> grantOne(sender, (Advancement) args.get("advancement"), (Collection<Player>) args.get("player"), true)),
+                new CommandAPICommand("one").withPermission(PERMISSION_GRANT_ONE).withArguments(getAdvancementArgument(main, "advancement"), new EntitySelectorArgument.ManyPlayers("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, CommandArguments args) -> grantOne(sender, (Advancement) args.get("advancement"), (Collection<Player>) args.get("player"), (boolean) args.get("giveRewards")))
         );
 
         CommandAPICommand revoke = new CommandAPICommand("revoke").withPermission(PERMISSION_REVOKE).executes((sender, args) -> {
             sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi revoke <all|tab|one> ...");
         }).withSubcommands(
-                new CommandAPICommand("all").withPermission(PERMISSION_REVOKE_ALL).executesPlayer((Player player, Object[] args) -> revokeAll(player, player, false)).executes((sender, args) -> {
+                new CommandAPICommand("all").withPermission(PERMISSION_REVOKE_ALL).executesPlayer((Player player, CommandArguments args) -> revokeAll(player, player, false)).executes((sender, args) -> {
                     sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi revoke all <player> [hideTab]");
                 }),
-                new CommandAPICommand("all").withPermission(PERMISSION_REVOKE_ALL).withArguments(new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, Object[] args) -> revokeAll(sender, (Collection<Player>) args[0], false)),
-                new CommandAPICommand("all").withPermission(PERMISSION_REVOKE_ALL).withArguments(new EntitySelectorArgument.ManyPlayers("player"), new BooleanArgument("hideTabs")).executes((CommandSender sender, Object[] args) -> revokeAll(sender, (Collection<Player>) args[0], (boolean) args[1])),
+                new CommandAPICommand("all").withPermission(PERMISSION_REVOKE_ALL).withArguments(new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, CommandArguments args) -> revokeAll(sender, (Collection<Player>) args.get("player"), false)),
+                new CommandAPICommand("all").withPermission(PERMISSION_REVOKE_ALL).withArguments(new EntitySelectorArgument.ManyPlayers("player"), new BooleanArgument("hideTabs")).executes((CommandSender sender, CommandArguments args) -> revokeAll(sender, (Collection<Player>) args.get("player"), (boolean) args.get("hideTabs"))),
 
                 new CommandAPICommand("tab").withPermission(PERMISSION_REVOKE_TAB).executesPlayer((player, args) -> {
                     player.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi revoke tab <advancementTab> [player] [hideTab]");
                 }).executes((sender, args) -> {
                     sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi revoke tab <advancementTab> <player> [hideTab]");
                 }),
-                new CommandAPICommand("tab").withPermission(PERMISSION_REVOKE_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab")).executesPlayer((Player player, Object[] args) -> revokeTab(player, (AdvancementTab) args[0], player, false)),
-                new CommandAPICommand("tab").withPermission(PERMISSION_REVOKE_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab"), new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, Object[] args) -> revokeTab(sender, (AdvancementTab) args[0], (Collection<Player>) args[1], false)),
-                new CommandAPICommand("tab").withPermission(PERMISSION_REVOKE_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab"), new EntitySelectorArgument.ManyPlayers("player"), new BooleanArgument("hideTab")).executes((CommandSender sender, Object[] args) -> revokeTab(sender, (AdvancementTab) args[0], (Collection<Player>) args[1], (boolean) args[2])),
+                new CommandAPICommand("tab").withPermission(PERMISSION_REVOKE_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab")).executesPlayer((Player player, CommandArguments args) -> revokeTab(player, (AdvancementTab) args.get("advancementTab"), player, false)),
+                new CommandAPICommand("tab").withPermission(PERMISSION_REVOKE_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab"), new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, CommandArguments args) -> revokeTab(sender, (AdvancementTab) args.get("advancementTab"), (Collection<Player>) args.get("player"), false)),
+                new CommandAPICommand("tab").withPermission(PERMISSION_REVOKE_TAB).withArguments(getAdvancementTabArgument(main, "advancementTab"), new EntitySelectorArgument.ManyPlayers("player"), new BooleanArgument("hideTab")).executes((CommandSender sender, CommandArguments args) -> revokeTab(sender, (AdvancementTab) args.get("advancementTab"), (Collection<Player>) args.get("player"), (boolean) args.get("hideTabs"))),
 
                 new CommandAPICommand("one").withPermission(PERMISSION_REVOKE_ONE).executesPlayer((player, args) -> {
                     player.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi revoke one <advancement> [player]");
                 }).executes((sender, args) -> {
                     sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi revoke one <advancement> <player>");
                 }),
-                new CommandAPICommand("one").withPermission(PERMISSION_REVOKE_ONE).withArguments(getAdvancementArgument(main, "advancement")).executesPlayer((Player player, Object[] args) -> revokeOne(player, (Advancement) args[0], player)),
-                new CommandAPICommand("one").withPermission(PERMISSION_REVOKE_ONE).withArguments(getAdvancementArgument(main, "advancement"), new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, Object[] args) -> revokeOne(sender, (Advancement) args[0], (Collection<Player>) args[1]))
+                new CommandAPICommand("one").withPermission(PERMISSION_REVOKE_ONE).withArguments(getAdvancementArgument(main, "advancement")).executesPlayer((Player player, CommandArguments args) -> revokeOne(player, (Advancement) args.get("advancement"), player)),
+                new CommandAPICommand("one").withPermission(PERMISSION_REVOKE_ONE).withArguments(getAdvancementArgument(main, "advancement"), new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, CommandArguments args) -> revokeOne(sender, (Advancement) args.get("advancement"), (Collection<Player>) args.get("player")))
         );
 
         CommandAPICommand progression = new CommandAPICommand("progression").withPermission(PERMISSION_PROGRESSION).executes((sender, args) -> {
@@ -98,17 +99,17 @@ public class UltimateAdvancementAPICommand {
                 }).executes((sender, args) -> {
                     sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi progression get <advancement> <player>");
                 }),
-                new CommandAPICommand("get").withPermission(PERMISSION_PROGRESSION_GET).withArguments(getAdvancementArgument(main, "advancement")).executesPlayer((Player player, Object[] args) -> getProgression(player, (Advancement) args[0], player)),
-                new CommandAPICommand("get").withPermission(PERMISSION_PROGRESSION_GET).withArguments(getAdvancementArgument(main, "advancement"), new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, Object[] args) -> getProgression(sender, (Advancement) args[0], (Collection<Player>) args[1])),
+                new CommandAPICommand("get").withPermission(PERMISSION_PROGRESSION_GET).withArguments(getAdvancementArgument(main, "advancement")).executesPlayer((Player player, CommandArguments args) -> getProgression(player, (Advancement) args.get("advancement"), player)),
+                new CommandAPICommand("get").withPermission(PERMISSION_PROGRESSION_GET).withArguments(getAdvancementArgument(main, "advancement"), new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, CommandArguments args) -> getProgression(sender, (Advancement) args.get("advancement"), (Collection<Player>) args.get("player"))),
 
                 new CommandAPICommand("set").withPermission(PERMISSION_PROGRESSION_SET).executesPlayer((player, args) -> {
                     player.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi progression set <advancement> <progression> [player] [giveRewards]");
                 }).executes((sender, args) -> {
                     sender.sendMessage(ChatColor.RED + "Usage: /ultimateadvancementapi progression set <advancement> <progression> <player> [giveRewards]");
                 }),
-                new CommandAPICommand("set").withPermission(PERMISSION_PROGRESSION_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("progression", 0)).executesPlayer((Player player, Object[] args) -> setProgression(player, (Advancement) args[0], (int) args[1], player, true)),
-                new CommandAPICommand("set").withPermission(PERMISSION_PROGRESSION_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("progression", 0), new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, Object[] args) -> setProgression(sender, (Advancement) args[0], (int) args[1], (Collection<Player>) args[2], true)),
-                new CommandAPICommand("set").withPermission(PERMISSION_PROGRESSION_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("progression", 0), new EntitySelectorArgument.ManyPlayers("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, Object[] args) -> setProgression(sender, (Advancement) args[0], (int) args[1], (Collection<Player>) args[2], (boolean) args[3]))
+                new CommandAPICommand("set").withPermission(PERMISSION_PROGRESSION_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("progression", 0)).executesPlayer((Player player, CommandArguments args) -> setProgression(player, (Advancement) args.get("advancement"), (int) args.get("progression"), player, true)),
+                new CommandAPICommand("set").withPermission(PERMISSION_PROGRESSION_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("progression", 0), new EntitySelectorArgument.ManyPlayers("player")).executes((CommandSender sender, CommandArguments args) -> setProgression(sender, (Advancement) args.get("advancement"), (int) args.get("progression"), (Collection<Player>) args.get("player"), true)),
+                new CommandAPICommand("set").withPermission(PERMISSION_PROGRESSION_SET).withArguments(getAdvancementArgument(main, "advancement"), new IntegerArgument("progression", 0), new EntitySelectorArgument.ManyPlayers("player"), new BooleanArgument("giveRewards")).executes((CommandSender sender, CommandArguments args) -> setProgression(sender, (Advancement) args.get("advancement"), (int) args.get("progression"), (Collection<Player>) args.get("player"), (boolean) args.get("giveRewards")))
         );
 
         mainCommand.withSubcommands(

@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v8_8_0;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_0_3;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
@@ -18,9 +18,9 @@ public class AdvancementTabArgument {
         return new CustomArgument<>(new TextArgument(nodeName), input -> {
             @Nullable AdvancementTab adv = main.getAdvancementTab(input.input());
             if (adv == null) {
-                throw new CustomArgumentException(new MessageBuilder("Unknown advancement tab: ").appendArgInput().appendHere());
+                throw CustomArgumentException.fromMessageBuilder(new MessageBuilder("Unknown advancement tab: ").appendArgInput().appendHere());
             } else if (!adv.isActive()) {
-                throw new CustomArgumentException(new MessageBuilder("Invalid advancement tab: ").appendArgInput().appendHere());
+                throw CustomArgumentException.fromMessageBuilder(new MessageBuilder("Invalid advancement tab: ").appendArgInput().appendHere());
             } else {
                 return adv;
             }

@@ -7,6 +7,7 @@ import net.byteflux.libby.Library;
 import net.byteflux.libby.LibraryManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +49,7 @@ public class CommandAPIManager {
         libbyManager.addMavenCentral();
         Library commandAPILibrary = Library.builder()
                 .groupId("dev{}jorel")
-                .artifactId("commandapi-shade")
+                .artifactId("commandapi-bukkit-shade")
                 .version(ver.getVersion()).checksum(ver.getChecksum())
                 .relocate("dev{}jorel{}commandapi", "dev.jorel.commandapi") // Should be changed by shading
                 .build();
@@ -79,7 +80,7 @@ public class CommandAPIManager {
     }
 
     /**
-     * Interface implemented by loadable object.
+     * Interface implemented by loadable objects.
      */
     public interface ILoadable {
 
@@ -87,28 +88,25 @@ public class CommandAPIManager {
          * Loads the loadable object. Should be called into {@link Plugin#onLoad()}.
          *
          * @param main Already loaded {@link AdvancementMain} instance.
+         * @param plugin The plugin which loaded the {@link AdvancementMain} instance.
          */
-        void onLoad(@NotNull AdvancementMain main);
+        void onLoad(@NotNull AdvancementMain main, @NotNull JavaPlugin plugin);
 
         /**
          * Enables the loadable object. Should be called into {@link Plugin#onEnable()}.
-         *
-         * @param plugin The plugin which loaded the {@link AdvancementMain} passed to {@link #onLoad(AdvancementMain)}.
          */
-        void onEnable(@NotNull Plugin plugin);
+        void onEnable();
 
         /**
          * Disables the loadable object. Should be called into {@link Plugin#onDisable()}.
-         *
-         * @param plugin The plugin which loaded the {@link AdvancementMain} passed to {@link #onLoad(AdvancementMain)}.
          */
-        void onDisable(@NotNull Plugin plugin);
+        void onDisable();
     }
 
     private static final class CommonLoadable implements ILoadable {
 
         private final ILoadable loadable;
-        private Plugin advancementMainOwner;
+        private JavaPlugin advancementMainOwner;
         private boolean enabled = false;
 
         public CommonLoadable(@NotNull ILoadable loadable) {
@@ -117,35 +115,36 @@ public class CommandAPIManager {
         }
 
         @Override
-        public void onLoad(@NotNull AdvancementMain main) {
+        public void onLoad(@NotNull AdvancementMain main, @NotNull JavaPlugin plugin) {
+            Preconditions.checkNotNull(plugin, "JavaPlugin is null.");
+            Preconditions.checkArgument(plugin == main.getOwningPlugin(), "AdvancementMain owning plugin isn't the provided JavaPlugin.");
             Preconditions.checkArgument(AdvancementMain.isLoaded(), "AdvancementMain is not loaded.");
-            this.advancementMainOwner = main.getOwningPlugin();
-            loadable.onLoad(main);
+            this.advancementMainOwner = plugin;
+            loadable.onLoad(main, plugin);
         }
 
         @Override
-        public void onEnable(@NotNull Plugin plugin) {
+        public void onEnable() {
             if (advancementMainOwner == null) {
                 throw new IllegalStateException("Not loaded.");
             }
-            Preconditions.checkArgument(plugin == advancementMainOwner, "AdvancementMain owning plugin isn't the provided Plugin.");
-            Preconditions.checkArgument(plugin.isEnabled(), "Plugin isn't enabled.");
+            Preconditions.checkArgument(advancementMainOwner.isEnabled(), "Plugin is not enabled.");
+            Preconditions.checkArgument(AdvancementMain.isEnabled(), "AdvancementMain is not enabled.");
             enabled = true;
-            loadable.onEnable(plugin);
+            loadable.onEnable();
         }
 
         @Override
-        public void onDisable(@NotNull Plugin plugin) {
+        public void onDisable() {
             if (advancementMainOwner == null) {
                 throw new IllegalStateException("Not loaded and not enabled.");
             }
             if (!enabled) {
                 throw new IllegalStateException("Not enabled.");
             }
-            Preconditions.checkArgument(plugin == advancementMainOwner, "AdvancementMain owning plugin isn't the provided Plugin.");
             enabled = false;
             advancementMainOwner = null;
-            loadable.onDisable(plugin);
+            loadable.onDisable();
         }
     }
 }
