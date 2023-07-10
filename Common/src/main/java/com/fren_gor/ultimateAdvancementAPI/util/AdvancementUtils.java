@@ -219,7 +219,7 @@ public class AdvancementUtils {
     }
 
     public static void runSync(@NotNull Plugin plugin, @NotNull Runnable runnable) {
-        runSync(plugin, 1, runnable);
+        runSync(plugin, 0, runnable);
     }
 
     public static void runSync(@NotNull AdvancementMain main, long delay, @NotNull Runnable runnable) {
@@ -286,7 +286,15 @@ public class AdvancementUtils {
         Preconditions.checkNotNull(consumer, "BiConsumer is null.");
 
         return completableFuture.whenComplete((result, err) -> {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> consumer.accept(result, err), delay);
+            if (delay == 0 && Bukkit.isPrimaryThread()) {
+                try {
+                    consumer.accept(result, err);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Bukkit.getScheduler().runTaskLater(plugin, () -> consumer.accept(result, err), delay);
+            }
         });
     }
 
