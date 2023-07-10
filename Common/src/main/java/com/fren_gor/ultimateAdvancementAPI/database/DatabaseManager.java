@@ -148,12 +148,12 @@ public final class DatabaseManager implements Closeable {
         database.setUp();
 
         eventManager.register(this, PlayerLoginEvent.class, EventPriority.LOWEST, e -> {
-            LoadedPlayer loadedPlayer;
+            final LoadedPlayer loadedPlayer;
 
             synchronized (DatabaseManager.this) {
                 loadedPlayer = addPlayerToCache(e.getPlayer().getUniqueId(), true);
 
-                // Keep in cache for the loadOrRegisterPlayer(...) operation
+                // Keep in cache waiting for CompletableFuture.runAsync(...)
                 loadedPlayer.addInternalRequest();
             }
 
@@ -161,6 +161,12 @@ public final class DatabaseManager implements Closeable {
                 synchronized (DatabaseManager.this) {
                     if (!loadedPlayer.isOnline()) {
                         // Make sure the player is still online. Shouldn't be a problem here, but better be sure
+                        return;
+                    }
+
+                    // Return instantly if the player is already loaded
+                    if (loadedPlayer.getPlayerTeam() != null) {
+                        firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
                         return;
                     }
 
@@ -1254,31 +1260,35 @@ public final class DatabaseManager implements Closeable {
 
         CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
 
-        final LoadedPlayer loadedPlayer; // final so it can be used in the lambda below
+        final LoadedPlayer loadedPlayer;
         synchronized (DatabaseManager.this) {
             if (!requester.isEnabled()) {
                 throw new IllegalStateException("Plugin is not enabled.");
             }
 
-            LoadedPlayer lPlayer = playersLoaded.get(uuid);
-            if (lPlayer == null) {
-                // Player is not in cache, add it
-                lPlayer = addPlayerToCache(uuid, Bukkit.getPlayer(uuid) != null);
-            } else if (lPlayer.getPlayerTeam() != null) {
-                // Already in cache and loaded, just return
-                lPlayer.addPluginRequest(requester);
-                completableFuture.complete(lPlayer.getPlayerTeam().getTeamProgression());
-                return completableFuture;
-            }
-            loadedPlayer = lPlayer;
+            loadedPlayer = playersLoaded.computeIfAbsent(uuid, LoadedPlayer::new);
+            loadedPlayer.setOnline(Bukkit.getPlayer(uuid) != null); // Just to be sure
             loadedPlayer.addPluginRequest(requester);
 
-            // Keep in cache for the loadOrRegisterPlayer(...) operation
+            // Return instantly if the player is already loaded
+            if (loadedPlayer.getPlayerTeam() != null) {
+                return CompletableFuture.completedFuture(loadedPlayer.getPlayerTeam().getTeamProgression());
+            }
+
+            // Keep in cache waiting for CompletableFuture.runAsync(...)
             loadedPlayer.addInternalRequest();
         }
 
         CompletableFuture.runAsync(() -> {
             synchronized (DatabaseManager.this) {
+                // Re-do the "already loaded" check.
+                // This is necessary to avoid running searchPlayerTeam(...) below, since that will call
+                // updateLoadedPlayerTeam(...), which will call a (wrong) AsyncTeamUpdateEvent (with Action.LEAVE)
+                if (loadedPlayer.getPlayerTeam() != null) {
+                    completableFuture.complete(loadedPlayer.getPlayerTeam().getTeamProgression());
+                    return;
+                }
+
                 // Search the player in already loaded teams to see if it's there
                 // The searching is done here since more players from the same team may join at the same moment
                 // and running the searching on the executor's thread improves the possibility of a cache hit
@@ -1286,6 +1296,7 @@ public final class DatabaseManager implements Closeable {
                 if (loadedTeam != null) {
                     // Player team is already loaded
                     updateLoadedPlayerTeam(loadedPlayer, loadedTeam, false);
+                    completableFuture.complete(loadedTeam.getTeamProgression());
                     return;
                 }
             }
