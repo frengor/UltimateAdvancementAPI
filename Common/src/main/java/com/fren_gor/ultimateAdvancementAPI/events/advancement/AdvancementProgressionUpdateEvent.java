@@ -14,8 +14,8 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
- * Called when a team's progression of an advancement changes.
- * <p>This event differs from {@link AsyncProgressionUpdateEvent} because it is called (synchronously) by {@link Advancement#setProgression(TeamProgression, Player, int, boolean)}
+ * Called synchronously when a team's progression of an advancement changes.
+ * <p>This event differs from {@link ProgressionUpdateEvent} because it is called by {@link Advancement#setProgression(TeamProgression, Player, int, boolean)}
  * and {@link Advancement#incrementProgression(TeamProgression, Player, int, boolean)}.
  */
 public class AdvancementProgressionUpdateEvent extends Event {

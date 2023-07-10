@@ -4,7 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.AsyncProgressionUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskProgressionUpdateException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
@@ -122,7 +122,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             pendingUpdates.remove(e.getTeamProgression().getTeamId());
         });
 
-        registerEvent(AsyncProgressionUpdateEvent.class, e -> {
+        registerEvent(ProgressionUpdateEvent.class, e -> {
             if (!tasksKeys.contains(e.getAdvancementKey())) {
                 return;
             }

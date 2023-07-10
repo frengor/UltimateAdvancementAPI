@@ -9,7 +9,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.SQLite;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.AsyncProgressionUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncPlayerUnregisteredEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
@@ -18,6 +18,7 @@ import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUpdateEvent.Acti
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -41,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +92,10 @@ public final class DatabaseManager implements Closeable {
     private final Map<UUID, LoadedPlayer> playersLoaded = new HashMap<>();
     private final EventManager eventManager;
     private final IDatabase database;
+
+    private boolean updaterTaskIsRegistered = false;
+    public final Object UPDATER_LOCK = new Object();
+    private final Map<Integer, PendingProgressionUpdatesManager> pendingProgressionUpdates = new LinkedHashMap<>();
 
     /**
      * Creates a new {@code DatabaseManager} which uses an in-memory database.
@@ -778,7 +784,7 @@ public final class DatabaseManager implements Closeable {
         CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
 
         CompletableFuture.runAsync(() -> {
-            int old = loadedNewTeam.teamProgression.getRawProgression(key);
+            int old = getOldProgressionValue(progression, key);
             try {
                 database.updateAdvancement(key, progression.getTeamId(), newProgression);
             } catch (SQLException e) {
@@ -790,11 +796,7 @@ public final class DatabaseManager implements Closeable {
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
-            loadedNewTeam.teamProgression.updateProgression(key, newProgression);
-
-            callEventCatchingExceptions(new AsyncProgressionUpdateEvent(progression, old, newProgression, key));
-
-            completableFuture.complete(new ProgressionUpdateResult(old, newProgression));
+            registerProgressionUpdate(loadedNewTeam, key, newProgression, old, completableFuture);
         }, executor).whenComplete((v, t) -> {
             removeInternalRequest(loadedNewTeam);
         });
@@ -863,7 +865,7 @@ public final class DatabaseManager implements Closeable {
         CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
 
         CompletableFuture.runAsync(() -> {
-            final int old = loadedNewTeam.teamProgression.getRawProgression(key);
+            final int old = getOldProgressionValue(loadedNewTeam.getTeamProgression(), key);
             int incremented = old;
             if (increment != 0) { // Don't update the db if the saved progression won't change
                 incremented += increment;
@@ -883,11 +885,7 @@ public final class DatabaseManager implements Closeable {
                     return;
                 }
             }
-            loadedNewTeam.teamProgression.updateProgression(key, incremented);
-
-            callEventCatchingExceptions(new AsyncProgressionUpdateEvent(progression, old, incremented, key));
-
-            completableFuture.complete(new ProgressionUpdateResult(old, incremented));
+            registerProgressionUpdate(loadedNewTeam, key, incremented, old, completableFuture);
         }, executor).whenComplete((v, t) -> {
             removeInternalRequest(loadedNewTeam);
         });
@@ -1439,6 +1437,40 @@ public final class DatabaseManager implements Closeable {
             callEventCatchingExceptions(new AsyncTeamUpdateEvent(newTeam.getTeamProgression(), player.getUuid(), Action.JOIN));
     }
 
+    private synchronized int getOldProgressionValue(@NotNull TeamProgression pro, @NotNull AdvancementKey key) {
+        PendingProgressionUpdatesManager manager = pendingProgressionUpdates.get(pro.getTeamId());
+        return manager == null ? pro.getRawProgression(key) : manager.getCurrentValue(key);
+    }
+
+    private synchronized void registerProgressionUpdate(@NotNull LoadedTeam team, @NotNull AdvancementKey key, int newProgr, int oldProgr, @NotNull CompletableFuture<ProgressionUpdateResult> completableFuture) {
+        team.addInternalRequest();
+        final TeamProgression pro = team.getTeamProgression();
+
+        PendingProgressionUpdatesManager manager = pendingProgressionUpdates.computeIfAbsent(pro.getTeamId(), id -> new PendingProgressionUpdatesManager(pro));
+        manager.registerPendingUpdate(key, oldProgr, newProgr, () -> {
+            completableFuture.complete(new ProgressionUpdateResult(oldProgr, newProgr));
+            team.removeInternalRequest();
+        });
+
+        if (!updaterTaskIsRegistered) {
+            runSync(main.getOwningPlugin(), () -> {
+                synchronized (DatabaseManager.this) {
+                    updaterTaskIsRegistered = false;
+                    for (PendingProgressionUpdatesManager pendingManager : pendingProgressionUpdates.values()) {
+                        try {
+                            pendingManager.applyUpdates();
+                        } catch (Exception e) {
+                            System.err.println("Exception while updating progression for team " + pendingManager.team.getTeamId() + ':');
+                            e.printStackTrace();
+                        }
+                    }
+                    pendingProgressionUpdates.clear();
+                }
+            });
+            updaterTaskIsRegistered = true;
+        }
+    }
+
     static <E extends Event> void callEventCatchingExceptions(@NotNull E event) {
         try {
             Bukkit.getPluginManager().callEvent(event);
@@ -1548,6 +1580,49 @@ public final class DatabaseManager implements Closeable {
 
         public boolean canBeUnloaded() {
             return getInternalRequests() == 0 && !hasPluginRequests();
+        }
+    }
+
+    private final class PendingProgressionUpdatesManager {
+        private final TeamProgression team;
+        private final Map<AdvancementKey, Entry<ArrayList<Update>, Integer>> pendingUpdates = new LinkedHashMap<>();
+
+        PendingProgressionUpdatesManager(@NotNull TeamProgression team) {
+            this.team = team;
+        }
+
+        synchronized void registerPendingUpdate(@NotNull AdvancementKey key, int oldProgr, int newProgr, @NotNull Runnable callback) {
+            // The 0 in the entry doesn't really matter since it gets overridden down below
+            var entry = pendingUpdates.computeIfAbsent(key, k -> new SimpleEntry<>(new ArrayList<>(), 0));
+
+            entry.setValue(newProgr);
+            entry.getKey().add(new Update(oldProgr, newProgr, callback));
+        }
+
+        synchronized int getCurrentValue(@NotNull AdvancementKey key) {
+            var entry = pendingUpdates.get(key);
+            return entry == null ? team.getRawProgression(key) : entry.getValue();
+        }
+
+        synchronized void applyUpdates() {
+            AdvancementUtils.checkSync();
+
+            synchronized (DatabaseManager.this) {
+                synchronized (UPDATER_LOCK) {
+                    for (var pending : pendingUpdates.entrySet()) {
+                        AdvancementKey key = pending.getKey();
+                        for (Update update : pending.getValue().getKey()) {
+                            team.updateProgression(key, update.newProgr);
+                            callEventCatchingExceptions(new ProgressionUpdateEvent(team, update.oldProgr, update.newProgr, key));
+                            update.callback.run();
+                        }
+                    }
+                    pendingUpdates.clear();
+                }
+            }
+        }
+
+        private record Update(int oldProgr, int newProgr, Runnable callback) {
         }
     }
 }

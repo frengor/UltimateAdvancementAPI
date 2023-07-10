@@ -16,12 +16,12 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
- * Called when a team's progression of an advancement changes.
- * <p>This event differs from {@link AdvancementProgressionUpdateEvent} because it is called asynchronously by {@link DatabaseManager}.
+ * Called synchronously when a team's progression of an advancement changes.
+ * <p>This event differs from {@link AdvancementProgressionUpdateEvent} because it is called by {@link DatabaseManager}.
  *
  * @since 3.0.0
  */
-public class AsyncProgressionUpdateEvent extends Event {
+public class ProgressionUpdateEvent extends Event {
 
     private final TeamProgression team;
 
@@ -38,8 +38,7 @@ public class AsyncProgressionUpdateEvent extends Event {
      * @param newProgression The new progression after the update.
      * @param advancementKey The {@link AdvancementKey} of the updated {@link Advancement}.
      */
-    public AsyncProgressionUpdateEvent(@NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, @NotNull AdvancementKey advancementKey) {
-        super(!Bukkit.isPrimaryThread());
+    public ProgressionUpdateEvent(@NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, @NotNull AdvancementKey advancementKey) {
         this.team = validateTeamProgression(team);
         this.oldProgression = validateProgressionValue(oldProgression);
         this.newProgression = validateProgressionValue(newProgression);
@@ -111,7 +110,7 @@ public class AsyncProgressionUpdateEvent extends Event {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        AsyncProgressionUpdateEvent that = (AsyncProgressionUpdateEvent) o;
+        ProgressionUpdateEvent that = (ProgressionUpdateEvent) o;
 
         if (oldProgression != that.oldProgression) return false;
         if (newProgression != that.newProgression) return false;
