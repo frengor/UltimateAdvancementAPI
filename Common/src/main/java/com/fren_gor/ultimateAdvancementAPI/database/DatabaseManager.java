@@ -13,8 +13,8 @@ import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateE
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncPlayerUnregisteredEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUpdateEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUpdateEvent.Action;
+import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent.Action;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -93,9 +92,13 @@ public final class DatabaseManager implements Closeable {
     private final EventManager eventManager;
     private final IDatabase database;
 
-    private boolean updaterTaskIsRegistered = false;
+    /**
+     * Object to synchronize on in order to avoid team and progression updates in async code.
+     * <p>Synchronizing on this object <strong>on the main thread</strong> is useless! Every update happens on the main
+     * thread, so they cannot happen while other code is running.
+     */
     public final Object UPDATER_LOCK = new Object();
-    private final Map<Integer, PendingProgressionUpdatesManager> pendingProgressionUpdates = new LinkedHashMap<>();
+    private final PendingUpdatesManager pendingUpdatesManager = new PendingUpdatesManager();
 
     /**
      * Creates a new {@code DatabaseManager} which uses an in-memory database.
@@ -176,16 +179,18 @@ public final class DatabaseManager implements Closeable {
                     LoadedTeam loadedTeam = searchPlayerTeam(e.getPlayer().getUniqueId());
                     if (loadedTeam != null) {
                         // Player team is already loaded
-                        updateLoadedPlayerTeam(loadedPlayer, loadedTeam, false);
-                        firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
+                        pendingUpdatesManager.registerTeamUpdate(loadedPlayer, loadedTeam, false, () -> {
+                            firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
+                        });
                         return;
                     }
                 }
 
                 try {
                     // Player team isn't loaded yet
-                    loadOrRegisterPlayerTeam(e.getPlayer().getUniqueId(), e.getPlayer(), loadedPlayer, false);
-                    firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
+                    loadOrRegisterPlayerTeam(e.getPlayer().getUniqueId(), e.getPlayer(), loadedPlayer, false, pro -> {
+                        firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
+                    });
                 } catch (Exception ex) {
                     System.err.println("Cannot load player " + e.getPlayer().getName() + ':');
                     ex.printStackTrace();
@@ -313,13 +318,12 @@ public final class DatabaseManager implements Closeable {
      * @param player The player to be loaded or registered.
      * @param loadedPlayer The {@link LoadedPlayer} object associated with player.
      * @param loadOnly Weather to only load the player and fail if not present in the database.
-     * @return The {@link LoadedTeam} of the player's team.
+     * @param callback Callback called when the load/registration process ends
      * @throws SQLException If anything goes wrong.
      */
-    @NotNull
-    private LoadedTeam loadOrRegisterPlayerTeam(@NotNull UUID uuid, Player player, @NotNull LoadedPlayer loadedPlayer, boolean loadOnly) throws SQLException {
-        TeamProgression progression;
-        boolean fireJoinEvent;
+    private void loadOrRegisterPlayerTeam(@NotNull UUID uuid, Player player, @NotNull LoadedPlayer loadedPlayer, boolean loadOnly, @NotNull Consumer<TeamProgression> callback) throws SQLException {
+        final TeamProgression progression;
+        final boolean fireJoinEvent;
         if (loadOnly) {
             progression = database.loadUUID(uuid);
             fireJoinEvent = false;
@@ -332,8 +336,7 @@ public final class DatabaseManager implements Closeable {
 
         synchronized (DatabaseManager.this) {
             final LoadedTeam loadedTeam = addTeamToCache(progression);
-            updateLoadedPlayerTeam(loadedPlayer, loadedTeam, fireJoinEvent);
-            return loadedTeam;
+            pendingUpdatesManager.registerTeamUpdate(loadedPlayer, loadedTeam, fireJoinEvent, () -> callback.accept(progression));
         }
     }
 
@@ -569,24 +572,7 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
 
-            updateLoadedPlayerTeam(loadedPlayer, loadedNewTeam, true);
-
-            if (ptm != null && ptm.isOnline()) {
-                runSync(main, () -> {
-                    // Double check on main thread to be sure
-                    if (!ptm.isOnline()) {
-                        return;
-                    }
-
-                    main.updatePlayer(ptm);
-                });
-
-                // processUnredeemed expects to have an internal request "passed" to it
-                loadedPlayer.addInternalRequest();
-                processUnredeemed(loadedPlayer, ptm);
-            }
-
-            completableFuture.complete(null);
+            registerTeamUpdate(loadedPlayer, ptm, loadedNewTeam, true /*processUnredeemed*/, completableFuture, null /*completingObj*/);
         }, executor).whenComplete((v, t) -> {
             synchronized (DatabaseManager.this) {
                 removeInternalRequest(loadedPlayer);
@@ -654,21 +640,8 @@ public final class DatabaseManager implements Closeable {
 
             synchronized (DatabaseManager.this) {
                 final LoadedTeam loadedTeam = addTeamToCache(newPro);
-                updateLoadedPlayerTeam(loadedPlayer, loadedTeam, true);
+                registerTeamUpdate(loadedPlayer, ptr, loadedTeam, false /*processUnredeemed*/, completableFuture, newPro /*completingObj*/);
             }
-
-            if (ptr != null && ptr.isOnline()) {
-                runSync(main, () -> {
-                    // Double check on main thread to be sure
-                    if (!ptr.isOnline()) {
-                        return;
-                    }
-
-                    main.updatePlayer(ptr);
-                });
-            }
-
-            completableFuture.complete(newPro);
         }, executor).whenComplete((v, t) -> {
             removeInternalRequest(loadedPlayer);
         });
@@ -790,7 +763,7 @@ public final class DatabaseManager implements Closeable {
         CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
 
         CompletableFuture.runAsync(() -> {
-            int old = getOldProgressionValue(progression, key);
+            int old = pendingUpdatesManager.getCurrentValue(progression, key);
             try {
                 database.updateAdvancement(key, progression.getTeamId(), newProgression);
             } catch (SQLException e) {
@@ -802,7 +775,7 @@ public final class DatabaseManager implements Closeable {
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
-            registerProgressionUpdate(loadedNewTeam, key, newProgression, old, completableFuture);
+            registerProgressionUpdate(loadedNewTeam, key, old, newProgression, completableFuture);
         }, executor).whenComplete((v, t) -> {
             removeInternalRequest(loadedNewTeam);
         });
@@ -871,7 +844,7 @@ public final class DatabaseManager implements Closeable {
         CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
 
         CompletableFuture.runAsync(() -> {
-            final int old = getOldProgressionValue(loadedNewTeam.getTeamProgression(), key);
+            final int old = pendingUpdatesManager.getCurrentValue(loadedNewTeam.getTeamProgression(), key);
             int incremented = old;
             if (increment != 0) { // Don't update the db if the saved progression won't change
                 incremented += increment;
@@ -891,7 +864,7 @@ public final class DatabaseManager implements Closeable {
                     return;
                 }
             }
-            registerProgressionUpdate(loadedNewTeam, key, incremented, old, completableFuture);
+            registerProgressionUpdate(loadedNewTeam, key, old, incremented, completableFuture);
         }, executor).whenComplete((v, t) -> {
             removeInternalRequest(loadedNewTeam);
         });
@@ -1270,11 +1243,6 @@ public final class DatabaseManager implements Closeable {
             loadedPlayer.setOnline(Bukkit.getPlayer(uuid) != null); // Just to be sure
             loadedPlayer.addPluginRequest(requester);
 
-            // Return instantly if the player is already loaded
-            if (loadedPlayer.getPlayerTeam() != null) {
-                return CompletableFuture.completedFuture(loadedPlayer.getPlayerTeam().getTeamProgression());
-            }
-
             // Keep in cache waiting for CompletableFuture.runAsync(...)
             loadedPlayer.addInternalRequest();
         }
@@ -1295,16 +1263,16 @@ public final class DatabaseManager implements Closeable {
                 LoadedTeam loadedTeam = searchPlayerTeam(uuid);
                 if (loadedTeam != null) {
                     // Player team is already loaded
-                    updateLoadedPlayerTeam(loadedPlayer, loadedTeam, false);
-                    completableFuture.complete(loadedTeam.getTeamProgression());
+                    pendingUpdatesManager.registerTeamUpdate(loadedPlayer, loadedTeam, false, () -> {
+                        completableFuture.complete(loadedTeam.getTeamProgression());
+                    });
                     return;
                 }
             }
 
-            final TeamProgression progression;
             try {
                 // Player team isn't loaded yet
-                progression = loadOrRegisterPlayerTeam(uuid, null /*fine since loadOnly is true*/, loadedPlayer, true /*loadOnly*/).getTeamProgression();
+                loadOrRegisterPlayerTeam(uuid, null /*fine since loadOnly is true*/, loadedPlayer, true /*loadOnly*/, completableFuture::complete);
             } catch (SQLException e) {
                 System.err.println("Cannot load offline player " + uuid + ':');
                 e.printStackTrace();
@@ -1314,7 +1282,6 @@ public final class DatabaseManager implements Closeable {
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
-            completableFuture.complete(progression);
         }, executor).whenComplete((v, t) -> {
             removeInternalRequest(loadedPlayer);
         });
@@ -1429,11 +1396,13 @@ public final class DatabaseManager implements Closeable {
     }
 
     private synchronized void updateLoadedPlayerTeam(@NotNull LoadedPlayer player, @NotNull LoadedTeam newTeam, boolean fireJoinEvent) {
+        AdvancementUtils.checkSync(); // Must be called sync since it calls TeamUpdateEvents
+
         if (player.getPlayerTeam() != null) {
             // The player is already in a team
             final LoadedTeam old = player.getPlayerTeam();
 
-            callEventCatchingExceptions(new AsyncTeamUpdateEvent(old.getTeamProgression(), player.getUuid(), Action.LEAVE));
+            callEventCatchingExceptions(new TeamUpdateEvent(old.getTeamProgression(), player.getUuid(), Action.LEAVE));
             old.getTeamProgression().movePlayer(newTeam.getTeamProgression(), player.getUuid());
 
             removeInternalRequest(old);
@@ -1445,44 +1414,56 @@ public final class DatabaseManager implements Closeable {
         player.setPlayerTeam(newTeam);
 
         if (fireJoinEvent)
-            callEventCatchingExceptions(new AsyncTeamUpdateEvent(newTeam.getTeamProgression(), player.getUuid(), Action.JOIN));
+            callEventCatchingExceptions(new TeamUpdateEvent(newTeam.getTeamProgression(), player.getUuid(), Action.JOIN));
     }
 
-    private synchronized int getOldProgressionValue(@NotNull TeamProgression pro, @NotNull AdvancementKey key) {
-        PendingProgressionUpdatesManager manager = pendingProgressionUpdates.get(pro.getTeamId());
-        return manager == null ? pro.getRawProgression(key) : manager.getCurrentValue(key);
-    }
-
-    private synchronized void registerProgressionUpdate(@NotNull LoadedTeam team, @NotNull AdvancementKey key, int newProgr, int oldProgr, @NotNull CompletableFuture<ProgressionUpdateResult> completableFuture) {
-        team.addInternalRequest();
-        final TeamProgression pro = team.getTeamProgression();
-
-        PendingProgressionUpdatesManager manager = pendingProgressionUpdates.computeIfAbsent(pro.getTeamId(), id -> new PendingProgressionUpdatesManager(pro));
-        manager.registerPendingUpdate(key, oldProgr, newProgr, () -> {
+    /**
+     * Registers a progression update to execute on the main thread.
+     * <p>An internal request is added to the team until the completableFuture is completed.
+     *
+     * @param team The team to update.
+     * @param key The advancement which is updated.
+     * @param oldProgr The old progression.
+     * @param newProgr The new progression.
+     * @param completableFuture The {@link CompletableFuture} to complete after the update ends.
+     */
+    private synchronized void registerProgressionUpdate(@NotNull LoadedTeam team, @NotNull AdvancementKey key, int oldProgr, int newProgr, @NotNull CompletableFuture<ProgressionUpdateResult> completableFuture) {
+        pendingUpdatesManager.registerProgressionUpdate(team, key, oldProgr, newProgr, () -> {
             completableFuture.complete(new ProgressionUpdateResult(oldProgr, newProgr));
-            team.removeInternalRequest();
         });
-
-        if (!updaterTaskIsRegistered) {
-            runSync(main.getOwningPlugin(), () -> {
-                synchronized (DatabaseManager.this) {
-                    updaterTaskIsRegistered = false;
-                    for (PendingProgressionUpdatesManager pendingManager : pendingProgressionUpdates.values()) {
-                        try {
-                            pendingManager.applyUpdates();
-                        } catch (Exception e) {
-                            System.err.println("Exception while updating progression for team " + pendingManager.team.getTeamId() + ':');
-                            e.printStackTrace();
-                        }
-                    }
-                    pendingProgressionUpdates.clear();
-                }
-            });
-            updaterTaskIsRegistered = true;
-        }
     }
 
-    static <E extends Event> void callEventCatchingExceptions(@NotNull E event) {
+    /**
+     * Registers a team update to execute on the main thread.
+     * <p>An internal request is added to both the player and the team until the completableFuture is completed.
+     *
+     * @param player The player to move.
+     * @param playerToMove The {@link Player} instance of the player to move. Can be {@code null}.
+     * @param team The team in which the player will be moved.
+     * @param processUnredeemed Whether to process unredeemed advancement after the player is moved.
+     * @param completableFuture The {@link CompletableFuture} to complete after the update ends.
+     * @param completingObj The object that will be used to complete the completableFuture.
+     */
+    private synchronized <T> void registerTeamUpdate(@NotNull LoadedPlayer player, @Nullable Player playerToMove, @NotNull LoadedTeam team, boolean processUnredeemed, CompletableFuture<T> completableFuture, T completingObj) {
+        pendingUpdatesManager.registerTeamUpdate(player, team, true, () -> {
+            completableFuture.complete(completingObj);
+
+            AdvancementUtils.checkSync(); // To catch bugs, done after completing the completable future to avoid not completing it
+
+            if (playerToMove != null && playerToMove.isOnline()) {
+                // We are already on main thread here since we are in the callback
+                main.updatePlayer(playerToMove);
+
+                if (processUnredeemed) {
+                    // processUnredeemed expects to have an internal request "passed" to it
+                    player.addInternalRequest();
+                    processUnredeemed(player, playerToMove);
+                }
+            }
+        });
+    }
+
+    private static <E extends Event> void callEventCatchingExceptions(@NotNull E event) {
         try {
             Bukkit.getPluginManager().callEvent(event);
         } catch (Exception exception) {
@@ -1594,46 +1575,137 @@ public final class DatabaseManager implements Closeable {
         }
     }
 
-    private final class PendingProgressionUpdatesManager {
-        private final TeamProgression team;
-        private final Map<AdvancementKey, Entry<ArrayList<Update>, Integer>> pendingUpdates = new LinkedHashMap<>();
+    private final class PendingUpdatesManager {
+        private final List<Update> progressionUpdates = new ArrayList<>(10);
+        private final Map<Integer, Map<AdvancementKey, Integer>> realProgressions = new HashMap<>(); // Used to calculate increments
 
-        PendingProgressionUpdatesManager(@NotNull TeamProgression team) {
-            this.team = team;
+        private boolean updaterTaskIsRegistered = false;
+
+        /**
+         * Registers a team update to execute on the main thread.
+         * <p>An internal request is added to both the player and the team until the callback returns.
+         *
+         * @param player The player to move.
+         * @param team The team in which the player will be moved.
+         * @param fireJoinEvent Whether to fire the {@link TeamUpdateEvent} with {@link Action#JOIN} event.
+         * @param callback A callback called on the main thread after the update has been applied.
+         */
+        void registerTeamUpdate(@NotNull LoadedPlayer player, @NotNull LoadedTeam team, boolean fireJoinEvent, @NotNull Runnable callback) {
+            synchronized(DatabaseManager.this) {
+                // Keep in cache, removes are done after the callback returns
+                player.addInternalRequest();
+                team.addInternalRequest();
+
+                progressionUpdates.add(new Update(UpdateType.TEAM_UPDATE, player, team, null, 0, 0, fireJoinEvent, callback));
+                registerUpdaterTask();
+            }
         }
 
-        synchronized void registerPendingUpdate(@NotNull AdvancementKey key, int oldProgr, int newProgr, @NotNull Runnable callback) {
-            // The 0 in the entry doesn't really matter since it gets overridden down below
-            var entry = pendingUpdates.computeIfAbsent(key, k -> new SimpleEntry<>(new ArrayList<>(), 0));
+        /**
+         * Registers a progression update to execute on the main thread.
+         * <p>An internal request is added to the team until the callback returns.
+         *
+         * @param team The team to update.
+         * @param key The advancement that is updated.
+         * @param oldProgr The old progression.
+         * @param newProgr The new progression.
+         * @param callback A callback called on the main thread after the update has been applied.
+         */
+        void registerProgressionUpdate(@NotNull LoadedTeam team, @NotNull AdvancementKey key, int oldProgr, int newProgr, @NotNull Runnable callback) {
+            synchronized(DatabaseManager.this) {
+                // Keep in cache, removes are done after the callback returns
+                team.addInternalRequest();
 
-            entry.setValue(newProgr);
-            entry.getKey().add(new Update(oldProgr, newProgr, callback));
+                var map = realProgressions.computeIfAbsent(team.getTeamProgression().getTeamId(), HashMap::new);
+                map.put(key,newProgr);
+                progressionUpdates.add(new Update(UpdateType.PROGRESSION_UPDATE, null, team, key, oldProgr, newProgr, false, callback));
+                registerUpdaterTask();
+            }
         }
 
-        synchronized int getCurrentValue(@NotNull AdvancementKey key) {
-            var entry = pendingUpdates.get(key);
-            return entry == null ? team.getRawProgression(key) : entry.getValue();
-        }
-
-        synchronized void applyUpdates() {
-            AdvancementUtils.checkSync();
-
-            synchronized (DatabaseManager.this) {
-                synchronized (UPDATER_LOCK) {
-                    for (var pending : pendingUpdates.entrySet()) {
-                        AdvancementKey key = pending.getKey();
-                        for (Update update : pending.getValue().getKey()) {
-                            team.updateProgression(key, update.newProgr);
-                            callEventCatchingExceptions(new ProgressionUpdateEvent(team, update.oldProgr, update.newProgr, key));
-                            update.callback.run();
+        private void registerUpdaterTask() {
+            synchronized(DatabaseManager.this) {
+                if (!updaterTaskIsRegistered) {
+                    runSync(main.getOwningPlugin(), () -> {
+                        synchronized (DatabaseManager.this) {
+                            updaterTaskIsRegistered = false;
+                            pendingUpdatesManager.applyUpdates();
                         }
-                    }
-                    pendingUpdates.clear();
+                    });
+                    updaterTaskIsRegistered = true;
                 }
             }
         }
 
-        private record Update(int oldProgr, int newProgr, Runnable callback) {
+        int getCurrentValue(@NotNull TeamProgression team, @NotNull AdvancementKey key) {
+            synchronized(DatabaseManager.this) {
+                var map = realProgressions.get(team.getTeamId());
+                if (map == null) {
+                    return team.getRawProgression(key);
+                }
+                Integer progr = map.get(key);
+                return progr == null ? team.getRawProgression(key) : progr;
+            }
+        }
+
+        void applyUpdates() {
+            AdvancementUtils.checkSync();
+
+            synchronized (DatabaseManager.this) {
+                synchronized (UPDATER_LOCK) {
+                    for (Update update : progressionUpdates) {
+                        switch (update.type) {
+                            case TEAM_UPDATE -> {
+                                updateLoadedPlayerTeam(update.player, update.team, update.firejoinEvent);
+                            }
+                            case PROGRESSION_UPDATE -> {
+                                update.team.getTeamProgression().updateProgression(update.key, update.newProgr);
+                                callEventCatchingExceptions(new ProgressionUpdateEvent(update.team.getTeamProgression(), update.oldProgr, update.newProgr, update.key));
+                            }
+                        }
+
+                        try {
+                            update.callback.run();
+                        } catch (Exception e) {
+                            System.err.println("An exception occurred while executing the callback for update " + update + ':');
+                            e.printStackTrace();
+                        }
+
+                        // Remove request since the callback returned
+                        if (update.type == UpdateType.TEAM_UPDATE) {
+                            // In this case a request was added also to the player
+                            removeInternalRequest(update.player);
+                        }
+                        removeInternalRequest(update.team);
+                    }
+                    progressionUpdates.clear();
+                    realProgressions.clear();
+                }
+            }
+        }
+
+        private enum UpdateType {
+            TEAM_UPDATE, // player is moved into team, key is null
+            PROGRESSION_UPDATE // player is null
+        }
+
+        private record Update(UpdateType type, LoadedPlayer player, LoadedTeam team, AdvancementKey key, int oldProgr, int newProgr, boolean firejoinEvent, Runnable callback) {
+            @Override
+            public String toString() {
+                return switch (type) {
+                    case TEAM_UPDATE -> "TeamUpdate{" +
+                            "player=" + player.getUuid() +
+                            ", team=" + team.getTeamProgression().getTeamId() +
+                            ", firejoinEvent=" + firejoinEvent +
+                            '}';
+                    case PROGRESSION_UPDATE -> "ProgressionUpdate{" +
+                            "team=" + team.getTeamProgression().getTeamId() +
+                            ", key=" + key +
+                            ", oldProgr=" + oldProgr +
+                            ", newProgr=" + newProgr +
+                            '}';
+                };
+            }
         }
     }
 }

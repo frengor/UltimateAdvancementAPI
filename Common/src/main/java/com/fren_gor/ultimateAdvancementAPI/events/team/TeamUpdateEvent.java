@@ -12,12 +12,11 @@ import java.util.UUID;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
- * Called before a team member leaves or after they join a team.
- * <p>May be called asynchronously.
+ * Called synchronously before a team member leaves or after they join a team.
  *
- * @since 2.2.0
+ * @since 3.0.0
  */
-public class AsyncTeamUpdateEvent extends Event {
+public class TeamUpdateEvent extends Event {
 
     /**
      * The action that occurred.
@@ -38,7 +37,7 @@ public class AsyncTeamUpdateEvent extends Event {
      * @param playerUUID The {@link UUID} of the player.
      * @param action The {@link Action} of the update.
      */
-    public AsyncTeamUpdateEvent(@NotNull TeamProgression team, @NotNull UUID playerUUID, @NotNull Action action) {
+    public TeamUpdateEvent(@NotNull TeamProgression team, @NotNull UUID playerUUID, @NotNull Action action) {
         super(!Bukkit.isPrimaryThread());
         this.team = validateTeamProgression(team);
         this.playerUUID = Objects.requireNonNull(playerUUID, "UUID is null.");
@@ -89,7 +88,7 @@ public class AsyncTeamUpdateEvent extends Event {
 
     @Override
     public String toString() {
-        return "AsyncTeamUpdateEvent{" +
+        return "TeamUpdateEvent{" +
                 "team=" + team +
                 ", playerUUID=" + playerUUID +
                 ", action=" + action +
@@ -101,7 +100,7 @@ public class AsyncTeamUpdateEvent extends Event {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        AsyncTeamUpdateEvent that = (AsyncTeamUpdateEvent) o;
+        TeamUpdateEvent that = (TeamUpdateEvent) o;
 
         if (!team.equals(that.team)) return false;
         if (!playerUUID.equals(that.playerUUID)) return false;
