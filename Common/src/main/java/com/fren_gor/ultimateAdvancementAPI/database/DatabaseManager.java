@@ -349,6 +349,15 @@ public final class DatabaseManager implements Closeable {
      */
     private void processUnredeemed(final @NotNull LoadedPlayer loadedPlayer, final @NotNull Player player) {
         // addInternalRequest is not needed here since the caller must "pass" one to us
+
+        // Used to keep track of whether removing the team internal request is needed
+        // (the array is a hack to avoid "Variable used in lambda expression should be final or effectively final")
+        //
+        // To be sure, the array is accessed while synchronizing on DatabaseManager.this. Doing this doesn't affect
+        // performance, since we're already synchronizing when setting the team and the removeInternalRequest(...)
+        // method does synchronize on DatabaseManager.this
+        final LoadedTeam[] teamToWhichRemoveInternalRequest = {null};
+
         CompletableFuture.runAsync(() -> {
             final LoadedTeam loadedTeam;
             synchronized (DatabaseManager.this) {
@@ -357,6 +366,8 @@ public final class DatabaseManager implements Closeable {
                     // The player is not online or in a team
                     return;
                 }
+                loadedTeam.addInternalRequest(); // Keep the team loaded
+                teamToWhichRemoveInternalRequest[0] = loadedTeam; // Make sure the internal request will be removed
             }
 
             // Do all the computation in one go on the executor thread. This avoids granting the advancements more than
@@ -386,7 +397,7 @@ public final class DatabaseManager implements Closeable {
                     advs.add(new SimpleEntry<>(a, k.getValue()));
                 }
             }
-            if (advs.isEmpty() || !loadedPlayer.isOnline()) {
+            if (advs.isEmpty() || !loadedPlayer.isOnline() || !loadedTeam.getTeamProgression().contains(loadedPlayer.getUuid())) {
                 return;
             }
 
@@ -398,50 +409,61 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
 
-            // Make sure the player stays loaded while waiting for the main thread
+            // Make sure the player and team stays loaded while waiting for the main thread
             loadedPlayer.addInternalRequest();
+            loadedTeam.addInternalRequest();
 
             runSync(main, () -> {
-                synchronized (DatabaseManager.this) {
-                    try {
-                        // Check if the player has gone offline or has changed team
-                        if (!player.isOnline() || !loadedTeam.getTeamProgression().contains(loadedPlayer.getUuid())) {
-                            // Then restore unredeemed advancements into the db
-                            // If something goes wrong here, the unredeemed advs will be lost, but this is reasonable
-                            // since this doesn't allow dupes
+                // No synchronized(DatabaseManager.this) is needed here since we are on the main thread
+                try {
+                    // Check if the player has gone offline or has changed team
+                    if (!player.isOnline() || !loadedTeam.getTeamProgression().contains(loadedPlayer.getUuid())) {
+                        // Then restore unredeemed advancements into the db
+                        // If something goes wrong here, the unredeemed advs will be lost, but this is reasonable
+                        // since this doesn't allow dupes
 
-                            loadedPlayer.addInternalRequest();
-                            CompletableFuture.runAsync(() -> {
-                                for (Entry<AdvancementKey, Boolean> entry : list) {
-                                    int teamId = loadedTeam.getTeamProgression().getTeamId();
-                                    try {
-                                        database.setUnredeemed(entry.getKey(), entry.getValue(), teamId);
-                                    } catch (Exception e) {
-                                        System.err.println("Error restoring unredeemed advancement '" + entry.getKey() + "' for team " + teamId + ':');
-                                        e.printStackTrace();
-                                    }
+                        loadedPlayer.addInternalRequest();
+                        CompletableFuture.runAsync(() -> {
+                            for (Entry<AdvancementKey, Boolean> entry : list) {
+                                int teamId = loadedTeam.getTeamProgression().getTeamId();
+                                try {
+                                    database.setUnredeemed(entry.getKey(), entry.getValue(), teamId);
+                                } catch (Exception e) {
+                                    System.err.println("Error restoring unredeemed advancement '" + entry.getKey() + "' for team " + teamId + ':');
+                                    e.printStackTrace();
                                 }
-                            }, executor).whenComplete((r, e) -> {
-                                removeInternalRequest(loadedPlayer);
-                            });
-                            return;
-                        }
-
-                        for (Entry<Advancement, Boolean> e : advs) {
-                            try {
-                                e.getKey().onGrant(player, e.getValue());
-                            } catch (Exception err) {
-                                System.err.println("onGrant method of advancement '" + e.getKey().getKey() + "' has thrown an error:");
-                                err.printStackTrace();
                             }
+                        }, executor).whenComplete((r, e) -> {
+                            removeInternalRequest(loadedPlayer);
+                        });
+                        return;
+                    }
+
+                    for (Entry<Advancement, Boolean> e : advs) {
+                        try {
+                            e.getKey().onGrant(player, e.getValue());
+                        } catch (Exception err) {
+                            System.err.println("onGrant method of advancement '" + e.getKey().getKey() + "' has thrown an error:");
+                            err.printStackTrace();
                         }
-                    } finally {
+                    }
+                } finally {
+                    synchronized (DatabaseManager.this) {
                         removeInternalRequest(loadedPlayer);
+                        removeInternalRequest(loadedTeam);
                     }
                 }
             });
         }, executor).whenComplete((r, e) -> {
-            removeInternalRequest(loadedPlayer);
+            synchronized (DatabaseManager.this) {
+                removeInternalRequest(loadedPlayer);
+
+                // Remove the request to the team only if it has been added before,
+                // in which case the team has been put into teamToWhichRemoveInternalRequest[0]
+                if (teamToWhichRemoveInternalRequest[0] != null) {
+                    removeInternalRequest(teamToWhichRemoveInternalRequest[0]);
+                }
+            }
         });
     }
 
@@ -1525,9 +1547,9 @@ public final class DatabaseManager implements Closeable {
         // Internal requests are used to keep the entry loaded
         private final AtomicInteger internalRequests = new AtomicInteger(0);
 
-        public int addPluginRequest(@NotNull Plugin plugin) {
+        public void addPluginRequest(@NotNull Plugin plugin) {
             synchronized (pluginRequests) {
-                return pluginRequests.merge(plugin, 1, Integer::sum);
+                pluginRequests.merge(plugin, 1, Integer::sum);
             }
         }
 
@@ -1541,8 +1563,8 @@ public final class DatabaseManager implements Closeable {
             }
         }
 
-        public int addInternalRequest() {
-            return internalRequests.incrementAndGet();
+        public void addInternalRequest() {
+            internalRequests.incrementAndGet();
         }
 
         public int removeInternalRequest() {
@@ -1567,7 +1589,9 @@ public final class DatabaseManager implements Closeable {
         }
 
         public boolean hasPluginRequests() {
-            return !pluginRequests.isEmpty();
+            synchronized (pluginRequests) {
+                return !pluginRequests.isEmpty();
+            }
         }
 
         public boolean canBeUnloaded() {
