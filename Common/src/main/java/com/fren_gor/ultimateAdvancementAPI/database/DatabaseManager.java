@@ -216,7 +216,7 @@ public final class DatabaseManager implements Closeable {
             synchronized (DatabaseManager.this) {
                 List<LoadedPlayer> list = new ArrayList<>(playersLoaded.size());
                 for (LoadedPlayer loadedPlayer : playersLoaded.values()) {
-                    if (loadedPlayer.removeAllPluginRequests(e.getPlugin()) != 0 && loadedPlayer.canBeUnloaded()) {
+                    if (loadedPlayer.__removeAllPluginRequests(e.getPlugin()) != 0 && loadedPlayer.canBeUnloaded()) {
                         // Player can be unloaded
                         list.add(loadedPlayer);
                     }
@@ -1378,25 +1378,25 @@ public final class DatabaseManager implements Closeable {
     }
 
     private synchronized void removeInternalRequest(@NotNull LoadedTeam loadedTeam) {
-        if (loadedTeam.removeInternalRequest() == 0 && loadedTeam.canBeUnloaded()) {
+        if (loadedTeam.__removeInternalRequest() == 0 && loadedTeam.canBeUnloaded()) {
             unloadTeam(loadedTeam);
         }
     }
 
     private synchronized void removeInternalRequest(@NotNull LoadedPlayer loadedPlayer) {
-        if (loadedPlayer.removeInternalRequest() == 0 && loadedPlayer.canBeUnloaded()) {
+        if (loadedPlayer.__removeInternalRequest() == 0 && loadedPlayer.canBeUnloaded()) {
             unloadPlayer(loadedPlayer);
         }
     }
 
     private synchronized void removePluginRequest(@NotNull LoadedTeam loadedTeam, @NotNull Plugin plugin) {
-        if (loadedTeam.removePluginRequest(plugin) == 0 && loadedTeam.canBeUnloaded()) {
+        if (loadedTeam.__removePluginRequest(plugin) == 0 && loadedTeam.canBeUnloaded()) {
             unloadTeam(loadedTeam);
         }
     }
 
     private synchronized void removePluginRequest(@NotNull LoadedPlayer loadedPlayer, @NotNull Plugin plugin) {
-        if (loadedPlayer.removePluginRequest(plugin) == 0 && loadedPlayer.canBeUnloaded()) {
+        if (loadedPlayer.__removePluginRequest(plugin) == 0 && loadedPlayer.canBeUnloaded()) {
             unloadPlayer(loadedPlayer);
         }
     }
@@ -1553,7 +1553,7 @@ public final class DatabaseManager implements Closeable {
             }
         }
 
-        public int removePluginRequest(@NotNull Plugin plugin) {
+        public int __removePluginRequest(@NotNull Plugin plugin) {
             synchronized (pluginRequests) {
                 Integer res = pluginRequests.computeIfPresent(plugin, (key, value) -> {
                     // value shouldn't be null here since we don't put null values in the map
@@ -1567,7 +1567,7 @@ public final class DatabaseManager implements Closeable {
             internalRequests.incrementAndGet();
         }
 
-        public int removeInternalRequest() {
+        public int __removeInternalRequest() {
             return internalRequests.decrementAndGet();
         }
 
@@ -1581,7 +1581,7 @@ public final class DatabaseManager implements Closeable {
             }
         }
 
-        public int removeAllPluginRequests(@NotNull Plugin plugin) {
+        public int __removeAllPluginRequests(@NotNull Plugin plugin) {
             synchronized (pluginRequests) {
                 Integer i = pluginRequests.remove(plugin);
                 return i == null ? 0 : i;
