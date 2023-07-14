@@ -52,6 +52,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -93,11 +94,11 @@ public final class DatabaseManager implements Closeable {
     private final IDatabase database;
 
     /**
-     * Object to synchronize on in order to avoid team and progression updates in async code.
-     * <p>Synchronizing on this object <strong>on the main thread</strong> is useless! Every update happens on the main
-     * thread, so they cannot happen while other code is running.
+     * Lock to lock in order to avoid team and progression updates in async code.
+     * <p><strong>Locking this object on the main thread is useless and will throw an {@link IllegalStateException}!</strong>
+     * <p>Note that every update happens on the main thread, so they cannot happen while other code is running.
      */
-    public final Object UPDATER_LOCK = new Object();
+    public final ReentrantUpdaterLock UPDATER_LOCK = new ReentrantUpdaterLock();
     private final PendingUpdatesManager pendingUpdatesManager = new PendingUpdatesManager();
 
     /**
@@ -1603,7 +1604,7 @@ public final class DatabaseManager implements Closeable {
         private final List<Update> progressionUpdates = new ArrayList<>(10);
         private final Map<Integer, Map<AdvancementKey, Integer>> realProgressions = new HashMap<>(); // Used to calculate increments
 
-        private boolean updaterTaskIsRegistered = false;
+        private final AtomicBoolean updaterTaskIsRegistered = new AtomicBoolean(false);
 
         /**
          * Registers a team update to execute on the main thread.
@@ -1621,8 +1622,8 @@ public final class DatabaseManager implements Closeable {
                 team.addInternalRequest();
 
                 progressionUpdates.add(new Update(UpdateType.TEAM_UPDATE, player, team, null, 0, 0, fireJoinEvent, callback));
-                registerUpdaterTask();
             }
+            registerUpdaterTask();
         }
 
         /**
@@ -1643,21 +1644,26 @@ public final class DatabaseManager implements Closeable {
                 var map = realProgressions.computeIfAbsent(team.getTeamProgression().getTeamId(), HashMap::new);
                 map.put(key,newProgr);
                 progressionUpdates.add(new Update(UpdateType.PROGRESSION_UPDATE, null, team, key, oldProgr, newProgr, false, callback));
-                registerUpdaterTask();
             }
+            registerUpdaterTask();
         }
 
         private void registerUpdaterTask() {
-            synchronized(DatabaseManager.this) {
-                if (!updaterTaskIsRegistered) {
-                    runSync(main.getOwningPlugin(), () -> {
-                        synchronized (DatabaseManager.this) {
-                            updaterTaskIsRegistered = false;
-                            pendingUpdatesManager.applyUpdates();
-                        }
-                    });
-                    updaterTaskIsRegistered = true;
-                }
+            if (!updaterTaskIsRegistered.getAndSet(true)) {
+                Bukkit.getScheduler().runTaskTimer(main.getOwningPlugin(), task -> {
+                    if (!UPDATER_LOCK.tryLockExclusiveLock()) {
+                        return; // Don't block the main thread while waiting for the update lock
+                    }
+
+                    updaterTaskIsRegistered.set(false);
+                    task.cancel(); // This is a timer task
+
+                    try {
+                        pendingUpdatesManager.applyUpdates();
+                    } finally {
+                        UPDATER_LOCK.unlockExclusiveLock();
+                    }
+                }, 1, 1);
             }
         }
 
@@ -1676,35 +1682,33 @@ public final class DatabaseManager implements Closeable {
             AdvancementUtils.checkSync();
 
             synchronized (DatabaseManager.this) {
-                synchronized (UPDATER_LOCK) {
-                    for (Update update : progressionUpdates) {
-                        switch (update.type) {
-                            case TEAM_UPDATE -> {
-                                updateLoadedPlayerTeam(update.player, update.team, update.firejoinEvent);
-                            }
-                            case PROGRESSION_UPDATE -> {
-                                update.team.getTeamProgression().updateProgression(update.key, update.newProgr);
-                                callEventCatchingExceptions(new ProgressionUpdateEvent(update.team.getTeamProgression(), update.oldProgr, update.newProgr, update.key));
-                            }
+                for (Update update : progressionUpdates) {
+                    switch (update.type) {
+                        case TEAM_UPDATE -> {
+                            updateLoadedPlayerTeam(update.player, update.team, update.firejoinEvent);
                         }
-
-                        try {
-                            update.callback.run();
-                        } catch (Exception e) {
-                            System.err.println("An exception occurred while executing the callback for update " + update + ':');
-                            e.printStackTrace();
+                        case PROGRESSION_UPDATE -> {
+                            update.team.getTeamProgression().updateProgression(update.key, update.newProgr);
+                            callEventCatchingExceptions(new ProgressionUpdateEvent(update.team.getTeamProgression(), update.oldProgr, update.newProgr, update.key));
                         }
-
-                        // Remove request since the callback returned
-                        if (update.type == UpdateType.TEAM_UPDATE) {
-                            // In this case a request was added also to the player
-                            removeInternalRequest(update.player);
-                        }
-                        removeInternalRequest(update.team);
                     }
-                    progressionUpdates.clear();
-                    realProgressions.clear();
+
+                    try {
+                        update.callback.run();
+                    } catch (Exception e) {
+                        System.err.println("An exception occurred while executing the callback for update " + update + ':');
+                        e.printStackTrace();
+                    }
+
+                    // Remove request since the callback returned
+                    if (update.type == UpdateType.TEAM_UPDATE) {
+                        // In this case a request was added also to the player
+                        removeInternalRequest(update.player);
+                    }
+                    removeInternalRequest(update.team);
                 }
+                progressionUpdates.clear();
+                realProgressions.clear();
             }
         }
 
