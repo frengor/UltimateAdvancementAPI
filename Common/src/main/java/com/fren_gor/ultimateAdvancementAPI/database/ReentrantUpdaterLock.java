@@ -5,16 +5,22 @@ import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.LockSupport;
 
 public final class ReentrantUpdaterLock implements Lock {
     private final ThreadLocal<Integer> threadLockCounter = ThreadLocal.withInitial(() -> 0);
-    private final Object lock = new Object();
+    private final Semaphore mutex = new Semaphore(1, true);
 
     private boolean updateLockRequested = false;
     private int activeLocksCounter = 0;
+    private final Set<Thread> blocked = Collections.synchronizedSet(new HashSet<>());
 
     ReentrantUpdaterLock() {
     }
@@ -22,18 +28,30 @@ public final class ReentrantUpdaterLock implements Lock {
     boolean tryLockExclusiveLock() {
         AdvancementUtils.checkSync();
 
-        synchronized (lock) {
+        mutex.acquireUninterruptibly();
+        try {
             updateLockRequested = true;
             return activeLocksCounter == 0;
+        } finally {
+            mutex.release();
         }
     }
 
     void unlockExclusiveLock() {
         AdvancementUtils.checkSync();
 
-        synchronized (lock) {
+        mutex.acquireUninterruptibly();
+        try {
             updateLockRequested = false;
-            lock.notifyAll();
+            synchronized (blocked) { // FIXME Substitute with something fair
+                activeLocksCounter = blocked.size();
+                for (Thread t : blocked) {
+                    LockSupport.unpark(t);
+                }
+                blocked.clear();
+            }
+        } finally {
+            mutex.release();
         }
     }
 
@@ -48,25 +66,27 @@ public final class ReentrantUpdaterLock implements Lock {
             return;
         }
 
-        boolean interrupted = false;
-        synchronized (lock) {
-            while (updateLockRequested) {
-                try {
-                    lock.wait();
-                } catch (InterruptedException e) {
-                    interrupted = true;
-                }
+        Thread currentThread = Thread.currentThread();
+        mutex.acquireUninterruptibly();
+        if (updateLockRequested) {
+            // Park
+            try {
+                blocked.add(currentThread);
+            } finally {
+                mutex.release();
             }
+            do {
+                LockSupport.park(this);
+            } while (blocked.contains(currentThread));
 
+            // activeLocksCounter has already been incremented for us by unlockExclusiveLock()
+        } else {
             activeLocksCounter++;
+            mutex.release();
         }
 
         // At this point threadLockCounter is surely 0, so we set it to 1
         threadLockCounter.set(1);
-
-        if (interrupted) {
-            Thread.currentThread().interrupt();
-        }
     }
 
     @Override
@@ -84,12 +104,37 @@ public final class ReentrantUpdaterLock implements Lock {
             return;
         }
 
-        synchronized (lock) {
-            while (updateLockRequested) {
-                lock.wait();
+        Thread currentThread = Thread.currentThread();
+        mutex.acquireUninterruptibly();
+        if (updateLockRequested) {
+            // Park
+            try {
+                blocked.add(currentThread);
+            } finally {
+                mutex.release();
             }
 
+            boolean blockedContains, interrupted;
+            do {
+                LockSupport.park(this);
+                interrupted = Thread.interrupted();
+                blockedContains = blocked.contains(currentThread);
+            } while (blockedContains && !interrupted);
+
+            // Don't throw an InterruptedException if the lock has been acquired
+            if (interrupted) {
+                if (!blockedContains) { // FIXME This should be if (blockedContains), also more synchronization is probably needed
+                    throw new InterruptedException();
+                } else {
+                    // Restore the interrupt status
+                    currentThread.interrupt();
+                }
+            }
+
+            // activeLocksCounter has already been incremented for us by unlockExclusiveLock()
+        } else {
             activeLocksCounter++;
+            mutex.release();
         }
 
         // At this point threadLockCounter is surely 0, so we set it to 1
@@ -107,12 +152,15 @@ public final class ReentrantUpdaterLock implements Lock {
             return true;
         }
 
-        synchronized (lock) {
+        mutex.acquireUninterruptibly();
+        try {
             if (updateLockRequested) {
                 return false;
+            } else {
+                activeLocksCounter++;
             }
-
-            activeLocksCounter++;
+        } finally {
+            mutex.release();
         }
 
         // At this point threadLockCounter is surely 0, so we set it to 1
@@ -135,24 +183,56 @@ public final class ReentrantUpdaterLock implements Lock {
             return true;
         }
 
-        synchronized (lock) {
-            long nanos = timeUnit.toNanos(l);
-            if (nanos <= 0) {
+        Thread currentThread = Thread.currentThread();
+        long nanos = timeUnit.toNanos(l);
+        mutex.acquireUninterruptibly();
+        if (nanos <= 0) {
+            // Don't block
+            try {
                 if (updateLockRequested) {
                     return false;
+                } else {
+                    activeLocksCounter++;
                 }
-            } else {
-                nanos += System.nanoTime();
-                while (updateLockRequested) {
+            } finally {
+                mutex.release();
+            }
+        } else {
+            nanos += System.nanoTime();
+            if (updateLockRequested) {
+                // Park
+                try {
+                    blocked.add(currentThread);
+                } finally {
+                    mutex.release();
+                }
+
+                boolean blockedContains, interrupted;
+                do {
                     long timeout = nanos - System.nanoTime();
                     if (timeout <= 0) {
                         return false;
                     }
-                    TimeUnit.NANOSECONDS.timedWait(lock, timeout);
-                }
-            }
+                    LockSupport.parkNanos(this, timeout);
+                    interrupted = Thread.interrupted();
+                    blockedContains = blocked.contains(currentThread);
+                } while (blockedContains && !interrupted);
 
-            activeLocksCounter++;
+                // Don't throw an InterruptedException if the lock has been acquired
+                if (interrupted) {
+                    if (!blockedContains) { // FIXME This should be if (blockedContains), also more synchronization is probably needed
+                        throw new InterruptedException();
+                    } else {
+                        // Restore the interrupt status
+                        currentThread.interrupt();
+                    }
+                }
+
+                // activeLocksCounter has already been incremented for us by unlockExclusiveLock()
+            } else {
+                activeLocksCounter++;
+                mutex.release();
+            }
         }
 
         // At this point threadLockCounter is surely 0, so we set it to 1
@@ -170,9 +250,9 @@ public final class ReentrantUpdaterLock implements Lock {
         }
         threadLockCounter.set(--currentThreadCounter);
         if (currentThreadCounter == 0) {
-            synchronized (lock) {
-                activeLocksCounter--;
-            }
+            mutex.acquireUninterruptibly();
+            activeLocksCounter--;
+            mutex.release();
         }
     }
 
