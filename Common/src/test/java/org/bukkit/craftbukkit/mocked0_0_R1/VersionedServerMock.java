@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,7 +50,9 @@ public class VersionedServerMock extends ServerMock {
     private static class Scheduler extends BukkitSchedulerMock {
         private final ServerMock server;
         private final LinkedList<DelayedTask> delayedTasks = new LinkedList<>();
+        private final LinkedList<DelayedTaskConsumer> delayedTasksConsumer = new LinkedList<>();
         private final LinkedList<TimerTask> timerTasks = new LinkedList<>();
+        private final LinkedList<TimerTaskConsumer> timerTasksConsumer = new LinkedList<>();
 
         public Scheduler(ServerMock server) {
             this.server = server;
@@ -67,12 +70,30 @@ public class VersionedServerMock extends ServerMock {
                         delayedTasks.clear();
                     }
                 }
+                synchronized (delayedTasksConsumer) {
+                    if (!delayedTasksConsumer.isEmpty()) {
+                        for (DelayedTaskConsumer t : delayedTasksConsumer) {
+                            super.runTaskLater(t.plugin, t.runnable, t.delay);
+                            t.c.complete(null);
+                        }
+                        delayedTasksConsumer.clear();
+                    }
+                }
                 synchronized (timerTasks) {
                     if (!timerTasks.isEmpty()) {
                         for (TimerTask t : timerTasks) {
                             t.c.complete(super.runTaskTimer(t.plugin, t.runnable, t.delay, t.period));
                         }
                         timerTasks.clear();
+                    }
+                }
+                synchronized (timerTasksConsumer) {
+                    if (!timerTasksConsumer.isEmpty()) {
+                        for (TimerTaskConsumer t : timerTasksConsumer) {
+                            super.runTaskTimer(t.plugin, t.runnable, t.delay, t.period);
+                            t.c.complete(null);
+                        }
+                        timerTasksConsumer.clear();
                     }
                 }
             }, 0, 1);
@@ -83,8 +104,14 @@ public class VersionedServerMock extends ServerMock {
             synchronized (delayedTasks) {
                 delayedTasks.clear();
             }
+            synchronized (delayedTasksConsumer) {
+                delayedTasksConsumer.clear();
+            }
             synchronized (timerTasks) {
                 timerTasks.clear();
+            }
+            synchronized (timerTasksConsumer) {
+                timerTasksConsumer.clear();
             }
             super.shutdown();
         }
@@ -103,6 +130,25 @@ public class VersionedServerMock extends ServerMock {
                 }
                 try {
                     return c.get();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        @Override
+        public void runTaskLater(@NotNull Plugin plugin, @NotNull Consumer<BukkitTask> task, long delay) {
+            Preconditions.checkNotNull(plugin);
+            Preconditions.checkNotNull(task);
+            if (server.isOnMainThread()) {
+                super.runTaskLater(plugin, task, delay);
+            } else {
+                CompletableFuture<BukkitTask> c = new CompletableFuture<>();
+                synchronized (delayedTasksConsumer) {
+                    delayedTasksConsumer.addLast(new DelayedTaskConsumer(c, plugin, task, delay));
+                }
+                try {
+                    c.get();
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -129,10 +175,35 @@ public class VersionedServerMock extends ServerMock {
             }
         }
 
+        @Override
+        public void runTaskTimer(@NotNull Plugin plugin, @NotNull Consumer<BukkitTask> task, long delay, long period) {
+            Preconditions.checkNotNull(plugin);
+            Preconditions.checkNotNull(task);
+            if (server.isOnMainThread()) {
+                super.runTaskTimer(plugin, task, delay, period);
+            } else {
+                CompletableFuture<Void> c = new CompletableFuture<>();
+                synchronized (timerTasksConsumer) {
+                    timerTasksConsumer.addLast(new TimerTaskConsumer(c, plugin, task, delay, period));
+                }
+                try {
+                    c.get();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
         record DelayedTask(CompletableFuture<BukkitTask> c, Plugin plugin, Runnable runnable, long delay) {
         }
 
+        record DelayedTaskConsumer(CompletableFuture<BukkitTask> c, Plugin plugin, Consumer<BukkitTask> runnable, long delay) {
+        }
+
         record TimerTask(CompletableFuture<BukkitTask> c, Plugin plugin, Runnable runnable, long delay, long period) {
+        }
+
+        record TimerTaskConsumer(CompletableFuture<Void> c, Plugin plugin, Consumer<BukkitTask> runnable, long delay, long period) {
         }
     }
 }
