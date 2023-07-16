@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ReentrantUpdaterLockTest {
 
-    private static final int THREAD_COUNT = 100;
+    private static final int THREAD_COUNT = 25;
 
     private ServerMock server;
     private ReentrantUpdaterLock lock;
@@ -49,6 +49,24 @@ public class ReentrantUpdaterLockTest {
 
     @Test
     void onlySharedLocksTest() throws Exception {
+        sharedLockTestsCommon(1);
+    }
+
+    @Test
+    void onlyTwoSharedLocksTest() throws Exception {
+        sharedLockTestsCommon(2);
+    }
+
+    @Test
+    void onlyMultipleSharedLocksTest() throws Exception {
+        for (int i = 1; i <= 10; i++) {
+            sharedLockTestsCommon(i);
+        }
+    }
+
+    private void sharedLockTestsCommon(int locksToTake) throws Exception {
+        assertTrue(locksToTake > 0);
+
         List<CompletableFuture<Void>> cF = new ArrayList<>(THREAD_COUNT);
         CyclicBarrier barrier = new CyclicBarrier(THREAD_COUNT);
         for (int i = 0; i < THREAD_COUNT; i++) {
@@ -56,14 +74,18 @@ public class ReentrantUpdaterLockTest {
             cF.add(completableFuture);
             new Thread(() -> {
                 for (int n = 0; n < THREAD_COUNT; n++) {
-                    lock.lock();
+                    for (int j = 0; j < locksToTake; j++) {
+                        lock.lock();
+                    }
                     try {
                         barrier.await(1, TimeUnit.SECONDS);
                     } catch (Exception e) {
                         completableFuture.completeExceptionally(e);
                         return;
                     } finally {
-                        lock.unlock();
+                        for (int j = 0; j < locksToTake; j++) {
+                            lock.unlock();
+                        }
                     }
                 }
                 completableFuture.complete(null);
@@ -75,7 +97,25 @@ public class ReentrantUpdaterLockTest {
     }
 
     @Test
-    void mixedLocksTest() throws Exception {
+    void mixedLocksOneSharedTest() throws Exception {
+        mixedLocksTestCommon(1);
+    }
+
+    @Test
+    void mixedLocksTwoSharedTest() throws Exception {
+        mixedLocksTestCommon(2);
+    }
+
+    @Test
+    void mixedLocksMultipleSharedTest() throws Exception {
+        for (int i = 1; i <= 10; i++) {
+            mixedLocksTestCommon(i);
+        }
+    }
+
+    private void mixedLocksTestCommon(int sharedLocksToTake) throws Exception {
+        assertTrue(sharedLocksToTake > 0);
+
         List<CompletableFuture<Void>> cF = new ArrayList<>(THREAD_COUNT);
         AtomicInteger holders = new AtomicInteger(0);
         AtomicInteger acquireCount = new AtomicInteger(0);
@@ -84,11 +124,15 @@ public class ReentrantUpdaterLockTest {
             cF.add(completableFuture);
             new Thread(() -> {
                 for (int n = 0; n < THREAD_COUNT; n++) {
-                    lock.lock();
+                    for (int j = 0; j < sharedLocksToTake; j++) {
+                        lock.lock();
+                    }
                     holders.incrementAndGet();
                     acquireCount.incrementAndGet();
                     holders.decrementAndGet();
-                    lock.unlock();
+                    for (int j = 0; j < sharedLocksToTake; j++) {
+                        lock.unlock();
+                    }
                 }
                 completableFuture.complete(null);
             }).start();
@@ -129,7 +173,7 @@ public class ReentrantUpdaterLockTest {
         }
 
         assertFalse(shouldStop.get(), "Timeout");
-        assertEquals(THREAD_COUNT*THREAD_COUNT, acquireCount.get());
+        assertEquals(THREAD_COUNT * THREAD_COUNT, acquireCount.get());
 
         interrupted.set(true);
         t.interrupt();
