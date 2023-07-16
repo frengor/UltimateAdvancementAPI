@@ -130,20 +130,22 @@ public final class ReentrantUpdaterLock implements Lock {
                 mutex.acquireUninterruptibly();
                 try {
                     blockedContains = blocked.contains(currentThread);
+                    interrupted = Thread.interrupted(); // Must be done after acquireUninterruptibly()
+
+                    if (interrupted && blockedContains) {
+                        // In this case the lock hasn't been acquired but the thread was interrupted
+                        // Remove from blocked so that the main thread doesn't call LockSupport#unpark on this thread
+                        blocked.remove(currentThread);
+                        throw new InterruptedException();
+                    }
                 } finally {
                     mutex.release();
                 }
-                interrupted = Thread.interrupted();
-            } while (blockedContains && !interrupted);
+            } while (blockedContains);
 
-            // Don't throw an InterruptedException if the lock has been acquired
             if (interrupted) {
-                if (!blockedContains) { // FIXME This should be if (blockedContains), also more synchronization is probably needed
-                    throw new InterruptedException();
-                } else {
-                    // Restore the interrupt status
-                    currentThread.interrupt();
-                }
+                // Restore the interrupt status if the lock was acquired
+                currentThread.interrupt();
             }
 
             // activeLocksCounter has already been incremented for us by unlockExclusiveLock()
@@ -234,20 +236,22 @@ public final class ReentrantUpdaterLock implements Lock {
                     mutex.acquireUninterruptibly();
                     try {
                         blockedContains = blocked.contains(currentThread);
+                        interrupted = Thread.interrupted(); // Must be done after acquireUninterruptibly()
+
+                        if (interrupted && blockedContains) {
+                            // In this case the lock hasn't been acquired but the thread was interrupted
+                            // Remove from blocked so that the main thread doesn't call LockSupport#unpark on this thread
+                            blocked.remove(currentThread);
+                            throw new InterruptedException();
+                        }
                     } finally {
                         mutex.release();
                     }
-                    interrupted = Thread.interrupted();
-                } while (blockedContains && !interrupted);
+                } while (blockedContains);
 
-                // Don't throw an InterruptedException if the lock has been acquired
                 if (interrupted) {
-                    if (!blockedContains) { // FIXME This should be if (blockedContains), also more synchronization is probably needed
-                        throw new InterruptedException();
-                    } else {
-                        // Restore the interrupt status
-                        currentThread.interrupt();
-                    }
+                    // Restore the interrupt status if the lock was acquired
+                    currentThread.interrupt();
                 }
 
                 // activeLocksCounter has already been incremented for us by unlockExclusiveLock()
