@@ -5,7 +5,6 @@ import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
@@ -20,7 +19,7 @@ public final class ReentrantUpdaterLock implements Lock {
 
     private boolean updateLockRequested = false;
     private int activeLocksCounter = 0;
-    private final Set<Thread> blocked = Collections.synchronizedSet(new HashSet<>());
+    private Set<Thread> blocked = new HashSet<>();
 
     ReentrantUpdaterLock() {
     }
@@ -40,18 +39,18 @@ public final class ReentrantUpdaterLock implements Lock {
     void unlockExclusiveLock() {
         AdvancementUtils.checkSync();
 
+        final Set<Thread> oldBlocked;
         mutex.acquireUninterruptibly();
         try {
             updateLockRequested = false;
-            synchronized (blocked) { // FIXME Substitute with something fair
-                activeLocksCounter = blocked.size();
-                for (Thread t : blocked) {
-                    LockSupport.unpark(t);
-                }
-                blocked.clear();
-            }
+            oldBlocked = blocked;
+            blocked = new HashSet<>();
+            activeLocksCounter = oldBlocked.size();
         } finally {
             mutex.release();
+        }
+        for (Thread t : oldBlocked) {
+            LockSupport.unpark(t);
         }
     }
 
@@ -75,9 +74,18 @@ public final class ReentrantUpdaterLock implements Lock {
             } finally {
                 mutex.release();
             }
+            boolean blockedContains;
             do {
                 LockSupport.park(this);
-            } while (blocked.contains(currentThread));
+
+                // Take a lock and check if blocked contains the current thread
+                mutex.acquireUninterruptibly();
+                try {
+                    blockedContains = blocked.contains(currentThread);
+                } finally {
+                    mutex.release();
+                }
+            } while (blockedContains);
 
             // activeLocksCounter has already been incremented for us by unlockExclusiveLock()
         } else {
@@ -117,8 +125,15 @@ public final class ReentrantUpdaterLock implements Lock {
             boolean blockedContains, interrupted;
             do {
                 LockSupport.park(this);
+
+                // Take a lock and check if blocked contains the current thread
+                mutex.acquireUninterruptibly();
+                try {
+                    blockedContains = blocked.contains(currentThread);
+                } finally {
+                    mutex.release();
+                }
                 interrupted = Thread.interrupted();
-                blockedContains = blocked.contains(currentThread);
             } while (blockedContains && !interrupted);
 
             // Don't throw an InterruptedException if the lock has been acquired
@@ -214,8 +229,15 @@ public final class ReentrantUpdaterLock implements Lock {
                         return false;
                     }
                     LockSupport.parkNanos(this, timeout);
+
+                    // Take a lock and check if blocked contains the current thread
+                    mutex.acquireUninterruptibly();
+                    try {
+                        blockedContains = blocked.contains(currentThread);
+                    } finally {
+                        mutex.release();
+                    }
                     interrupted = Thread.interrupted();
-                    blockedContains = blocked.contains(currentThread);
                 } while (blockedContains && !interrupted);
 
                 // Don't throw an InterruptedException if the lock has been acquired
