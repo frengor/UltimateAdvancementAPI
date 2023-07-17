@@ -339,6 +339,28 @@ public final class ReentrantUpdaterLock implements Lock {
     }
 
     /**
+     * Returns whether the current thread holds at least one lock.
+     * <p>This method always returns {@code false} when called on the main thread.
+     *
+     * @return {@code true} if the current thread holds at least one lock, {@code false} otherwise.
+     * @see ReentrantLock#isHeldByCurrentThread() ReentrantLock.isHeldByCurrentThread() for possible usages of this method.
+     */
+    public boolean isHeldByCurrentThread() {
+        return threadLockCounter.get() > 0;
+    }
+
+    /**
+     * Returns the number of holds on this lock by the current thread.
+     * <p>This method always returns {@code 0} when called on the main thread.
+     *
+     * @return The number of holds on this lock by the current thread.
+     * @see ReentrantLock#getHoldCount() ReentrantLock.getHoldCount() for possible usages of this method.
+     */
+    public int getHoldCount() {
+        return threadLockCounter.get();
+    }
+
+    /**
      * {@link Condition}s are not supported.
      *
      * @throws UnsupportedOperationException This always throws {@link UnsupportedOperationException}.
