@@ -94,11 +94,14 @@ public final class DatabaseManager implements Closeable {
     private final IDatabase database;
 
     /**
-     * Lock to lock in order to avoid team and progression updates in async code.
-     * <p><strong>Locking this object on the main thread is useless and will throw an {@link IllegalStateException}!</strong>
-     * <p>Note that every update happens on the main thread, so they cannot happen while other code is running.
+     * Lock to acquire in order to avoid team and progression updates in <i>async</i> code.
+     * <p>Please note that <strong>using this lock on the main thread is useless</strong>
+     * and trying to use it will throw an {@link IllegalStateException}.
+     *
+     * @see ReentrantUpdaterLock
+     * @since 3.0.0
      */
-    public final ReentrantUpdaterLock UPDATER_LOCK = new ReentrantUpdaterLock();
+    public final ReentrantUpdaterLock updaterLock = new ReentrantUpdaterLock();
     private final PendingUpdatesManager pendingUpdatesManager = new PendingUpdatesManager();
 
     /**
@@ -1651,7 +1654,7 @@ public final class DatabaseManager implements Closeable {
         private void registerUpdaterTask() {
             if (!updaterTaskIsRegistered.getAndSet(true)) {
                 Bukkit.getScheduler().runTaskTimer(main.getOwningPlugin(), task -> {
-                    if (!UPDATER_LOCK.tryLockExclusiveLock()) {
+                    if (!updaterLock.tryLockExclusiveLock()) {
                         return; // Don't block the main thread while waiting for the update lock
                     }
 
@@ -1661,7 +1664,7 @@ public final class DatabaseManager implements Closeable {
                     try {
                         pendingUpdatesManager.applyUpdates();
                     } finally {
-                        UPDATER_LOCK.unlockExclusiveLock();
+                        updaterLock.unlockExclusiveLock();
                     }
                 }, 1, 1);
             }

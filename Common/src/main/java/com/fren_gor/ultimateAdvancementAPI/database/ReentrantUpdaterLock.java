@@ -13,6 +13,23 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
 
+/**
+ * A (fair) lock used to avoid team and progression updates in <i>async</i> code.
+ * <p>When one or more locks are held by any thread, updates to teams and progressions will be delayed until all
+ * granted locks are released.
+ * <p>Multiple locks can be acquired (and hold) at the same time, even by different threads, in a reentrant manner
+ * (i.e. a thread which already holds a lock will always succeed to obtain a new lock).
+ * When the updater needs to update a team or progression, new <i>non-reentrant</i> locks will not be granted and
+ * will need to wait for the end of the update. New <i>reentrant</i> locks are always permitted.
+ * <p>Also, taking a lock and not releasing it will <i>never</i> block the main thread, but will
+ * starve updates (i.e. team and progression updates will not be applied until all the active locks are released).
+ * <p>As a last note, <strong>using this lock on the main thread is useless</strong> and trying to use it will
+ * throw an {@link IllegalStateException}.
+ *
+ * @see DatabaseManager
+ * @see DatabaseManager#updaterLock
+ * @since 3.0.0
+ */
 public final class ReentrantUpdaterLock implements Lock {
     private final ThreadLocal<Integer> threadLockCounter = ThreadLocal.withInitial(() -> 0);
     private final Semaphore mutex = new Semaphore(1, true);
@@ -54,6 +71,12 @@ public final class ReentrantUpdaterLock implements Lock {
         }
     }
 
+    /**
+     * Acquires a lock for this thread, blocking if necessary.
+     *
+     * @throws IllegalStateException If this method is called on the main thread.
+     * @see Lock#lock()
+     */
     @Override
     public void lock() {
         checkMainThread();
@@ -97,6 +120,14 @@ public final class ReentrantUpdaterLock implements Lock {
         threadLockCounter.set(1);
     }
 
+    /**
+     * Acquires a lock for this thread, blocking if necessary, unless the current thread gets interrupted.
+     *
+     * @throws InterruptedException If the current thread is interrupted when this method is called or if it gets
+     *         interrupted while blocked.
+     * @throws IllegalStateException If this method is called on the main thread.
+     * @see Lock#lockInterruptibly()
+     */
     @Override
     public void lockInterruptibly() throws InterruptedException {
         checkMainThread();
@@ -158,6 +189,13 @@ public final class ReentrantUpdaterLock implements Lock {
         threadLockCounter.set(1);
     }
 
+    /**
+     * Acquires a lock for this thread only if it can be immediately granted at the time of invocation of this method.
+     *
+     * @return {@code true} if the lock has been acquired for this thread, {@code false} otherwise.
+     * @throws IllegalStateException If this method is called on the main thread.
+     * @see Lock#tryLock()
+     */
     @Override
     public boolean tryLock() {
         checkMainThread();
@@ -185,8 +223,20 @@ public final class ReentrantUpdaterLock implements Lock {
         return true;
     }
 
+    /**
+     * Acquires a lock for this thread, blocking if necessary, unless the current thread gets interrupted or
+     * the time runs out.
+     *
+     * @param time The maximum time to wait for the lock.
+     * @param timeUnit The time unit of the time argument.
+     * @return {@code true} if the lock has been acquired for this thread, {@code false} if the time ran out.
+     * @throws InterruptedException If the current thread is interrupted when this method is called or if it gets
+     *         interrupted while blocked.
+     * @throws IllegalStateException If this method is called on the main thread.
+     * @see Lock#tryLock(long, TimeUnit)
+     */
     @Override
-    public boolean tryLock(long l, @NotNull TimeUnit timeUnit) throws InterruptedException {
+    public boolean tryLock(long time, @NotNull TimeUnit timeUnit) throws InterruptedException {
         checkMainThread();
 
         if (Thread.interrupted()) {
@@ -201,7 +251,7 @@ public final class ReentrantUpdaterLock implements Lock {
         }
 
         Thread currentThread = Thread.currentThread();
-        long nanos = timeUnit.toNanos(l);
+        long nanos = timeUnit.toNanos(time);
         mutex.acquireUninterruptibly();
         if (nanos <= 0) {
             // Don't block
@@ -266,6 +316,12 @@ public final class ReentrantUpdaterLock implements Lock {
         return true;
     }
 
+    /**
+     * Releases a lock held by this thread.
+     *
+     * @throws IllegalStateException If this method is called on the main thread.
+     * @see Lock#unlock()
+     */
     @Override
     public void unlock() {
         checkMainThread();
@@ -282,7 +338,11 @@ public final class ReentrantUpdaterLock implements Lock {
         }
     }
 
-    @NotNull
+    /**
+     * {@link Condition}s are not supported.
+     *
+     * @throws UnsupportedOperationException This always throws {@link UnsupportedOperationException}.
+     */
     @Override
     @Contract("-> fail")
     public Condition newCondition() throws UnsupportedOperationException {
