@@ -1,9 +1,11 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
+import com.fren_gor.ultimateAdvancementAPI.exceptions.SyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A (fair) lock used to avoid team and progression updates in <i>async</i> code.
@@ -21,21 +24,30 @@ import java.util.concurrent.locks.LockSupport;
  * (i.e. a thread which already holds a lock will always succeed to obtain a new lock).
  * When the updater needs to update a team or progression, new <i>non-reentrant</i> locks will not be granted and
  * will need to wait for the end of the update. New <i>reentrant</i> locks are always permitted.
- * <p>Also, taking a lock and not releasing it will <i>never</i> block the main thread, but will
+ * <br>Also, taking a lock and not releasing it will <i>never</i> block the main thread, but will
  * starve updates (i.e. team and progression updates will not be applied until all the active locks are released).
  * <p>As a last note, <strong>using this lock on the main thread is useless</strong> and trying to use it will
- * throw an {@link IllegalStateException}.
+ * throw a {@link SyncExecutionException}.
+ * <br>
+ * <p>
+ * <strong>Implementation note:</strong><br>
+ * Each thread can hold up to a maximum of {@link #MAX_LOCKS_PER_THREAD} locks at the same time.
  *
  * @see DatabaseManager
  * @see DatabaseManager#updaterLock
  * @since 3.0.0
  */
 public final class ReentrantUpdaterLock implements Lock {
-    private final ThreadLocal<Integer> threadLockCounter = ThreadLocal.withInitial(() -> 0);
+    /**
+     * Maximum number of locks that each thread can hold at the same time.
+     */
+    public static final int MAX_LOCKS_PER_THREAD = Integer.MAX_VALUE;
+
     private final Semaphore mutex = new Semaphore(1, true);
 
     private boolean updateLockRequested = false;
-    private int activeLocksCounter = 0;
+    private long activeLocksCounter = 0; // Number of threads which are holding at least one lock
+    private final ThreadLocal<Integer> threadLockCounter = ThreadLocal.withInitial(() -> 0); // Number of locks held by each thread
     private Set<Thread> blocked = new HashSet<>();
 
     ReentrantUpdaterLock() {
@@ -72,10 +84,10 @@ public final class ReentrantUpdaterLock implements Lock {
     }
 
     /**
-     * Acquires a lock for this thread, blocking if necessary.
+     * Acquires a lock for the current thread, blocking if necessary.
      *
-     * @throws IllegalStateException If this method is called on the main thread.
-     * @see Lock#lock()
+     * @throws IllegalStateException If the current thread already holds {@link #MAX_LOCKS_PER_THREAD} locks.
+     * @throws SyncExecutionException If this method is called on the main thread.
      */
     @Override
     public void lock() {
@@ -84,7 +96,7 @@ public final class ReentrantUpdaterLock implements Lock {
         int currentThreadCounter = threadLockCounter.get();
         if (currentThreadCounter > 0) {
             // Already holds a lock
-            threadLockCounter.set(currentThreadCounter + 1);
+            incrementThreadLockCounter(currentThreadCounter);
             return;
         }
 
@@ -121,12 +133,12 @@ public final class ReentrantUpdaterLock implements Lock {
     }
 
     /**
-     * Acquires a lock for this thread, blocking if necessary, unless the current thread gets interrupted.
+     * Acquires a lock for the current thread, blocking if necessary, unless it gets interrupted.
      *
      * @throws InterruptedException If the current thread is interrupted when this method is called or if it gets
      *         interrupted while blocked.
-     * @throws IllegalStateException If this method is called on the main thread.
-     * @see Lock#lockInterruptibly()
+     * @throws IllegalStateException If the current thread already holds {@link #MAX_LOCKS_PER_THREAD} locks.
+     * @throws SyncExecutionException If this method is called on the main thread.
      */
     @Override
     public void lockInterruptibly() throws InterruptedException {
@@ -139,7 +151,7 @@ public final class ReentrantUpdaterLock implements Lock {
         int currentThreadCounter = threadLockCounter.get();
         if (currentThreadCounter > 0) {
             // Already holds a lock
-            threadLockCounter.set(currentThreadCounter + 1);
+            incrementThreadLockCounter(currentThreadCounter);
             return;
         }
 
@@ -190,17 +202,20 @@ public final class ReentrantUpdaterLock implements Lock {
     }
 
     /**
-     * Acquires a lock for this thread only if it can be immediately granted at the time of invocation of this method.
+     * Acquires a lock for the current thread only if it can be immediately granted at the time of invocation of this method.
+     * <p>If the current thread already holds {@link #MAX_LOCKS_PER_THREAD} locks, the lock is not acquired and {@code false} is returned.
      *
      * @return {@code true} if the lock has been acquired for this thread, {@code false} otherwise.
-     * @throws IllegalStateException If this method is called on the main thread.
-     * @see Lock#tryLock()
+     * @throws SyncExecutionException If this method is called on the main thread.
      */
     @Override
     public boolean tryLock() {
         checkMainThread();
 
         int currentThreadCounter = threadLockCounter.get();
+        if (currentThreadCounter == MAX_LOCKS_PER_THREAD) {
+            return false;
+        }
         if (currentThreadCounter > 0) {
             // Already holds a lock
             threadLockCounter.set(currentThreadCounter + 1);
@@ -224,16 +239,15 @@ public final class ReentrantUpdaterLock implements Lock {
     }
 
     /**
-     * Acquires a lock for this thread, blocking if necessary, unless the current thread gets interrupted or
-     * the time runs out.
+     * Acquires a lock for the current thread, blocking if necessary, unless it gets interrupted or the time runs out.
+     * <p>If the current thread already holds {@link #MAX_LOCKS_PER_THREAD} locks, the lock is not acquired and {@code false} is returned.
      *
      * @param time The maximum time to wait for the lock.
      * @param timeUnit The time unit of the time argument.
      * @return {@code true} if the lock has been acquired for this thread, {@code false} if the time ran out.
      * @throws InterruptedException If the current thread is interrupted when this method is called or if it gets
      *         interrupted while blocked.
-     * @throws IllegalStateException If this method is called on the main thread.
-     * @see Lock#tryLock(long, TimeUnit)
+     * @throws SyncExecutionException If this method is called on the main thread.
      */
     @Override
     public boolean tryLock(long time, @NotNull TimeUnit timeUnit) throws InterruptedException {
@@ -244,6 +258,9 @@ public final class ReentrantUpdaterLock implements Lock {
         }
 
         int currentThreadCounter = threadLockCounter.get();
+        if (currentThreadCounter == MAX_LOCKS_PER_THREAD) {
+            return false;
+        }
         if (currentThreadCounter > 0) {
             // Already holds a lock
             threadLockCounter.set(currentThreadCounter + 1);
@@ -317,10 +334,10 @@ public final class ReentrantUpdaterLock implements Lock {
     }
 
     /**
-     * Releases a lock held by this thread.
+     * Releases a lock held by the current thread.
      *
-     * @throws IllegalStateException If this method is called on the main thread.
-     * @see Lock#unlock()
+     * @throws IllegalStateException If the current thread doesn't hold any locks.
+     * @throws SyncExecutionException If this method is called on the main thread.
      */
     @Override
     public void unlock() {
@@ -328,9 +345,9 @@ public final class ReentrantUpdaterLock implements Lock {
 
         int currentThreadCounter = threadLockCounter.get();
         if (currentThreadCounter == 0) {
-            throw new IllegalStateException("Thread " + Thread.currentThread().getName() + " has called ReentrantUpdaterLock#unlock() too many times.");
+            throw new IllegalStateException("Thread " + Thread.currentThread().getName() + " called ReentrantUpdaterLock#unlock() while not holding any lock.");
         }
-        threadLockCounter.set(--currentThreadCounter);
+        threadLockCounter.set(--currentThreadCounter); // This cannot overflow since currentThreadCounter is always > 0
         if (currentThreadCounter == 0) {
             mutex.acquireUninterruptibly();
             activeLocksCounter--;
@@ -356,6 +373,7 @@ public final class ReentrantUpdaterLock implements Lock {
      * @return The number of holds on this lock by the current thread.
      * @see ReentrantLock#getHoldCount() ReentrantLock.getHoldCount() for possible usages of this method.
      */
+    @Range(from = 0, to = MAX_LOCKS_PER_THREAD)
     public int getHoldCount() {
         return threadLockCounter.get();
     }
@@ -371,9 +389,16 @@ public final class ReentrantUpdaterLock implements Lock {
         throw new UnsupportedOperationException();
     }
 
+    private void incrementThreadLockCounter(int counterToIncrement) {
+        if (counterToIncrement == MAX_LOCKS_PER_THREAD) {
+            throw new IllegalStateException("Thread " + Thread.currentThread().getName() + " already holds the maximum amount of locks permitted per-thread.");
+        }
+        threadLockCounter.set(counterToIncrement + 1);
+    }
+
     private void checkMainThread() {
         if (Bukkit.isPrimaryThread()) {
-            throw new IllegalStateException("The main thread cannot hold any ReentrantUpdaterLock lock.");
+            throw new SyncExecutionException("The main thread cannot hold any ReentrantUpdaterLock lock.");
         }
     }
 }

@@ -2,12 +2,12 @@ package com.fren_gor.ultimateAdvancementAPI.database;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.SyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
 import org.bukkit.Bukkit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.opentest4j.AssertionFailedError;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -46,10 +46,17 @@ public class ReentrantUpdaterLockTest {
     @Test
     void assertMainThreadThrowsTest() {
         assertTrue(Bukkit.isPrimaryThread());
-        assertThrows(IllegalStateException.class, () -> lock.lock());
-        assertThrows(IllegalStateException.class, () -> lock.lockInterruptibly());
-        assertThrows(IllegalStateException.class, () -> lock.tryLock());
-        assertThrows(IllegalStateException.class, () -> lock.tryLock(1, TimeUnit.SECONDS));
+        assertThrows(SyncExecutionException.class, () -> lock.lock());
+        assertThrows(SyncExecutionException.class, () -> lock.lockInterruptibly());
+        assertThrows(SyncExecutionException.class, () -> lock.tryLock());
+        assertThrows(SyncExecutionException.class, () -> lock.tryLock(1, TimeUnit.SECONDS));
+    }
+
+    @Test
+    void assertMainThreadSpecialValuesTest() {
+        assertTrue(Bukkit.isPrimaryThread());
+        assertFalse(lock.isHeldByCurrentThread());
+        assertEquals(0, lock.getHoldCount());
     }
 
     @Test
@@ -608,7 +615,7 @@ public class ReentrantUpdaterLockTest {
         while (!shouldStop.get()) {
             sem.acquireUninterruptibly();
             try {
-                if (activeLocksCounter.getInt(lock) == 1) {
+                if (activeLocksCounter.getLong(lock) == 1) {
                     break;
                 }
             } finally {
@@ -637,6 +644,79 @@ public class ReentrantUpdaterLockTest {
 
         // Assert at least 500 milliseconds have passed
         assertTrue(System.currentTimeMillis() - currentTime > 500);
+    }
+
+    @Test
+    void isHeldByCurrentThreadTest() throws Exception {
+        CompletableFuture<Boolean> cf = new CompletableFuture<>();
+        CompletableFuture<Boolean> cf1 = new CompletableFuture<>();
+        new Thread(() -> {
+            cf.complete(lock.isHeldByCurrentThread());
+            lock.lock();
+            cf1.complete(lock.isHeldByCurrentThread());
+        }).start();
+        assertFalse(cf.get(3, TimeUnit.SECONDS));
+        assertTrue(cf1.get(3, TimeUnit.SECONDS));
+    }
+
+    @Test
+    void getHoldCountTest() throws Exception {
+        CompletableFuture<Void> cf = new CompletableFuture<>();
+        new Thread(() -> {
+            if (lock.getHoldCount() != 0) {
+                cf.completeExceptionally(new RuntimeException("count != 0"));
+                return;
+            }
+            lock.lock();
+            if (lock.getHoldCount() != 1) {
+                cf.completeExceptionally(new RuntimeException("count != 1"));
+                return;
+            }
+            lock.lock();
+            if (lock.getHoldCount() != 2) {
+                cf.completeExceptionally(new RuntimeException("count != 2"));
+                return;
+            }
+            lock.unlock();
+            if (lock.getHoldCount() != 1) {
+                cf.completeExceptionally(new RuntimeException("count != 1 after unlock"));
+                return;
+            }
+            lock.unlock();
+            if (lock.getHoldCount() != 0) {
+                cf.completeExceptionally(new RuntimeException("count != 1 after unlock"));
+                return;
+            }
+            cf.complete(null);
+        }).start();
+        cf.get(3, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void illegalStateExceptionsTest() throws Exception {
+        Field threadLockCounter = ReentrantUpdaterLock.class.getDeclaredField("threadLockCounter");
+        threadLockCounter.setAccessible(true);
+        ThreadLocal<Integer> counter = (ThreadLocal<Integer>) threadLockCounter.get(lock);
+
+        CompletableFuture<Void> cf = new CompletableFuture<>();
+        new Thread(() -> {
+            try {
+                assertThrows(IllegalStateException.class, () -> lock.unlock());
+                lock.lock();
+                counter.set(ReentrantUpdaterLock.MAX_LOCKS_PER_THREAD); // Don't call lock.lock() in a loop, it'd take too long
+                assertEquals(ReentrantUpdaterLock.MAX_LOCKS_PER_THREAD, lock.getHoldCount());
+                assertThrows(IllegalStateException.class, () -> lock.lock());
+                assertThrows(IllegalStateException.class, () -> lock.lockInterruptibly());
+                assertFalse(lock.tryLock());
+                assertFalse(lock.tryLock(0, TimeUnit.SECONDS));
+                assertEquals(ReentrantUpdaterLock.MAX_LOCKS_PER_THREAD, lock.getHoldCount());
+            } catch (Exception e) {
+                cf.completeExceptionally(e);
+                return;
+            }
+            cf.complete(null);
+        }).start();
+        cf.get(5, TimeUnit.SECONDS);
     }
 
     private Thread setTimeout(AtomicBoolean interrupted, AtomicBoolean shouldStop) {

@@ -16,6 +16,7 @@ import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent.Action;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.SyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
@@ -96,7 +97,7 @@ public final class DatabaseManager implements Closeable {
     /**
      * Lock to acquire in order to avoid team and progression updates in <i>async</i> code.
      * <p>Please note that <strong>using this lock on the main thread is useless</strong>
-     * and trying to use it will throw an {@link IllegalStateException}.
+     * and trying to use it will throw a {@link SyncExecutionException}.
      *
      * @see ReentrantUpdaterLock
      * @since 3.0.0
