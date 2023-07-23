@@ -89,10 +89,10 @@ public final class TeamProgression {
     }
 
     /**
-     * Gets the progression of the provided advancement for the team.
+     * Gets the progression of the provided advancement for this team.
      *
      * @param advancement The advancement.
-     * @return The current progression of the team for the provided advancement.
+     * @return The current progression of this team for the provided advancement.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int getProgression(@NotNull Advancement advancement) {
@@ -109,7 +109,25 @@ public final class TeamProgression {
         }
     }
 
-    int getRawProgression(@NotNull AdvancementKey key) {
+    /**
+     * Gets the <i>raw</i> progression associated with the provided {@link AdvancementKey} for this team; that is,
+     * the progression taken from the cache/database without further processing (except when no value is stored for a
+     * specific key, then {@code 0} is returned).
+     * <p>For this reason, this method may return a value greater than the maximum progression of the {@link Advancement}
+     * associated with the provided key, or even return a positive value for a key which doesn't belong to any
+     * {@link Advancement} instance.
+     * <p>This method is more low-level than {@link #getProgression(Advancement)}. For this reason, it should almost
+     * always be preferred to use {@link #getProgression(Advancement)} instead of this method.
+     * <br>The reason for this method's existence is that an instance of {@link Advancement} is not always available, so
+     * it is not possible to use the other method in such cases.
+     * <p>If a value inside the range {@code [0, maxProgression]} (inclusive) is needed, the method
+     * {@link #getProgression(Advancement)} should be used instead.
+     *
+     * @param key The {@link AdvancementKey} of the advancement.
+     * @return The raw progression associated with the provided {@link AdvancementKey}.
+     */
+    @Range(from = 0, to = Integer.MAX_VALUE)
+    public int getRawProgression(@NotNull AdvancementKey key) {
         Preconditions.checkNotNull(key, "AdvancementKey is null.");
 
         Integer progression = advancements.get(key);
