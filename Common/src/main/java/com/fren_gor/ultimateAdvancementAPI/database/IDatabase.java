@@ -99,8 +99,10 @@ public interface IDatabase {
      *
      * @param uuid The player {@link UUID}.
      * @param name The player name.
-     * @return A pair containing a (always new) {@link TeamProgression} with the player team information and
-     *         whether the player has been registered (so it was not found in the database).
+     * @return A pair containing a (always new) {@link TeamProgression} with the player's team information and
+     *         whether the player has been registered (so whether it wasn't already in the database).
+     *         In the latter case, the returned {@link TeamProgression} doesn't contain the player although in the
+     *         database the player is already in the team (this allows an easier implementation of PlayerRegisteredEvent).
      * @throws SQLException If an SQL exception occurs.
      */
     Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @NotNull String name) throws SQLException;
@@ -216,6 +218,8 @@ public interface IDatabase {
 
     /**
      * Moves a player in a new team and returns the {@link TeamProgression} of the new team.
+     * The {@link TeamProgression} of the new team doesn't contain the player although in the
+     * database the player is already in the new team (this allows an easier implementation of PlayerRegisteredEvent).
      *
      * @param player The player to be moved apart from their team.
      * @return The {@link TeamProgression} of the new team.
@@ -227,6 +231,8 @@ public interface IDatabase {
 
     /**
      * Moves a player in a new team and returns the {@link TeamProgression} of the new team.
+     * The {@link TeamProgression} of the new team doesn't contain the player although in the
+     * database the player is already in the new team (this allows an easier implementation of PlayerRegisteredEvent).
      *
      * @param uuid The {@link UUID} of the player to be moved apart from their team.
      * @return The {@link TeamProgression} of the new team.

@@ -1,7 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.events.team;
 
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -12,46 +11,46 @@ import java.util.UUID;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
- * Called synchronously before a team member leaves or after they join a team.
+ * Called synchronously after a player switches team.
  *
  * @since 3.0.0
  */
 public class TeamUpdateEvent extends Event {
 
-    /**
-     * The action that occurred.
-     * <p>When a player moves in another team, an {@link Action#LEAVE} is always called before an {@link Action#JOIN}.
-     */
-    public enum Action {
-        JOIN, LEAVE;
-    }
-
-    private final TeamProgression team;
+    private final TeamProgression oldTeam, newTeam;
     private final UUID playerUUID;
-    private final Action action;
 
     /**
      * Creates a new {@code AsyncTeamUpdateEvent}.
      *
-     * @param team The {@link TeamProgression} of the player's team. It must be valid (see {@link TeamProgression#isValid()}).
+     * @param oldTeam The {@link TeamProgression} of the old player's team. It must be valid (see {@link TeamProgression#isValid()}).
+     * @param newTeam The {@link TeamProgression} of the new player's team. It must be valid (see {@link TeamProgression#isValid()}).
      * @param playerUUID The {@link UUID} of the player.
-     * @param action The {@link Action} of the update.
      */
-    public TeamUpdateEvent(@NotNull TeamProgression team, @NotNull UUID playerUUID, @NotNull Action action) {
-        super(!Bukkit.isPrimaryThread());
-        this.team = validateTeamProgression(team);
+    public TeamUpdateEvent(@NotNull TeamProgression oldTeam, @NotNull TeamProgression newTeam, @NotNull UUID playerUUID) {
+        this.oldTeam = validateTeamProgression(Objects.requireNonNull(oldTeam, "OldTeam is null."));
+        this.newTeam = validateTeamProgression(Objects.requireNonNull(newTeam, "NewTeam is null."));
         this.playerUUID = Objects.requireNonNull(playerUUID, "UUID is null.");
-        this.action = Objects.requireNonNull(action, "Action is null.");
     }
 
     /**
-     * Gets the {@link TeamProgression} of the player's team.
+     * Gets the old {@link TeamProgression} of the player's team.
      *
-     * @return The {@link TeamProgression} of the player's team.
+     * @return The old {@link TeamProgression} of the player's team.
      */
     @NotNull
-    public TeamProgression getTeamProgression() {
-        return team;
+    public TeamProgression getOldTeamProgression() {
+        return oldTeam;
+    }
+
+    /**
+     * Gets the new {@link TeamProgression} of the player's team.
+     *
+     * @return The new {@link TeamProgression} of the player's team.
+     */
+    @NotNull
+    public TeamProgression getNewTeamProgression() {
+        return newTeam;
     }
 
     /**
@@ -62,16 +61,6 @@ public class TeamUpdateEvent extends Event {
     @NotNull
     public UUID getPlayerUUID() {
         return playerUUID;
-    }
-
-    /**
-     * Gets the {@link Action} of the update.
-     *
-     * @return The {@link Action} of the update.
-     */
-    @NotNull
-    public Action getAction() {
-        return action;
     }
 
     private static final HandlerList handlers = new HandlerList();
@@ -89,9 +78,9 @@ public class TeamUpdateEvent extends Event {
     @Override
     public String toString() {
         return "TeamUpdateEvent{" +
-                "team=" + team +
+                "oldTeam=" + oldTeam +
+                ", newTeam=" + newTeam +
                 ", playerUUID=" + playerUUID +
-                ", action=" + action +
                 '}';
     }
 
@@ -102,16 +91,16 @@ public class TeamUpdateEvent extends Event {
 
         TeamUpdateEvent that = (TeamUpdateEvent) o;
 
-        if (!team.equals(that.team)) return false;
-        if (!playerUUID.equals(that.playerUUID)) return false;
-        return action == that.action;
+        if (!oldTeam.equals(that.oldTeam)) return false;
+        if (!newTeam.equals(that.newTeam)) return false;
+        return playerUUID.equals(that.playerUUID);
     }
 
     @Override
     public int hashCode() {
-        int result = team.hashCode();
+        int result = oldTeam.hashCode();
+        result = 31 * result + newTeam.hashCode();
         result = 31 * result + playerUUID.hashCode();
-        result = 31 * result + action.hashCode();
         return result;
     }
 }

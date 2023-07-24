@@ -10,8 +10,14 @@ import java.util.UUID;
 
 public final class TeamProgressionFactory {
 
+    public static TeamProgression createTeamProgression(int teamId) {
+        return new TeamProgression(teamId);
+    }
+
     public static TeamProgression createTeamProgression(int teamId, @NotNull UUID member) {
-        return new TeamProgression(teamId, member);
+        TeamProgression pro = new TeamProgression(teamId);
+        pro.addMember(member);
+        return pro;
     }
 
     public static TeamProgression createTeamProgression(int teamId, @NotNull Map<AdvancementKey, Integer> advancements, @NotNull Collection<UUID> members) {

@@ -31,6 +31,13 @@ public class TeamProgressionTest {
     }
 
     @Test
+    void emptyTeamTest() {
+        TeamProgression pro = TeamProgressionFactory.createTeamProgression(0);
+        assertEquals(0, pro.getSize());
+        assertNull(pro.getAMember());
+    }
+
+    @Test
     void creationTest() {
         PlayerMock player1 = server.addPlayer();
         PlayerMock player2 = server.addPlayer();

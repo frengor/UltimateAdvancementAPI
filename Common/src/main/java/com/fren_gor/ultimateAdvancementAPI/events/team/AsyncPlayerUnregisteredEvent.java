@@ -10,10 +10,10 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Called after a player has been unregistered.
+ * Called after a player is unregistered.
  * <p>May be called asynchronously.
  *
- * @see DatabaseManager
+ * @see DatabaseManager#unregisterOfflinePlayer(UUID)
  * @since 2.2.0
  */
 public class AsyncPlayerUnregisteredEvent extends Event {

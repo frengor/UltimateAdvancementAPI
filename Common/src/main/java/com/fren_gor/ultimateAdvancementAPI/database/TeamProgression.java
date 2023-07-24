@@ -41,23 +41,20 @@ public final class TeamProgression {
     private final Map<AdvancementKey, Integer> advancements;
 
     /**
-     * Creates a new TeamProgression for a team with one player in it.
+     * Creates a new TeamProgression for an empty team.
      * <p><strong>Note:</strong> TeamProgression should be instantiated only by database-related classes.
      * Any illegal instantiation will throw an {@link IllegalOperationException}.
      *
      * @param teamId The team id.
-     * @param member The member of the team.
      * @throws IllegalOperationException If this constructor is called by a class not in the
      *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
      */
     @Internal
-    public TeamProgression(int teamId, @NotNull UUID member) {
+    public TeamProgression(int teamId) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
-        Preconditions.checkNotNull(member, "Member is null.");
         this.advancements = new ConcurrentHashMap<>();
         this.teamId = teamId;
         players = new HashSet<>();
-        players.add(member);
     }
 
     /**

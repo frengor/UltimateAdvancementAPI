@@ -238,7 +238,7 @@ public class MySQL implements IDatabase {
                         psInsertPl.setString(2, name);
                         psInsertPl.setInt(3, teamId);
                         psInsertPl.execute();
-                        return new SimpleEntry<>(new TeamProgression(teamId, uuid), true);
+                        return new SimpleEntry<>(new TeamProgression(teamId), true);
                     }
                 }
 
@@ -446,7 +446,7 @@ public class MySQL implements IDatabase {
             }
             int teamId = r.getInt(1);
             movePlayer(conn, uuid, teamId);
-            return new TeamProgression(teamId, uuid);
+            return new TeamProgression(teamId);
         }
     }
 

@@ -45,9 +45,19 @@ public class InMemoryTest {
     void inMemoryTest() throws Exception {
         UUID uuid = UUID.randomUUID();
         var res = db.loadOrRegisterPlayer(uuid, "Dummy");
-        assertTrue(res.getKey().contains(uuid));
-        assertTrue(res.getKey().everyMemberMatch(u -> u.equals(uuid)));
+        assertEquals(0, res.getKey().getSize());
+        assertFalse(res.getKey().contains(uuid));
+        assertTrue(res.getKey().noMemberMatch(u -> u.equals(uuid)));
         assertTrue(res.getValue()); // This is a new team
+
+        {
+            TeamProgression loaded = db.loadUUID(uuid);
+            assertEquals(res.getKey().getTeamId(), loaded.getTeamId());
+            assertTrue(loaded.contains(uuid));
+        }
+
+        res.getKey().addMember(uuid);
+        assertTrue(res.getKey().contains(uuid));
 
         AdvancementKey key = new AdvancementKey("test", "adv");
         db.updateAdvancement(key, res.getKey().getTeamId(), 10);
@@ -66,6 +76,7 @@ public class InMemoryTest {
         UUID uuid = UUID.randomUUID();
         var loadResult = db.loadOrRegisterPlayer(uuid, "Dummy");
         TeamProgression progression = loadResult.getKey();
+        progression.addMember(uuid);
 
         final AdvancementKey key1 = new AdvancementKey("dummy", "adv1");
         final AdvancementKey key2 = new AdvancementKey("dummy", "adv2");
