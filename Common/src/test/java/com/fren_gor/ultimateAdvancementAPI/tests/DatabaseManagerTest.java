@@ -1,10 +1,12 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.MockPlugin;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
+import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl;
 import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl.DBOperation;
@@ -14,7 +16,10 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.team.PlayerRegisteredEvent;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import org.jetbrains.annotations.Contract;
@@ -25,6 +30,13 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -328,6 +340,64 @@ public class DatabaseManagerTest {
         p.disconnect();
     }
 
+    @Test
+    void loadOfflinePlayerTest() throws Exception {
+        PlayerMock p = loadPlayer();
+        TeamProgression trueTeam = databaseManager.getTeamProgression(p);
+        disconnectPlayer(p);
+        MockPlugin plugin = MockBukkit.createMockPlugin();
+        TeamProgression team = waitCompletion(databaseManager.loadOfflinePlayer(p.getUniqueId(), plugin, CacheFreeingOption.MANUAL)).get();
+        assertEquals(1, databaseManager.getLoadingRequestsAmount(p.getUniqueId(), plugin, CacheFreeingOption.MANUAL));
+        assertEquals(trueTeam.getTeamId(), team.getTeamId());
+        assertEquals(1, trueTeam.getSize());
+        assertEquals(1, team.getSize());
+        assertTrue(trueTeam.everyMemberMatch(uuid -> p.getUniqueId().equals(uuid)));
+        assertTrue(team.everyMemberMatch(uuid -> p.getUniqueId().equals(uuid)));
+        databaseManager.unloadOfflinePlayer(p.getUniqueId(), plugin);
+        assertThrows(UserNotLoadedException.class, () -> databaseManager.getLoadingRequestsAmount(p.getUniqueId(), plugin, CacheFreeingOption.MANUAL));
+    }
+
+    @Test
+    void loadOfflinePlayerWithFailureTest() throws Exception {
+        PlayerMock p = loadPlayer();
+        disconnectPlayer(p);
+        MockPlugin plugin = MockBukkit.createMockPlugin();
+        fallible.setFallibleOps(DBOperation.LOAD_UUID);
+        fallible.addToPlanning(false);
+        assertTrue(waitCompletion(databaseManager.loadOfflinePlayer(p.getUniqueId(), plugin, CacheFreeingOption.MANUAL)).isCompletedExceptionally());
+        assertThrows(UserNotLoadedException.class, () -> databaseManager.getTeamProgression(p.getUniqueId()));
+        assertThrows(UserNotLoadedException.class, () -> databaseManager.getLoadingRequestsAmount(p.getUniqueId(), plugin, CacheFreeingOption.MANUAL));
+    }
+
+    @Test
+    void registeredEventTest() throws Exception {
+        final Object listener = new Object();
+        final EventManager manager = advancementMain.getEventManager();
+        final List<Entry<UUID, TeamProgression>> registeredPlayers = Collections.synchronizedList(new ArrayList<>());
+
+        try {
+            manager.register(listener, AsyncTeamLoadEvent.class, event -> {
+                registeredPlayers.add(new SimpleEntry<>(null, event.getTeamProgression())); // Using SimpleEntry since UUID is null
+            });
+            manager.register(listener, PlayerRegisteredEvent.class, event -> {
+                registeredPlayers.add(Map.entry(event.getPlayerUUID(), event.getTeamProgression()));
+            });
+
+            PlayerMock p = loadPlayer();
+            synchronized (registeredPlayers) {
+                assertEquals(2, registeredPlayers.size());
+                var entry1 = registeredPlayers.get(0);
+                var entry2 = registeredPlayers.get(1);
+                assertNull(entry1.getKey());
+                assertNotNull(entry2.getKey());
+                assertEquals(entry1.getValue(), entry2.getValue());
+                assertEquals(p.getUniqueId(), entry2.getKey());
+            }
+        } finally {
+            manager.unregister(listener);
+        }
+    }
+
     private PlayerMock loadPlayer() {
         CompletableFuture<Void> finished = new CompletableFuture<>();
         AtomicBoolean skip = new AtomicBoolean(false);
@@ -379,7 +449,9 @@ public class DatabaseManagerTest {
         return p;
     }
 
-    // Correct to use only if the player's team has only the player itself as member
+    /**
+     * Correct to use only if the player's team has only the player itself as member
+     */
     private void disconnectPlayer(PlayerMock player) {
         assertEquals(1, databaseManager.getTeamProgression(player).getSize(), "Incorrect usage of disconnectPlayer inside tests");
 
