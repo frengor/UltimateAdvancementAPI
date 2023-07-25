@@ -83,16 +83,21 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
  */
 public final class DatabaseManager implements Closeable {
 
+    // In this class using `synchronized (DatabaseManager.this) {...}` is to prefer over `synchronized (this) {...}`,
+    // since the latter can't be used inside lambdas, which are very commonly used in the code
+
     private static final int LOAD_EVENTS_DELAY = 3;
 
     // A single-thread executor is used to maintain executed queries sequential
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
+    private final EventManager eventManager;
+    private final IDatabase database; // Calls to the database must be done using the `executor` thread
+
+    // All this fields must be accessed inside a `synchronized (DatabaseManager.this) {...}` block
     private final AdvancementMain main;
     private final Map<Integer, LoadedTeam> teamsLoaded = new HashMap<>();
     private final Map<UUID, LoadedPlayer> playersLoaded = new HashMap<>();
-    private final EventManager eventManager;
-    private final IDatabase database;
 
     /**
      * Lock to acquire in order to avoid team and progression updates in <i>async</i> code.
@@ -285,7 +290,7 @@ public final class DatabaseManager implements Closeable {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        synchronized (this) {
+        synchronized (DatabaseManager.this) {
             teamsLoaded.forEach((u, t) -> t.getTeamProgression().inCache.set(false)); // Invalidate TeamProgression
             playersLoaded.clear();
             teamsLoaded.clear();
