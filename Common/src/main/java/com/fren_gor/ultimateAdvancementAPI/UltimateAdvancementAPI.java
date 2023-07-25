@@ -3,7 +3,6 @@ package com.fren_gor.ultimateAdvancementAPI;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
-import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.APINotInstantiatedException;
@@ -694,7 +693,7 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Returns whether the provided offline player is loaded into the caching system.
+     * Returns whether the provided player is loaded into the caching system.
      * <p>For more information about the caching system see {@link DatabaseManager}.
      *
      * @param uuid The {@link UUID} of the player.
@@ -705,168 +704,150 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Loads the provided offline player from the database into the caching system.
-     * <p>The offline player will be loaded manually (see {@link CacheFreeingOption#MANUAL}),
-     * so {@link #unloadOfflinePlayer(OfflinePlayer)} must be called to unload they.
+     * Loads the provided player from the database into the caching system (if they aren't already) and keeps they
+     * loaded until {@link #removeLoadingRequestToPlayer(Player)} is called.
+     * <p>Each time this method is called, the number of <i>loading requests</i> for the provided player is incremented
+     * by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToPlayer(Player)}, decrements by one
+     * the number of <i>loading requests</i> for the player every time it's called.
+     * <br>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
+     * this method can be used to make sure a player isn't unloaded, even if they were online and quit from the server.
+     * <p>To know how many <i>loading requests</i> are currently held for a player, the method
+     * {@link #getLoadingRequestsAmount(Player)} can be used.
      * <p>For more information about the caching system see {@link DatabaseManager}.
-     *
-     * @param player The offline player to load.
-     * @return A {@link CompletableFuture} which will complete with the loaded {@link TeamProgression} when the operation finishes.
-     */
-    public CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull OfflinePlayer player) {
-        return loadOfflinePlayer(uuidFromPlayer(player));
-    }
-
-    /**
-     * Loads the provided player from the database into the caching system.
-     * <p>The player will be loaded manually (see {@link CacheFreeingOption#MANUAL}),
-     * so {@link #unloadOfflinePlayer(UUID)} must be called to unload they.
-     * <p>For more information about the caching system see {@link DatabaseManager}.
-     *
-     * @param uuid The {@link UUID} of the player to load.
-     * @return A {@link CompletableFuture} which will complete with the loaded {@link TeamProgression} when the operation finishes.
-     */
-    public CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull UUID uuid) {
-        return loadOfflinePlayer(uuid, CacheFreeingOption.MANUAL, null);
-    }
-
-    /**
-     * Loads the provided offline player from the database without putting they into the caching system (see {@link CacheFreeingOption#DONT_CACHE}).
-     * <p>The loaded {@link TeamProgression} can be retrieved using the {@link Consumer} passed as parameter or the returned {@link CompletableFuture}.
-     * <p>For more information about the caching system see {@link DatabaseManager}.
-     *
-     * @param player The offline player to load.
-     * @param action A {@link Consumer} that is called synchronously after the operation, which provides the loaded {@link TeamProgression}.
-     *         If no code should be called, it can be put to {@code null}.
-     * @return A {@link CompletableFuture} which will complete with the loaded {@link TeamProgression} when the operation finishes.
-     */
-    public CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull OfflinePlayer player, @Nullable Consumer<TeamProgression> action) {
-        return loadOfflinePlayer(uuidFromPlayer(player), action);
-    }
-
-    /**
-     * Loads the provided player from the database without putting they into the caching system (see {@link CacheFreeingOption#DONT_CACHE}).
-     * <p>The loaded {@link TeamProgression} can be retrieved using the {@link Consumer} passed as parameter or the returned {@link CompletableFuture}.
-     * <p>For more information about the caching system see {@link DatabaseManager}.
-     *
-     * @param uuid The {@link UUID} of the player to load.
-     * @param action A {@link Consumer} that is called synchronously after the operation, which provides the loaded {@link TeamProgression}.
-     *         If no code should be called, it can be put to {@code null}.
-     * @return A {@link CompletableFuture} which will complete with the loaded {@link TeamProgression} when the operation finishes.
-     */
-    public CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull UUID uuid, @Nullable Consumer<TeamProgression> action) {
-        return loadOfflinePlayer(uuid, CacheFreeingOption.DONT_CACHE, action);
-    }
-
-    /**
-     * Loads the provided offline player from the database with the specified {@link CacheFreeingOption}.
-     * <p>The loaded {@link TeamProgression} can be retrieved using the {@link Consumer} passed as parameter or the returned {@link CompletableFuture}.
-     * <p>For more information about the {@link CacheFreeingOption} see {@link DatabaseManager#loadOfflinePlayer(UUID, Plugin, CacheFreeingOption)}.
-     * <p>For more information about the caching system see {@link DatabaseManager}.
-     *
-     * @param player The offline player to load.
-     * @param option The chosen {@link CacheFreeingOption}.
-     * @param action A {@link Consumer} that is called synchronously after the operation, which provides the loaded {@link TeamProgression}.
-     *         If no code should be called, it can be put to {@code null}.
-     * @return A {@link CompletableFuture} which will complete with the loaded {@link TeamProgression} when the operation finishes.
-     */
-    public CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull OfflinePlayer player, @NotNull CacheFreeingOption option, @Nullable Consumer<TeamProgression> action) {
-        return loadOfflinePlayer(uuidFromPlayer(player), option, action);
-    }
-
-    /**
-     * Loads the provided player from the database with the specified {@link CacheFreeingOption}.
-     * <p>The loaded {@link TeamProgression} can be retrieved using the {@link Consumer} passed as parameter or the returned {@link CompletableFuture}.
-     * <p>For more information about the {@link CacheFreeingOption} see {@link DatabaseManager#loadOfflinePlayer(UUID, Plugin, CacheFreeingOption)}.
-     * <p>For more information about the caching system see {@link DatabaseManager}.
-     *
-     * @param uuid The {@link UUID} of the player to load.
-     * @param option The chosen {@link CacheFreeingOption}.
-     * @param action A {@link Consumer} that is called synchronously after the operation, which provides the loaded {@link TeamProgression}.
-     *         If no code should be called, it can be put to {@code null}.
-     * @return A {@link CompletableFuture} which will complete with the loaded {@link TeamProgression} when the operation finishes.
-     */
-    public CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull UUID uuid, @NotNull CacheFreeingOption option, @Nullable Consumer<TeamProgression> action) {
-        return callSyncIfNotNull(getMain().getDatabaseManager().loadOfflinePlayer(uuid, plugin, option), action);
-    }
-
-    /**
-     * Returns whether at least one loading request is currently active for the specified offline player.
-     *
-     * @param player The offline player.
-     * @return Whether at least one loading request is currently active for the specified offline player.
-     */
-    public boolean isOfflinePlayerLoaded(@NotNull OfflinePlayer player) {
-        return isOfflinePlayerLoaded(uuidFromPlayer(player));
-    }
-
-    /**
-     * Returns whether at least one loading request is currently active for the specified player.
-     *
-     * @param uuid The {@link UUID} of the player.
-     * @return Whether at least one loading request is currently active for the specified player.
-     */
-    @Contract(pure = true, value = "null -> false")
-    public boolean isOfflinePlayerLoaded(UUID uuid) {
-        return getMain().getDatabaseManager().isOfflinePlayerLoaded(uuid, plugin);
-    }
-
-    /**
-     * Returns the number of currently active loading requests for the specified player with the provided {@link CacheFreeingOption}.
      *
      * @param player The player.
-     * @param type The {@link CacheFreeingOption}.
-     * @return The number of the currently active player loading requests.
-     * @see DatabaseManager#getLoadingRequestsAmount(UUID, Plugin, CacheFreeingOption)
+     * @return A {@link CompletableFuture} which will complete with the player team's {@link TeamProgression}.
+     * @see DatabaseManager#loadAndAddLoadingRequestToPlayer(UUID, Plugin)
+     * @see #removeLoadingRequestToPlayer(UUID)
+     * @see #getLoadingRequestsAmount(UUID)
      */
-    public int getLoadingRequestsAmount(@NotNull Player player, @NotNull CacheFreeingOption type) {
-        return getLoadingRequestsAmount(uuidFromPlayer(player), type);
+    public CompletableFuture<TeamProgression> loadAndAddLoadingRequestToPlayer(@NotNull Player player) {
+        return loadAndAddLoadingRequestToPlayer(uuidFromPlayer(player));
     }
 
     /**
-     * Returns the number of currently active loading requests for the specified offline player with the provided {@link CacheFreeingOption}.
+     * Loads the provided player from the database into the caching system (if they aren't already) and keeps they
+     * loaded until {@link #removeLoadingRequestToPlayer(OfflinePlayer)} is called.
+     * <p>Each time this method is called, the number of <i>loading requests</i> for the provided player is incremented
+     * by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToPlayer(OfflinePlayer)}, decrements by one
+     * the number of <i>loading requests</i> for the player every time it's called.
+     * <br>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
+     * this method can be used to make sure a player isn't unloaded, even if they were online and quit from the server.
+     * <p>To know how many <i>loading requests</i> are currently held for a player, the method
+     * {@link #getLoadingRequestsAmount(OfflinePlayer)} can be used.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param offlinePlayer The offline player.
-     * @param type The {@link CacheFreeingOption}.
-     * @return The number of the currently active player loading requests.
-     * @see DatabaseManager#getLoadingRequestsAmount(UUID, Plugin, CacheFreeingOption)
+     * @param player The player.
+     * @return A {@link CompletableFuture} which will complete with the player team's {@link TeamProgression}.
+     * @see DatabaseManager#loadAndAddLoadingRequestToPlayer(UUID, Plugin)
+     * @see #removeLoadingRequestToPlayer(UUID)
+     * @see #getLoadingRequestsAmount(UUID)
      */
-    public int getLoadingRequestsAmount(@NotNull OfflinePlayer offlinePlayer, @NotNull CacheFreeingOption type) {
-        return getLoadingRequestsAmount(uuidFromPlayer(offlinePlayer), type);
+    public CompletableFuture<TeamProgression> loadAndAddLoadingRequestToPlayer(@NotNull OfflinePlayer player) {
+        return loadAndAddLoadingRequestToPlayer(uuidFromPlayer(player));
     }
 
     /**
-     * Returns the number of currently active loading requests for the specified player with the provided {@link CacheFreeingOption}.
+     * Loads the provided player from the database into the caching system (if they aren't already) and keeps they
+     * loaded until {@link #removeLoadingRequestToPlayer(UUID)} is called.
+     * <p>Each time this method is called, the number of <i>loading requests</i> for the provided player is incremented
+     * by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToPlayer(UUID)}, decrements by one
+     * the number of <i>loading requests</i> for the player every time it's called.
+     * <br>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
+     * this method can be used to make sure a player isn't unloaded, even if they were online and quit from the server.
+     * <p>To know how many <i>loading requests</i> are currently held for a player, the method
+     * {@link #getLoadingRequestsAmount(UUID)} can be used.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
      *
      * @param uuid The {@link UUID} of the player.
-     * @param type The {@link CacheFreeingOption}.
-     * @return The number of the currently active player loading requests.
-     * @see DatabaseManager#getLoadingRequestsAmount(UUID, Plugin, CacheFreeingOption)
+     * @return A {@link CompletableFuture} which will complete with the player team's {@link TeamProgression}.
+     * @see DatabaseManager#loadAndAddLoadingRequestToPlayer(UUID, Plugin)
+     * @see #removeLoadingRequestToPlayer(UUID)
+     * @see #getLoadingRequestsAmount(UUID)
      */
-    public int getLoadingRequestsAmount(@NotNull UUID uuid, @NotNull CacheFreeingOption type) {
-        return getMain().getDatabaseManager().getLoadingRequestsAmount(uuid, plugin, type);
+    public CompletableFuture<TeamProgression> loadAndAddLoadingRequestToPlayer(@NotNull UUID uuid) {
+        return getMain().getDatabaseManager().loadAndAddLoadingRequestToPlayer(uuid, plugin);
     }
 
     /**
-     * Removes one manual caching request for the provided offline player. If the counter reaches zero, they will be unloaded from the caching system.
-     * <p>Note that this method will only unload players loaded with {@link CacheFreeingOption#MANUAL}.
+     * Counterpart of {@link #loadAndAddLoadingRequestToPlayer(Player)}. Decrements by one the <i>loading requests</i>
+     * count for the provided player.
+     * <p>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
+     * if after the decrement (done by this method) the total amount of <i>loading requests</i> drops to {@code 0}, the
+     * caching system becomes able to unload the player at any time as soon as it can (for example, the player cannot be
+     * unloaded if they are online).
      * <p>For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param player The player to unload.
+     * @param player The player.
+     * @see DatabaseManager#removeLoadingRequestToPlayer(UUID, Plugin)
      */
-    public void unloadOfflinePlayer(@NotNull OfflinePlayer player) {
-        unloadOfflinePlayer(uuidFromPlayer(player));
+    public void removeLoadingRequestToPlayer(@NotNull Player player) {
+        removeLoadingRequestToPlayer(uuidFromPlayer(player));
     }
 
     /**
-     * Removes one manual caching request for the provided player. If the counter reaches zero, they will be unloaded from the caching system.
-     * <p>Note that this method will only unload players loaded with {@link CacheFreeingOption#MANUAL}.
+     * Counterpart of {@link #loadAndAddLoadingRequestToPlayer(UUID)}. Decrements by one the <i>loading requests</i>
+     * count for the provided player.
+     * <p>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
+     * if after the decrement (done by this method) the total amount of <i>loading requests</i> drops to {@code 0}, the
+     * caching system becomes able to unload the player at any time as soon as it can (for example, the player cannot be
+     * unloaded if they are online).
      * <p>For more information about the caching system see {@link DatabaseManager}.
      *
-     * @param uuid The {@link UUID} of the player to unload.
+     * @param player The player.
+     * @see DatabaseManager#removeLoadingRequestToPlayer(UUID, Plugin)
      */
-    public void unloadOfflinePlayer(@NotNull UUID uuid) {
-        getMain().getDatabaseManager().unloadOfflinePlayer(uuid, plugin);
+    public void removeLoadingRequestToPlayer(@NotNull OfflinePlayer player) {
+        removeLoadingRequestToPlayer(uuidFromPlayer(player));
+    }
+
+    /**
+     * Counterpart of {@link #loadAndAddLoadingRequestToPlayer(UUID)}. Decrements by one the <i>loading requests</i>
+     * count for the provided player.
+     * <p>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
+     * if after the decrement (done by this method) the total amount of <i>loading requests</i> drops to {@code 0}, the
+     * caching system becomes able to unload the player at any time as soon as it can (for example, the player cannot be
+     * unloaded if they are online).
+     * <p>For more information about the caching system see {@link DatabaseManager}.
+     *
+     * @param uuid The {@link UUID} of the player.
+     * @see DatabaseManager#removeLoadingRequestToPlayer(UUID, Plugin)
+     */
+    public void removeLoadingRequestToPlayer(@NotNull UUID uuid) {
+        getMain().getDatabaseManager().removeLoadingRequestToPlayer(uuid, plugin);
+    }
+
+    /**
+     * Returns the number of <i>loading requests</i> currently held for the specified player.
+     *
+     * @param player The player.
+     * @return The number of <i>loading requests</i> currently held for the specified player.
+     * @see DatabaseManager#getLoadingRequestsAmount(Player, Plugin)
+     */
+    public int getLoadingRequestsAmount(@NotNull Player player) {
+        return getLoadingRequestsAmount(uuidFromPlayer(player));
+    }
+
+    /**
+     * Returns the number of <i>loading requests</i> currently held for the specified player.
+     *
+     * @param offlinePlayer The player.
+     * @return The number of <i>loading requests</i> currently held for the specified player.
+     * @see DatabaseManager#getLoadingRequestsAmount(OfflinePlayer, Plugin)
+     */
+    public int getLoadingRequestsAmount(@NotNull OfflinePlayer offlinePlayer) {
+        return getLoadingRequestsAmount(uuidFromPlayer(offlinePlayer));
+    }
+
+    /**
+     * Returns the number of <i>loading requests</i> currently held for the specified player.
+     *
+     * @param uuid The {@link UUID} of the player.
+     * @return The number of <i>loading requests</i> currently held for the specified player.
+     * @see DatabaseManager#getLoadingRequestsAmount(UUID, Plugin)
+     */
+    public int getLoadingRequestsAmount(@NotNull UUID uuid) {
+        return getMain().getDatabaseManager().getLoadingRequestsAmount(uuid, plugin);
     }
 
     /**
@@ -904,7 +885,7 @@ public final class UltimateAdvancementAPI {
         final DatabaseManager ds = getMain().getDatabaseManager();
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
 
-        ds.loadOfflinePlayer(uuid, plugin, CacheFreeingOption.MANUAL).handleAsync((progression, exception) -> {
+        ds.loadAndAddLoadingRequestToPlayer(uuid, plugin).handleAsync((progression, exception) -> {
             if (exception != null) {
                 completableFuture.completeExceptionally(exception);
                 new RuntimeException("An exception occurred while loading user " + uuid + ':', exception.getCause()).printStackTrace();
@@ -913,7 +894,7 @@ public final class UltimateAdvancementAPI {
                     if (exc != null) {
                         completableFuture.completeExceptionally(exc);
                         new RuntimeException("An exception occurred while calling API method:", exc).printStackTrace();
-                        ds.unloadOfflinePlayer(uuid, plugin);
+                        ds.removeLoadingRequestToPlayer(uuid, plugin);
                     } else {
                         completableFuture.complete(res);
                         if (action != null) {
@@ -924,11 +905,11 @@ public final class UltimateAdvancementAPI {
                                 } catch (Exception t) {
                                     new RuntimeException("An exception occurred while calling " + plugin.getName() + "'s Consumer:", t).printStackTrace();
                                 } finally {
-                                    ds.unloadOfflinePlayer(uuid, plugin);
+                                    ds.removeLoadingRequestToPlayer(uuid, plugin);
                                 }
                             });
                         } else {
-                            ds.unloadOfflinePlayer(uuid, plugin);
+                            ds.removeLoadingRequestToPlayer(uuid, plugin);
                         }
                     }
                     return null;
@@ -952,12 +933,12 @@ public final class UltimateAdvancementAPI {
         final DatabaseManager ds = getMain().getDatabaseManager();
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
 
-        ds.loadOfflinePlayer(uuid1, plugin, CacheFreeingOption.MANUAL).handleAsync((progression1, lexc1) -> {
+        ds.loadAndAddLoadingRequestToPlayer(uuid1, plugin).handleAsync((progression1, lexc1) -> {
             if (lexc1 != null) {
                 completableFuture.completeExceptionally(lexc1);
                 new RuntimeException("An exception occurred while loading 1st user " + uuid1 + ':', lexc1.getCause()).printStackTrace();
             } else {
-                ds.loadOfflinePlayer(uuid2, plugin, CacheFreeingOption.MANUAL).handleAsync((progression2, lexc2) -> {
+                ds.loadAndAddLoadingRequestToPlayer(uuid2, plugin).handleAsync((progression2, lexc2) -> {
                     if (lexc2 != null) {
                         completableFuture.completeExceptionally(lexc2);
                         new RuntimeException("An exception occurred while loading 2nd user " + uuid2 + ':', lexc2.getCause()).printStackTrace();
@@ -966,8 +947,8 @@ public final class UltimateAdvancementAPI {
                             if (exception != null) {
                                 completableFuture.completeExceptionally(exception);
                                 new RuntimeException("An exception occurred while calling API method:", exception).printStackTrace();
-                                ds.unloadOfflinePlayer(uuid1, plugin);
-                                ds.unloadOfflinePlayer(uuid2, plugin);
+                                ds.removeLoadingRequestToPlayer(uuid1, plugin);
+                                ds.removeLoadingRequestToPlayer(uuid2, plugin);
                             } else {
                                 completableFuture.complete(res);
                                 if (action != null) {
@@ -978,13 +959,13 @@ public final class UltimateAdvancementAPI {
                                         } catch (Exception t) {
                                             new RuntimeException("An exception occurred while calling " + plugin.getName() + "'s Consumer:", t).printStackTrace();
                                         } finally {
-                                            ds.unloadOfflinePlayer(uuid1, plugin);
-                                            ds.unloadOfflinePlayer(uuid2, plugin);
+                                            ds.removeLoadingRequestToPlayer(uuid1, plugin);
+                                            ds.removeLoadingRequestToPlayer(uuid2, plugin);
                                         }
                                     });
                                 } else {
-                                    ds.unloadOfflinePlayer(uuid1, plugin);
-                                    ds.unloadOfflinePlayer(uuid2, plugin);
+                                    ds.removeLoadingRequestToPlayer(uuid1, plugin);
+                                    ds.removeLoadingRequestToPlayer(uuid2, plugin);
                                 }
                             }
                             return null;

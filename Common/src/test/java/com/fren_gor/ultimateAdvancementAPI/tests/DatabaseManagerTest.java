@@ -6,7 +6,6 @@ import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
-import com.fren_gor.ultimateAdvancementAPI.database.CacheFreeingOption;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl;
 import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl.DBOperation;
@@ -341,32 +340,32 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    void loadOfflinePlayerTest() throws Exception {
+    void loadAndAddLoadingRequestToPlayerTest() throws Exception {
         PlayerMock p = loadPlayer();
         TeamProgression trueTeam = databaseManager.getTeamProgression(p);
         disconnectPlayer(p);
         MockPlugin plugin = MockBukkit.createMockPlugin();
-        TeamProgression team = waitCompletion(databaseManager.loadOfflinePlayer(p.getUniqueId(), plugin, CacheFreeingOption.MANUAL)).get();
-        assertEquals(1, databaseManager.getLoadingRequestsAmount(p.getUniqueId(), plugin, CacheFreeingOption.MANUAL));
+        TeamProgression team = waitCompletion(databaseManager.loadAndAddLoadingRequestToPlayer(p.getUniqueId(), plugin)).get();
+        assertEquals(1, databaseManager.getLoadingRequestsAmount(p.getUniqueId(), plugin));
         assertEquals(trueTeam.getTeamId(), team.getTeamId());
         assertEquals(1, trueTeam.getSize());
         assertEquals(1, team.getSize());
         assertTrue(trueTeam.everyMemberMatch(uuid -> p.getUniqueId().equals(uuid)));
         assertTrue(team.everyMemberMatch(uuid -> p.getUniqueId().equals(uuid)));
-        databaseManager.unloadOfflinePlayer(p.getUniqueId(), plugin);
-        assertThrows(UserNotLoadedException.class, () -> databaseManager.getLoadingRequestsAmount(p.getUniqueId(), plugin, CacheFreeingOption.MANUAL));
+        databaseManager.removeLoadingRequestToPlayer(p.getUniqueId(), plugin);
+        assertEquals(0,databaseManager.getLoadingRequestsAmount(p.getUniqueId(), plugin));
     }
 
     @Test
-    void loadOfflinePlayerWithFailureTest() throws Exception {
+    void loadAndAddLoadingRequestToPlayerWithFailureTest() throws Exception {
         PlayerMock p = loadPlayer();
         disconnectPlayer(p);
         MockPlugin plugin = MockBukkit.createMockPlugin();
         fallible.setFallibleOps(DBOperation.LOAD_UUID);
         fallible.addToPlanning(false);
-        assertTrue(waitCompletion(databaseManager.loadOfflinePlayer(p.getUniqueId(), plugin, CacheFreeingOption.MANUAL)).isCompletedExceptionally());
+        assertTrue(waitCompletion(databaseManager.loadAndAddLoadingRequestToPlayer(p.getUniqueId(), plugin)).isCompletedExceptionally());
+        assertEquals(0,databaseManager.getLoadingRequestsAmount(p.getUniqueId(), plugin));
         assertThrows(UserNotLoadedException.class, () -> databaseManager.getTeamProgression(p.getUniqueId()));
-        assertThrows(UserNotLoadedException.class, () -> databaseManager.getLoadingRequestsAmount(p.getUniqueId(), plugin, CacheFreeingOption.MANUAL));
     }
 
     @Test

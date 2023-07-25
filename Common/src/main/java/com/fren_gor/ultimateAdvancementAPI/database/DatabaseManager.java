@@ -77,7 +77,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
  *    assert teamP1 != teamP2;
  * }</pre></blockquote>
  * By default, players are kept in cache until they quit.
- * However, this behavior can be overridden through the {@link #loadOfflinePlayer(UUID, Plugin, CacheFreeingOption)} method,
+ * However, this behavior can be overridden through the {@link #loadAndAddLoadingRequestToPlayer(UUID, Plugin)} method,
  * which forces a player to stay in cache even if they quit. If the player is not online, they'll be loaded.
  * <p>This class is thread safe.
  */
@@ -959,98 +959,6 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Returns whether the provided player is loaded into the cache.
-     *
-     * @param player The player.
-     * @return Whether the provided player is loaded into the cache.
-     * @see UltimateAdvancementAPI#isLoaded(Player)
-     */
-    @Contract(pure = true)
-    public boolean isLoaded(@NotNull Player player) {
-        return isLoaded(uuidFromPlayer(player));
-    }
-
-    /**
-     * Returns whether the provided offline player is loaded into the cache.
-     *
-     * @param player The player.
-     * @return Whether the provided offline player is loaded into the cache.
-     * @see UltimateAdvancementAPI#isLoaded(OfflinePlayer)
-     */
-    @Contract(pure = true)
-    public boolean isLoaded(@NotNull OfflinePlayer player) {
-        return isLoaded(uuidFromPlayer(player));
-    }
-
-    /**
-     * Returns whether the provided player is loaded into the cache.
-     *
-     * @param uuid The {@link UUID} of the player.
-     * @return Whether the provided player is loaded into the cache.
-     * @see UltimateAdvancementAPI#isLoaded(UUID)
-     */
-    @Contract(pure = true, value = "null -> false")
-    public synchronized boolean isLoaded(UUID uuid) {
-        LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
-        return loadedPlayer != null && loadedPlayer.getPlayerTeam() != null;
-    }
-
-    /**
-     * Returns whether the provided player is online and loaded into the cache.
-     *
-     * @param player The player.
-     * @return Whether the provided player is online and loaded into the cache.
-     */
-    @Contract(pure = true)
-    public boolean isLoadedAndOnline(@NotNull Player player) {
-        return isLoadedAndOnline(uuidFromPlayer(player));
-    }
-
-    /**
-     * Returns whether the provided player is online and loaded into the cache.
-     *
-     * @param uuid The {@link UUID} of the player.
-     * @return Whether the provided player is online and loaded into the cache.
-     */
-    @Contract(pure = true, value = "null -> false")
-    public synchronized boolean isLoadedAndOnline(UUID uuid) {
-        LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
-        return loadedPlayer != null && loadedPlayer.getPlayerTeam() != null && loadedPlayer.isOnline();
-    }
-
-    /**
-     * Returns the number of currently active loading requests done by a plugin for the specified player with the provided {@link CacheFreeingOption}.
-     * Since <a href="./CacheFreeingOption.Option.html#DONT_CACHE"><code>CacheFreeingOption.Option#DONT_CACHE</code></a> doesn't cache, this method
-     * always returns {@code 0} when {@link CacheFreeingOption#DONT_CACHE} is passed as parameter.
-     *
-     * @param uuid The {@link UUID} of the player.
-     * @param requester The plugin.
-     * @param type The {@link CacheFreeingOption}.
-     * @return The number of the currently active player loading requests.
-     */
-    @Contract(pure = true)
-    public int getLoadingRequestsAmount(@NotNull UUID uuid, @NotNull Plugin requester, @NotNull CacheFreeingOption type) {
-        Preconditions.checkNotNull(requester, "Plugin is null.");
-        Preconditions.checkNotNull(uuid, "UUID is null.");
-        Preconditions.checkNotNull(type, "CacheFreeingOption.Option is null.");
-
-        if (type == CacheFreeingOption.MANUAL) {
-            synchronized (DatabaseManager.this) {
-                Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
-                LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
-                if (loadedPlayer == null || loadedPlayer.getPlayerTeam() == null) {
-                    throw new UserNotLoadedException(uuid);
-                }
-                return loadedPlayer.getPluginRequests(requester);
-            }
-        } else {
-            // Check for enabled plugin to make sure the exception is raised
-            Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
-            return 0;
-        }
-    }
-
-    /**
      * Returns whether the provided advancement is unredeemed for the specified player.
      *
      * @param key The advancement key.
@@ -1267,24 +1175,27 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Loads the provided player from the database into the caching system.
-     * <p>Different things happens based on the specified {@link CacheFreeingOption}:
-     * <ul>
-     *     <li><strong>{@link CacheFreeingOption#DONT_CACHE}:</strong> the player isn't loaded in the caching system, but loads and returns only the player team's {@link TeamProgression};</li>
-     *     <li><strong>{@link CacheFreeingOption#MANUAL}:</strong> the player is loaded and kept until {@link #unloadOfflinePlayer(UUID, Plugin)} is called.</li>
-     * </ul>
+     * Loads the provided player from the database into the caching system (if they aren't already) and keeps they
+     * loaded until {@link #removeLoadingRequestToPlayer(UUID, Plugin)} is called.
+     * <p>Each time this method is called, the number of <i>loading requests</i> for the provided player and requester
+     * plugin is incremented by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToPlayer(UUID, Plugin)},
+     * decrements by one the number of <i>loading requests</i> for the player and requester plugin every time it's called.
+     * <br>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
+     * this method can be used to make sure a player isn't unloaded, even if they were online and quit from the server.
+     * <p>To know how many <i>loading requests</i> a plugin holds for a player, the method
+     * {@link #getLoadingRequestsAmount(UUID, Plugin)} can be used.
+     * <p>Also, a plugin should only use its own instance as requester to not interfere with other plugins.
      *
-     * @param uuid The {@link UUID} of the player to load.
+     * @param uuid The {@link UUID} of the player.
      * @param requester The plugin making the request.
-     * @param option The chosen {@link CacheFreeingOption}.
      * @return A {@link CompletableFuture} which provides the player team's {@link TeamProgression}.
-     * @see UltimateAdvancementAPI#loadOfflinePlayer(UUID, CacheFreeingOption, Consumer)
+     * @see #removeLoadingRequestToPlayer(UUID, Plugin)
+     * @see #getLoadingRequestsAmount(UUID, Plugin)
      */
     @NotNull
-    public synchronized CompletableFuture<TeamProgression> loadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester, @NotNull CacheFreeingOption option) {
+    public CompletableFuture<TeamProgression> loadAndAddLoadingRequestToPlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
-        Preconditions.checkNotNull(option, "CacheFreeingOption is null.");
 
         CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
 
@@ -1372,43 +1283,20 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Returns whether at least one loading request is currently active for the specified player.
-     *
-     * @param uuid The {@link UUID} of the player.
-     * @return Whether at least one loading request for the specified player is currently active.
-     */
-    @Contract(pure = true, value = "null -> false")
-    public synchronized boolean isOfflinePlayerLoaded(UUID uuid) {
-        return playersLoaded.containsKey(uuid);
-    }
-
-    /**
-     * Returns whether at least one loading request, done by the provided plugin, is currently active for the specified player.
+     * Counterpart of {@link #loadAndAddLoadingRequestToPlayer(UUID, Plugin)}. Decrements by one the <i>loading requests</i>
+     * count for the provided player and requester plugin.
+     * <p>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
+     * if after the decrement (done by this method) the total amount of <i>loading requests</i> drops to {@code 0}, the
+     * caching system becomes able to unload the player at any time as soon as it can (for example, the player cannot be
+     * unloaded if they are online).
+     * <p>Also, a plugin should only use its own instance as requester to not interfere with other plugins.
      *
      * @param uuid The {@link UUID} of the player.
      * @param requester The plugin which requested the loading.
-     * @return Whether at least one loading request, done by the provided plugin, for the specified player is currently active.
-     * @see UltimateAdvancementAPI#isOfflinePlayerLoaded(UUID)
+     * @see #loadAndAddLoadingRequestToPlayer(UUID, Plugin)
+     * @see #getLoadingRequestsAmount(UUID, Plugin)
      */
-    @Contract(pure = true, value = "null, null -> false; null, !null -> false; !null, null -> false")
-    public synchronized boolean isOfflinePlayerLoaded(UUID uuid, Plugin requester) {
-        LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
-        return loadedPlayer != null && loadedPlayer.getPluginRequests(requester) > 0;
-    }
-
-    /**
-     * Unloads the provided player from the caching system.
-     * <p>Note that this method will only unload players loaded with {@link CacheFreeingOption#MANUAL}.
-     *
-     * @param uuid The {@link UUID} of the player to unload.
-     * @param requester The plugin which requested the loading.
-     * @see UltimateAdvancementAPI#unloadOfflinePlayer(UUID)
-     */
-    public synchronized void unloadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
-        internalUnloadOfflinePlayer(uuid, requester);
-    }
-
-    private void internalUnloadOfflinePlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
+    public void removeLoadingRequestToPlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
         synchronized (DatabaseManager.this) {
@@ -1417,6 +1305,115 @@ public final class DatabaseManager implements Closeable {
             LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
             if (loadedPlayer != null)
                 removePluginRequest(loadedPlayer, requester);
+        }
+    }
+
+    /**
+     * Returns whether the provided player is loaded into the cache.
+     *
+     * @param player The player.
+     * @return Whether the provided player is loaded into the cache.
+     */
+    @Contract(pure = true)
+    public boolean isLoaded(@NotNull Player player) {
+        return isLoaded(uuidFromPlayer(player));
+    }
+
+    /**
+     * Returns whether the provided offline player is loaded into the cache.
+     *
+     * @param player The player.
+     * @return Whether the provided offline player is loaded into the cache.
+     */
+    @Contract(pure = true)
+    public boolean isLoaded(@NotNull OfflinePlayer player) {
+        return isLoaded(uuidFromPlayer(player));
+    }
+
+    /**
+     * Returns whether the provided player is loaded into the cache.
+     *
+     * @param uuid The {@link UUID} of the player.
+     * @return Whether the provided player is loaded into the cache.
+     */
+    @Contract(pure = true, value = "null -> false")
+    public synchronized boolean isLoaded(UUID uuid) {
+        LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+        return loadedPlayer != null && loadedPlayer.getPlayerTeam() != null;
+    }
+
+    /**
+     * Returns whether the provided player is online and loaded into the cache.
+     *
+     * @param player The player.
+     * @return Whether the provided player is online and loaded into the cache.
+     */
+    @Contract(pure = true)
+    public boolean isLoadedAndOnline(@NotNull Player player) {
+        return isLoadedAndOnline(uuidFromPlayer(player));
+    }
+
+    /**
+     * Returns whether the provided player is online and loaded into the cache.
+     *
+     * @param uuid The {@link UUID} of the player.
+     * @return Whether the provided player is online and loaded into the cache.
+     */
+    @Contract(pure = true, value = "null -> false")
+    public synchronized boolean isLoadedAndOnline(UUID uuid) {
+        LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+        return loadedPlayer != null && loadedPlayer.getPlayerTeam() != null && loadedPlayer.isOnline();
+    }
+
+    /**
+     * Returns the number of <i>loading requests</i> that a plugin currently holds for the specified player.
+     *
+     * @param player The player.
+     * @param requester The plugin.
+     * @return The number of <i>loading requests</i> that a plugin currently holds for the specified player.
+     * @see #loadAndAddLoadingRequestToPlayer(UUID, Plugin)
+     * @see #unloadPlayer(LoadedPlayer)
+     */
+    @Contract(pure = true)
+    public int getLoadingRequestsAmount(@NotNull Player player, @NotNull Plugin requester) {
+        return getLoadingRequestsAmount(uuidFromPlayer(player), requester);
+    }
+
+    /**
+     * Returns the number of <i>loading requests</i> that a plugin currently holds for the specified player.
+     *
+     * @param player The player.
+     * @param requester The plugin.
+     * @return The number of <i>loading requests</i> that a plugin currently holds for the specified player.
+     * @see #loadAndAddLoadingRequestToPlayer(UUID, Plugin)
+     * @see #unloadPlayer(LoadedPlayer)
+     */
+    @Contract(pure = true)
+    public int getLoadingRequestsAmount(@NotNull OfflinePlayer player, @NotNull Plugin requester) {
+        return getLoadingRequestsAmount(uuidFromPlayer(player), requester);
+    }
+
+    /**
+     * Returns the number of <i>loading requests</i> that a plugin currently holds for the specified player.
+     *
+     * @param uuid The {@link UUID} of the player.
+     * @param requester The plugin.
+     * @return The number of <i>loading requests</i> that a plugin currently holds for the specified player.
+     * @see #loadAndAddLoadingRequestToPlayer(UUID, Plugin)
+     * @see #unloadPlayer(LoadedPlayer)
+     */
+    @Contract(pure = true)
+    public int getLoadingRequestsAmount(@NotNull UUID uuid, @NotNull Plugin requester) {
+        Preconditions.checkNotNull(requester, "Plugin is null.");
+        Preconditions.checkNotNull(uuid, "UUID is null.");
+
+        synchronized (DatabaseManager.this) {
+            Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
+            LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+            if (loadedPlayer == null) {
+                return 0;
+            }
+            return loadedPlayer.getPluginRequests(requester);
         }
     }
 
