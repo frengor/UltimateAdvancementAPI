@@ -178,6 +178,24 @@ public final class DatabaseManager implements Closeable {
                         return;
                     }
 
+                    CompletableFuture<TeamProgression> registeringCF = loadedPlayer.getRegisteringCF();
+                    if (registeringCF != null) {
+                        // Wait for PlayerRegisteredEvent
+                        loadedPlayer.addInternalRequest(); // Keep in cache while waiting for event
+                        registeringCF.whenComplete((team, err) -> {
+                            try {
+                                if (err != null) {
+                                    firePlayerLoadingFailedEvent(e.getPlayer(), err);
+                                } else {
+                                    firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
+                                }
+                            } finally {
+                                removeInternalRequest(loadedPlayer);
+                            }
+                        });
+                        return;
+                    }
+
                     // Search the player in already loaded teams to see if they're there.
                     // The searching is done here since more players from the same team may join at the same moment
                     // and running the searching on the executor thread increases the possibilities of a cache hit
@@ -199,11 +217,7 @@ public final class DatabaseManager implements Closeable {
                 } catch (Exception ex) {
                     System.err.println("Cannot load player " + e.getPlayer().getName() + ':');
                     ex.printStackTrace();
-                    runSync(main, LOAD_EVENTS_DELAY, () -> {
-                        if (e.getPlayer().isOnline()) { // Make sure the player is still online
-                            callEventCatchingExceptions(new PlayerLoadingFailedEvent(e.getPlayer(), ex));
-                        }
-                    });
+                    firePlayerLoadingFailedEvent(e.getPlayer(), ex);
                 }
             }, executor).whenComplete((v, k) -> {
                 removeInternalRequest(loadedPlayer);
@@ -300,6 +314,14 @@ public final class DatabaseManager implements Closeable {
                 processUnredeemed(loadedPlayer, player);
             }
             main.updatePlayer(player);
+        });
+    }
+
+    private void firePlayerLoadingFailedEvent(@NotNull Player player, @NotNull Throwable error) {
+        runSync(main, () -> {
+            if (player.isOnline()) { // Make sure the player is still online
+                callEventCatchingExceptions(new PlayerLoadingFailedEvent(player, error));
+            }
         });
     }
 
@@ -1294,6 +1316,25 @@ public final class DatabaseManager implements Closeable {
                     return;
                 }
 
+                CompletableFuture<TeamProgression> registeringCF = loadedPlayer.getRegisteringCF();
+                if (registeringCF != null) {
+                    // Wait for PlayerRegisteredEvent
+                    loadedPlayer.addInternalRequest(); // Keep in cache while waiting for event
+                    registeringCF.whenComplete((team, err) -> {
+                        try {
+                            if (err != null) {
+                                completableFuture.completeExceptionally(err);
+                            } else {
+                                loadedPlayer.addPluginRequest(requester);
+                                completableFuture.complete(team);
+                            }
+                        } finally {
+                            removeInternalRequest(loadedPlayer);
+                        }
+                    });
+                    return;
+                }
+
                 // Search the player in already loaded teams to see if it's there
                 // The searching is done here since more players from the same team may join at the same moment
                 // and running the searching on the executor's thread improves the possibility of a cache hit
@@ -1526,6 +1567,10 @@ public final class DatabaseManager implements Closeable {
         private final UUID uuid;
         private volatile boolean online = false;
 
+        // Used to make loading requests wait for PlayerRegisteredEvent if the player is being registered
+        @Nullable // Null here means a PlayerRegisteredEvent for this player has not been scheduled
+        private volatile CompletableFuture<TeamProgression> registeringCompletableFuture = null;
+
         public LoadedPlayer(@NotNull UUID uuid) {
             this.uuid = uuid;
         }
@@ -1550,6 +1595,18 @@ public final class DatabaseManager implements Closeable {
 
         public void setOnline(boolean online) {
             this.online = online;
+        }
+
+        public CompletableFuture<TeamProgression> getRegisteringCF() {
+            return registeringCompletableFuture;
+        }
+
+        public void setRegistering() {
+            this.registeringCompletableFuture = new CompletableFuture<>();
+        }
+
+        public void unsetRegistering() {
+            this.registeringCompletableFuture = null;
         }
     }
 
@@ -1650,6 +1707,7 @@ public final class DatabaseManager implements Closeable {
                 player.addInternalRequest();
                 team.addInternalRequest();
 
+                player.setRegistering();
                 progressionUpdates.add(new Update(UpdateType.PLAYER_REGISTERED_UPDATE, player, team, null, 0, 0, callback));
             }
             registerUpdaterTask();
@@ -1726,6 +1784,14 @@ public final class DatabaseManager implements Closeable {
                                 update.player.setPlayerTeam(update.team);
 
                                 callEventCatchingExceptions(new PlayerRegisteredEvent(update.team.getTeamProgression(), update.player.getUuid()));
+                            }
+
+                            // Process possible loading requests waiting for the PlayerRegisteredEvent
+                            @Nullable CompletableFuture<TeamProgression> cf = update.player.getRegisteringCF();
+                            update.player.unsetRegistering();
+                            if (cf != null) {
+                                // No need to add internal requests since they have already been added before calling cf.whenComplete
+                                cf.complete(update.player.getPlayerTeam().getTeamProgression());
                             }
                         }
                         case PROGRESSION_UPDATE -> {
