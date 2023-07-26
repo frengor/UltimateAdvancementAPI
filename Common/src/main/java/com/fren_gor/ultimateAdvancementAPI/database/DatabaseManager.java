@@ -16,6 +16,7 @@ import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.PlayerRegisteredEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseManagerClosedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.SyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
@@ -271,6 +272,11 @@ public final class DatabaseManager implements Closeable {
         if (closed.getAndSet(true)) {
             return; // Already closed
         }
+
+        if (eventManager.isEnabled()) {
+            eventManager.unregister(this);
+        }
+
         pendingUpdatesManager.unregisterTask();
 
         // Shutdown executor before database connection
@@ -292,10 +298,6 @@ public final class DatabaseManager implements Closeable {
             executor.shutdownNow();
         }
 
-        if (eventManager.isEnabled()) {
-            eventManager.unregister(this);
-        }
-
         synchronized (DatabaseManager.this) {
             teamsLoaded.forEach((u, t) -> t.getTeamProgression().inCache.set(false)); // Invalidate TeamProgression
             for (LoadedPlayer player : playersLoaded.values()) {
@@ -304,7 +306,7 @@ public final class DatabaseManager implements Closeable {
                     player.unsetRegistering();
                     // The player was being registered, but the updater task hasn't run. Unregister they from the db
                     // so that next time they log in the PlayerRegisteredEvent will be called
-                    cf.completeExceptionally(new RuntimeException("DatabaseManager is closed."));
+                    cf.completeExceptionally(new DatabaseManagerClosedException());
                     try {
                         database.unregisterPlayer(player.getUuid());
                     } catch (Exception e) {
@@ -541,6 +543,7 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<Void> updatePlayerName(@NotNull Player player) {
+        checkClosed();
         Preconditions.checkNotNull(player, "Player cannot be null.");
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
@@ -622,6 +625,7 @@ public final class DatabaseManager implements Closeable {
 
     @NotNull
     private CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @Nullable Player ptm, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
+        checkClosed();
         Preconditions.checkNotNull(playerToMove, "Player to move is null.");
 
         final LoadedTeam loadedNewTeam;
@@ -697,6 +701,7 @@ public final class DatabaseManager implements Closeable {
     }
 
     private CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID uuid, @Nullable Player ptr) throws UserNotLoadedException {
+        checkClosed();
         Preconditions.checkNotNull(uuid, "UUID is null.");
 
         final LoadedPlayer loadedPlayer;
@@ -757,6 +762,7 @@ public final class DatabaseManager implements Closeable {
      * @see UltimateAdvancementAPI#unregisterOfflinePlayer(UUID)
      */
     public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull UUID uuid) throws IllegalStateException {
+        checkClosed();
         Preconditions.checkNotNull(uuid, "UUID is null.");
 
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
@@ -832,6 +838,7 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<ProgressionUpdateResult> setProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
+        checkClosed();
         Preconditions.checkNotNull(key, "Key is null.");
         validateProgressionValue(newProgression);
 
@@ -914,6 +921,7 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, int increment) {
+        checkClosed();
         Preconditions.checkNotNull(key, "Key is null.");
 
         final LoadedTeam loadedNewTeam;
@@ -982,6 +990,7 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public synchronized TeamProgression getTeamProgression(@NotNull UUID uuid) throws UserNotLoadedException {
+        checkClosed();
         Preconditions.checkNotNull(uuid, "UUID is null.");
         LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
         if (loadedPlayer == null || loadedPlayer.getPlayerTeam() == null) {
@@ -1015,6 +1024,7 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<Boolean> isUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
+        checkClosed();
         Preconditions.checkNotNull(key, "AdvancementKey is null.");
 
         final LoadedTeam loadedNewTeam;
@@ -1078,6 +1088,7 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<Void> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull TeamProgression pro) {
+        checkClosed();
         Preconditions.checkNotNull(key, "AdvancementKey is null.");
 
         final LoadedTeam loadedNewTeam;
@@ -1137,6 +1148,7 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<Void> unsetUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
+        checkClosed();
         Preconditions.checkNotNull(key, "AdvancementKey is null.");
 
         final LoadedTeam loadedNewTeam;
@@ -1182,6 +1194,7 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<String> getStoredPlayerName(@NotNull UUID uuid) {
+        checkClosed();
         Preconditions.checkNotNull(uuid, "UUID is null.");
 
         CompletableFuture<String> completableFuture = new CompletableFuture<>();
@@ -1226,6 +1239,7 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<TeamProgression> loadAndAddLoadingRequestToPlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
+        checkClosed();
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
 
@@ -1329,6 +1343,7 @@ public final class DatabaseManager implements Closeable {
      * @see #getLoadingRequestsAmount(UUID, Plugin)
      */
     public void removeLoadingRequestToPlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
+        checkClosed();
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
         synchronized (DatabaseManager.this) {
@@ -1370,6 +1385,7 @@ public final class DatabaseManager implements Closeable {
      */
     @Contract(pure = true, value = "null -> false")
     public synchronized boolean isLoaded(UUID uuid) {
+        checkClosed();
         LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
         return loadedPlayer != null && loadedPlayer.getPlayerTeam() != null;
     }
@@ -1393,6 +1409,7 @@ public final class DatabaseManager implements Closeable {
      */
     @Contract(pure = true, value = "null -> false")
     public synchronized boolean isLoadedAndOnline(UUID uuid) {
+        checkClosed();
         LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
         return loadedPlayer != null && loadedPlayer.getPlayerTeam() != null && loadedPlayer.isOnline();
     }
@@ -1436,6 +1453,7 @@ public final class DatabaseManager implements Closeable {
      */
     @Contract(pure = true)
     public int getLoadingRequestsAmount(@NotNull UUID uuid, @NotNull Plugin requester) {
+        checkClosed();
         Preconditions.checkNotNull(requester, "Plugin is null.");
         Preconditions.checkNotNull(uuid, "UUID is null.");
 
@@ -1572,6 +1590,12 @@ public final class DatabaseManager implements Closeable {
             Bukkit.getPluginManager().callEvent(event);
         } catch (Exception exception) {
             exception.printStackTrace();
+        }
+    }
+
+    private void checkClosed() {
+        if (closed.get()) {
+            throw new DatabaseManagerClosedException();
         }
     }
 
