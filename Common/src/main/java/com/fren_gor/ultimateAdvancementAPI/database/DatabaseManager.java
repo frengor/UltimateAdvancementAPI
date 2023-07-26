@@ -30,6 +30,7 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,6 +94,7 @@ public final class DatabaseManager implements Closeable {
 
     private final EventManager eventManager;
     private final IDatabase database; // Calls to the database must be done using the `executor` thread
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     // All this fields must be accessed inside a `synchronized (DatabaseManager.this) {...}` block
     private final AdvancementMain main;
@@ -266,6 +268,11 @@ public final class DatabaseManager implements Closeable {
      * <p>This method does not call {@link Event}s.
      */
     public void close() {
+        if (closed.getAndSet(true)) {
+            return; // Already closed
+        }
+        pendingUpdatesManager.unregisterTask();
+
         // Shutdown executor before database connection
         executor.shutdown();
         try {
@@ -273,27 +280,47 @@ public final class DatabaseManager implements Closeable {
                 // There are other tasks
                 executor.shutdownNow();
                 if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-                    System.err.println("It was not possible to terminate some tasks.");
+                    System.err.println("It was not possible to terminate some tasks while closing DatabaseManager.");
                 }
             }
         } catch (InterruptedException ignored) {
             executor.shutdownNow();
             Thread.currentThread().interrupt(); // Preserve interrupt status
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            System.err.println("An exception occurred shutting down the executor thread while closing DatabaseManager:");
+            e.printStackTrace();
             executor.shutdownNow();
         }
 
-        if (eventManager.isEnabled())
+        if (eventManager.isEnabled()) {
             eventManager.unregister(this);
-        try {
-            database.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
+
         synchronized (DatabaseManager.this) {
             teamsLoaded.forEach((u, t) -> t.getTeamProgression().inCache.set(false)); // Invalidate TeamProgression
+            for (LoadedPlayer player : playersLoaded.values()) {
+                @Nullable var cf = player.getRegisteringCF();
+                if (cf != null) {
+                    player.unsetRegistering();
+                    // The player was being registered, but the updater task hasn't run. Unregister they from the db
+                    // so that next time they log in the PlayerRegisteredEvent will be called
+                    cf.completeExceptionally(new RuntimeException("DatabaseManager is closed."));
+                    try {
+                        database.unregisterPlayer(player.getUuid());
+                    } catch (Exception e) {
+                        System.err.println("Couldn't unregister player " + player.getUuid() + " (waiting PlayerRegisteredEvent) while closing DatabaseManager:");
+                        e.printStackTrace();
+                    }
+                }
+            }
             playersLoaded.clear();
             teamsLoaded.clear();
+        }
+        try {
+            database.close();
+        } catch (Exception e) {
+            System.err.println("Couldn't close the database connection while closing DatabaseManager:");
+            e.printStackTrace();
         }
     }
 
@@ -1674,7 +1701,9 @@ public final class DatabaseManager implements Closeable {
         private final List<Update> progressionUpdates = new ArrayList<>(10);
         private final Map<Integer, Map<AdvancementKey, Integer>> realProgressions = new HashMap<>(); // Used to calculate increments
 
-        private final AtomicBoolean updaterTaskIsRegistered = new AtomicBoolean(false);
+        // All this fields must be accessed inside a `synchronized (PendingUpdatesManager.this) {...}` block
+        private boolean updaterTaskIsRegistered = false;
+        private BukkitTask task = null;
 
         /**
          * Registers a team update to execute on the main thread.
@@ -1737,15 +1766,23 @@ public final class DatabaseManager implements Closeable {
             registerUpdaterTask();
         }
 
-        private void registerUpdaterTask() {
-            if (!updaterTaskIsRegistered.getAndSet(true)) {
-                Bukkit.getScheduler().runTaskTimer(main.getOwningPlugin(), task -> {
+        private synchronized void registerUpdaterTask() {
+            if (!updaterTaskIsRegistered) {
+                updaterTaskIsRegistered = true;
+                task = Bukkit.getScheduler().runTaskTimer(main.getOwningPlugin(), () -> {
                     if (!updaterLock.tryLockExclusiveLock()) {
                         return; // Don't block the main thread while waiting for the update lock
                     }
 
-                    updaterTaskIsRegistered.set(false);
-                    task.cancel(); // This is a timer task
+                    synchronized (PendingUpdatesManager.this) {
+                        if (task == null) {
+                            // DatabaseManager is closing, just return
+                            return;
+                        }
+                        updaterTaskIsRegistered = false;
+                        task.cancel(); // This is a timer task
+                        task = null;
+                    }
 
                     try {
                         pendingUpdatesManager.applyUpdates();
@@ -1753,6 +1790,17 @@ public final class DatabaseManager implements Closeable {
                         updaterLock.unlockExclusiveLock();
                     }
                 }, 1, 1);
+            }
+        }
+
+        synchronized void unregisterTask() {
+            if (updaterTaskIsRegistered) {
+                if (task != null) {
+                    task.cancel();
+                    task = null;
+                }
+            } else {
+                updaterTaskIsRegistered = true; // Don't register more tasks
             }
         }
 
@@ -1771,6 +1819,12 @@ public final class DatabaseManager implements Closeable {
             AdvancementUtils.checkSync();
 
             synchronized (DatabaseManager.this) {
+                if (closed.get()) {
+                    progressionUpdates.clear();
+                    realProgressions.clear();
+                    return;
+                }
+
                 for (Update update : progressionUpdates) {
                     switch (update.type) {
                         case TEAM_UPDATE -> {
