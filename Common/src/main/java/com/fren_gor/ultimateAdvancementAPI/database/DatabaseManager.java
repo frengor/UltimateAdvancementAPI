@@ -97,6 +97,10 @@ public final class DatabaseManager implements Closeable {
     private final IDatabase database; // Calls to the database must be done using the `executor` thread
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
+    // Used inside DatabaseManager#close() to not leave uncompleted CompletableFutures
+    private final Map<Integer, CompletableFuture<?>> uncompletedCompletableFutures = Collections.synchronizedMap(new HashMap<>());
+    private final AtomicInteger keysOfUncompletedCFs = new AtomicInteger(0); // Used to generate the keys of uncompletedCompletableFutures map
+
     // All this fields must be accessed inside a `synchronized (DatabaseManager.this) {...}` block
     private final AdvancementMain main;
     private final Map<Integer, LoadedTeam> teamsLoaded = new HashMap<>();
@@ -169,11 +173,11 @@ public final class DatabaseManager implements Closeable {
             synchronized (DatabaseManager.this) {
                 loadedPlayer = addPlayerToCache(e.getPlayer().getUniqueId(), true);
 
-                // Keep in cache waiting for CompletableFuture.runAsync(...)
+                // Keep in cache waiting for runAsyncOnExecutor(...)
                 loadedPlayer.addInternalRequest();
             }
 
-            CompletableFuture.runAsync(() -> {
+            runAsyncOnExecutor(() -> {
                 synchronized (DatabaseManager.this) {
                     if (!loadedPlayer.isOnline()) {
                         // Make sure the player is still online. Shouldn't be a problem here, but better be sure
@@ -191,6 +195,9 @@ public final class DatabaseManager implements Closeable {
                         // Wait for PlayerRegisteredEvent
                         loadedPlayer.addInternalRequest(); // Keep in cache while waiting for event
                         registeringCF.whenComplete((team, err) -> {
+                            if (closed.get()) {
+                                return;
+                            }
                             try {
                                 if (err != null) {
                                     firePlayerLoadingFailedEvent(e.getPlayer(), err);
@@ -227,7 +234,7 @@ public final class DatabaseManager implements Closeable {
                     ex.printStackTrace();
                     firePlayerLoadingFailedEvent(e.getPlayer(), ex);
                 }
-            }, executor).whenComplete((v, k) -> {
+            }).whenComplete((v, k) -> {
                 removeInternalRequest(loadedPlayer);
             });
         });
@@ -254,14 +261,14 @@ public final class DatabaseManager implements Closeable {
                 }
             }
         });
-        CompletableFuture.runAsync(() -> {
+        runAsyncOnExecutor(() -> {
             try {
                 database.clearUpTeams();
             } catch (SQLException e) {
                 System.err.println("Cannot clear up unused team ids:");
                 e.printStackTrace();
             }
-        }, executor);
+        });
     }
 
     /**
@@ -299,6 +306,8 @@ public final class DatabaseManager implements Closeable {
         }
 
         synchronized (DatabaseManager.this) {
+            pendingUpdatesManager.clearUpdates();
+
             teamsLoaded.forEach((u, t) -> t.getTeamProgression().inCache.set(false)); // Invalidate TeamProgression
             for (LoadedPlayer player : playersLoaded.values()) {
                 @Nullable var cf = player.getRegisteringCF();
@@ -317,6 +326,12 @@ public final class DatabaseManager implements Closeable {
             }
             playersLoaded.clear();
             teamsLoaded.clear();
+            synchronized (uncompletedCompletableFutures) {
+                for (CompletableFuture<?> uncompleted : uncompletedCompletableFutures.values()) {
+                    uncompleted.completeExceptionally(new DatabaseManagerClosedException());
+                }
+                uncompletedCompletableFutures.clear();
+            }
         }
         try {
             database.close();
@@ -331,6 +346,10 @@ public final class DatabaseManager implements Closeable {
 
         runSync(main, LOAD_EVENTS_DELAY, () -> {
             synchronized (DatabaseManager.this) {
+                if (closed.get()) {
+                    return;
+                }
+
                 if (!player.isOnline()) {
                     removeInternalRequest(loadedPlayer);
                     return;
@@ -353,7 +372,7 @@ public final class DatabaseManager implements Closeable {
 
     private void firePlayerLoadingFailedEvent(@NotNull Player player, @NotNull Throwable error) {
         runSync(main, () -> {
-            if (player.isOnline()) { // Make sure the player is still online
+            if (!closed.get() && player.isOnline()) { // Make sure the player is still online
                 callEventCatchingExceptions(new PlayerLoadingFailedEvent(player, error));
             }
         });
@@ -425,7 +444,7 @@ public final class DatabaseManager implements Closeable {
         // method does synchronize on DatabaseManager.this
         final LoadedTeam[] teamToWhichRemoveInternalRequest = {null};
 
-        CompletableFuture.runAsync(() -> {
+        runAsyncOnExecutor(() -> {
             final LoadedTeam loadedTeam;
             synchronized (DatabaseManager.this) {
                 loadedTeam = loadedPlayer.getPlayerTeam();
@@ -464,7 +483,7 @@ public final class DatabaseManager implements Closeable {
                     advs.add(new SimpleEntry<>(a, k.getValue()));
                 }
             }
-            if (advs.isEmpty() || !loadedPlayer.isOnline() || !loadedTeam.getTeamProgression().contains(loadedPlayer.getUuid())) {
+            if (closed.get() || advs.isEmpty() || !loadedPlayer.isOnline() || !loadedTeam.getTeamProgression().contains(loadedPlayer.getUuid())) {
                 return;
             }
 
@@ -484,12 +503,15 @@ public final class DatabaseManager implements Closeable {
                 // No synchronized(DatabaseManager.this) is needed here since we are on the main thread
                 try {
                     // Check if the player has gone offline or has changed team
-                    if (!player.isOnline() || !loadedTeam.getTeamProgression().contains(loadedPlayer.getUuid())) {
+                    // Also check if the DatabaseManager has been closed
+                    if (closed.get() || !player.isOnline() || !loadedTeam.getTeamProgression().contains(loadedPlayer.getUuid())) {
                         // Then restore unredeemed advancements into the db
                         // If something goes wrong here, the unredeemed advs will be lost, but this is reasonable
                         // since this doesn't allow dupes
 
                         loadedPlayer.addInternalRequest();
+
+                        // Don't use runAsyncOnExecutor since the following should always execute, even when DatabaseManager is closed
                         CompletableFuture.runAsync(() -> {
                             for (Entry<AdvancementKey, Boolean> entry : list) {
                                 int teamId = loadedTeam.getTeamProgression().getTeamId();
@@ -521,7 +543,7 @@ public final class DatabaseManager implements Closeable {
                     }
                 }
             });
-        }, executor).whenComplete((r, e) -> {
+        }).whenComplete((r, e) -> {
             synchronized (DatabaseManager.this) {
                 removeInternalRequest(loadedPlayer);
 
@@ -547,7 +569,7 @@ public final class DatabaseManager implements Closeable {
         Preconditions.checkNotNull(player, "Player cannot be null.");
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
-        CompletableFuture.runAsync(() -> {
+        runAsyncOnExecutor(completableFuture, () -> {
             try {
                 database.updatePlayerName(player.getUniqueId(), player.getName());
             } catch (SQLException e) {
@@ -560,7 +582,7 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
             completableFuture.complete(null);
-        }, executor);
+        });
 
         return completableFuture;
     }
@@ -650,7 +672,7 @@ public final class DatabaseManager implements Closeable {
 
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
-        CompletableFuture.runAsync(() -> {
+        runAsyncOnExecutor(completableFuture, () -> {
             try {
                 database.movePlayer(playerToMove, otherTeamProgression.getTeamId());
             } catch (SQLException e) {
@@ -664,7 +686,7 @@ public final class DatabaseManager implements Closeable {
             }
 
             registerTeamUpdate(loadedPlayer, ptm, loadedNewTeam, true /*processUnredeemed*/, completableFuture, null /*completingObj*/);
-        }, executor).whenComplete((v, t) -> {
+        }).whenComplete((v, t) -> {
             synchronized (DatabaseManager.this) {
                 removeInternalRequest(loadedPlayer);
                 removeInternalRequest(loadedNewTeam);
@@ -716,7 +738,7 @@ public final class DatabaseManager implements Closeable {
 
         CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
 
-        CompletableFuture.runAsync(() -> {
+        runAsyncOnExecutor(completableFuture, () -> {
             final TeamProgression newPro;
             try {
                 newPro = database.movePlayerInNewTeam(uuid);
@@ -734,7 +756,7 @@ public final class DatabaseManager implements Closeable {
                 final LoadedTeam loadedTeam = addTeamToCache(newPro);
                 registerTeamUpdate(loadedPlayer, ptr, loadedTeam, false /*processUnredeemed*/, completableFuture, newPro /*completingObj*/);
             }
-        }, executor).whenComplete((v, t) -> {
+        }).whenComplete((v, t) -> {
             removeInternalRequest(loadedPlayer);
         });
 
@@ -767,7 +789,7 @@ public final class DatabaseManager implements Closeable {
 
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
-        CompletableFuture.runAsync(() -> {
+        runAsyncOnExecutor(completableFuture, () -> {
             synchronized (DatabaseManager.this) {
                 if (Bukkit.getPlayer(uuid) != null) {
                     completableFuture.completeExceptionally(new IllegalStateException("Player is online."));
@@ -792,7 +814,7 @@ public final class DatabaseManager implements Closeable {
 
             callEventCatchingExceptions(new AsyncPlayerUnregisteredEvent(uuid));
             completableFuture.complete(null);
-        }, executor);
+        });
 
         return completableFuture;
     }
@@ -856,7 +878,7 @@ public final class DatabaseManager implements Closeable {
 
         CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
 
-        CompletableFuture.runAsync(() -> {
+        runAsyncOnExecutor(completableFuture, () -> {
             int old = pendingUpdatesManager.getCurrentValue(progression, key);
             try {
                 database.updateAdvancement(key, progression.getTeamId(), newProgression);
@@ -870,7 +892,7 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
             registerProgressionUpdate(loadedNewTeam, key, old, newProgression, completableFuture);
-        }, executor).whenComplete((v, t) -> {
+        }).whenComplete((v, t) -> {
             removeInternalRequest(loadedNewTeam);
         });
 
@@ -938,7 +960,7 @@ public final class DatabaseManager implements Closeable {
 
         CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
 
-        CompletableFuture.runAsync(() -> {
+        runAsyncOnExecutor(completableFuture, () -> {
             final int old = pendingUpdatesManager.getCurrentValue(loadedNewTeam.getTeamProgression(), key);
             int incremented = old;
             if (increment != 0) { // Don't update the db if the saved progression won't change
@@ -960,7 +982,7 @@ public final class DatabaseManager implements Closeable {
                 }
             }
             registerProgressionUpdate(loadedNewTeam, key, old, incremented, completableFuture);
-        }, executor).whenComplete((v, t) -> {
+        }).whenComplete((v, t) -> {
             removeInternalRequest(loadedNewTeam);
         });
 
@@ -1041,7 +1063,7 @@ public final class DatabaseManager implements Closeable {
 
         CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
 
-        CompletableFuture.runAsync(() -> {
+        runAsyncOnExecutor(completableFuture, () -> {
             boolean res;
             try {
                 res = database.isUnredeemed(key, pro.getTeamId());
@@ -1056,7 +1078,7 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
             completableFuture.complete(res);
-        }, executor).whenComplete((v, t) -> {
+        }).whenComplete((v, t) -> {
             removeInternalRequest(loadedNewTeam);
         });
 
@@ -1105,7 +1127,7 @@ public final class DatabaseManager implements Closeable {
 
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
-        CompletableFuture.runAsync(() -> {
+        runAsyncOnExecutor(completableFuture, () -> {
             try {
                 database.setUnredeemed(key, giveRewards, pro.getTeamId());
             } catch (SQLException e) {
@@ -1118,7 +1140,7 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
             completableFuture.complete(null);
-        }, executor).whenComplete((v, t) -> {
+        }).whenComplete((v, t) -> {
             removeInternalRequest(loadedNewTeam);
         });
 
@@ -1165,7 +1187,7 @@ public final class DatabaseManager implements Closeable {
 
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
-        CompletableFuture.runAsync(() -> {
+        runAsyncOnExecutor(completableFuture, () -> {
             try {
                 database.unsetUnredeemed(key, pro.getTeamId());
             } catch (SQLException e) {
@@ -1178,7 +1200,7 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
             completableFuture.complete(null);
-        }, executor).whenComplete((v, t) -> {
+        }).whenComplete((v, t) -> {
             removeInternalRequest(loadedNewTeam);
         });
 
@@ -1199,7 +1221,7 @@ public final class DatabaseManager implements Closeable {
 
         CompletableFuture<String> completableFuture = new CompletableFuture<>();
 
-        CompletableFuture.runAsync(() -> {
+        runAsyncOnExecutor(completableFuture, () -> {
             String name;
             try {
                 name = database.getPlayerName(uuid);
@@ -1214,7 +1236,7 @@ public final class DatabaseManager implements Closeable {
             }
 
             completableFuture.complete(name);
-        }, executor);
+        });
 
         return completableFuture;
     }
@@ -1258,11 +1280,11 @@ public final class DatabaseManager implements Closeable {
             // counting this plugin request in the return value of #getLoadingRequestsAmount(...) in case of a DB error
             // loadedPlayer.addPluginRequest(requester);
 
-            // Keep in cache waiting for CompletableFuture.runAsync(...)
+            // Keep in cache waiting for runAsyncOnExecutor(...)
             loadedPlayer.addInternalRequest();
         }
 
-        CompletableFuture.runAsync(() -> {
+        runAsyncOnExecutor(completableFuture, () -> {
             synchronized (DatabaseManager.this) {
                 // Re-do the "already loaded" check.
                 // This is necessary to avoid running searchPlayerTeam(...) below, since that will call
@@ -1321,7 +1343,7 @@ public final class DatabaseManager implements Closeable {
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
-        }, executor).whenComplete((v, t) -> {
+        }).whenComplete((v, t) -> {
             removeInternalRequest(loadedPlayer);
         });
 
@@ -1585,6 +1607,46 @@ public final class DatabaseManager implements Closeable {
         });
     }
 
+    /**
+     * Runs the provided runnable into the {@link DatabaseManager#executor} thread if the {@code DatabaseManager} isn't closed.
+     *
+     * @param runnable The {@link Runnable} to run.
+     * @return A {@link CompletableFuture} which will complete once the runnable has been executed (or skipped if
+     *         {@link DatabaseManager} gets closed).
+     */
+    private CompletableFuture<Void> runAsyncOnExecutor(Runnable runnable) {
+        return CompletableFuture.runAsync(() -> {
+            if (!closed.get()) {
+                runnable.run();
+            }
+        }, executor);
+    }
+
+    /**
+     * Runs the provided runnable into the {@link DatabaseManager#executor} thread if the {@code DatabaseManager} isn't closed.
+     *
+     * @param returnedCompletableFuture The {@link CompletableFuture} that is completed by the provided runnable when
+     *         the operation ends or errors. It will be completed with a {@link DatabaseManagerClosedException} if the
+     *         {@link DatabaseManager} gets closed.
+     * @param runnable The {@link Runnable} to run.
+     * @return A {@link CompletableFuture} which will complete once the runnable has been executed (or skipped if
+     *         {@link DatabaseManager} gets closed).
+     */
+    private CompletableFuture<Void> runAsyncOnExecutor(CompletableFuture<?> returnedCompletableFuture, Runnable runnable) {
+        final Integer key = keysOfUncompletedCFs.incrementAndGet();
+        uncompletedCompletableFutures.put(key, returnedCompletableFuture);
+        returnedCompletableFuture.whenComplete((res, err) -> {
+            if (!closed.get()) {
+                uncompletedCompletableFutures.remove(key);
+            }
+        });
+        return CompletableFuture.runAsync(() -> {
+            if (!closed.get()) {
+                runnable.run();
+            }
+        }, executor);
+    }
+
     private static <E extends Event> void callEventCatchingExceptions(@NotNull E event) {
         try {
             Bukkit.getPluginManager().callEvent(event);
@@ -1798,17 +1860,17 @@ public final class DatabaseManager implements Closeable {
                         return; // Don't block the main thread while waiting for the update lock
                     }
 
-                    synchronized (PendingUpdatesManager.this) {
-                        if (task == null) {
-                            // DatabaseManager is closing, just return
-                            return;
-                        }
-                        updaterTaskIsRegistered = false;
-                        task.cancel(); // This is a timer task
-                        task = null;
-                    }
-
                     try {
+                        synchronized (PendingUpdatesManager.this) {
+                            if (task == null) {
+                                // DatabaseManager is closing, just return
+                                return;
+                            }
+                            updaterTaskIsRegistered = false;
+                            task.cancel(); // This is a timer task
+                            task = null;
+                        }
+
                         pendingUpdatesManager.applyUpdates();
                     } finally {
                         updaterLock.unlockExclusiveLock();
@@ -1818,6 +1880,8 @@ public final class DatabaseManager implements Closeable {
         }
 
         synchronized void unregisterTask() {
+            Preconditions.checkArgument(closed.get(), "DatabaseManager isn't closing.");
+
             if (updaterTaskIsRegistered) {
                 if (task != null) {
                     task.cancel();
@@ -1825,6 +1889,15 @@ public final class DatabaseManager implements Closeable {
                 }
             } else {
                 updaterTaskIsRegistered = true; // Don't register more tasks
+            }
+        }
+
+        void clearUpdates() {
+            Preconditions.checkArgument(closed.get(), "DatabaseManager isn't closing.");
+
+            synchronized (DatabaseManager.this) {
+                progressionUpdates.clear();
+                realProgressions.clear();
             }
         }
 
