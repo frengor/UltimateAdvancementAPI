@@ -45,6 +45,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -401,6 +402,7 @@ public class DatabaseManagerTest {
                 registeredPlayers.add(new SimpleEntry<>(null, event.getTeamProgression())); // Using SimpleEntry since UUID is null
             });
             manager.register(listener, PlayerRegisteredEvent.class, event -> {
+                AdvancementUtils.checkSync();
                 registeredPlayers.add(Map.entry(event.getPlayerUUID(), event.getTeamProgression()));
             });
 
@@ -414,6 +416,71 @@ public class DatabaseManagerTest {
                 assertEquals(entry1.getValue(), entry2.getValue());
                 assertEquals(p.getUniqueId(), entry2.getKey());
             }
+        } finally {
+            manager.unregister(listener);
+        }
+    }
+
+    @Test
+    void registeredEventWithLoadAndAddLoadingRequestToPlayerTest() throws Exception {
+        final CompletableFuture<Void> registered = new CompletableFuture<>();
+        final AtomicReference<CompletableFuture<TeamProgression>> loaded = new AtomicReference<>();
+        final Object listener = new Object();
+        final EventManager manager = advancementMain.getEventManager();
+
+        final MockPlugin plugin = MockBukkit.createMockPlugin();
+        final PlayerMock p = server.addPlayer();
+
+        try {
+            manager.register(listener, PlayerRegisteredEvent.class, e -> {
+                if (e.getPlayerUUID().equals(p.getUniqueId())) {
+                    var cf = loaded.get();
+                    assertTrue(cf == null || !cf.isDone());
+                    registered.complete(null);
+                } else {
+                    fail("Registered another player: " + e.getPlayerUUID());
+                }
+            });
+
+            manager.register(listener, PlayerLoadingCompletedEvent.class, e -> {
+                AdvancementUtils.checkSync();
+                if (!registered.isDone() || !loaded.get().isDone()) {
+                    fail("Player loading finished at wrong time: " + e.getPlayer().getName() + " (" + e.getPlayer().getUniqueId() + ')');
+                }
+            });
+
+            manager.register(listener, PlayerLoadingFailedEvent.class, e -> {
+                AdvancementUtils.checkSync();
+                fail("Player loading failed: " + e.getPlayer().getName() + " (" + e.getPlayer().getUniqueId() + ')');
+            });
+
+            waitForPendingTasksNoTicking();
+
+            loaded.set(databaseManager.loadAndAddLoadingRequestToPlayer(p.getUniqueId(), plugin));
+            loaded.get().handle((team, err) -> {
+                if (err != null) {
+                    return fail(err);
+                } else {
+                    assertTrue(registered.isDone());
+                    assertFalse(registered.isCompletedExceptionally());
+                    return team;
+                }
+            });
+
+            for (int i = 0; i < 100; i++) {
+                assertFalse(registered.isDone());
+                assertFalse(loaded.get().isDone());
+                ((CustomScheduler) server.getScheduler()).registerPendingTasksNow();
+                Thread.yield();
+            }
+
+            server.getScheduler().performTicks(10);
+
+            assertTrue(registered.isDone());
+            assertFalse(registered.isCompletedExceptionally());
+            assertTrue(loaded.get().isDone());
+            assertFalse(loaded.get().isCompletedExceptionally());
+
         } finally {
             manager.unregister(listener);
         }
