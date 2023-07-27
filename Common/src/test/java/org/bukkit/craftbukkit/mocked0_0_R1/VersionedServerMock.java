@@ -3,8 +3,10 @@ package org.bukkit.craftbukkit.mocked0_0_R1;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.scheduler.BukkitSchedulerMock;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.google.common.base.Preconditions;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +34,7 @@ public class VersionedServerMock extends ServerMock {
     // runTaskTimer works similarly. This way, tasks scheduled using runTaskLater or runTaskTimer from another thread
     // are, in reality, scheduled from the main thread.
 
-    private final Scheduler scheduler = new Scheduler(this);
+    private final CustomScheduler scheduler = new CustomScheduler(this);
     private final AtomicBoolean scheduled = new AtomicBoolean(false);
 
     public VersionedServerMock() {
@@ -40,63 +42,72 @@ public class VersionedServerMock extends ServerMock {
 
     @NotNull
     @Override
-    public BukkitSchedulerMock getScheduler() {
-        if (!scheduled.getAndSet(true)) {
+    public CustomScheduler getScheduler() {
+        if (this.isPrimaryThread() && !scheduled.getAndSet(true)) {
             scheduler.startTask();
         }
         return scheduler;
     }
 
-    private static class Scheduler extends BukkitSchedulerMock {
+    public static class CustomScheduler extends BukkitSchedulerMock {
         private final ServerMock server;
         private final LinkedList<DelayedTask> delayedTasks = new LinkedList<>();
         private final LinkedList<DelayedTaskConsumer> delayedTasksConsumer = new LinkedList<>();
         private final LinkedList<TimerTask> timerTasks = new LinkedList<>();
         private final LinkedList<TimerTaskConsumer> timerTasksConsumer = new LinkedList<>();
 
-        public Scheduler(ServerMock server) {
+        public CustomScheduler(ServerMock server) {
             this.server = server;
         }
 
-        void startTask() {
-            assertTrue(server.isOnMainThread());
+        void startTask() throws AsyncExecutionException {
+            if (!server.isPrimaryThread()) {
+                throw new AsyncExecutionException();
+            }
 
-            super.runTaskTimer(null /* Yeah, this only works with null, even though it is marked as @NonNull */, () -> {
-                synchronized (delayedTasks) {
-                    if (!delayedTasks.isEmpty()) {
-                        for (DelayedTask t : delayedTasks) {
-                            t.c.complete(super.runTaskLater(t.plugin, t.runnable, t.delay));
-                        }
-                        delayedTasks.clear();
+            super.runTaskTimer(null, // Yeah, this only works with null, even though it is marked as @NonNull
+                    this::registerPendingTasksNow, 0, 1);
+        }
+
+        public void registerPendingTasksNow() throws AsyncExecutionException {
+            if (!server.isPrimaryThread()) {
+                throw new AsyncExecutionException();
+            }
+
+            synchronized (delayedTasks) {
+                if (!delayedTasks.isEmpty()) {
+                    for (DelayedTask t : delayedTasks) {
+                        t.c.complete(super.runTaskLater(t.plugin, t.runnable, t.delay));
                     }
+                    delayedTasks.clear();
                 }
-                synchronized (delayedTasksConsumer) {
-                    if (!delayedTasksConsumer.isEmpty()) {
-                        for (DelayedTaskConsumer t : delayedTasksConsumer) {
-                            super.runTaskLater(t.plugin, t.runnable, t.delay);
-                            t.c.complete(null);
-                        }
-                        delayedTasksConsumer.clear();
+            }
+            synchronized (delayedTasksConsumer) {
+                if (!delayedTasksConsumer.isEmpty()) {
+                    for (DelayedTaskConsumer t : delayedTasksConsumer) {
+                        super.runTaskLater(t.plugin, t.runnable, t.delay);
+                        t.c.complete(null);
                     }
+                    delayedTasksConsumer.clear();
                 }
-                synchronized (timerTasks) {
-                    if (!timerTasks.isEmpty()) {
-                        for (TimerTask t : timerTasks) {
-                            t.c.complete(super.runTaskTimer(t.plugin, t.runnable, t.delay, t.period));
-                        }
-                        timerTasks.clear();
+            }
+            synchronized (timerTasks) {
+                if (!timerTasks.isEmpty()) {
+                    for (TimerTask t : timerTasks) {
+                        t.c.complete(super.runTaskTimer(t.plugin, t.runnable, t.delay, t.period));
                     }
+                    timerTasks.clear();
                 }
-                synchronized (timerTasksConsumer) {
-                    if (!timerTasksConsumer.isEmpty()) {
-                        for (TimerTaskConsumer t : timerTasksConsumer) {
-                            super.runTaskTimer(t.plugin, t.runnable, t.delay, t.period);
-                            t.c.complete(null);
-                        }
-                        timerTasksConsumer.clear();
+            }
+            synchronized (timerTasksConsumer) {
+                if (!timerTasksConsumer.isEmpty()) {
+                    for (TimerTaskConsumer t : timerTasksConsumer) {
+                        super.runTaskTimer(t.plugin, t.runnable, t.delay, t.period);
+                        t.c.complete(null);
                     }
+                    timerTasksConsumer.clear();
                 }
-            }, 0, 1);
+            }
         }
 
         @Override

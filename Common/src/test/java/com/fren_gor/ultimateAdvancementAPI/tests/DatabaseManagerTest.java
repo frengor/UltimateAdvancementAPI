@@ -18,9 +18,11 @@ import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.PlayerRegisteredEvent;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseManagerClosedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
+import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock.CustomScheduler;
 import org.jetbrains.annotations.Contract;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,7 +39,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -82,12 +86,14 @@ public class DatabaseManagerTest {
 
     @AfterEach
     void tearDown() throws Exception {
-        // Wait for pending tasks before closing the server
-        // This cycle should ideally let tasks waiting for the server main thread to finish
-        waitForPendingTasks();
-        for (int i = 0; i < 20; i++) {
-            server.getScheduler().performOneTick();
+        if (!executor.isShutdown()) {
+            // Wait for pending tasks before closing the server
+            // This cycle should ideally let tasks waiting for the server main thread to finish
             waitForPendingTasks();
+            for (int i = 0; i < 20; i++) {
+                server.getScheduler().performOneTick();
+                waitForPendingTasks();
+            }
         }
 
         advancementMain.disable();
@@ -397,6 +403,44 @@ public class DatabaseManagerTest {
         }
     }
 
+    @Test
+    void closingTest() throws Exception {
+        PlayerMock p1 = loadPlayer();
+        PlayerMock p2 = loadPlayer();
+        waitCompletion(databaseManager.updatePlayerTeam(p1, p2)).get();
+
+        TeamProgression team = databaseManager.getTeamProgression(p1);
+
+        var cf1 = databaseManager.movePlayerInNewTeam(p1);
+        waitForPendingTasksNoTicking();
+        Paused paused = pauseFutureTasksNoTicking();
+        var cf2 = databaseManager.movePlayerInNewTeam(p2);
+
+        new Thread(() -> {
+            while (!executor.isShutdown()) {
+                Thread.yield();
+            }
+            paused.resumeAsync();
+        }).start();
+
+        databaseManager.close();
+
+        assertFalse(team.isValid());
+
+        try {
+            cf1.get(0, TimeUnit.SECONDS);
+            fail();
+        } catch (ExecutionException e) {
+            assertInstanceOf(DatabaseManagerClosedException.class, e.getCause());
+        }
+        try {
+            cf2.get(0, TimeUnit.SECONDS);
+            fail();
+        } catch (ExecutionException e) {
+            assertInstanceOf(DatabaseManagerClosedException.class, e.getCause());
+        }
+    }
+
     private PlayerMock loadPlayer() {
         CompletableFuture<Void> finished = new CompletableFuture<>();
         AtomicBoolean skip = new AtomicBoolean(false);
@@ -496,6 +540,18 @@ public class DatabaseManagerTest {
         return completableFuture;
     }
 
+    @Contract("_ -> param1")
+    private <T> CompletableFuture<T> waitCompletionNoTicking(CompletableFuture<T> completableFuture) {
+        if (completableFuture == null) {
+            return null;
+        }
+        while (!completableFuture.isDone()) {
+            ((CustomScheduler) server.getScheduler()).registerPendingTasksNow();
+            Thread.yield();
+        }
+        return completableFuture;
+    }
+
     private Paused pauseFutureTasks() {
         CompletableFuture<Void> waiter = new CompletableFuture<>();
         CompletableFuture<Void> blocker = new CompletableFuture<>();
@@ -513,11 +569,35 @@ public class DatabaseManagerTest {
         return new Paused(blocker, paused);
     }
 
+    private Paused pauseFutureTasksNoTicking() {
+        CompletableFuture<Void> waiter = new CompletableFuture<>();
+        CompletableFuture<Void> blocker = new CompletableFuture<>();
+
+        CompletableFuture<Void> paused = CompletableFuture.runAsync(() -> {
+            try {
+                waiter.complete(null);
+                blocker.get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, executor);
+
+        waitCompletionNoTicking(waiter);
+        return new Paused(blocker, paused);
+    }
+
     private void waitForPendingTasks() {
         CompletableFuture<Void> cf = new CompletableFuture<>();
         CompletableFuture.runAsync(() -> cf.complete(null), executor);
 
         waitCompletion(cf);
+    }
+
+    private void waitForPendingTasksNoTicking() throws Exception {
+        CompletableFuture<Void> cf = new CompletableFuture<>();
+        CompletableFuture.runAsync(() -> cf.complete(null), executor);
+
+        waitCompletionNoTicking(cf);
     }
 
     private final class Paused {
@@ -532,6 +612,10 @@ public class DatabaseManagerTest {
         public void resume() {
             this.blocker.complete(null);
             waitCompletion(this.paused);
+        }
+
+        public void resumeAsync() {
+            this.blocker.complete(null);
         }
     }
 }
