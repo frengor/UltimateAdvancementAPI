@@ -408,11 +408,15 @@ public final class DatabaseManager implements Closeable {
             progression = database.loadUUID(uuid);
             fireRegisteredEvent = false;
         } else {
-            Entry<TeamProgression, Boolean> e = database.loadOrRegisterPlayer(uuid, Objects.requireNonNull(player, "Player is null.").getName()); // FIXME getName may return null
+            // The player here is always online when called, otherwise it is better to not register the player at all
+            String name = Objects.requireNonNull(player, "Player is null.").getName();
+            Entry<TeamProgression, Boolean> e = database.loadOrRegisterPlayer(uuid, Objects.requireNonNull(name, "Player name is null."));
             progression = e.getKey();
             fireRegisteredEvent = e.getValue();
         }
-        // updatePlayerName(player); TODO make this line works
+        if (!fireRegisteredEvent && player != null && player.getName() != null) {
+            updatePlayerName(player);
+        }
 
         synchronized (DatabaseManager.this) {
             final LoadedTeam loadedTeam = addTeamToCache(progression);
