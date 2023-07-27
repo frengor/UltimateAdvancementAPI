@@ -18,8 +18,10 @@ import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.PlayerRegisteredEvent;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseManagerClosedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock.CustomScheduler;
@@ -372,6 +374,20 @@ public class DatabaseManagerTest {
         assertTrue(waitCompletion(databaseManager.loadAndAddLoadingRequestToPlayer(p.getUniqueId(), plugin)).isCompletedExceptionally());
         assertEquals(0,databaseManager.getLoadingRequestsAmount(p.getUniqueId(), plugin));
         assertThrows(UserNotLoadedException.class, () -> databaseManager.getTeamProgression(p.getUniqueId()));
+    }
+
+    @Test
+    void loadAndAddLoadingRequestToPlayerWithNonRegisteredPlayerTest() throws Exception {
+        MockPlugin plugin = MockBukkit.createMockPlugin();
+        var cf = waitCompletion(databaseManager.loadAndAddLoadingRequestToPlayer(UUID.randomUUID(), plugin));
+        assertTrue(cf.isCompletedExceptionally());
+        try {
+            cf.get(0, TimeUnit.SECONDS);
+            fail();
+        } catch (ExecutionException e) {
+            assertInstanceOf(DatabaseException.class, e.getCause());
+            assertInstanceOf(UserNotRegisteredException.class, e.getCause().getCause());
+        }
     }
 
     @Test
