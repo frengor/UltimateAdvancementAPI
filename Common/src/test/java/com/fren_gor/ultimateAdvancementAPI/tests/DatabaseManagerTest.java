@@ -524,6 +524,13 @@ public class DatabaseManagerTest {
         }
     }
 
+    @Test
+    void joinAndQuitTest() {
+        PlayerMock p = server.addPlayer();
+        ((CustomScheduler) server.getScheduler()).registerPendingTasksNow();
+        disconnectPlayer(p, false);
+    }
+
     private PlayerMock loadPlayer() {
         CompletableFuture<Void> finished = new CompletableFuture<>();
         AtomicBoolean skip = new AtomicBoolean(false);
@@ -579,7 +586,16 @@ public class DatabaseManagerTest {
      * Correct to use only if the player's team has only the player itself as member
      */
     private void disconnectPlayer(PlayerMock player) {
-        assertEquals(1, databaseManager.getTeamProgression(player).getSize(), "Incorrect usage of disconnectPlayer inside tests");
+        disconnectPlayer(player, true);
+    }
+
+    /**
+     * Correct to use only if the player's team has only the player itself as member
+     */
+    private void disconnectPlayer(PlayerMock player, boolean checkTeamSize) {
+        if (checkTeamSize) {
+            assertEquals(1, databaseManager.getTeamProgression(player).getSize(), "Incorrect usage of disconnectPlayer inside tests");
+        }
 
         CompletableFuture<Void> finished = new CompletableFuture<>();
         AtomicBoolean skip = new AtomicBoolean(false);
@@ -588,8 +604,6 @@ public class DatabaseManagerTest {
         final EventManager manager = advancementMain.getEventManager();
 
         try {
-            // These events should run after a few ticks, so there shouldn't be any problem having them registered
-            // after the player addition
             manager.register(listener, AsyncTeamUnloadEvent.class, e -> {
                 if (e.getTeamProgression().contains(player.getUniqueId())) {
                     if (skip.getAndSet(true)) {
@@ -617,7 +631,7 @@ public class DatabaseManagerTest {
             return null;
         }
         while (!completableFuture.isDone()) {
-            server.getScheduler().performTicks(10);
+            server.getScheduler().performOneTick();
             Thread.yield();
         }
         return completableFuture;
