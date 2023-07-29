@@ -615,7 +615,10 @@ public class DatabaseManagerTest {
                 }
             });
 
+            // Pause future tasks before calling disconnect to avoid deadlock caused by the workaround to MockBukkit's bugged scheduler
+            Paused p = pauseFutureTasksNoTicking();
             player.disconnect();
+            p.resume();
 
             waitCompletion(finished);
 
