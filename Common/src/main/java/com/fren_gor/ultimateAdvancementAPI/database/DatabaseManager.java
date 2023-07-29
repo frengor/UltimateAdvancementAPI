@@ -1382,6 +1382,68 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
+     * Keeps the provided team loaded until {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} is called.
+     * <p>Each time this method is called, the number of <i>loading requests</i> for the provided team and requester
+     * plugin is incremented by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)},
+     * decrements by one the number of <i>loading requests</i> for the team and requester plugin every time it's called.
+     * <br>Since the caching system ensures a team is always kept loaded while they have at least {@code 1} <i>loading request</i>,
+     * this method can be used to make sure a team isn't unloaded, even if none of its members are loaded.
+     * <p>To know how many <i>loading requests</i> a plugin holds for a team, the method
+     * {@link #getLoadingRequestsAmount(TeamProgression, Plugin)} can be used.
+     * <p>Also, a plugin should only use its own instance as requester to not interfere with other plugins.
+     *
+     * @param teamProgression The team to keep loaded.
+     * @param requester The plugin which requested to keep the team loaded.
+     * @throws IllegalArgumentException If the provided {@link TeamProgression} is invalid (see {@link TeamProgression#isValid()}).
+     * @see #removeLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
+     */
+    public void addLoadingRequestToTeam(@NotNull TeamProgression teamProgression, @NotNull Plugin requester) throws IllegalArgumentException {
+        checkClosed();
+        Preconditions.checkNotNull(requester, "Plugin is null.");
+
+        synchronized (DatabaseManager.this) {
+            if (!requester.isEnabled()) {
+                throw new IllegalStateException("Plugin is not enabled.");
+            }
+            AdvancementUtils.validateTeamProgression(teamProgression);
+
+            LoadedTeam team = teamsLoaded.get(teamProgression.getTeamId());
+            Preconditions.checkArgument(team != null, "Team " + teamProgression.getTeamId() + " isn't loaded.");
+
+            team.addPluginRequest(requester);
+        }
+    }
+
+    /**
+     * Counterpart of {@link #addLoadingRequestToTeam(TeamProgression, Plugin)}. Decrements by one the <i>loading requests</i>
+     * count for the provided team and requester plugin.
+     * <p>Since the caching system ensures a team is always kept loaded while they have at least {@code 1} <i>loading request</i>,
+     * if after the decrement (done by this method) the total amount of <i>loading requests</i> drops to {@code 0}, the
+     * caching system becomes able to unload the team at any time as soon as it can (for example, the team cannot be
+     * unloaded if some of its members are loaded).
+     * <p>Also, a plugin should only use its own instance as requester to not interfere with other plugins.
+     *
+     * @param teamProgression The team to keep loaded.
+     * @param requester The plugin which requested to keep the team loaded.
+     * @see #addLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
+     */
+    public void removeLoadingRequestToTeam(@NotNull TeamProgression teamProgression, @NotNull Plugin requester) {
+        checkClosed();
+        Preconditions.checkNotNull(teamProgression, "TeamProgression is null.");
+        Preconditions.checkNotNull(requester, "Plugin is null.");
+
+        synchronized (DatabaseManager.this) {
+            Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
+
+            LoadedTeam team = teamsLoaded.get(teamProgression.getTeamId());
+            if (team != null)
+                removePluginRequest(team, requester);
+        }
+    }
+
+    /**
      * Returns whether the provided player is loaded into the cache.
      *
      * @param player The player.
@@ -1490,6 +1552,32 @@ public final class DatabaseManager implements Closeable {
                 return 0;
             }
             return loadedPlayer.getPluginRequests(requester);
+        }
+    }
+
+    /**
+     * Returns the number of <i>loading requests</i> that a plugin currently holds for the specified team.
+     *
+     * @param teamProgression The team.
+     * @param requester The plugin.
+     * @return The number of <i>loading requests</i> that a plugin currently holds for the specified team.
+     * @see #addLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #removeLoadingRequestToTeam(TeamProgression, Plugin)
+     */
+    @Contract(pure = true)
+    public int getLoadingRequestsAmount(@NotNull TeamProgression teamProgression, @NotNull Plugin requester) {
+        checkClosed();
+        Preconditions.checkNotNull(teamProgression, "TeamProgression is null.");
+        Preconditions.checkNotNull(requester, "Plugin is null.");
+
+        synchronized (DatabaseManager.this) {
+            Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
+
+            LoadedTeam team = teamsLoaded.get(teamProgression.getTeamId());
+            if (team == null) {
+                return 0;
+            }
+            return team.getPluginRequests(requester);
         }
     }
 
