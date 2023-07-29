@@ -1509,7 +1509,7 @@ public final class DatabaseManager implements Closeable {
      * @param requester The plugin.
      * @return The number of <i>loading requests</i> that a plugin currently holds for the specified player.
      * @see #loadAndAddLoadingRequestToPlayer(UUID, Plugin)
-     * @see #unloadPlayer(LoadedPlayer)
+     * @see #removeLoadingRequestToPlayer(UUID, Plugin)
      */
     @Contract(pure = true)
     public int getLoadingRequestsAmount(@NotNull Player player, @NotNull Plugin requester) {
@@ -1523,7 +1523,7 @@ public final class DatabaseManager implements Closeable {
      * @param requester The plugin.
      * @return The number of <i>loading requests</i> that a plugin currently holds for the specified player.
      * @see #loadAndAddLoadingRequestToPlayer(UUID, Plugin)
-     * @see #unloadPlayer(LoadedPlayer)
+     * @see #removeLoadingRequestToPlayer(UUID, Plugin)
      */
     @Contract(pure = true)
     public int getLoadingRequestsAmount(@NotNull OfflinePlayer player, @NotNull Plugin requester) {
@@ -1537,7 +1537,7 @@ public final class DatabaseManager implements Closeable {
      * @param requester The plugin.
      * @return The number of <i>loading requests</i> that a plugin currently holds for the specified player.
      * @see #loadAndAddLoadingRequestToPlayer(UUID, Plugin)
-     * @see #unloadPlayer(LoadedPlayer)
+     * @see #removeLoadingRequestToPlayer(UUID, Plugin)
      */
     @Contract(pure = true)
     public int getLoadingRequestsAmount(@NotNull UUID uuid, @NotNull Plugin requester) {
