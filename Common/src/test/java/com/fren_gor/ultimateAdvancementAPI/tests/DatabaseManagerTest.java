@@ -15,6 +15,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.PlayerRegisteredEvent;
@@ -484,6 +485,46 @@ public class DatabaseManagerTest {
         } finally {
             manager.unregister(listener);
         }
+    }
+
+    @Test
+    void updaterLockLockingTest() throws Exception {
+        PlayerMock pl = loadPlayer();
+        CompletableFuture<Void> completed = new CompletableFuture<>();
+        CompletableFuture<Void> releaseLock = new CompletableFuture<>();
+        Thread t = new Thread(() -> {
+            try {
+                databaseManager.updaterLock.lock();
+                completed.complete(null);
+                releaseLock.get();
+            } catch (ExecutionException | InterruptedException ignored) {
+            } finally {
+                databaseManager.updaterLock.unlock();
+            }
+        });
+        t.start();
+
+        waitCompletion(completed);
+
+        var cf = databaseManager.setProgression(KEY1, pl, 10);
+
+        for (int i = 0; i < 100; i++) {
+            assertFalse(cf.isDone());
+            server.getPluginManager().assertEventNotFired(ProgressionUpdateEvent.class);
+            server.getScheduler().performOneTick();
+        }
+
+        assertFalse(cf.isDone());
+        server.getPluginManager().assertEventNotFired(ProgressionUpdateEvent.class);
+
+        releaseLock.complete(null);
+        ProgressionUpdateResult res = waitCompletion(cf).get();
+
+        server.getPluginManager().assertEventFired(ProgressionUpdateEvent.class);
+        assertEquals(0, res.oldProgression());
+        assertEquals(10, res.newProgression());
+
+        disconnectPlayer(pl);
     }
 
     @Test
