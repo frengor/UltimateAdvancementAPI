@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * in order to minimize the copy operation cost.
  * <p>Since {@code ListSet} is immutable and contains only the elements of one other {@link Set},
  * it respects all the properties of a {@link Set}.
- * <p><strong>This class is thread safe.</strong>
+ * <p>This class is thread safe.
  *
  * @param <E> The type of the elements of this {@link Set}.
  */
@@ -30,7 +30,7 @@ public final class ListSet<E> extends AbstractSet<E> implements Set<E> {
      * Creates a new {@code ListSet} containing the elements of the provided {@link Set}.
      *
      * @param elements The elements to copy into this {@link Set}. {@code null} elements are not added to the {@code ListSet}.
-     * @throws IllegalArgumentException If the provided {@link Set} is {@code null}.
+     * @throws NullPointerException If the provided {@link Set} is {@code null}.
      */
     public ListSet(@NotNull Set<E> elements) {
         Preconditions.checkNotNull(elements, "Set is null.");
@@ -57,7 +57,7 @@ public final class ListSet<E> extends AbstractSet<E> implements Set<E> {
      * @param elements The {@link AbstractWrapper}s to convert to their NMS associated
      * @param <T> The type of the elements in the provided {@link Set}.
      * @return A new {@code ListSet} containing the NMS objects associated with the elements of the provided {@link Set}.
-     * @throws IllegalArgumentException If the provided {@link Set} is {@code null}.
+     * @throws NullPointerException If the provided {@link Set} is {@code null}.
      */
     @NotNull
     @Contract(pure = true, value = "_ -> new")
