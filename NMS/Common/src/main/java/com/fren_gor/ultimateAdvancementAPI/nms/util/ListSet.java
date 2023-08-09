@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
+import java.lang.reflect.Array;
 import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -73,6 +74,35 @@ public final class ListSet<E> extends AbstractSet<E> implements Set<E> {
             }
         }
         return new ListSet<>(array, i);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public E[] toArray() {
+        @SuppressWarnings("unchecked")
+        E[] array = (E[]) new Object[this.size];
+        System.arraycopy(this.elements, 0, array, 0, this.size);
+        return array;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    @SuppressWarnings("unchecked")
+    public <T> T[] toArray(T[] array) {
+        if (array.length < this.size) {
+            array = (T[]) Array.newInstance(array.getClass().getComponentType(), this.size);
+        } else if (array.length > this.size) {
+            array[this.size] = null;
+        }
+
+        System.arraycopy(this.elements, 0, array, 0, this.size);
+        return array;
     }
 
     /**
