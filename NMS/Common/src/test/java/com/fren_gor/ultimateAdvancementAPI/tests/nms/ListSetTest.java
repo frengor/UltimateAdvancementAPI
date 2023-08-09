@@ -1,8 +1,10 @@
 package com.fren_gor.ultimateAdvancementAPI.tests.nms;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ListSet;
+import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -68,5 +70,87 @@ public class ListSetTest {
             assertTrue(original.contains(i));
         }
         assertEquals(original.size(), counter);
+    }
+
+    @Test
+    void toArrayTest() {
+        Integer[] array = {0, 1, 5, 6, 7, -5};
+        Set<Integer> original = Set.of(array);
+        ListSet<Integer> toTest = new ListSet<>(original);
+
+        assertSameElements(array, toTest.toArray());
+    }
+
+    @Test
+    void toArrayWithArg0Test() {
+        Integer[] array = {0, 1, 5, 6, 7, -5};
+        Set<Integer> original = Set.of(array);
+        ListSet<Integer> toTest = new ListSet<>(original);
+
+        Integer[] arr = toTest.toArray(new Integer[0]);
+        assertNotSame(array, arr);
+        assertSameElements(array, arr);
+    }
+
+    @Test
+    void toArrayWithArgLessSizeTest() {
+        Integer[] array = {0, 1, 5, 6, 7, -5};
+        Set<Integer> original = Set.of(array);
+        ListSet<Integer> toTest = new ListSet<>(original);
+
+        Integer[] arr = toTest.toArray(new Integer[3]);
+        assertNotSame(array, arr);
+        assertSameElements(array, arr);
+    }
+
+    @Test
+    void toArrayWithArgCorrectSizeTest() {
+        Integer[] array = {0, 1, 5, 6, 7, -5};
+        Set<Integer> original = Set.of(array);
+        ListSet<Integer> toTest = new ListSet<>(original);
+
+        Integer[] arr = toTest.toArray(new Integer[array.length]);
+        assertNotSame(array, arr);
+        assertSameElements(array, arr);
+    }
+
+    @Test
+    void toArrayWithArgLargerSizeTest() {
+        Integer[] array = {0, 1, 5, 6, 7, -5};
+        Set<Integer> original = Set.of(array);
+        ListSet<Integer> toTest = new ListSet<>(original);
+
+        Integer[] arr = new Integer[array.length + 5];
+        Arrays.fill(arr, null);
+        arr[array.length] = 0; // Make sure this element isn't null before calling toArray()
+        assertSame(arr, toTest.toArray(arr));
+        assertNull(arr[array.length]);
+        assertSameElements(array, arr, false);
+    }
+
+    private void assertSameElements(Object[] arr1, Object[] arr2) {
+        assertSameElements(arr1, arr2, true);
+    }
+
+    private void assertSameElements(Object[] arr1, Object[] arr2, boolean checkLength) {
+        if (checkLength) {
+            assertEquals(arr1.length, arr2.length, "Arrays have different lengths");
+        }
+
+        Object[] arr2copy = Arrays.copyOf(arr2, arr2.length); // Don't directly modify arr2
+        loop:
+        for (Object t1 : arr1) {
+            if (t1 == null) {
+                fail("An element of " + Arrays.toString(arr1) + " is null");
+            }
+            for (int i = 0; i < arr2copy.length; i++) {
+                Object t2 = arr2copy[i];
+                if (t2 != null && t1.equals(t2)) {
+                    arr2copy[i] = null;
+                    continue loop;
+                }
+            }
+            AssertionFailureBuilder.assertionFailure().actual(arr2).expected(arr1).buildAndThrow();
+        }
     }
 }
