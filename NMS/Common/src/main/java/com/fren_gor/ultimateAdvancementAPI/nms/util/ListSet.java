@@ -112,18 +112,17 @@ public final class ListSet<E> extends AbstractSet<E> implements Set<E> {
     @NotNull
     public Iterator<E> iterator() {
         return new Iterator<>() {
-            private final AtomicInteger current = new AtomicInteger(0);
+            private int current = 0;
 
             @Override
             public boolean hasNext() {
-                return current.get() < size;
+                return current < size;
             }
 
             @Override
             public E next() {
-                // It is thread-safe to not synchronize accesses to elements array
-                // since it cannot be modified after being populated by the constructor
-                return elements[current.getAndIncrement()];
+                // `elements` is never modified, so this is fine
+                return elements[current++];
             }
         };
     }
