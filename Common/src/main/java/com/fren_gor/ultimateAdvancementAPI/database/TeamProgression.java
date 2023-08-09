@@ -156,9 +156,9 @@ public final class TeamProgression {
     }
 
     /**
-     * Returns a modifiable copy of the team members set.
+     * Returns a <i>mutable</i> copy of the team members set.
      *
-     * @return A modifiable copy of the team members set.
+     * @return A <i>mutable</i> copy of the team members set.
      */
     @Contract(pure = true, value = "-> new")
     public Set<@NotNull UUID> getMembersCopy() {
@@ -187,10 +187,8 @@ public final class TeamProgression {
      */
     public void forEachMember(@NotNull Consumer<UUID> action) {
         Preconditions.checkNotNull(action, "Consumer is null.");
-        synchronized (players) {
-            for (UUID u : players) {
-                action.accept(u);
-            }
+        for (UUID u : copyMembersAsArray()) {
+            action.accept(u);
         }
     }
 
@@ -203,14 +201,12 @@ public final class TeamProgression {
      */
     public boolean everyMemberMatch(@NotNull Predicate<UUID> action) {
         Preconditions.checkNotNull(action, "Predicate is null.");
-        synchronized (players) {
-            for (UUID u : players) {
-                if (!action.test(u)) {
-                    return false;
-                }
+        for (UUID u : copyMembersAsArray()) {
+            if (!action.test(u)) {
+                return false;
             }
-            return true;
         }
+        return true;
     }
 
     /**
@@ -222,14 +218,12 @@ public final class TeamProgression {
      */
     public boolean anyMemberMatch(@NotNull Predicate<UUID> action) {
         Preconditions.checkNotNull(action, "Predicate is null.");
-        synchronized (players) {
-            for (UUID u : players) {
-                if (action.test(u)) {
-                    return true;
-                }
+        for (UUID u : copyMembersAsArray()) {
+            if (action.test(u)) {
+                return true;
             }
-            return false;
         }
+        return false;
     }
 
     /**
@@ -241,14 +235,12 @@ public final class TeamProgression {
      */
     public boolean noMemberMatch(@NotNull Predicate<UUID> action) {
         Preconditions.checkNotNull(action, "Predicate is null.");
-        synchronized (players) {
-            for (UUID u : players) {
-                if (action.test(u)) {
-                    return false;
-                }
+        for (UUID u : copyMembersAsArray()) {
+            if (action.test(u)) {
+                return false;
             }
-            return true;
         }
+        return true;
     }
 
     /**
@@ -287,7 +279,6 @@ public final class TeamProgression {
 
     /**
      * Sets the progression of the provided advancement for the team.
-     * <p><strong>MUST BE CALLED ONLY FROM THE DatabaseManager#executor THREAD!</strong>
      *
      * @param key The key of the advancement.
      * @param progression The new progression to be set.
@@ -307,7 +298,11 @@ public final class TeamProgression {
         validateTeamProgression(newTeam);
         Preconditions.checkNotNull(uuid, "UUID is null.");
 
-        // Synchronize on both this.players and newTeam.players to perform the move atomically
+        // Synchronize on both this.players and newTeam.players to perform the move atomically.
+        // This is fine from a deadlock POV, since (except for this method) the lock on the players field is never
+        // taken while holding the lock on the one of another team.
+        // Thus, a deadlock is impossible, even if this method gets called concurrently (which should never happen,
+        // since it's called only from the DatabaseManager while on the main thread)
         synchronized (this.players) {
             synchronized (newTeam.players) {
                 players.remove(uuid);
@@ -338,14 +333,24 @@ public final class TeamProgression {
     @Nullable
     public Player getAnOnlineMember(@NotNull DatabaseManager manager) {
         Preconditions.checkNotNull(manager, "DatabaseManager is null.");
-        synchronized (players) {
-            for (UUID u : players) {
-                if (manager.isLoadedAndOnline(u)) {
-                    return Bukkit.getPlayer(u);
-                }
+        for (UUID u : copyMembersAsArray()) {
+            if (manager.isLoadedAndOnline(u)) {
+                return Bukkit.getPlayer(u);
             }
         }
         return null;
+    }
+
+    /**
+     * Faster version of {@link #getMembersCopy()}, only for internal usage.
+     *
+     * @return An array which contains the team members.
+     */
+    @NotNull
+    private UUID[] copyMembersAsArray() {
+        synchronized (players) {
+            return players.toArray(new UUID[0]);
+        }
     }
 
     @Override
