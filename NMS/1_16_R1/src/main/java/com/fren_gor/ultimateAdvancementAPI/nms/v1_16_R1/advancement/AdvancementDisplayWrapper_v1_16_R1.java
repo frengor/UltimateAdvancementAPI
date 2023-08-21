@@ -4,9 +4,9 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementD
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import net.minecraft.server.v1_16_R1.AdvancementDisplay;
 import net.minecraft.server.v1_16_R1.AdvancementFrameType;
-import net.minecraft.server.v1_16_R1.ChatComponentText;
 import net.minecraft.server.v1_16_R1.MinecraftKey;
 import org.bukkit.craftbukkit.v1_16_R1.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_16_R1.util.CraftChatMessage;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +55,7 @@ public class AdvancementDisplayWrapper_v1_16_R1 extends AdvancementDisplayWrappe
 
     public AdvancementDisplayWrapper_v1_16_R1(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
         MinecraftKey background = backgroundTexture == null ? null : new MinecraftKey(backgroundTexture);
-        this.display = new AdvancementDisplay(CraftItemStack.asNMSCopy(icon), new ChatComponentText(title), new ChatComponentText(description), background, (AdvancementFrameType) frameType.toNMS(), showToast, announceChat, hidden);
+        this.display = new AdvancementDisplay(CraftItemStack.asNMSCopy(icon), CraftChatMessage.fromStringOrNull(title, true), CraftChatMessage.fromStringOrNull(description, true), background, (AdvancementFrameType) frameType.toNMS(), showToast, announceChat, hidden);
         this.display.a(x, y);
         this.frameType = frameType;
     }
@@ -74,13 +74,13 @@ public class AdvancementDisplayWrapper_v1_16_R1 extends AdvancementDisplayWrappe
     @Override
     @NotNull
     public String getTitle() {
-        return ((ChatComponentText) display.a()).g();
+        return CraftChatMessage.fromComponent(display.a());
     }
 
     @Override
     @NotNull
     public String getDescription() {
-        return ((ChatComponentText) display.b()).g();
+        return CraftChatMessage.fromComponent(display.b());
     }
 
     @Override
