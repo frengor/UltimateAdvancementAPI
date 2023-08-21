@@ -8,7 +8,6 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -22,21 +21,15 @@ import java.util.StringJoiner;
  * The {@code AdvancementDisplay} class contains the graphical information of the advancement.
  * <p>It contains the title, description, icon, etc. etc.
  */
-public class AdvancementDisplay {
+public class AdvancementDisplay extends AbstractUnchangingAdvancementDisplay {
 
     /**
      * The icon of the advancement in the advancement GUI.
      */
     protected final ItemStack icon;
 
-    /**
-     * The fancy title used by {@link Advancement#getAnnounceMessage(Player)}.
-     */
     protected final BaseComponent[] chatTitle = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
 
-    /**
-     * The fancy description used by {@link Advancement#getAnnounceMessage(Player)}.
-     */
     protected final BaseComponent[] chatDescription = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
 
     /**
@@ -271,26 +264,6 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Gets the {@link BaseComponent} array that contains the fancy title. Used by {@link Advancement#getAnnounceMessage(Player)}.
-     *
-     * @return The {@link BaseComponent} array that contains the fancy title.
-     */
-    @NotNull
-    public BaseComponent[] getChatTitle() {
-        return chatTitle.clone();
-    }
-
-    /**
-     * Gets the {@link BaseComponent} array that contains the fancy description. Used by {@link Advancement#getAnnounceMessage(Player)}.
-     *
-     * @return The {@link BaseComponent} array that contains the fancy description.
-     */
-    @NotNull
-    public BaseComponent[] getChatDescription() {
-        return chatDescription.clone();
-    }
-
-    /**
      * Gets a clone of the icon.
      *
      * @return A clone of the icon.
@@ -331,6 +304,12 @@ public class AdvancementDisplay {
         return title;
     }
 
+    @NotNull
+    @Override
+    public BaseComponent[] getTitleBaseComponent() {
+        return TextComponent.fromLegacyText(getTitle());
+    }
+
     /**
      * Returns the trimmed title of the advancement.
      *
@@ -349,6 +328,12 @@ public class AdvancementDisplay {
     @Unmodifiable
     public List<String> getDescription() {
         return description;
+    }
+
+    @Unmodifiable
+    @Override
+    public List<BaseComponent[]> getDescriptionBaseComponent() {
+        return getDescription().stream().map(TextComponent::fromLegacyText).toList();
     }
 
     /**
@@ -428,6 +413,20 @@ public class AdvancementDisplay {
          * @param title The title of the advancement.
          */
         public Builder(@NotNull ItemStack icon, @NotNull String title) {
+            super(icon, title);
+        }
+
+        /**
+         * Creates a new {@code AdvancementDisplay.Builder}.
+         * <p>By default, the advancement display returned by {@link #build()} won't show both the toast message and
+         * the announcement message in the chat upon advancement completion.
+         * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
+         * <p>The default {@code defaultColor} is {@link AdvancementFrameType#getColor() AdvancementFrameType.TASK.getColor()}.
+         *
+         * @param icon The advancement's icon in the advancement GUI.
+         * @param title The title of the advancement.
+         */
+        public Builder(@NotNull ItemStack icon, @NotNull BaseComponent[] title) {
             super(icon, title);
         }
 

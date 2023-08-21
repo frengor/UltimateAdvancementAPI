@@ -9,7 +9,6 @@ import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgres
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.google.common.base.Preconditions;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -79,19 +78,6 @@ public class TaskAdvancement extends BaseAdvancement {
      */
     public TaskAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         super(key, display, Objects.requireNonNull(multitask, "AbstractMultiTasksAdvancement is null."), maxProgression);
-    }
-
-    /**
-     * {@inheritDoc}
-     * This method returns {@code null} by default.
-     *
-     * @return Always {@code null}.
-     */
-    @Override
-    @Nullable
-    @Contract(pure = true, value = "_ -> null")
-    public final BaseComponent[] getAnnounceMessage(@NotNull Player player) {
-        return null;
     }
 
     /**

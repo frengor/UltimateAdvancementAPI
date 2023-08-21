@@ -1,9 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
-import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -38,8 +36,6 @@ public enum AdvancementFrameType {
     /**
      * The message that should be sent when the advancement is granted.
      * <p><strong>Note:</strong> this is not the complete message.
-     *
-     * @see Advancement#getAnnounceMessage(Player)
      */
     private final String chatText;
 
@@ -92,7 +88,6 @@ public enum AdvancementFrameType {
      * <p><strong>Note:</strong> this is not the complete message.
      *
      * @return The message that should be sent when the advancement is granted.
-     * @see Advancement#getAnnounceMessage(Player)
      */
     @NotNull
     public String getChatText() {

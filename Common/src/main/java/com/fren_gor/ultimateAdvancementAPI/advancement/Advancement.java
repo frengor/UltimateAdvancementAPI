@@ -17,12 +17,7 @@ import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.fren_gor.ultimateAdvancementAPI.visibilities.IVisibility;
 import com.google.common.base.Preconditions;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.HoverEvent.Action;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.entity.Player;
@@ -223,32 +218,6 @@ public abstract class Advancement {
     public boolean isGranted(@NotNull TeamProgression progression) {
         validateTeamProgression(progression);
         return getProgression(progression) >= maxProgression;
-    }
-
-    /**
-     * Gets the chat message to be sent when an advancement is completed.
-     * <p>The message is sent to everybody online on the server.
-     *
-     * @param player The player who has completed the advancement.
-     * @return The message to be displayed, or {@code null} if no message should be displayed.
-     */
-    @Nullable
-    public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
-        Preconditions.checkNotNull(player, "Player is null.");
-        ChatColor color = display.getFrame().getColor();
-        return new ComponentBuilder(player.getName() + ' ' + display.getFrame().getChatText() + ' ')
-                .color(ChatColor.WHITE)
-                .append(new ComponentBuilder("[")
-                                .color(color)
-                                .event(new HoverEvent(Action.SHOW_TEXT, display.getChatDescription()))
-                                .create()
-                        , FormatRetention.NONE)
-                .append(display.getChatTitle(), FormatRetention.EVENTS)
-                .append(new ComponentBuilder("]")
-                                .color(color)
-                                .create()
-                        , FormatRetention.EVENTS)
-                .create();
     }
 
     /**
@@ -630,7 +599,7 @@ public abstract class Advancement {
         // Send complete messages
         Boolean gameRule = player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
         if (display.doesAnnounceToChat() && (gameRule == null || gameRule)) {
-            BaseComponent[] msg = getAnnounceMessage(player);
+            BaseComponent[] msg = display.getAnnounceMessage(player, this);
             if (msg != null)
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     p.spigot().sendMessage(msg);

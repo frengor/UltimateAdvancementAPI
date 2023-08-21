@@ -8,7 +8,6 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementD
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.google.common.base.Preconditions;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -230,17 +229,6 @@ public final class FakeAdvancement extends BaseAdvancement {
      */
     @Override
     public boolean isGranted(@NotNull TeamProgression progression) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
-     *
-     * @throws UnsupportedOperationException Always when it's called.
-     */
-    @Override
-    public @Nullable BaseComponent[] getAnnounceMessage(@NotNull Player player) {
         throw new UnsupportedOperationException();
     }
 
