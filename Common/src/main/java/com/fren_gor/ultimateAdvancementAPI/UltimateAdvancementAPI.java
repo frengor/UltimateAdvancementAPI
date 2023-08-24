@@ -1,6 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
@@ -234,8 +235,8 @@ public final class UltimateAdvancementAPI {
      * @param player The player the toast notification will be shown to.
      * @param display The {@link AdvancementDisplay} that contains the graphic information to show.
      */
-    public void displayCustomToast(@NotNull Player player, @NotNull AdvancementDisplay display) {
-        displayCustomToast(player, display.getIcon(), display.getTitle(), display.getFrame());
+    public void displayCustomToast(@NotNull Player player, @NotNull AbstractAdvancementDisplay display) {
+        displayCustomToast(player, AbstractAdvancementDisplay.dispatchIcon(display, player, main.getDatabaseManager()) ,AbstractAdvancementDisplay.dispatchTitle(display, player, main.getDatabaseManager()), AbstractAdvancementDisplay.dispatchFrame(display, player, main.getDatabaseManager()));
     }
 
     /**

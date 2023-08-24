@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement;
 
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
@@ -32,7 +32,7 @@ public class BaseAdvancement extends Advancement {
      * @param display The display information of this advancement.
      * @param parent The parent of this advancement.
      */
-    public BaseAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent) {
+    public BaseAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull Advancement parent) {
         this(key, display, parent, 1);
     }
 
@@ -45,7 +45,7 @@ public class BaseAdvancement extends Advancement {
      * @param parent The parent of this advancement.
      * @param maxProgression The maximum advancement progression.
      */
-    public BaseAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    public BaseAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         super(Objects.requireNonNull(parent, "Parent advancement is null.").advancementTab, key, display, maxProgression);
         this.parent = parent;
     }

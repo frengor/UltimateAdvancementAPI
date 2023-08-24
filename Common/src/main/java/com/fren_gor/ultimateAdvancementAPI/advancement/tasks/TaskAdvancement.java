@@ -1,6 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
@@ -64,7 +65,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * @param display The display information of this task.
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      */
-    public TaskAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask) {
+    public TaskAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask) {
         this(key, display, multitask, 1);
     }
 
@@ -76,7 +77,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param maxProgression The maximum progression of the task.
      */
-    public TaskAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    public TaskAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         super(key, display, Objects.requireNonNull(multitask, "AbstractMultiTasksAdvancement is null."), maxProgression);
     }
 

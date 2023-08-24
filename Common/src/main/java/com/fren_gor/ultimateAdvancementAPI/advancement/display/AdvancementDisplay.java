@@ -21,7 +21,7 @@ import java.util.StringJoiner;
  * The {@code AdvancementDisplay} class contains the graphical information of the advancement.
  * <p>It contains the title, description, icon, etc. etc.
  */
-public class AdvancementDisplay extends AbstractUnchangingAdvancementDisplay {
+public class AdvancementDisplay extends AbstractAdvancementDisplay {
 
     /**
      * The icon of the advancement in the advancement GUI.

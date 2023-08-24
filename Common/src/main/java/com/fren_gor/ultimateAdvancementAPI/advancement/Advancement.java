@@ -2,7 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
@@ -70,7 +70,7 @@ public abstract class Advancement {
      * The advancement display of the advancement.
      */
     @NotNull
-    protected final AdvancementDisplay display;
+    protected final AbstractAdvancementDisplay display;
 
     /**
      * The maximum progression of the advancement.
@@ -92,7 +92,7 @@ public abstract class Advancement {
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
      */
-    Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display) {
+    Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
         this(advancementTab, key, display, 1);
     }
 
@@ -104,7 +104,7 @@ public abstract class Advancement {
      * @param display The display information of this advancement.
      * @param maxProgression The maximum advancement progression.
      */
-    Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         // Validate class inheritance: Advancement can be extended only by RootAdvancement and BaseAdvancement
         // This makes sure no reflection is being used to make an invalid Advancement
         // The instanceOfs order provides max speed in most cases (there is usually one root for many base advancements)
@@ -529,7 +529,7 @@ public abstract class Advancement {
      * @param player The player the toast will be shown to.
      */
     public void displayToastToPlayer(@NotNull Player player) {
-        AdvancementUtils.displayToast(player, display.getIcon(), display.getTitle(), display.getFrame());
+        AdvancementUtils.displayToast(player, AbstractAdvancementDisplay.dispatchIcon(display, player, this), AbstractAdvancementDisplay.dispatchTitle(display, player, this), AbstractAdvancementDisplay.dispatchFrame(display, player, this));
     }
 
     /**
@@ -598,7 +598,8 @@ public abstract class Advancement {
 
         // Send complete messages
         Boolean gameRule = player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
-        if (display.doesAnnounceToChat() && (gameRule == null || gameRule)) {
+
+        if (AbstractAdvancementDisplay.dispatchDoesAnnounceToChat(display, player, this) && (gameRule == null || gameRule)) {
             BaseComponent[] msg = display.getAnnounceMessage(player, this);
             if (msg != null)
                 for (Player p : Bukkit.getOnlinePlayers()) {
@@ -607,7 +608,7 @@ public abstract class Advancement {
         }
 
         // Show Toast
-        if (display.doesShowToast()) {
+        if (AbstractAdvancementDisplay.dispatchDoesToast(display, player, this)) {
             // TODO Find a better solution
             runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(player, this));
         }
@@ -810,12 +811,12 @@ public abstract class Advancement {
     }
 
     /**
-     * Gets the {@link AdvancementDisplay} of this advancement.
+     * Gets the {@link AbstractAdvancementDisplay} of this advancement.
      *
-     * @return The {@link AdvancementDisplay} of this advancement.
+     * @return The {@link AbstractAdvancementDisplay} of this advancement.
      */
     @NotNull
-    public AdvancementDisplay getDisplay() {
+    public final AbstractAdvancementDisplay getDisplay() {
         return display;
     }
 

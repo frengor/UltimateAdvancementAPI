@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
@@ -37,7 +37,7 @@ public class RootAdvancement extends Advancement {
      * @param display The display information of this advancement.
      * @param backgroundTexture The path of the background texture image (like "textures/block/stone.png").
      */
-    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull String backgroundTexture) {
+    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull String backgroundTexture) {
         this(advancementTab, key, display, backgroundTexture, 1);
     }
 
@@ -50,7 +50,7 @@ public class RootAdvancement extends Advancement {
      * @param backgroundTexture The path of the background texture image (like "textures/block/stone.png").
      * @param maxProgression The maximum advancement progression.
      */
-    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AdvancementDisplay display, @NotNull String backgroundTexture, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull String backgroundTexture, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         super(advancementTab, key, display, maxProgression);
         this.backgroundTexture = Objects.requireNonNull(backgroundTexture, "Background texture is null.");
     }

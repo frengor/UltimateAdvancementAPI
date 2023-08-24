@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.util;
 
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Contract;
@@ -118,8 +119,8 @@ public final class CoordAdapter {
      * @param display The {@link AdvancementDisplay}.
      * @return The original x coordinate.
      */
-    public float getOriginalX(@NotNull AdvancementDisplay display) {
-        return getOriginalX(Objects.requireNonNull(display, "AdvancementDisplay is null.").getX());
+    public float getOriginalX(@NotNull AbstractAdvancementDisplay display) {
+        return getOriginalX(Objects.requireNonNull(display, "AbstractAdvancementDisplay is null.").getX());
     }
 
     /**
@@ -153,8 +154,8 @@ public final class CoordAdapter {
      * @param display The {@link AdvancementDisplay}.
      * @return The original y coordinate.
      */
-    public float getOriginalY(@NotNull AdvancementDisplay display) {
-        return getOriginalY(Objects.requireNonNull(display, "AdvancementDisplay is null.").getY());
+    public float getOriginalY(@NotNull AbstractAdvancementDisplay display) {
+        return getOriginalY(Objects.requireNonNull(display, "AbstractAdvancementDisplay is null.").getY());
     }
 
     /**

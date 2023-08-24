@@ -4,7 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.UltimateAdvancementAPI;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
@@ -112,11 +112,11 @@ public class AdvancementUtils {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkArgument(advancement.isValid(), "Advancement isn't valid.");
 
-        final AdvancementDisplay display = advancement.getDisplay();
+        final AbstractAdvancementDisplay display = advancement.getDisplay();
         final MinecraftKeyWrapper keyWrapper = getUniqueKey(advancement.getAdvancementTab()).getNMSWrapper();
 
         try {
-            AdvancementDisplayWrapper displayWrapper = AdvancementDisplayWrapper.craft(display.getIcon(), display.getTitle(), ADV_DESCRIPTION, display.getFrame().getNMSWrapper(), 0, 0, true, false, false);
+            AdvancementDisplayWrapper displayWrapper = AdvancementDisplayWrapper.craft(AbstractAdvancementDisplay.dispatchIcon(display, player, advancement), AbstractAdvancementDisplay.dispatchTitle(display, player, advancement), ADV_DESCRIPTION, AbstractAdvancementDisplay.dispatchFrame(display, player, advancement).getNMSWrapper(), 0, 0, true, false, false);
             AdvancementWrapper advWrapper = AdvancementWrapper.craftBaseAdvancement(keyWrapper, advancement.getNMSWrapper(), displayWrapper, 1);
 
             PacketPlayOutAdvancementsWrapper.craftSendPacket(Map.of(advWrapper, 1)).sendTo(player);
