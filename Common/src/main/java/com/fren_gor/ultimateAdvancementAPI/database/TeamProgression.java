@@ -301,8 +301,12 @@ public final class TeamProgression {
         // Synchronize on both this.players and newTeam.players to perform the move atomically.
         // This is fine from a deadlock POV, since (except for this method) the lock on the players field is never
         // taken while holding the lock on the one of another team.
-        // Thus, a deadlock is impossible, even if this method gets called concurrently (which should never happen,
-        // since it's called only from the DatabaseManager while on the main thread)
+        // Thus, a deadlock is impossible, except when this method gets called concurrently in the following way:
+        //               Process 1               |              Process 2
+        //    team1.movePlayer(team2, player);   |   team2.movePlayer(team1, player);
+        // However, this scenario should never happen, since this method is called only by the DatabaseManager
+        // while on the main thread, so not in a concurrent manner. In case the DatabaseManager will be modified to make
+        // concurrent updates, the above scenario will need to be avoided by the new DatabaseManager implementation
         synchronized (this.players) {
             synchronized (newTeam.players) {
                 players.remove(uuid);

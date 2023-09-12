@@ -25,7 +25,6 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
-import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock.CustomScheduler;
 import org.jetbrains.annotations.Contract;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -471,7 +470,6 @@ public class DatabaseManagerTest {
             for (int i = 0; i < 100; i++) {
                 assertFalse(registered.isDone());
                 assertFalse(loaded.get().isDone());
-                ((CustomScheduler) server.getScheduler()).registerPendingTasksNow();
                 Thread.yield();
             }
 
@@ -568,7 +566,6 @@ public class DatabaseManagerTest {
     @Test
     void joinAndQuitTest() {
         PlayerMock p = server.addPlayer();
-        ((CustomScheduler) server.getScheduler()).registerPendingTasksNow();
         disconnectPlayer(p, false);
     }
 
@@ -687,7 +684,6 @@ public class DatabaseManagerTest {
             return null;
         }
         while (!completableFuture.isDone()) {
-            ((CustomScheduler) server.getScheduler()).registerPendingTasksNow();
             Thread.yield();
         }
         return completableFuture;

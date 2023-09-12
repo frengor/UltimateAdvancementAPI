@@ -1639,11 +1639,13 @@ public final class DatabaseManager implements Closeable {
     }
 
     private synchronized void updateLoadedPlayerTeam(@NotNull LoadedPlayer player, @NotNull LoadedTeam newTeam) {
+        // If this method will ever be modified to be called concurrently, see the comment inside TeamProgression#movePlayer
         AdvancementUtils.checkSync(); // Must be called sync since it calls TeamUpdateEvents
 
         LoadedTeam oldTeam = player.getPlayerTeam();
         Preconditions.checkArgument(oldTeam != null, "Player " + player.getUuid() + " was being moved but isn't part of a team.");
 
+        // If this method will ever be modified to be called concurrently, see the comment inside TeamProgression#movePlayer
         oldTeam.getTeamProgression().movePlayer(newTeam.getTeamProgression(), player.getUuid());
 
         newTeam.addInternalRequest();
