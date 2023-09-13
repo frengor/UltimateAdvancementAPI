@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_19_R3.advancement;
 
+import com.fren_gor.ultimateAdvancementAPI.nms.v1_19_R3.Util;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import net.minecraft.advancements.DisplayInfo;
@@ -18,7 +19,7 @@ public class AdvancementDisplayWrapper_v1_19_R3 extends AdvancementDisplayWrappe
 
     public AdvancementDisplayWrapper_v1_19_R3(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
         ResourceLocation background = backgroundTexture == null ? null : new ResourceLocation(backgroundTexture);
-        this.display = new DisplayInfo(CraftItemStack.asNMSCopy(icon), CraftChatMessage.fromStringOrNull(title, true), CraftChatMessage.fromStringOrNull(description, true), background, (FrameType) frameType.toNMS(), showToast, announceChat, hidden);
+        this.display = new DisplayInfo(CraftItemStack.asNMSCopy(icon), Util.fromString(title), Util.fromString(description), background, (FrameType) frameType.toNMS(), showToast, announceChat, hidden);
         this.display.setLocation(x, y);
         this.frameType = frameType;
     }
