@@ -2,13 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
-import com.google.common.base.Preconditions;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.HoverEvent.Action;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -98,36 +92,6 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * @return The y coordinate.
      */
     public abstract float getY(@NotNull Player player);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @NotNull
-    public BaseComponent[] getAnnounceMessage(@NotNull Player advancementCompleter, @NotNull Advancement advancement) {
-        Preconditions.checkNotNull(advancementCompleter, "Player is null.");
-        ChatColor color = getFrame(advancementCompleter).getColor();
-
-        String title = getTitle(advancementCompleter);
-        String description = String.join("\n", getDescription(advancementCompleter));
-        return new ComponentBuilder(advancementCompleter.getName() + ' ' + getFrame(advancementCompleter).getChatText() + ' ')
-                .color(ChatColor.WHITE)
-                .append(new ComponentBuilder("[")
-                                .color(color)
-                                .event(new HoverEvent(Action.SHOW_TEXT, new ComponentBuilder("")
-                                        .append(title, FormatRetention.NONE)
-                                        .append("\n")
-                                        .append(description, FormatRetention.NONE)
-                                        .create()))
-                                .create()
-                        , FormatRetention.NONE)
-                .append(title, FormatRetention.EVENTS)
-                .append(new ComponentBuilder("]")
-                                .color(color)
-                                .create()
-                        , FormatRetention.EVENTS)
-                .create();
-    }
 
     /**
      * Returns the {@code AdvancementDisplay} NMS wrapper, using the provided advancement for construction (when necessary).

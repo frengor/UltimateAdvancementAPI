@@ -15,9 +15,12 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementF
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdvancementsWrapper;
 import com.google.common.base.Preconditions;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.HoverEvent.Action;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -335,6 +338,43 @@ public class AdvancementUtils {
     public static TeamProgression progressionFromUUID(@NotNull UUID uuid, @NotNull AdvancementTab tab) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
         return tab.getDatabaseManager().getTeamProgression(uuid);
+    }
+
+    @NotNull
+    public static BaseComponent[] getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+        Preconditions.checkNotNull(advancement, "Advancement is null.");
+        Preconditions.checkNotNull(advancementCompleter, "Player is null.");
+
+        AbstractAdvancementDisplay display = advancement.getDisplay();
+        AdvancementFrameType frame = AbstractAdvancementDisplay.dispatchFrame(display, advancementCompleter, advancement);
+        String title = AbstractAdvancementDisplay.dispatchTitle(display, advancementCompleter, advancement);
+        String description = String.join("\n" + ChatColor.RESET, AbstractAdvancementDisplay.dispatchDescription(display, advancementCompleter, advancement));
+        ChatColor color = frame.getColor();
+        String chatText = frame.getChatText();
+
+        Preconditions.checkNotNull(frame, "Display returned a null frame.");
+        Preconditions.checkNotNull(title, "Display returned a null title.");
+        Preconditions.checkNotNull(description, "Display returned a null description.");
+        Preconditions.checkNotNull(color, "Frame returned a null color.");
+        Preconditions.checkNotNull(chatText, "Frame returned a null chatText.");
+
+        return new ComponentBuilder(advancementCompleter.getName() + ' ' + frame.getChatText() + ' ')
+                .color(ChatColor.WHITE)
+                .append(new ComponentBuilder("[")
+                                .color(frame.getColor())
+                                .event(new HoverEvent(Action.SHOW_TEXT, new ComponentBuilder("")
+                                        .append(title, FormatRetention.NONE)
+                                        .append("\n")
+                                        .append(description, FormatRetention.NONE)
+                                        .create()))
+                                .create()
+                        , FormatRetention.NONE)
+                .append(title, FormatRetention.EVENTS)
+                .append(new ComponentBuilder("]")
+                                .color(frame.getColor())
+                                .create()
+                        , FormatRetention.EVENTS)
+                .create();
     }
 
     private AdvancementUtils() {

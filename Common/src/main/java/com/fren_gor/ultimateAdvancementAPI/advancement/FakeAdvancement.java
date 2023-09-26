@@ -8,6 +8,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementD
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.google.common.base.Preconditions;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -130,6 +131,19 @@ public final class FakeAdvancement extends BaseAdvancement {
     @Contract("_ -> true")
     public boolean isVisible(@NotNull TeamProgression progression) {
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always returns {@code null}.
+     *
+     * @return Alw
+     */
+    @Override
+    @Nullable
+    @Contract("_ -> null")
+    public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
+        return null;
     }
 
     /**

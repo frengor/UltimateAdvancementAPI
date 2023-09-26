@@ -4,13 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
-import com.google.common.base.Preconditions;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.HoverEvent.Action;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -100,42 +94,6 @@ public abstract class AbstractAdvancementDisplay {
      * @return The y coordinate.
      */
     public abstract float getY();
-
-    /**
-     * Gets the chat message to be sent when an advancement is completed.
-     * <p>The message is sent to everybody online on the server.
-     *
-     * @param advancementCompleter The player who has completed the advancement.
-     * @param advancement The advancement being completed.
-     * @return The message to be displayed.
-     */
-    @NotNull
-    public BaseComponent[] getAnnounceMessage(@NotNull Player advancementCompleter, @NotNull Advancement advancement) {
-        //TODO Add title in hover event
-        Preconditions.checkNotNull(advancementCompleter, "Player is null.");
-        ChatColor color = getFrame().getColor();
-
-        String title = getTitle();
-        String description = String.join("\n", getDescription());
-
-        return new ComponentBuilder(advancementCompleter.getName() + ' ' + getFrame().getChatText() + ' ')
-                .color(ChatColor.WHITE)
-                .append(new ComponentBuilder("[")
-                                .color(color)
-                                .event(new HoverEvent(Action.SHOW_TEXT, new ComponentBuilder("")
-                                        .append(title, FormatRetention.NONE)
-                                        .append("\n")
-                                        .append(description, FormatRetention.NONE)
-                                        .create()))
-                                .create()
-                        , FormatRetention.NONE)
-                .append(title, FormatRetention.EVENTS)
-                .append(new ComponentBuilder("]")
-                                .color(color)
-                                .create()
-                        , FormatRetention.EVENTS)
-                .create();
-    }
 
     /**
      * Returns the {@code AdvancementDisplay} NMS wrapper, using the provided advancement for construction (when necessary).

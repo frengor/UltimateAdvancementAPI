@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.announceMessage.IAnnounceMessage;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
@@ -17,7 +18,12 @@ import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.fren_gor.ultimateAdvancementAPI.visibilities.IVisibility;
 import com.google.common.base.Preconditions;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.HoverEvent.Action;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.entity.Player;
@@ -79,7 +85,7 @@ public abstract class Advancement {
     protected final int maxProgression;
 
     @Nullable
-    private final MethodHandle iVisibilityMethod;
+    private final MethodHandle iVisibilityMethod, iAnnounceMessageMethod;
 
     private Advancement() {
         throw new UnsupportedOperationException("Private constructor.");
@@ -118,11 +124,8 @@ public abstract class Advancement {
         this.key = new AdvancementKey(advancementTab.getNamespace(), key);
         this.display = Objects.requireNonNull(display, "Display is null.");
         this.maxProgression = maxProgression;
-        if (this instanceof IVisibility) {
-            this.iVisibilityMethod = getIVisibilityMethod(getClass());
-        } else {
-            this.iVisibilityMethod = null;
-        }
+        this.iVisibilityMethod = this instanceof IVisibility ? getIVisibilityMethod() : null;
+        this.iAnnounceMessageMethod = this instanceof IAnnounceMessage ? getIAnnounceMessageMethod() : null;
     }
 
     /**
@@ -572,6 +575,7 @@ public abstract class Advancement {
      *         The return value is {@code true} if no suitable interfaces for the AVS are implemented, or
      *         the result of {@link IVisibility#isVisible(Advancement, TeamProgression)} otherwise.
      *         When overridden, this method (called via {@code super}) enables the AVS features for that method.
+     * @see IVisibility
      */
     public boolean isVisible(@NotNull TeamProgression progression) {
         validateTeamProgression(progression);
@@ -588,6 +592,37 @@ public abstract class Advancement {
     }
 
     /**
+     * Gets the chat message to be sent when an advancement is completed.
+     * <p>The message is sent to everybody online on the server.
+     * <p>The default announce message can be changed by overriding this method or implementing a suitable interface for
+     * the Advancement Announce Message System.
+     *
+     * @param player The player who has completed the advancement.
+     * @return The message to be displayed, or {@code null} if no message should be displayed.
+     * @implSpec This method is the core method of the Advancement Announce Message System (AAMS).
+     *         The default announce message is returned if no suitable interfaces for the AAMS are implemented, or
+     *         the result of {@link IAnnounceMessage#getAnnounceMessage(Advancement, Player)} otherwise.
+     *         When overridden, this method (called via {@code super}) enables the AAMS features for that method.
+     * @see IAnnounceMessage
+     */
+    @Nullable
+    public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
+        Preconditions.checkNotNull(player, "Player is null.");
+
+        // Advancement announce message system
+        if (iAnnounceMessageMethod != null) {
+            try {
+                return (BaseComponent[]) iAnnounceMessageMethod.invokeWithArguments(this, player);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Default message
+        return AdvancementUtils.getAnnounceMessage(this, player);
+    }
+
+    /**
      * Called when the advancement is completed by a player. It handles the chat message, the toast notification, and the advancement rewards (see {@link #giveReward(Player)} for more information).
      *
      * @param player The player who completed the advancement.
@@ -600,7 +635,7 @@ public abstract class Advancement {
         Boolean gameRule = player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
 
         if (AbstractAdvancementDisplay.dispatchDoesAnnounceToChat(display, player, this) && (gameRule == null || gameRule)) {
-            BaseComponent[] msg = display.getAnnounceMessage(player, this);
+            BaseComponent[] msg = getAnnounceMessage(player);
             if (msg != null)
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     p.spigot().sendMessage(msg);
@@ -786,16 +821,37 @@ public abstract class Advancement {
     /**
      * Gets the right {@link IVisibility} sub-interface method that will be used by the advancement visibility system.
      *
-     * @param clazz The class to analyze.
      * @return The right {@link IVisibility#isVisible(Advancement, TeamProgression)} {@link MethodHandle} or {@code null}.
      */
-    private MethodHandle getIVisibilityMethod(Class<? extends Advancement> clazz) {
+    @Nullable
+    private MethodHandle getIVisibilityMethod() {
+        return getMethod(getClass(), IVisibility.class, "isVisible", Advancement.class, TeamProgression.class);
+    }
+
+    /**
+     * Gets the right {@link IAnnounceMessage} sub-interface method that will be used by the advancement announce message system.
+     *
+     * @return The right {@link IAnnounceMessage#getAnnounceMessage(Advancement, Player)} {@link MethodHandle} or {@code null}.
+     */
+    @Nullable
+    private MethodHandle getIAnnounceMessageMethod() {
+        return getMethod(getClass(), IAnnounceMessage.class, "getAnnounceMessage", Advancement.class, Player.class);
+    }
+
+    /**
+     * Gets the right sub-interface method that will be used by the AVS or AAMS.
+     *
+     * @param clazz The class to analyze.
+     * @return The right {@link MethodHandle} or {@code null}.
+     */
+    @Nullable
+    private MethodHandle getMethod(Class<? extends Advancement> clazz, Class<?> interfaceClass, String methodName, Class<?>... methodParameters) {
         for (Class<?> i : clazz.getInterfaces()) {
-            if (i != IVisibility.class && IVisibility.class.isAssignableFrom(i)) {
+            if (i != interfaceClass && interfaceClass.isAssignableFrom(i)) {
                 try {
-                    final Method m = i.getDeclaredMethod("isVisible", Advancement.class, TeamProgression.class);
+                    final Method m = i.getDeclaredMethod(methodName, methodParameters);
                     if (m.isDefault()) {
-                        // Make sure the interface method is called instead of Advancement#isVisible(Advancement, TeamProgression)
+                        // Make sure the interface method is called instead of the method in this class
                         return MethodHandles.lookup().unreflectSpecial(m, i).bindTo(this);
                     }
                 } catch (NoSuchMethodException | IllegalAccessException e) {
@@ -805,7 +861,7 @@ public abstract class Advancement {
         }
         Class<?> sClazz = clazz.getSuperclass();
         if (Advancement.class.isAssignableFrom(sClazz) && sClazz != Advancement.class) {
-            return getIVisibilityMethod(sClazz.asSubclass(Advancement.class));
+            return getMethod(sClazz.asSubclass(Advancement.class), interfaceClass, methodName, methodParameters);
         }
         return null;
     }
@@ -835,5 +891,22 @@ public abstract class Advancement {
     @Contract("_, _ -> fail")
     public final boolean isVisible(Advancement advancement, TeamProgression progression) {
         throw new IllegalOperationException("This method cannot be called. Use Advancement#isVisible(TeamProgression).");
+    }
+
+    /**
+     * <strong>This method should not be called at any time!</strong>
+     * <p>It is present <i>only</i> to avoid compilation errors when implementing more than one interface of the Advancement Announce Message System,
+     * since every one of those interfaces implement the {@link IAnnounceMessage#getAnnounceMessage(Advancement, Player)} method
+     * and the compiler cannot automatically choose the method to call between the ones of the different interfaces.
+     *
+     * @throws IllegalOperationException Every time it's called.
+     * @hidden
+     * @deprecated Use {@link Advancement#getAnnounceMessage(Player)}.
+     */
+    @Deprecated
+    @Internal
+    @Contract("_, _ -> fail")
+    public final BaseComponent[] getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+        throw new IllegalOperationException("This method cannot be called. Use Advancement#getAnnounceMessage(Player).");
     }
 }

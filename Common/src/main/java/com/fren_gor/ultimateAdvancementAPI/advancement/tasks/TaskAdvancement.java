@@ -10,6 +10,7 @@ import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgres
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.google.common.base.Preconditions;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -182,6 +183,19 @@ public class TaskAdvancement extends BaseAdvancement {
     @Contract("_ -> false")
     public final boolean isVisible(@NotNull TeamProgression progression) {
         return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@code TaskAdvancement}s are not sent to players, this method always returns {@code null}.
+     *
+     * @return Always {@code null}.
+     */
+    @Override
+    @Nullable
+    @Contract("_ -> null")
+    public final BaseComponent[] getAnnounceMessage(@NotNull Player player) {
+        return null;
     }
 
     /**

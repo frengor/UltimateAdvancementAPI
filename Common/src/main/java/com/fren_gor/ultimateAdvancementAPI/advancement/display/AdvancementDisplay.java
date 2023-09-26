@@ -300,6 +300,7 @@ public class AdvancementDisplay extends AbstractAdvancementDisplay {
      * @return The title of the advancement.
      */
     @NotNull
+    @Override
     public String getTitle() {
         return title;
     }
