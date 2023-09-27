@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_0_3;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_2_0;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.*;
-import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_0_3.AdvancementArgument.getAdvancementArgument;
-import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_0_3.AdvancementTabArgument.getAdvancementTabArgument;
+import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_2_0.AdvancementArgument.getAdvancementArgument;
+import static com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v9_2_0.AdvancementTabArgument.getAdvancementTabArgument;
 
 public class UltimateAdvancementAPICommand {
 
