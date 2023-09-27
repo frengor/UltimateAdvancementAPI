@@ -22,12 +22,30 @@ public abstract class AbstractAdvancementDisplay {
      */
     public abstract boolean doesShowToast();
 
+    public boolean dispatchDoesToast(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
+        return dispatchDoesToast(display, player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    public boolean dispatchDoesToast(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        // This method is overridden in per-player and per-team classes
+        return display.doesShowToast();
+    }
+
     /**
      * Returns whether the advancement completion message should be sent on advancement grant.
      *
      * @return Whether the advancement completion message should be sent on advancement grant.
      */
     public abstract boolean doesAnnounceToChat();
+
+    public boolean dispatchDoesAnnounceToChat(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
+        return dispatchDoesAnnounceToChat(display, player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    public boolean dispatchDoesAnnounceToChat(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        // This method is overridden in per-player and per-team classes
+        return display.doesAnnounceToChat();
+    }
 
     /**
      * Gets a clone of the icon.
@@ -36,6 +54,15 @@ public abstract class AbstractAdvancementDisplay {
      */
     @NotNull
     public abstract ItemStack getIcon();
+
+    public ItemStack dispatchIcon(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
+        return dispatchIcon(display, player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    public ItemStack dispatchIcon(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        // This method is overridden in per-player and per-team classes
+        return display.getIcon();
+    }
 
     /**
      * Returns the title of the advancement.
@@ -47,6 +74,15 @@ public abstract class AbstractAdvancementDisplay {
         return TextComponent.toLegacyText(getTitleBaseComponent());
     }
 
+    public String dispatchTitle(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
+        return dispatchTitle(display, player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    public String dispatchTitle(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        // This method is overridden in per-player and per-team classes
+        return display.getTitle();
+    }
+
     /**
      * Returns the title of the advancement.
      *
@@ -54,6 +90,15 @@ public abstract class AbstractAdvancementDisplay {
      */
     @NotNull
     public abstract BaseComponent[] getTitleBaseComponent();
+
+    public BaseComponent[] dispatchTitleBaseComponent(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
+        return dispatchTitleBaseComponent(display, player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    public BaseComponent[] dispatchTitleBaseComponent(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        // This method is overridden in per-player and per-team classes
+        return display.getTitleBaseComponent();
+    }
 
     /**
      * Returns the description of the advancement.
@@ -65,6 +110,15 @@ public abstract class AbstractAdvancementDisplay {
         return getDescriptionBaseComponent().stream().map(TextComponent::toLegacyText).toList();
     }
 
+    public List<String> dispatchDescription(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
+        return dispatchDescription(display, player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    public List<String> dispatchDescription(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        // This method is overridden in per-player and per-team classes
+        return display.getDescription();
+    }
+
     /**
      * Returns the description of the advancement.
      *
@@ -72,6 +126,15 @@ public abstract class AbstractAdvancementDisplay {
      */
     @Unmodifiable
     public abstract List<BaseComponent[]> getDescriptionBaseComponent();
+
+    public List<BaseComponent[]> dispatchDescriptionBaseComponent(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
+        return dispatchDescriptionBaseComponent(display, player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    public List<BaseComponent[]> dispatchDescriptionBaseComponent(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        // This method is overridden in per-player and per-team classes
+        return display.getDescriptionBaseComponent();
+    }
 
     /**
      * Returns the shape of the advancement frame in the advancement GUI.
@@ -81,6 +144,15 @@ public abstract class AbstractAdvancementDisplay {
     @NotNull
     public abstract AdvancementFrameType getFrame();
 
+    public AdvancementFrameType dispatchFrame(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
+        return dispatchFrame(display, player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    public AdvancementFrameType dispatchFrame(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        // This method is overridden in per-player and per-team classes
+        return display.getFrame();
+    }
+
     /**
      * Returns the advancement position relative to the x-axis.
      *
@@ -88,12 +160,30 @@ public abstract class AbstractAdvancementDisplay {
      */
     public abstract float getX();
 
+    public float dispatchX(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
+        return dispatchX(display, player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    public float dispatchX(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        // This method is overridden in per-player and per-team classes
+        return display.getX();
+    }
+
     /**
      * Returns the advancement position relative to the y-axis.
      *
      * @return The y coordinate.
      */
     public abstract float getY();
+
+    public float dispatchY(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
+        return dispatchY(display, player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    public float dispatchY(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        // This method is overridden in per-player and per-team classes
+        return display.getY();
+    }
 
     /**
      * Returns the {@code AdvancementDisplay} NMS wrapper, using the provided advancement for construction (when necessary).
@@ -103,175 +193,5 @@ public abstract class AbstractAdvancementDisplay {
      */
     @NotNull
     public abstract AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement);
-
-    public static boolean dispatchDoesToast(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
-        return dispatchDoesToast(display, player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    public static boolean dispatchDoesToast(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-            return perPlayer.doesShowToast(player);
-        }
-        if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
-            try {
-                return perTeam.doesShowToast(databaseManager.getTeamProgression(player));
-            } catch (UserNotLoadedException ignored) {
-            }
-        }
-        return display.doesShowToast();
-    }
-
-    public static boolean dispatchDoesAnnounceToChat(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
-        return dispatchDoesAnnounceToChat(display, player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    public static boolean dispatchDoesAnnounceToChat(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-            return perPlayer.doesAnnounceToChat(player);
-        }
-        if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
-            try {
-                return perTeam.doesAnnounceToChat(databaseManager.getTeamProgression(player));
-            } catch (UserNotLoadedException ignored) {
-            }
-        }
-        return display.doesAnnounceToChat();
-    }
-
-    public static ItemStack dispatchIcon(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
-        return dispatchIcon(display, player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    public static ItemStack dispatchIcon(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-            return perPlayer.getIcon(player);
-        }
-        if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
-            try {
-                return perTeam.getIcon(databaseManager.getTeamProgression(player));
-            } catch (UserNotLoadedException ignored) {
-            }
-        }
-        return display.getIcon();
-    }
-
-    public static String dispatchTitle(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
-        return dispatchTitle(display, player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    public static String dispatchTitle(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-            return perPlayer.getTitle(player);
-        }
-        if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
-            try {
-                return perTeam.getTitle(databaseManager.getTeamProgression(player));
-            } catch (UserNotLoadedException ignored) {
-            }
-        }
-        return display.getTitle();
-    }
-
-    public static BaseComponent[] dispatchTitleBaseComponent(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
-        return dispatchTitleBaseComponent(display, player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    public static BaseComponent[] dispatchTitleBaseComponent(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-            return perPlayer.getTitleBaseComponent(player);
-        }
-        if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
-            try {
-                return perTeam.getTitleBaseComponent(databaseManager.getTeamProgression(player));
-            } catch (UserNotLoadedException ignored) {
-            }
-        }
-        return display.getTitleBaseComponent();
-    }
-
-    public static List<String> dispatchDescription(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
-        return dispatchDescription(display, player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    public static List<String> dispatchDescription(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-            return perPlayer.getDescription(player);
-        }
-        if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
-            try {
-                return perTeam.getDescription(databaseManager.getTeamProgression(player));
-            } catch (UserNotLoadedException ignored) {
-            }
-        }
-        return display.getDescription();
-    }
-
-    public static List<BaseComponent[]> dispatchDescriptionBaseComponent(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
-        return dispatchDescriptionBaseComponent(display, player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    public static List<BaseComponent[]> dispatchDescriptionBaseComponent(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-            return perPlayer.getDescriptionBaseComponent(player);
-        }
-        if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
-            try {
-                return perTeam.getDescriptionBaseComponent(databaseManager.getTeamProgression(player));
-            } catch (UserNotLoadedException ignored) {
-            }
-        }
-        return display.getDescriptionBaseComponent();
-    }
-
-    public static AdvancementFrameType dispatchFrame(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
-        return dispatchFrame(display, player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    public static AdvancementFrameType dispatchFrame(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-            return perPlayer.getFrame(player);
-        }
-        if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
-            try {
-                return perTeam.getFrame(databaseManager.getTeamProgression(player));
-            } catch (UserNotLoadedException ignored) {
-            }
-        }
-        return display.getFrame();
-    }
-
-    public static float dispatchX(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
-        return dispatchX(display, player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    public static float dispatchX(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-            return perPlayer.getX(player);
-        }
-        if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
-            try {
-                return perTeam.getX(databaseManager.getTeamProgression(player));
-            } catch (UserNotLoadedException ignored) {
-            }
-        }
-        return display.getX();
-    }
-
-    public static float dispatchY(AbstractAdvancementDisplay display, Player player, Advancement advancement) {
-        return dispatchY(display, player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    public static float dispatchY(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-            return perPlayer.getY(player);
-        }
-        if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
-            try {
-                return perTeam.getY(databaseManager.getTeamProgression(player));
-            } catch (UserNotLoadedException ignored) {
-            }
-        }
-        return display.getY();
-    }
 
 }

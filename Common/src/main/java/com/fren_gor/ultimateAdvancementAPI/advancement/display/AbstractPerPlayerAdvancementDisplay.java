@@ -1,6 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -100,5 +101,55 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * @return The {@code AdvancementDisplay} NMS wrapper.
      */
     @NotNull
-    public abstract AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement,@NotNull Player player);
+    public abstract AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement, @NotNull Player player);
+
+    @Override
+    public boolean dispatchDoesToast(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        return doesShowToast(player);
+    }
+
+    @Override
+    public boolean dispatchDoesAnnounceToChat(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        return doesAnnounceToChat(player);
+    }
+
+    @Override
+    public ItemStack dispatchIcon(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        return getIcon(player);
+    }
+
+    @Override
+    public String dispatchTitle(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        return getTitle(player);
+    }
+
+    @Override
+    public BaseComponent[] dispatchTitleBaseComponent(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        return getTitleBaseComponent(player);
+    }
+
+    @Override
+    public List<String> dispatchDescription(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        return getDescription(player);
+    }
+
+    @Override
+    public List<BaseComponent[]> dispatchDescriptionBaseComponent(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        return getDescriptionBaseComponent(player);
+    }
+
+    @Override
+    public AdvancementFrameType dispatchFrame(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        return getFrame(player);
+    }
+
+    @Override
+    public float dispatchX(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        return getX(player);
+    }
+
+    @Override
+    public float dispatchY(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+        return getY(player);
+    }
 }

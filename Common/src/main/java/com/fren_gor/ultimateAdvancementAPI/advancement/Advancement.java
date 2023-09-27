@@ -18,12 +18,7 @@ import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.fren_gor.ultimateAdvancementAPI.visibilities.IVisibility;
 import com.google.common.base.Preconditions;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.HoverEvent.Action;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.entity.Player;
@@ -532,7 +527,7 @@ public abstract class Advancement {
      * @param player The player the toast will be shown to.
      */
     public void displayToastToPlayer(@NotNull Player player) {
-        AdvancementUtils.displayToast(player, AbstractAdvancementDisplay.dispatchIcon(display, player, this), AbstractAdvancementDisplay.dispatchTitle(display, player, this), AbstractAdvancementDisplay.dispatchFrame(display, player, this));
+        AdvancementUtils.displayToast(player, display.dispatchIcon(display, player, this), display.dispatchTitle(display, player, this), display.dispatchFrame(display, player, this));
     }
 
     /**
@@ -634,7 +629,7 @@ public abstract class Advancement {
         // Send complete messages
         Boolean gameRule = player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
 
-        if (AbstractAdvancementDisplay.dispatchDoesAnnounceToChat(display, player, this) && (gameRule == null || gameRule)) {
+        if (display.dispatchDoesAnnounceToChat(display, player, this) && (gameRule == null || gameRule)) {
             BaseComponent[] msg = getAnnounceMessage(player);
             if (msg != null)
                 for (Player p : Bukkit.getOnlinePlayers()) {
@@ -643,7 +638,7 @@ public abstract class Advancement {
         }
 
         // Show Toast
-        if (AbstractAdvancementDisplay.dispatchDoesToast(display, player, this)) {
+        if (display.dispatchDoesToast(display, player, this)) {
             // TODO Find a better solution
             runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(player, this));
         }

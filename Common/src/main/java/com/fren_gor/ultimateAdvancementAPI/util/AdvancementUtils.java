@@ -119,7 +119,7 @@ public class AdvancementUtils {
         final MinecraftKeyWrapper keyWrapper = getUniqueKey(advancement.getAdvancementTab()).getNMSWrapper();
 
         try {
-            AdvancementDisplayWrapper displayWrapper = AdvancementDisplayWrapper.craft(AbstractAdvancementDisplay.dispatchIcon(display, player, advancement), AbstractAdvancementDisplay.dispatchTitle(display, player, advancement), ADV_DESCRIPTION, AbstractAdvancementDisplay.dispatchFrame(display, player, advancement).getNMSWrapper(), 0, 0, true, false, false);
+            AdvancementDisplayWrapper displayWrapper = AdvancementDisplayWrapper.craft(display.dispatchIcon(display, player, advancement), display.dispatchTitle(display, player, advancement), ADV_DESCRIPTION, display.dispatchFrame(display, player, advancement).getNMSWrapper(), 0, 0, true, false, false);
             AdvancementWrapper advWrapper = AdvancementWrapper.craftBaseAdvancement(keyWrapper, advancement.getNMSWrapper(), displayWrapper, 1);
 
             PacketPlayOutAdvancementsWrapper.craftSendPacket(Map.of(advWrapper, 1)).sendTo(player);
@@ -346,9 +346,9 @@ public class AdvancementUtils {
         Preconditions.checkNotNull(advancementCompleter, "Player is null.");
 
         AbstractAdvancementDisplay display = advancement.getDisplay();
-        AdvancementFrameType frame = AbstractAdvancementDisplay.dispatchFrame(display, advancementCompleter, advancement);
-        String title = AbstractAdvancementDisplay.dispatchTitle(display, advancementCompleter, advancement);
-        String description = String.join("\n" + ChatColor.RESET, AbstractAdvancementDisplay.dispatchDescription(display, advancementCompleter, advancement));
+        AdvancementFrameType frame = display.dispatchFrame(display, advancementCompleter, advancement);
+        String title = display.dispatchTitle(display, advancementCompleter, advancement);
+        String description = String.join("\n" + ChatColor.RESET, display.dispatchDescription(display, advancementCompleter, advancement));
         ChatColor color = frame.getColor();
         String chatText = frame.getChatText();
 
