@@ -22,7 +22,7 @@
 
     <modules>
         <module>Common</module>
-        <module>CommandAPI-9.0.3</module>
+        <module>CommandAPI-9.2.0</module>
         <module>Distribution</module>
     </modules>
 

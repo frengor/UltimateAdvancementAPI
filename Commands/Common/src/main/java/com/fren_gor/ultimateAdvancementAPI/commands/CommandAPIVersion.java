@@ -11,7 +11,7 @@ import java.util.List;
  * Enum containing the used versions of <a href="https://github.com/JorelAli/CommandAPI">CommandAPI</a>.
  */
 public enum CommandAPIVersion {
-    LATEST("9.0.3", "uJzcFNNX8Y0U9xiaqBW43WQNcJrhARJpwydVN15GG3k=", "9_0_3", List.of(
+    LATEST("9.2.0", "EFbL3/btqNsS6xeZfgnbI5TwcWXxE2LdD6U161E6UGA=", "9_2_0", List.of(
             "v1_15_R1",
             "v1_16_R1",
             "v1_16_R2",
@@ -22,7 +22,8 @@ public enum CommandAPIVersion {
             "v1_19_R1",
             "v1_19_R2",
             "v1_19_R3",
-            "v1_20_R1"
+            "v1_20_R1",
+            "v1_20_R2"
     ));
 
     private final String version, checksum, suffix;

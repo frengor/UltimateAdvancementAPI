@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
@@ -37,13 +38,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.checkSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 
 /**
  * Main class of the API. It is used to instantiate the API.
  */
 public final class AdvancementMain {
+
+    // Don't use AdvancementUtils here until having checked that the current mc version is supported
 
     private final static AtomicBoolean LOADED = new AtomicBoolean(false), ENABLED = new AtomicBoolean(false), INVALID_VERSION = new AtomicBoolean(false);
 
@@ -63,6 +65,7 @@ public final class AdvancementMain {
      * @param owningPlugin The plugin instantiating the API.
      */
     public AdvancementMain(@NotNull Plugin owningPlugin) {
+        // Don't use AdvancementUtils here until having checked that the current mc version is supported
         Preconditions.checkNotNull(owningPlugin, "Plugin is null.");
         this.owningPlugin = owningPlugin;
         this.libFolder = ".libs";
@@ -76,6 +79,7 @@ public final class AdvancementMain {
      *         The folder is created into the plugin directory.
      */
     public AdvancementMain(@NotNull Plugin owningPlugin, String libFolder) {
+        // Don't use AdvancementUtils here until having checked that the current mc version is supported
         Preconditions.checkNotNull(owningPlugin, "Plugin is null.");
         Preconditions.checkNotNull(libFolder, "Lib folder is null.");
         this.owningPlugin = owningPlugin;
@@ -90,7 +94,7 @@ public final class AdvancementMain {
      * @throws IllegalStateException If it is called at an invalid moment.
      */
     public void load() throws InvalidVersionException {
-        checkSync();
+        checkSync(); // This is not the AdvancementUtils' one, since AdvancementUtils cannot be used before checking that the current mc version is supported
         if (!LOADED.compareAndSet(false, true)) {
             throw new IllegalStateException("UltimateAdvancementAPI is getting loaded twice.");
         }
@@ -180,7 +184,7 @@ public final class AdvancementMain {
     }
 
     private void commonEnablePreDatabase() {
-        checkSync();
+        checkSync(); // This is not the AdvancementUtils' one, since AdvancementUtils cannot be used before checking that the current mc version is supported
         if (INVALID_VERSION.get()) {
             throw new InvalidVersionException("Incorrect minecraft version. Couldn't enable UltimateAdvancementAPI.");
         }
@@ -233,7 +237,7 @@ public final class AdvancementMain {
      * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
      */
     public void disable() {
-        checkSync();
+        checkSync(); // This is not the AdvancementUtils' one, since AdvancementUtils cannot be used before checking that the current mc version is supported
         if (INVALID_VERSION.get()) {
             throw new InvalidVersionException("Incorrect minecraft version. Couldn't disable UltimateAdvancementAPI.");
         }
@@ -619,5 +623,11 @@ public final class AdvancementMain {
      */
     public File getDataFolder() {
         return owningPlugin.getDataFolder();
+    }
+
+    // Just a copy-paste from AdvancementUtils to avoid loading it before checking that the current mc version is supported
+    private static void checkSync() {
+        if (!Bukkit.isPrimaryThread())
+            throw new AsyncExecutionException("Illegal async method call. This method can be called only from the main thread.");
     }
 }
