@@ -92,9 +92,7 @@ public class DatabaseManagerTest {
         if (!executor.isShutdown()) {
             // Wait for pending tasks before closing the server
             // This cycle should ideally let tasks waiting for the server main thread to finish
-            waitForPendingTasks();
             for (int i = 0; i < 20; i++) {
-                server.getScheduler().performOneTick();
                 waitForPendingTasks();
             }
         }
@@ -433,9 +431,11 @@ public class DatabaseManagerTest {
 
         try {
             manager.register(listener, PlayerRegisteredEvent.class, e -> {
+                AdvancementUtils.checkSync();
                 if (e.getPlayerUUID().equals(p.getUniqueId())) {
                     var cf = loaded.get();
-                    assertTrue(cf == null || !cf.isDone());
+                    assertNotNull(cf);
+                    assertFalse(cf.isDone());
                     registered.complete(null);
                 } else {
                     fail("Registered another player: " + e.getPlayerUUID());
@@ -454,7 +454,7 @@ public class DatabaseManagerTest {
                 fail("Player loading failed: " + e.getPlayer().getName() + " (" + e.getPlayer().getUniqueId() + ')');
             });
 
-            waitForPendingTasksNoTicking();
+            waitForPendingTasks(false);
 
             loaded.set(databaseManager.loadAndAddLoadingRequestToPlayer(p.getUniqueId(), plugin));
             loaded.get().handle((team, err) -> {
@@ -534,15 +534,15 @@ public class DatabaseManagerTest {
         TeamProgression team = databaseManager.getTeamProgression(p1);
 
         var cf1 = databaseManager.movePlayerInNewTeam(p1);
-        waitForPendingTasksNoTicking();
-        Paused paused = pauseFutureTasksNoTicking();
+        waitForPendingTasks(false);
+        Paused paused = pauseFutureTasks(false);
         var cf2 = databaseManager.movePlayerInNewTeam(p2);
 
         new Thread(() -> {
             while (!executor.isShutdown()) {
                 Thread.yield();
             }
-            paused.resumeAsync();
+            paused.resume();
         }).start();
 
         databaseManager.close();
@@ -653,10 +653,7 @@ public class DatabaseManagerTest {
                 }
             });
 
-            // Pause future tasks before calling disconnect to avoid deadlock caused by the workaround to MockBukkit's bugged scheduler
-            Paused p = pauseFutureTasksNoTicking();
             player.disconnect();
-            p.resume();
 
             waitCompletion(finished);
 
@@ -668,49 +665,32 @@ public class DatabaseManagerTest {
 
     @Contract("_ -> param1")
     private <T> CompletableFuture<T> waitCompletion(CompletableFuture<T> completableFuture) {
-        if (completableFuture == null) {
-            return null;
-        }
-        while (!completableFuture.isDone()) {
-            server.getScheduler().performOneTick();
-            Thread.yield();
-        }
-        return completableFuture;
+        return waitCompletion(completableFuture, true);
     }
 
-    @Contract("_ -> param1")
-    private <T> CompletableFuture<T> waitCompletionNoTicking(CompletableFuture<T> completableFuture) {
+    @Contract("_, _ -> param1")
+    private <T> CompletableFuture<T> waitCompletion(CompletableFuture<T> completableFuture, boolean ticking) {
         if (completableFuture == null) {
             return null;
         }
         while (!completableFuture.isDone()) {
+            if (ticking) {
+                server.getScheduler().performOneTick();
+            }
             Thread.yield();
         }
         return completableFuture;
     }
 
     private Paused pauseFutureTasks() {
-        CompletableFuture<Void> waiter = new CompletableFuture<>();
-        CompletableFuture<Void> blocker = new CompletableFuture<>();
-
-        CompletableFuture<Void> paused = CompletableFuture.runAsync(() -> {
-            try {
-                waiter.complete(null);
-                blocker.get();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }, executor);
-
-        waitCompletion(waiter);
-        return new Paused(blocker, paused);
+        return pauseFutureTasks(true);
     }
 
-    private Paused pauseFutureTasksNoTicking() {
+    private Paused pauseFutureTasks(boolean ticking) {
         CompletableFuture<Void> waiter = new CompletableFuture<>();
         CompletableFuture<Void> blocker = new CompletableFuture<>();
 
-        CompletableFuture<Void> paused = CompletableFuture.runAsync(() -> {
+        CompletableFuture.runAsync(() -> {
             try {
                 waiter.complete(null);
                 blocker.get();
@@ -719,39 +699,29 @@ public class DatabaseManagerTest {
             }
         }, executor);
 
-        waitCompletionNoTicking(waiter);
-        return new Paused(blocker, paused);
+        waitCompletion(waiter, ticking);
+        return new Paused(blocker);
     }
 
     private void waitForPendingTasks() {
+        waitForPendingTasks(true);
+    }
+
+    private void waitForPendingTasks(boolean ticking) {
         CompletableFuture<Void> cf = new CompletableFuture<>();
         CompletableFuture.runAsync(() -> cf.complete(null), executor);
 
-        waitCompletion(cf);
+        waitCompletion(cf, ticking);
     }
 
-    private void waitForPendingTasksNoTicking() throws Exception {
-        CompletableFuture<Void> cf = new CompletableFuture<>();
-        CompletableFuture.runAsync(() -> cf.complete(null), executor);
-
-        waitCompletionNoTicking(cf);
-    }
-
-    private final class Paused {
+    private static final class Paused {
         private final CompletableFuture<Void> blocker;
-        private final CompletableFuture<Void> paused;
 
-        private Paused(CompletableFuture<Void> blocker, CompletableFuture<Void> paused) {
+        private Paused(CompletableFuture<Void> blocker) {
             this.blocker = blocker;
-            this.paused = paused;
         }
 
         public void resume() {
-            this.blocker.complete(null);
-            waitCompletion(this.paused);
-        }
-
-        public void resumeAsync() {
             this.blocker.complete(null);
         }
     }
