@@ -240,6 +240,22 @@ public class SQLite implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    public TeamProgression createNewTeam() throws SQLException {
+        try (PreparedStatement psInsert = openConnection().prepareStatement("INSERT INTO `Teams` DEFAULT VALUES;")) {
+            psInsert.executeUpdate();
+            ResultSet r = psInsert.getGeneratedKeys();
+            if (!r.next()) {
+                throw new SQLException("Cannot insert default values into Teams table.");
+            }
+            int teamId = r.getInt(1);
+            return new TeamProgression(teamId);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void updateAdvancement(@NotNull AdvancementKey key, int teamId, @Range(from = 0, to = Integer.MAX_VALUE) int progression) throws SQLException {
         if (progression <= 0) {
             try (PreparedStatement ps = openConnection().prepareStatement("DELETE FROM `Advancements` WHERE `Namespace`=? AND `Key`=? AND `TeamID`=?;")) {
@@ -377,16 +393,9 @@ public class SQLite implements IDatabase {
      */
     @Override
     public TeamProgression movePlayerInNewTeam(@NotNull UUID uuid) throws SQLException {
-        try (PreparedStatement psInsert = openConnection().prepareStatement("INSERT INTO `Teams` DEFAULT VALUES;")) {
-            psInsert.executeUpdate();
-            ResultSet r = psInsert.getGeneratedKeys();
-            if (!r.next()) {
-                throw new SQLException("Cannot insert default values into Teams table.");
-            }
-            int teamId = r.getInt(1);
-            movePlayer(uuid, teamId);
-            return new TeamProgression(teamId);
-        }
+        TeamProgression team = createNewTeam();
+        movePlayer(uuid, team.getTeamId());
+        return team;
     }
 
     /**

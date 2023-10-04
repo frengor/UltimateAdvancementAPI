@@ -120,6 +120,14 @@ public interface IDatabase {
     TeamProgression loadUUID(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException;
 
     /**
+     * Creates a new empty team in the database.
+     *
+     * @return The team's {@link TeamProgression}.
+     * @throws SQLException If an SQL exception occurs.
+     */
+    TeamProgression createNewTeam() throws SQLException;
+
+    /**
      * Updates the progression for the provided advancement and the specified team.
      *
      * @param key The advancement key.

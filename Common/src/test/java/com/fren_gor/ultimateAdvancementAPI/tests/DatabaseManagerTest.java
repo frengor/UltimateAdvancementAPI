@@ -569,6 +569,80 @@ public class DatabaseManagerTest {
         disconnectPlayer(p, false);
     }
 
+    @Test
+    void createNewTeamTest() throws Exception {
+        MockPlugin plugin = MockBukkit.createMockPlugin();
+        PlayerMock p1 = loadPlayer();
+
+        TeamProgression team = waitCompletion(databaseManager.createNewTeamWithOneLoadingRequest(plugin)).get();
+        assertTrue(team.isValid());
+        assertEquals(1, databaseManager.getLoadingRequestsAmount(team, plugin));
+
+        PlayerMock p2 = loadPlayer();
+
+        TeamProgression t1 = databaseManager.getTeamProgression(p1);
+        TeamProgression t2 = databaseManager.getTeamProgression(p2);
+        assertNotEquals(t1.getTeamId(), t2.getTeamId()); // Just to be sure
+        assertNotEquals(team.getTeamId(), t1.getTeamId());
+        assertNotEquals(team.getTeamId(), t2.getTeamId());
+
+        databaseManager.removeLoadingRequestToTeam(team, plugin);
+        assertFalse(team.isValid());
+    }
+
+    @Test
+    void createNewTeamAndMovePlayerInsideTest() throws Exception {
+        MockPlugin plugin = MockBukkit.createMockPlugin();
+        PlayerMock p1 = loadPlayer();
+
+        TeamProgression t1 = databaseManager.getTeamProgression(p1);
+
+        TeamProgression team = waitCompletion(databaseManager.createNewTeamWithOneLoadingRequest(plugin)).get();
+        assertTrue(team.isValid());
+        assertEquals(1, databaseManager.getLoadingRequestsAmount(team, plugin));
+
+        waitCompletion(databaseManager.updatePlayerTeam(p1, team)).get();
+
+        assertFalse(t1.isValid());
+
+        databaseManager.removeLoadingRequestToTeam(team, plugin);
+        assertTrue(team.isValid());
+        assertEquals(0, databaseManager.getLoadingRequestsAmount(team, plugin));
+
+        disconnectPlayer(p1);
+        assertFalse(team.isValid());
+    }
+
+    @Test
+    void makeSurePlayerAreNotMovedBeforeRegisterEventTest() throws Exception {
+        MockPlugin plugin = MockBukkit.createMockPlugin();
+        TeamProgression team = waitCompletion(databaseManager.createNewTeamWithOneLoadingRequest(plugin)).get();
+
+        Paused paused = pauseFutureTasks();
+
+        PlayerMock p = server.addPlayer();
+
+        server.getPluginManager().assertEventNotFired(PlayerRegisteredEvent.class);
+        assertTrue(team.isValid());
+
+        assertThrows(UserNotLoadedException.class, () -> databaseManager.updatePlayerTeam(p, team));
+
+        server.getPluginManager().assertEventNotFired(PlayerRegisteredEvent.class);
+        assertTrue(team.isValid());
+
+        // Let PlayerRegisteredEvent fire
+        paused.resume();
+        waitForPendingTasks();
+        server.getScheduler().performTicks(20);
+
+        server.getPluginManager().assertEventFired(PlayerRegisteredEvent.class);
+        assertTrue(team.isValid());
+
+        waitCompletion(databaseManager.updatePlayerTeam(p, team)).get();
+        databaseManager.removeLoadingRequestToTeam(team, plugin);
+        disconnectPlayer(p);
+    }
+
     private PlayerMock loadPlayer() {
         CompletableFuture<Void> finished = new CompletableFuture<>();
         AtomicBoolean skip = new AtomicBoolean(false);

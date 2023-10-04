@@ -106,6 +106,12 @@ public class FallibleDBImpl implements IDatabase {
     }
 
     @Override
+    public TeamProgression createNewTeam() throws SQLException {
+        checkPlanning(DBOperation.CREATE_NEW_TEAM);
+        return inner.createNewTeam();
+    }
+
+    @Override
     public void updateAdvancement(@NotNull AdvancementKey key, int teamId, @Range(from = 0, to = Integer.MAX_VALUE) int progression) throws SQLException {
         checkPlanning(DBOperation.UPDATE_ADVANCEMENT);
         inner.updateAdvancement(key, teamId, progression);
@@ -221,6 +227,7 @@ public class FallibleDBImpl implements IDatabase {
         GET_TEAM_ADVANCEMENTS,
         LOAD_OR_REGISTER_PLAYER,
         LOAD_UUID,
+        CREATE_NEW_TEAM,
         UPDATE_ADVANCEMENT,
         GET_UNREDEEMED,
         SET_UNREDEEMED,

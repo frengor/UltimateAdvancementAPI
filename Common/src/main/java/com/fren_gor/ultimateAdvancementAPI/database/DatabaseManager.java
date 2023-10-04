@@ -1382,6 +1382,63 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
+     * Creates a new empty team with {@code 1} <i>loading request</i> for the team and the provided requester plugin.
+     * <p>The method {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} can be used to remove the <i>loading request</i>.
+     * <p>For more information about <i>loading requests</i> see {@link #addLoadingRequestToTeam(TeamProgression, Plugin)},
+     * {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} and {@link #getLoadingRequestsAmount(TeamProgression, Plugin)}.
+     * <p>Also, a plugin should only use its own instance as requester to not interfere with other plugins.
+     *
+     * @param requester The plugin which requested to create the team.
+     * @return A {@link CompletableFuture} which provides the {@link TeamProgression} of the new team.
+     * @see #addLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #removeLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
+     */
+    @NotNull
+    public CompletableFuture<TeamProgression> createNewTeamWithOneLoadingRequest(@NotNull Plugin requester) {
+        checkClosed();
+        Preconditions.checkNotNull(requester, "Plugin is null.");
+
+        synchronized (DatabaseManager.this) {
+            if (!requester.isEnabled()) {
+                throw new IllegalStateException("Plugin is not enabled.");
+            }
+        }
+
+        CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
+
+        runAsyncOnExecutor(completableFuture, () -> {
+            TeamProgression team;
+            try {
+                team = database.createNewTeam();
+            } catch (SQLException e) {
+                System.err.println("Cannot create a new team:");
+                e.printStackTrace();
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
+            } catch (Exception e) {
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
+            }
+
+            synchronized (DatabaseManager.this) {
+                // Check again if the plugin is enabled
+                if (!requester.isEnabled()) {
+                    completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
+                    return;
+                }
+
+                LoadedTeam loadedTeam = addTeamToCache(team);
+                loadedTeam.addPluginRequest(requester);
+            }
+
+            completableFuture.complete(team);
+        });
+
+        return completableFuture;
+    }
+
+    /**
      * Keeps the provided team loaded until {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} is called.
      * <p>Each time this method is called, the number of <i>loading requests</i> for the provided team and requester
      * plugin is incremented by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)},
