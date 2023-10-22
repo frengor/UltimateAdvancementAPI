@@ -1,12 +1,16 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -22,7 +26,7 @@ public class BaseAdvancement extends Advancement {
     protected final Advancement parent;
 
     @LazyValue
-    private AdvancementWrapper wrapper;
+    private PreparedAdvancementWrapper wrapper;
 
     /**
      * Creates a new {@code BaseAdvancement} with a maximum progression of {@code 1}.
@@ -63,15 +67,24 @@ public class BaseAdvancement extends Advancement {
     /**
      * {@inheritDoc}
      */
+    public void onUpdate(@NotNull Player player, @NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
+        if (isVisible(teamProgression)) {
+            addedAdvancements.put(getNMSWrapper().toBaseAdvancementWrapper(parent.getNMSWrapper(), display.dispatchGetNMSWrapper(this, player, teamProgression)), getProgression(teamProgression));
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
-    public AdvancementWrapper getNMSWrapper() {
+    public PreparedAdvancementWrapper getNMSWrapper() {
         if (wrapper != null) {
             return wrapper;
         }
 
         try {
-            return wrapper = AdvancementWrapper.craftBaseAdvancement(key.getNMSWrapper(), parent.getNMSWrapper(), display.getNMSWrapper(this), maxProgression);
+            return wrapper = PreparedAdvancementWrapper.craft(key.getNMSWrapper(), maxProgression);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }

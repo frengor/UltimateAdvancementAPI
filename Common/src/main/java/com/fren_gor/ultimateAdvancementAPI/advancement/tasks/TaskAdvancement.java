@@ -9,6 +9,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
@@ -250,7 +251,7 @@ public class TaskAdvancement extends BaseAdvancement {
      */
     @Override
     @NotNull
-    public final AdvancementWrapper getNMSWrapper() {
+    public final PreparedAdvancementWrapper getNMSWrapper() {
         throw new UnsupportedOperationException();
     }
 
@@ -272,7 +273,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Every time this method is called.
      */
     @Override
-    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
+    public void onUpdate(@NotNull Player player, @NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
         throw new UnsupportedOperationException();
     }
 }

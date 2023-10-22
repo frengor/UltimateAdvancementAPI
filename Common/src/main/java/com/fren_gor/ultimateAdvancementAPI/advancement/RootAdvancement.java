@@ -4,12 +4,14 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -27,7 +29,7 @@ public class RootAdvancement extends Advancement {
     private final String backgroundTexture;
 
     @LazyValue
-    private AdvancementWrapper wrapper;
+    private PreparedAdvancementWrapper wrapper;
 
     /**
      * Creates a new {@code RootAdvancement} with a maximum progression of {@code 1}.
@@ -58,15 +60,23 @@ public class RootAdvancement extends Advancement {
     /**
      * {@inheritDoc}
      */
+    public void onUpdate(@NotNull Player player, @NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
+        // Root advancements are always visible
+        addedAdvancements.put(getNMSWrapper().toRootAdvancementWrapper(display.dispatchGetNMSWrapper(this, player, teamProgression)), getProgression(teamProgression));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
-    public AdvancementWrapper getNMSWrapper() {
+    public PreparedAdvancementWrapper getNMSWrapper() {
         if (wrapper != null) {
             return wrapper;
         }
 
         try {
-            return wrapper = AdvancementWrapper.craftRootAdvancement(key.getNMSWrapper(), display.getNMSWrapper(this), maxProgression);
+            return wrapper = PreparedAdvancementWrapper.craft(key.getNMSWrapper(), maxProgression);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }

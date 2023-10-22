@@ -5,12 +5,14 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.FakeAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.Unmodifiable;
@@ -99,21 +101,23 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * {@inheritDoc}
      */
     @Override
-    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
+    public void onUpdate(@NotNull Player player, @NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
         if (isVisible(teamProgression)) {
             BaseAdvancement tmp = null;
             for (Entry<BaseAdvancement, FakeAdvancement> e : parents.entrySet()) {
                 if (e.getKey().isVisible(teamProgression)) {
-                    if (tmp == null)
+                    if (tmp == null) {
                         tmp = e.getKey();
-                    else
-                        e.getValue().onUpdate(teamProgression, addedAdvancements);
+                    } else {
+                        e.getValue().onUpdate(player, teamProgression, addedAdvancements);
+                    }
                 }
             }
             if (tmp == null) {
                 tmp = getParent();
             }
-            addedAdvancements.put(getNMSWrapper(tmp), getProgression(teamProgression));
+            AdvancementDisplayWrapper displayWrapper = display.dispatchGetNMSWrapper(this, player, teamProgression);
+            addedAdvancements.put(getNMSWrapper().toBaseAdvancementWrapper(tmp.getNMSWrapper(), displayWrapper), getProgression(teamProgression));
         }
     }
 
@@ -255,7 +259,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
 
     /**
      * Returns the parent advancement.
-     * <p><strong>Calls to this method results in an undefined behaviour</strong>, since there is more than one parent.
+     * <p><strong>Calls to this method may results in different parents being returned</strong>, since there is more than one parent.
      * <p>Use when you don't need an exact parent.
      *
      * @return A parent advancement.
@@ -267,42 +271,19 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
     }
 
     /**
-     * Returns the NMS wrapper of this advancement.
-     * <p><strong>Calls to this method results in an undefined behaviour</strong>, since there is more than one parent
-     * and the NMS wrapper can contain only one.
-     * <p>Use when you don't need the NMS wrapper of an exact parent.
-     * <p>Use {@link #getNMSWrapper(BaseAdvancement)} instead.
-     *
-     * @return The NMS wrapper of this advancement.
-     * @see #getNMSWrapper(BaseAdvancement)
+     * {@inheritDoc}
      */
     @Override
     @NotNull
-    public AdvancementWrapper getNMSWrapper() {
-        setUpWrapper();
-        return wrapper.toBaseAdvancementWrapper(parent.getNMSWrapper());
-    }
+    public PreparedAdvancementWrapper getNMSWrapper() {
+        if (wrapper != null) {
+            return wrapper;
+        }
 
-    /**
-     * Returns the NMS wrapper of this advancement.
-     * The parent of the returned advancement wrapper is the (NMS wrapper of the) provided one.
-     *
-     * @param advancement The parent advancement used as the parent of the NMS wrapper.
-     * @return The NMS wrapper of this advancement.
-     */
-    @NotNull
-    protected AdvancementWrapper getNMSWrapper(@NotNull BaseAdvancement advancement) {
-        setUpWrapper();
-        return wrapper.toBaseAdvancementWrapper(advancement.getNMSWrapper());
-    }
-
-    private void setUpWrapper() {
-        if (wrapper == null) {
-            try {
-                wrapper = PreparedAdvancementWrapper.craft(this.key.getNMSWrapper(), this.display.getNMSWrapper(this), maxProgression);
-            } catch (ReflectiveOperationException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            return wrapper = PreparedAdvancementWrapper.craft(this.key.getNMSWrapper(), maxProgression);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
         }
     }
 }

@@ -14,25 +14,19 @@ import java.util.Map;
 public class PreparedAdvancementWrapper_v1_16_R2 extends PreparedAdvancementWrapper {
 
     private final MinecraftKeyWrapper key;
-    private final AdvancementDisplayWrapper display;
     private final Map<String, Criterion> advCriteria;
     private final String[][] advRequirements;
 
-    public PreparedAdvancementWrapper_v1_16_R2(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    public PreparedAdvancementWrapper_v1_16_R2(@NotNull MinecraftKeyWrapper key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         this.key = key;
-        this.display = display;
         this.advCriteria = Util.getAdvancementCriteria(maxProgression);
         this.advRequirements = Util.getAdvancementRequirements(advCriteria);
     }
 
+    @Override
     @NotNull
     public MinecraftKeyWrapper getKey() {
         return key;
-    }
-
-    @NotNull
-    public AdvancementDisplayWrapper getDisplay() {
-        return display;
     }
 
     @Override
@@ -43,13 +37,13 @@ public class PreparedAdvancementWrapper_v1_16_R2 extends PreparedAdvancementWrap
 
     @Override
     @NotNull
-    public AdvancementWrapper toRootAdvancementWrapper() {
+    public AdvancementWrapper toRootAdvancementWrapper(@NotNull AdvancementDisplayWrapper display) {
         return new AdvancementWrapper_v1_16_R2(key, display, advCriteria, advRequirements);
     }
 
     @Override
     @NotNull
-    public AdvancementWrapper toBaseAdvancementWrapper(@NotNull AdvancementWrapper parent) {
+    public AdvancementWrapper toBaseAdvancementWrapper(@NotNull PreparedAdvancementWrapper parent, @NotNull AdvancementDisplayWrapper display) {
         return new AdvancementWrapper_v1_16_R2(key, parent, display, advCriteria, advRequirements);
     }
 }

@@ -15,7 +15,6 @@ import java.lang.reflect.Constructor;
 public abstract class AdvancementWrapper extends AbstractWrapper {
 
     private static Constructor<? extends AdvancementWrapper> rootAdvancementWrapperConstructor, baseAdvancementWrapperConstructor;
-    private MinecraftKeyWrapper key;
 
     static {
         var clazz = ReflectionUtil.getWrapperClass(AdvancementWrapper.class);
@@ -26,7 +25,7 @@ public abstract class AdvancementWrapper extends AbstractWrapper {
             e.printStackTrace();
         }
         try {
-            baseAdvancementWrapperConstructor = clazz.getDeclaredConstructor(MinecraftKeyWrapper.class, AdvancementWrapper.class, AdvancementDisplayWrapper.class, int.class);
+            baseAdvancementWrapperConstructor = clazz.getDeclaredConstructor(MinecraftKeyWrapper.class, PreparedAdvancementWrapper.class, AdvancementDisplayWrapper.class, int.class);
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
@@ -57,7 +56,7 @@ public abstract class AdvancementWrapper extends AbstractWrapper {
      * @throws ReflectiveOperationException If reflections goes wrong.
      */
     @NotNull
-    public static AdvancementWrapper craftBaseAdvancement(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementWrapper parent, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) throws ReflectiveOperationException {
+    public static AdvancementWrapper craftBaseAdvancement(@NotNull MinecraftKeyWrapper key, @NotNull PreparedAdvancementWrapper parent, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) throws ReflectiveOperationException {
         return baseAdvancementWrapperConstructor.newInstance(key, parent, display, maxProgression);
     }
 
@@ -75,7 +74,7 @@ public abstract class AdvancementWrapper extends AbstractWrapper {
      * @return The parent advancement wrapper of this advancement, or {@code null} if this advancement is a root advancement.
      */
     @Nullable
-    public abstract AdvancementWrapper getParent();
+    public abstract PreparedAdvancementWrapper getParent();
 
     /**
      * Gets the display wrapper of this advancement.

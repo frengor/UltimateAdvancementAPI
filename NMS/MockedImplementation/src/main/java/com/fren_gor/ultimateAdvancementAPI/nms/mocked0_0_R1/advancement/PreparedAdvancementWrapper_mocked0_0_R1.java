@@ -10,23 +10,17 @@ import org.jetbrains.annotations.Range;
 public class PreparedAdvancementWrapper_mocked0_0_R1 extends PreparedAdvancementWrapper {
 
     private final MinecraftKeyWrapper key;
-    private final AdvancementDisplayWrapper display;
     private final int maxProgression;
 
-    public PreparedAdvancementWrapper_mocked0_0_R1(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    public PreparedAdvancementWrapper_mocked0_0_R1(@NotNull MinecraftKeyWrapper key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         this.key = key;
-        this.display = display;
         this.maxProgression = maxProgression;
     }
 
+    @Override
     @NotNull
     public MinecraftKeyWrapper getKey() {
         return key;
-    }
-
-    @NotNull
-    public AdvancementDisplayWrapper getDisplay() {
-        return display;
     }
 
     @Override
@@ -37,13 +31,13 @@ public class PreparedAdvancementWrapper_mocked0_0_R1 extends PreparedAdvancement
 
     @Override
     @NotNull
-    public AdvancementWrapper toRootAdvancementWrapper() {
+    public AdvancementWrapper toRootAdvancementWrapper(@NotNull AdvancementDisplayWrapper display) {
         return new AdvancementWrapper_mocked0_0_R1(key, display, maxProgression);
     }
 
     @Override
     @NotNull
-    public AdvancementWrapper toBaseAdvancementWrapper(@NotNull AdvancementWrapper parent) {
+    public AdvancementWrapper toBaseAdvancementWrapper(@NotNull PreparedAdvancementWrapper parent, @NotNull AdvancementDisplayWrapper display) {
         return new AdvancementWrapper_mocked0_0_R1(key, parent, display, maxProgression);
     }
 }

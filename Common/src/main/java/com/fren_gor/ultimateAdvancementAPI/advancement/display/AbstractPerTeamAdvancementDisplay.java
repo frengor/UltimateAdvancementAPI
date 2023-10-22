@@ -105,6 +105,12 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
     public abstract AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement, @NotNull TeamProgression progression);
 
     @Override
+    public AdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Advancement advancement, @NotNull Player player, @NotNull TeamProgression teamProgression) {
+        // This method is overridden in per-player and per-team classes
+        return getNMSWrapper(advancement, teamProgression);
+    }
+
+    @Override
     public boolean dispatchDoesToast(Player player, TeamProgression teamProgression) {
         return doesShowToast(teamProgression);
     }

@@ -6,7 +6,9 @@ import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Material;
@@ -34,6 +36,9 @@ public final class FakeAdvancement extends BaseAdvancement {
 
     private static final AtomicInteger FAKE_NUMBER = new AtomicInteger(1);
 
+    @LazyValue
+    private AdvancementWrapper wrapper; // FakeAdvancementDisplay isn't neither per-player nor per-team, so this caching is fine
+
     /**
      * Creates a new {@code FakeAdvancement}.
      *
@@ -60,7 +65,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      */
     @Override
     @NotNull
-    public AdvancementWrapper getNMSWrapper() {
+    public PreparedAdvancementWrapper getNMSWrapper() {
         return super.getNMSWrapper();
     }
 
@@ -137,7 +142,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * {@inheritDoc}
      * Since {@code FakeAdvancement}s are not saved, this method always returns {@code null}.
      *
-     * @return Alw
+     * @return Always {@code null}.
      */
     @Override
     @Nullable
@@ -150,8 +155,17 @@ public final class FakeAdvancement extends BaseAdvancement {
      * {@inheritDoc}
      */
     @Override
-    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
-        super.onUpdate(teamProgression, addedAdvancements);
+    public void onUpdate(@NotNull Player player, @NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
+        // FakeAdvancementDisplay isn't neither per-player nor per-team, so caching an AdvancementWrapper is fine
+        if (wrapper == null) {
+            try {
+                wrapper = AdvancementWrapper.craftBaseAdvancement(key.getNMSWrapper(), parent.getNMSWrapper(), display.getNMSWrapper(this), maxProgression);
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        addedAdvancements.put(wrapper, 0); // Just add the advancement, the progression isn't important
     }
 
     /**

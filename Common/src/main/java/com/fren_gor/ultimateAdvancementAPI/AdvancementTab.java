@@ -855,8 +855,13 @@ public final class AdvancementTab {
             for (TeamProgression pro : advsToUpdate) {
                 final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(best);
 
+                Player p = pro.getAnOnlineMember(databaseManager);
+                if (p == null) {
+                    continue;
+                }
+
                 for (Advancement advancement : advancements.values()) {
-                    advancement.onUpdate(pro, advs);
+                    advancement.onUpdate(p, pro, advs); // TODO Implement per-player and per-team
                     keys.add(advancement.getKey().getNMSWrapper());
                 }
 

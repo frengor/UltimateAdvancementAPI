@@ -13,6 +13,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisabl
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdvancementsWrapper;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
@@ -44,6 +45,7 @@ public class AdvancementUtils {
 
     public static final MinecraftKeyWrapper ROOT_KEY, NOTIFICATION_KEY;
     private static final String ADV_DESCRIPTION = "\n§7A notification.";
+    private static final PreparedAdvancementWrapper PREPARED_ROOT;
     private static final AdvancementWrapper ROOT;
 
     static {
@@ -51,7 +53,8 @@ public class AdvancementUtils {
             ROOT_KEY = MinecraftKeyWrapper.craft("com.fren_gor", "root");
             NOTIFICATION_KEY = MinecraftKeyWrapper.craft("com.fren_gor", "notification");
             AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), "§f§lNotifications§1§2§3§4§5§6§7§8§9§0", "§7Notification page.\n§7Close and reopen advancements to hide.", AdvancementFrameTypeWrapper.TASK, 0, 0, "textures/block/stone.png");
-            ROOT = AdvancementWrapper.craftRootAdvancement(ROOT_KEY, display, 1);
+            PREPARED_ROOT = PreparedAdvancementWrapper.craft(ROOT_KEY, 1);
+            ROOT = PREPARED_ROOT.toRootAdvancementWrapper(display);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
@@ -75,7 +78,7 @@ public class AdvancementUtils {
 
         try {
             AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(icon, title, ADV_DESCRIPTION, frame.getNMSWrapper(), 1, 0, true, false, false);
-            AdvancementWrapper notification = AdvancementWrapper.craftBaseAdvancement(NOTIFICATION_KEY, ROOT, display, 1);
+            AdvancementWrapper notification = AdvancementWrapper.craftBaseAdvancement(NOTIFICATION_KEY, PREPARED_ROOT, display, 1);
             PacketPlayOutAdvancementsWrapper.craftSendPacket(Map.of(
                     ROOT, 1,
                     notification, 1

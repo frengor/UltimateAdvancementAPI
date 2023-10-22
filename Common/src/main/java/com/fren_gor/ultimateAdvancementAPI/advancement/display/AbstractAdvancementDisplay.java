@@ -235,4 +235,8 @@ public abstract class AbstractAdvancementDisplay {
     @NotNull
     public abstract AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement);
 
+    public AdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Advancement advancement, @NotNull Player player, @NotNull TeamProgression teamProgression) {
+        // This method is overridden in per-player and per-team classes
+        return getNMSWrapper(advancement);
+    }
 }
