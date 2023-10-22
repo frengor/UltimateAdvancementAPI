@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
+import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -104,52 +105,52 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     public abstract AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement, @NotNull Player player);
 
     @Override
-    public boolean dispatchDoesToast(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+    public boolean dispatchDoesToast(Player player, TeamProgression teamProgression) {
         return doesShowToast(player);
     }
 
     @Override
-    public boolean dispatchDoesAnnounceToChat(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+    public boolean dispatchDoesAnnounceToChat(Player player, TeamProgression teamProgression) {
         return doesAnnounceToChat(player);
     }
 
     @Override
-    public ItemStack dispatchIcon(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+    public ItemStack dispatchIcon(Player player, TeamProgression teamProgression) {
         return getIcon(player);
     }
 
     @Override
-    public String dispatchTitle(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+    public String dispatchTitle(Player player, TeamProgression teamProgression) {
         return getTitle(player);
     }
 
     @Override
-    public BaseComponent[] dispatchTitleBaseComponent(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+    public BaseComponent[] dispatchTitleBaseComponent(Player player, TeamProgression teamProgression) {
         return getTitleBaseComponent(player);
     }
 
     @Override
-    public List<String> dispatchDescription(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+    public List<String> dispatchDescription(Player player, TeamProgression teamProgression) {
         return getDescription(player);
     }
 
     @Override
-    public List<BaseComponent[]> dispatchDescriptionBaseComponent(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+    public List<BaseComponent[]> dispatchDescriptionBaseComponent(Player player, TeamProgression teamProgression) {
         return getDescriptionBaseComponent(player);
     }
 
     @Override
-    public AdvancementFrameType dispatchFrame(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+    public AdvancementFrameType dispatchFrame(Player player, TeamProgression teamProgression) {
         return getFrame(player);
     }
 
     @Override
-    public float dispatchX(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+    public float dispatchX(Player player, TeamProgression teamProgression) {
         return getX(player);
     }
 
     @Override
-    public float dispatchY(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
+    public float dispatchY(Player player, TeamProgression teamProgression) {
         return getY(player);
     }
 }

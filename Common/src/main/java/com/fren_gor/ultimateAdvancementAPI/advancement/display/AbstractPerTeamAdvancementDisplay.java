@@ -105,54 +105,52 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
     public abstract AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement, @NotNull TeamProgression progression);
 
     @Override
-    public boolean dispatchDoesToast(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-
-        return doesShowToast(databaseManager.getTeamProgression(player));
-
+    public boolean dispatchDoesToast(Player player, TeamProgression teamProgression) {
+        return doesShowToast(teamProgression);
     }
 
     @Override
-    public boolean dispatchDoesAnnounceToChat(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        return doesAnnounceToChat(databaseManager.getTeamProgression(player));
+    public boolean dispatchDoesAnnounceToChat(Player player, TeamProgression teamProgression) {
+        return doesAnnounceToChat(teamProgression);
     }
 
     @Override
-    public ItemStack dispatchIcon(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        return getIcon(databaseManager.getTeamProgression(player));
+    public ItemStack dispatchIcon(Player player, TeamProgression teamProgression) {
+        return getIcon(teamProgression);
     }
 
     @Override
-    public String dispatchTitle(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        return getTitle(databaseManager.getTeamProgression(player));
+    public String dispatchTitle(Player player, TeamProgression teamProgression) {
+        return getTitle(teamProgression);
     }
 
     @Override
-    public BaseComponent[] dispatchTitleBaseComponent(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        return getTitleBaseComponent(databaseManager.getTeamProgression(player));
+    public BaseComponent[] dispatchTitleBaseComponent(Player player, TeamProgression teamProgression) {
+        return getTitleBaseComponent(teamProgression);
     }
 
     @Override
-    public List<String> dispatchDescription(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        return getDescription(databaseManager.getTeamProgression(player));
+    public List<String> dispatchDescription(Player player, TeamProgression teamProgression) {
+        return getDescription(teamProgression);
     }
 
     @Override
-    public List<BaseComponent[]> dispatchDescriptionBaseComponent(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        return getDescriptionBaseComponent(databaseManager.getTeamProgression(player));
+    public List<BaseComponent[]> dispatchDescriptionBaseComponent(Player player, TeamProgression teamProgression) {
+        return getDescriptionBaseComponent(teamProgression);
     }
 
     @Override
-    public AdvancementFrameType dispatchFrame(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        return getFrame(databaseManager.getTeamProgression(player));
+    public AdvancementFrameType dispatchFrame(Player player, TeamProgression teamProgression) {
+        return getFrame(teamProgression);
     }
 
     @Override
-    public float dispatchX(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        return getX(databaseManager.getTeamProgression(player));
+    public float dispatchX(Player player, TeamProgression teamProgression) {
+        return getX(teamProgression);
     }
 
     @Override
-    public float dispatchY(AbstractAdvancementDisplay display, Player player, DatabaseManager databaseManager) {
-        return getY(databaseManager.getTeamProgression(player));
+    public float dispatchY(Player player, TeamProgression teamProgression) {
+        return getY(teamProgression);
     }
 }

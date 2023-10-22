@@ -527,7 +527,7 @@ public abstract class Advancement {
      * @param player The player the toast will be shown to.
      */
     public void displayToastToPlayer(@NotNull Player player) {
-        AdvancementUtils.displayToast(player, display.dispatchIcon(display, player, this), display.dispatchTitle(display, player, this), display.dispatchFrame(display, player, this));
+        AdvancementUtils.displayToast(player, display.dispatchIcon(player, this), display.dispatchTitle(player, this), display.dispatchFrame(player, this));
     }
 
     /**
@@ -629,7 +629,7 @@ public abstract class Advancement {
         // Send complete messages
         Boolean gameRule = player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
 
-        if (display.dispatchDoesAnnounceToChat(display, player, this) && (gameRule == null || gameRule)) {
+        if (display.dispatchDoesAnnounceToChat(player, this) && (gameRule == null || gameRule)) {
             BaseComponent[] msg = getAnnounceMessage(player);
             if (msg != null)
                 for (Player p : Bukkit.getOnlinePlayers()) {
@@ -638,7 +638,7 @@ public abstract class Advancement {
         }
 
         // Show Toast
-        if (display.dispatchDoesToast(display, player, this)) {
+        if (display.dispatchDoesToast(player, this)) {
             // TODO Find a better solution
             runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(player, this));
         }
