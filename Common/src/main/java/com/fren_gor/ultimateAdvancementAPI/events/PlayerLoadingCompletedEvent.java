@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -12,6 +13,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 
 /**
  * Called when a player is loaded successfully.
+ * <p>Will always be called after the {@link PlayerJoinEvent} for such player.
  */
 public final class PlayerLoadingCompletedEvent extends Event {
 
