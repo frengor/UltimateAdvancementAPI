@@ -91,20 +91,25 @@ public final class DatabaseManager {
     private final EventManager eventManager;
     private final IDatabase database;
 
-    private final Map<UUID, @Nullable Runnable> waitingForJoinEvent = Collections.synchronizedMap(new HashMap<>());
+    private final Map<UUID, Runnable> waitingForJoinEvent = Collections.synchronizedMap(new HashMap<>());
+    private static final Runnable LOGIN_SENTINEL = () -> {}, JOIN_SENTINEL = () -> {};
 
     private void registerForJoinEvent(Player player, Runnable runnable) {
         UUID uuid = player.getUniqueId();
+
         synchronized (waitingForJoinEvent) {
-            // If PlayerJoinEvent has already been fired, then the map will contain uuid->null
-            // and containsKey(uuid) will return true in such case
-            if (!waitingForJoinEvent.containsKey(uuid)) {
-                // Register the runnable to be scheduled by the PlayerJoinEvent
+            Runnable run = waitingForJoinEvent.remove(uuid);
+            // If PlayerQuitEvent has been fired the map doesn't contain the uuid
+            if (run == null) {
+                return;
+            }
+            if (run == LOGIN_SENTINEL) {
+                // PlayerJoinEvent hasn't been fired yet, register the runnable to be scheduled by the PlayerJoinEvent
                 waitingForJoinEvent.put(uuid, runnable);
                 return;
             }
             // PlayerJoinEvent has already been fired, remove the uuid and schedule the runnable
-            waitingForJoinEvent.remove(uuid);
+            // (here run == JOIN_SENTINEL)
         }
         runSync(main, LOAD_EVENTS_DELAY, runnable);
     }
@@ -168,6 +173,7 @@ public final class DatabaseManager {
         database.setUp();
 
         eventManager.register(this, PlayerLoginEvent.class, EventPriority.LOWEST, e -> CompletableFuture.runAsync(() -> {
+            waitingForJoinEvent.put(e.getPlayer().getUniqueId(), LOGIN_SENTINEL);
             try {
                 loadPlayerMainFunction(e.getPlayer());
             } catch (Exception ex) {
@@ -181,14 +187,18 @@ public final class DatabaseManager {
             synchronized (waitingForJoinEvent) {
                 runnable = waitingForJoinEvent.remove(e.getPlayer().getUniqueId());
                 if (runnable == null) {
-                    // The registration hasn't happened yet, add uuid->null to the map (see registerForJoinEvent(...))
-                    waitingForJoinEvent.put(e.getPlayer().getUniqueId(), null);
+                    return;
+                }
+                if (runnable == LOGIN_SENTINEL || runnable == JOIN_SENTINEL) { // The second case shouldn't happen, just to be sure
+                    // registerForJoinEvent hasn't been called yet, add uuid->JOIN_SENTINEL to the map (see registerForJoinEvent(...))
+                    waitingForJoinEvent.put(e.getPlayer().getUniqueId(), JOIN_SENTINEL);
                     return;
                 }
             }
             runSync(main, LOAD_EVENTS_DELAY, runnable);
         });
         eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
+            waitingForJoinEvent.remove(e.getPlayer().getUniqueId());
             synchronized (DatabaseManager.this) {
                 TempUserMetadata meta = tempLoaded.get(e.getPlayer().getUniqueId());
                 if (meta != null) {
