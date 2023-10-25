@@ -27,6 +27,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
@@ -95,6 +96,7 @@ public final class DatabaseManager implements Closeable {
 
     private final EventManager eventManager;
     private final IDatabase database; // Calls to the database must be done using the `executor` thread
+    private final JoinEventWaiter joinEventWaiter;
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
     // Used inside DatabaseManager#close() to not leave uncompleted CompletableFutures
@@ -160,6 +162,7 @@ public final class DatabaseManager implements Closeable {
         this.main = main;
         this.eventManager = main.getEventManager();
         this.database = database;
+        this.joinEventWaiter = new JoinEventWaiter(main.getOwningPlugin());
         commonSetUp();
     }
 
@@ -168,6 +171,8 @@ public final class DatabaseManager implements Closeable {
         database.setUp();
 
         eventManager.register(this, PlayerLoginEvent.class, EventPriority.LOWEST, e -> {
+            joinEventWaiter.onLogin(e.getPlayer().getUniqueId());
+
             final LoadedPlayer loadedPlayer;
 
             synchronized (DatabaseManager.this) {
@@ -238,7 +243,11 @@ public final class DatabaseManager implements Closeable {
                 removeInternalRequest(loadedPlayer);
             });
         });
+        eventManager.register(this, PlayerJoinEvent.class, e -> {
+            joinEventWaiter.onJoin(e.getPlayer().getUniqueId());
+        });
         eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
+            joinEventWaiter.onQuit(e.getPlayer().getUniqueId());
             synchronized (DatabaseManager.this) {
                 // loadedPlayer should be always non-null, but it's better to check it
                 LoadedPlayer loadedPlayer = Objects.requireNonNull(playersLoaded.get(e.getPlayer().getUniqueId()));
@@ -283,6 +292,8 @@ public final class DatabaseManager implements Closeable {
         if (eventManager.isEnabled()) {
             eventManager.unregister(this);
         }
+
+        joinEventWaiter.onClose();
 
         pendingUpdatesManager.unregisterTask();
 
@@ -344,7 +355,7 @@ public final class DatabaseManager implements Closeable {
     private void firePlayerLoadingCompletedEvent(@NotNull Player player, @NotNull LoadedPlayer loadedPlayer) {
         loadedPlayer.addInternalRequest(); // Keep in cache while waiting for the BukkitRunnable
 
-        runSync(main, LOAD_EVENTS_DELAY, () -> {
+        joinEventWaiter.onFinishLoading(player.getUniqueId(), LOAD_EVENTS_DELAY, () -> {
             synchronized (DatabaseManager.this) {
                 if (closed.get()) {
                     return;
@@ -367,14 +378,19 @@ public final class DatabaseManager implements Closeable {
                 processUnredeemed(loadedPlayer, player);
             }
             main.updatePlayer(player);
+        }, () -> {
+            // On cancel remove the internal request since the task didn't run
+            removeInternalRequest(loadedPlayer);
         });
     }
 
     private void firePlayerLoadingFailedEvent(@NotNull Player player, @NotNull Throwable error) {
-        runSync(main, () -> {
+        joinEventWaiter.onFinishLoading(player.getUniqueId(), 0, () -> {
             if (!closed.get() && player.isOnline()) { // Make sure the player is still online
                 callEventCatchingExceptions(new PlayerLoadingFailedEvent(player, error));
             }
+        }, () -> {
+            // Nothing to do on cancel
         });
     }
 
