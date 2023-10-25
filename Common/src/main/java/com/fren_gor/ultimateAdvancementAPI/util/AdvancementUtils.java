@@ -26,6 +26,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -214,16 +215,26 @@ public class AdvancementUtils {
             throw new AsyncExecutionException("Illegal async method call. This method can be called only from the main thread.");
     }
 
-    public static void runSync(@NotNull AdvancementMain main, @NotNull Runnable runnable) {
-        runSync(main.getOwningPlugin(), runnable);
+    @NotNull
+    public static BukkitTask runSync(@NotNull AdvancementMain main, @NotNull Runnable runnable) {
+        return runSync(main.getOwningPlugin(), runnable);
     }
 
-    public static void runSync(@NotNull Plugin plugin, @NotNull Runnable runnable) {
-        runSync(plugin, 0, runnable);
+    @NotNull
+    public static BukkitTask runSync(@NotNull Plugin plugin, @NotNull Runnable runnable) {
+        return runSync(plugin, 0, runnable);
     }
 
-    public static void runSync(@NotNull AdvancementMain main, long delay, @NotNull Runnable runnable) {
-        runSync(main.getOwningPlugin(), delay, runnable);
+    @NotNull
+    public static BukkitTask runSync(@NotNull AdvancementMain main, long delay, @NotNull Runnable runnable) {
+        return runSync(main.getOwningPlugin(), delay, runnable);
+    }
+
+    @NotNull
+    public static BukkitTask runSync(@NotNull Plugin plugin, long delay, @NotNull Runnable runnable) {
+        Preconditions.checkNotNull(plugin, "Plugin is null.");
+        Preconditions.checkNotNull(runnable, "Runnable is null.");
+        return Bukkit.getScheduler().runTaskLater(plugin, runnable, delay);
     }
 
     /**
@@ -250,6 +261,7 @@ public class AdvancementUtils {
      * @see BukkitScheduler
      * @since 3.0.0
      */
+    @NotNull
     public static <T> CompletableFuture<T> runSync(@NotNull CompletableFuture<T> completableFuture, @NotNull Plugin plugin, @NotNull BiConsumer<T, Throwable> consumer) {
         return runSync(completableFuture, 0, plugin, consumer);
     }
@@ -280,6 +292,7 @@ public class AdvancementUtils {
      * @see BukkitScheduler
      * @since 3.0.0
      */
+    @NotNull
     public static <T> CompletableFuture<T> runSync(@NotNull CompletableFuture<T> completableFuture, long delay, @NotNull Plugin plugin, @NotNull BiConsumer<T, Throwable> consumer) {
         Preconditions.checkNotNull(completableFuture, "CompletableFuture is null.");
         Preconditions.checkNotNull(plugin, "Plugin is null.");
@@ -296,12 +309,6 @@ public class AdvancementUtils {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> consumer.accept(result, err), delay);
             }
         });
-    }
-
-    public static void runSync(@NotNull Plugin plugin, long delay, @NotNull Runnable runnable) {
-        Preconditions.checkNotNull(plugin, "Plugin is null.");
-        Preconditions.checkNotNull(runnable, "Runnable is null.");
-        Bukkit.getScheduler().runTaskLater(plugin, runnable, delay);
     }
 
     @NotNull
