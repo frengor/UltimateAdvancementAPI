@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.events;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,6 +11,7 @@ import java.util.Objects;
 
 /**
  * Called when a player loading fails.
+ * <p>Will always be called after the {@link PlayerJoinEvent} for such player.
  */
 public final class PlayerLoadingFailedEvent extends Event {
 

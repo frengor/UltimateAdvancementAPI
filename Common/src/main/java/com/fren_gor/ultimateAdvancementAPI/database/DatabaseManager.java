@@ -28,6 +28,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
@@ -40,6 +41,7 @@ import org.jetbrains.annotations.Range;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -88,6 +90,29 @@ public final class DatabaseManager {
     private final Map<UUID, TempUserMetadata> tempLoaded = new HashMap<>();
     private final EventManager eventManager;
     private final IDatabase database;
+
+    private final Map<UUID, Runnable> waitingForJoinEvent = Collections.synchronizedMap(new HashMap<>());
+    private static final Runnable LOGIN_SENTINEL = () -> {}, JOIN_SENTINEL = () -> {};
+
+    private void registerForJoinEvent(Player player, Runnable runnable) {
+        UUID uuid = player.getUniqueId();
+
+        synchronized (waitingForJoinEvent) {
+            Runnable run = waitingForJoinEvent.remove(uuid);
+            // If PlayerQuitEvent has been fired the map doesn't contain the uuid
+            if (run == null) {
+                return;
+            }
+            if (run == LOGIN_SENTINEL) {
+                // PlayerJoinEvent hasn't been fired yet, register the runnable to be scheduled by the PlayerJoinEvent
+                waitingForJoinEvent.put(uuid, runnable);
+                return;
+            }
+            // PlayerJoinEvent has already been fired, remove the uuid and schedule the runnable
+            // (here run == JOIN_SENTINEL)
+        }
+        runSync(main, LOAD_EVENTS_DELAY, runnable);
+    }
 
     /**
      * Creates a new {@code DatabaseManager} which uses an in-memory database.
@@ -148,15 +173,32 @@ public final class DatabaseManager {
         database.setUp();
 
         eventManager.register(this, PlayerLoginEvent.class, EventPriority.LOWEST, e -> CompletableFuture.runAsync(() -> {
+            waitingForJoinEvent.put(e.getPlayer().getUniqueId(), LOGIN_SENTINEL);
             try {
                 loadPlayerMainFunction(e.getPlayer());
             } catch (Exception ex) {
                 System.err.println("Cannot load player " + e.getPlayer().getName() + ':');
                 ex.printStackTrace();
-                runSync(main, LOAD_EVENTS_DELAY, () -> Bukkit.getPluginManager().callEvent(new PlayerLoadingFailedEvent(e.getPlayer(), ex)));
+                registerForJoinEvent(e.getPlayer(), () -> Bukkit.getPluginManager().callEvent(new PlayerLoadingFailedEvent(e.getPlayer(), ex)));
             }
         }));
+        eventManager.register(this, PlayerJoinEvent.class, EventPriority.MONITOR, e -> {
+            Runnable runnable;
+            synchronized (waitingForJoinEvent) {
+                runnable = waitingForJoinEvent.remove(e.getPlayer().getUniqueId());
+                if (runnable == null) {
+                    return;
+                }
+                if (runnable == LOGIN_SENTINEL || runnable == JOIN_SENTINEL) { // The second case shouldn't happen, just to be sure
+                    // registerForJoinEvent hasn't been called yet, add uuid->JOIN_SENTINEL to the map (see registerForJoinEvent(...))
+                    waitingForJoinEvent.put(e.getPlayer().getUniqueId(), JOIN_SENTINEL);
+                    return;
+                }
+            }
+            runSync(main, LOAD_EVENTS_DELAY, runnable);
+        });
         eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
+            waitingForJoinEvent.remove(e.getPlayer().getUniqueId());
             synchronized (DatabaseManager.this) {
                 TempUserMetadata meta = tempLoaded.get(e.getPlayer().getUniqueId());
                 if (meta != null) {
@@ -226,7 +268,7 @@ public final class DatabaseManager {
     private void loadPlayerMainFunction(final @NotNull Player player) throws SQLException {
         Entry<TeamProgression, Boolean> entry = loadOrRegisterPlayer(player);
         final TeamProgression pro = entry.getKey();
-        runSync(main, LOAD_EVENTS_DELAY, () -> {
+        registerForJoinEvent(player, () -> {
             Bukkit.getPluginManager().callEvent(new PlayerLoadingCompletedEvent(player, pro));
             if (entry.getValue()) {
                 callEventCatchingExceptions(new AsyncTeamUpdateEvent(pro, player.getUniqueId(), Action.JOIN));
