@@ -358,6 +358,8 @@ public final class DatabaseManager implements Closeable {
         loadedPlayer.addInternalRequest(); // Keep in cache while waiting for the BukkitRunnable
 
         joinEventWaiter.onFinishLoading(player.getUniqueId(), LOAD_EVENTS_DELAY, () -> {
+            checkSync(); // To catch bugs
+
             synchronized (DatabaseManager.this) {
                 if (closed.get()) {
                     return;
@@ -388,6 +390,8 @@ public final class DatabaseManager implements Closeable {
 
     private void firePlayerLoadingFailedEvent(@NotNull Player player, @NotNull Throwable error) {
         joinEventWaiter.onFinishLoading(player.getUniqueId(), 0, () -> {
+            checkSync(); // To catch bugs
+
             if (!closed.get() && player.isOnline()) { // Make sure the player is still online
                 callEventCatchingExceptions(new PlayerLoadingFailedEvent(player, error));
             }
@@ -650,7 +654,7 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
-        checkSync();
+        checkSync(); // Bukkit.getPlayer must be called on the main thread
         return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), otherTeamProgression);
     }
 
@@ -742,7 +746,7 @@ public final class DatabaseManager implements Closeable {
      * @see UltimateAdvancementAPI#movePlayerInNewTeam(UUID)
      */
     public CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID uuid) throws UserNotLoadedException {
-        checkSync();
+        checkSync(); // Bukkit.getPlayer must be called on the main thread
         return movePlayerInNewTeam(uuid, Bukkit.getPlayer(uuid));
     }
 
@@ -1718,7 +1722,7 @@ public final class DatabaseManager implements Closeable {
 
     private synchronized void updateLoadedPlayerTeam(@NotNull LoadedPlayer player, @NotNull LoadedTeam newTeam) {
         // If this method will ever be modified to be called concurrently, see the comment inside TeamProgression#movePlayer
-        AdvancementUtils.checkSync(); // Must be called sync since it calls TeamUpdateEvents
+        checkSync(); // Must be called sync since it calls TeamUpdateEvents
 
         LoadedTeam oldTeam = player.getPlayerTeam();
         Preconditions.checkArgument(oldTeam != null, "Player " + player.getUuid() + " was being moved but isn't part of a team.");
@@ -1764,7 +1768,7 @@ public final class DatabaseManager implements Closeable {
         pendingUpdatesManager.registerTeamUpdate(player, team, () -> {
             completableFuture.complete(completingObj);
 
-            AdvancementUtils.checkSync(); // To catch bugs, done after completing the completable future to avoid not completing it
+            checkSync(); // To catch bugs, done after completing the completable future to avoid not completing it
 
             if (playerToMove != null && playerToMove.isOnline()) {
                 // We are already on main thread here since we are in the callback
@@ -2085,7 +2089,7 @@ public final class DatabaseManager implements Closeable {
         }
 
         void applyUpdates() {
-            AdvancementUtils.checkSync();
+            checkSync(); // To catch bugs
 
             synchronized (DatabaseManager.this) {
                 if (closed.get()) {
