@@ -55,6 +55,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -92,7 +93,7 @@ public final class DatabaseManager implements Closeable {
     private static final int LOAD_EVENTS_DELAY = 3;
 
     // A single-thread executor is used to maintain executed queries sequential
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(new DatabaseManagerThreadFactory());
 
     private final EventManager eventManager;
     private final IDatabase database; // Calls to the database must be done using the `executor` thread
@@ -2165,6 +2166,22 @@ public final class DatabaseManager implements Closeable {
                             '}';
                 };
             }
+        }
+    }
+
+    private static final class DatabaseManagerThreadFactory implements ThreadFactory {
+        private final AtomicInteger id = new AtomicInteger(1);
+        private final ThreadFactory factory = Executors.defaultThreadFactory();
+
+        @Override
+        public Thread newThread(@NotNull Runnable runnable) {
+            Thread t = factory.newThread(runnable);
+            try {
+                t.setName("DatabaseManager-thread-" + id.getAndIncrement());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return t;
         }
     }
 }
