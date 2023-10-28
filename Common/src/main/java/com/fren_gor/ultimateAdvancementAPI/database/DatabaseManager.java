@@ -61,6 +61,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.checkSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValue;
@@ -649,6 +650,7 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
+        checkSync();
         return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), otherTeamProgression);
     }
 
@@ -740,6 +742,7 @@ public final class DatabaseManager implements Closeable {
      * @see UltimateAdvancementAPI#movePlayerInNewTeam(UUID)
      */
     public CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID uuid) throws UserNotLoadedException {
+        checkSync();
         return movePlayerInNewTeam(uuid, Bukkit.getPlayer(uuid));
     }
 
@@ -812,14 +815,16 @@ public final class DatabaseManager implements Closeable {
 
         runAsyncOnExecutor(completableFuture, () -> {
             synchronized (DatabaseManager.this) {
-                if (Bukkit.getPlayer(uuid) != null) {
-                    completableFuture.completeExceptionally(new IllegalStateException("Player is online."));
+                LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+                if (loadedPlayer != null) {
+                    if (loadedPlayer.isOnline()) {
+                        completableFuture.completeExceptionally(new IllegalStateException("Player " + uuid + " is online."));
+                    } else {
+                        completableFuture.completeExceptionally(new IllegalStateException("Player " + uuid + " is loaded."));
+                    }
                     return;
                 }
-                if (playersLoaded.containsKey(uuid)) {
-                    completableFuture.completeExceptionally(new IllegalStateException("Player is temporary loaded."));
-                    return;
-                }
+                // TODO call searchPlayerTeam(uuid) and handle player's team
             }
             try {
                 database.unregisterPlayer(uuid);
@@ -1294,15 +1299,12 @@ public final class DatabaseManager implements Closeable {
                 throw new IllegalStateException("Plugin is not enabled.");
             }
 
-            loadedPlayer = playersLoaded.computeIfAbsent(uuid, LoadedPlayer::new);
-            loadedPlayer.setOnline(Bukkit.getPlayer(uuid) != null); // Just to be sure
+            // addPlayerToCache(...) already adds 1 internal request to the player
+            loadedPlayer = addPlayerToCache(uuid, false);
 
             // Don't do this here, it's better to do it before returning below in the runAsync lambda. This avoids
             // counting this plugin request in the return value of #getLoadingRequestsAmount(...) in case of a DB error
             // loadedPlayer.addPluginRequest(requester);
-
-            // Keep in cache waiting for runAsyncOnExecutor(...)
-            loadedPlayer.addInternalRequest();
         }
 
         runAsyncOnExecutor(completableFuture, () -> {
@@ -1665,9 +1667,11 @@ public final class DatabaseManager implements Closeable {
     }
 
     @NotNull
-    private synchronized LoadedPlayer addPlayerToCache(@NotNull UUID uuid, boolean isOnline) {
+    private synchronized LoadedPlayer addPlayerToCache(@NotNull UUID uuid, boolean setOnline) {
         LoadedPlayer loadedPlayer = playersLoaded.computeIfAbsent(uuid, LoadedPlayer::new);
-        loadedPlayer.setOnline(isOnline);
+        if (setOnline) {
+            loadedPlayer.setOnline(true);
+        }
         loadedPlayer.addInternalRequest(); // Make sure the player will not be removed from cache
         return loadedPlayer;
     }
