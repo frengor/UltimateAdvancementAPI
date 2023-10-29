@@ -15,7 +15,7 @@ import java.util.Objects;
  */
 public class Versions {
 
-    private static final String API_VERSION = "2.2.6";
+    private static final String API_VERSION = "2.2.7";
 
     private static final List<String> SUPPORTED_NMS_VERSIONS = List.of(
             "v1_15_R1",
