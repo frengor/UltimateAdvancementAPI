@@ -384,7 +384,9 @@ public final class DatabaseManager implements Closeable {
             main.updatePlayer(player);
         }, () -> {
             // On cancel remove the internal request since the task didn't run
-            removeInternalRequest(loadedPlayer);
+            if (!closed.get()) {
+                removeInternalRequest(loadedPlayer);
+            }
         });
     }
 
