@@ -230,11 +230,12 @@ public class BlockingDBImpl implements IDatabase {
         }
 
         void block() throws ExecutionException, InterruptedException {
+            CompletableFuture<Void> block;
             synchronized (this) {
                 if (blocker != null) {
                     throw new IllegalStateException("A " + operation.name() + " db operation is already blocked.");
                 }
-                blocker = new CompletableFuture<>();
+                block = blocker = new CompletableFuture<>();
                 if (waiter == null) {
                     waiter = CompletableFuture.completedFuture(null);
                 } else {
@@ -245,7 +246,7 @@ public class BlockingDBImpl implements IDatabase {
                     }
                 }
             }
-            blocker.get();
+            block.get();
         }
 
         public synchronized boolean isBlocked() {
