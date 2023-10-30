@@ -4,7 +4,7 @@ pipeline {
     agent any
     options {
         skipDefaultCheckout(true)
-        timeout(time: 5, activity: true, unit: 'MINUTES')
+        timeout(time: 10, activity: true, unit: 'MINUTES')
         sidebarLinks([[displayName: 'Javadoc', iconFileName: 'help.png', urlName: "https://frengor.com/javadocs/UltimateAdvancementAPI/build-server/${BRANCH_NAME}"]])
     }
     tools {
@@ -23,7 +23,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building and testing...'
-                sh 'mvn clean package -B -Pjenkins -U'
+                sh 'mvn clean package -B -Pjenkins -U -Dsurefire.enableProcessChecker=native' // native is fine on linux
             }
         }
     }

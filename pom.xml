@@ -129,6 +129,7 @@
                 <configuration>
                     <parallel>none</parallel>
                     <trimStackTrace>false</trimStackTrace>
+                    <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds> <!-- 5 minutes -->
                 </configuration>
             </plugin>
         </plugins>
