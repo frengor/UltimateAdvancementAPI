@@ -6,9 +6,10 @@ import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
+import com.fren_gor.ultimateAdvancementAPI.database.BlockingDBImpl;
+import com.fren_gor.ultimateAdvancementAPI.database.DBUtils.DBOperation;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl;
-import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl.DBOperation;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
@@ -67,6 +68,7 @@ public class DatabaseManagerTest {
     private AdvancementMain advancementMain;
     private DatabaseManager databaseManager;
     private FallibleDBImpl fallible;
+    private BlockingDBImpl blocking;
     private ExecutorService executor;
 
     private AdvancementKey KEY1;
@@ -76,7 +78,7 @@ public class DatabaseManagerTest {
     @BeforeEach
     void init() throws Exception {
         server = Utils.mockServer();
-        advancementMain = Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), main -> dbManagerConstructor.newInstance(main, fallible = new FallibleDBImpl(new InMemory(main.getLogger()))));
+        advancementMain = Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), main -> dbManagerConstructor.newInstance(main, fallible = new FallibleDBImpl(blocking = new BlockingDBImpl(new InMemory(main.getLogger())))));
         databaseManager = advancementMain.getDatabaseManager();
         assertNotNull(fallible);
         executor = (ExecutorService) executorField.get(databaseManager);
