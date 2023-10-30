@@ -7,6 +7,7 @@ import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.BlockingDBImpl;
+import com.fren_gor.ultimateAdvancementAPI.database.BlockingDBImpl.BlockedDB;
 import com.fren_gor.ultimateAdvancementAPI.database.DBUtils.DBOperation;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl;
@@ -567,8 +568,10 @@ public class DatabaseManagerTest {
 
     @Test
     void joinAndQuitTest() {
+        blocking.setBlockingOps(DBOperation.LOAD_OR_REGISTER_PLAYER);
+        blocking.setPlanning(false);
         PlayerMock p = server.addPlayer();
-        disconnectPlayer(p, false);
+        disconnectPlayer(p, false, blocking.getBlockedDB(DBOperation.LOAD_OR_REGISTER_PLAYER));
     }
 
     @Test
@@ -700,13 +703,13 @@ public class DatabaseManagerTest {
      * Correct to use only if the player's team has only the player itself as member
      */
     private void disconnectPlayer(PlayerMock player) {
-        disconnectPlayer(player, true);
+        disconnectPlayer(player, true, null);
     }
 
     /**
      * Correct to use only if the player's team has only the player itself as member
      */
-    private void disconnectPlayer(PlayerMock player, boolean checkTeamSize) {
+    private void disconnectPlayer(PlayerMock player, boolean checkTeamSize, BlockedDB blocking) {
         if (checkTeamSize) {
             assertEquals(1, databaseManager.getTeamProgression(player).getSize(), "Incorrect usage of disconnectPlayer inside tests");
         }
@@ -729,7 +732,15 @@ public class DatabaseManagerTest {
                 }
             });
 
+            if (blocking != null) {
+                blocking.waitBlock();
+            }
+
             player.disconnect();
+
+            if (blocking != null) {
+                blocking.resume();
+            }
 
             waitCompletion(finished);
 
