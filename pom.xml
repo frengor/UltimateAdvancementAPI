@@ -132,6 +132,39 @@
                     <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds> <!-- 5 minutes -->
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>unused-imports-check</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <checkstyleRules>
+                                <module name="Checker">
+                                    <module name="TreeWalker">
+                                        <module name="UnusedImports">
+                                            <property name="processJavadoc" value="true"/>
+                                        </module>
+                                    </module>
+                                </module>
+                            </checkstyleRules>
+                            <includeResources>false</includeResources>
+                            <includeTestResources>false</includeTestResources>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                    <linkXRef>false</linkXRef>
+                </configuration>
+            </plugin>
         </plugins>
 
         <pluginManagement>
