@@ -630,7 +630,7 @@ public class ReentrantUpdaterLockTest {
         }
 
         // Assert at least 500 milliseconds have passed
-        assertTrue(System.currentTimeMillis() - currentTime > 500);
+        assertTrue(System.currentTimeMillis() - currentTime >= 500);
     }
 
     @Test
