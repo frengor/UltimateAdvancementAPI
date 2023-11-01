@@ -294,6 +294,28 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    public TeamProgression createNewTeam() throws SQLException {
+        try (Connection conn = openConnection()) {
+            return createNewTeam(conn);
+        }
+    }
+
+    private TeamProgression createNewTeam(Connection conn) throws SQLException {
+        try (PreparedStatement psInsert = conn.prepareStatement("INSERT INTO `Teams` () VALUES ();", Statement.RETURN_GENERATED_KEYS)) {
+            psInsert.executeUpdate();
+            ResultSet r = psInsert.getGeneratedKeys();
+            if (!r.next()) {
+                throw new SQLException("Cannot insert default values into Teams table.");
+            }
+            int teamId = r.getInt(1);
+            return new TeamProgression(teamId);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void updateAdvancement(@NotNull AdvancementKey key, int teamId, @Range(from = 0, to = Integer.MAX_VALUE) int progression) throws SQLException {
         try (Connection conn = openConnection()) {
             if (progression <= 0) {
@@ -438,15 +460,10 @@ public class MySQL implements IDatabase {
      */
     @Override
     public TeamProgression movePlayerInNewTeam(@NotNull UUID uuid) throws SQLException {
-        try (Connection conn = openConnection(); PreparedStatement psInsert = conn.prepareStatement("INSERT INTO `Teams` () VALUES ();", Statement.RETURN_GENERATED_KEYS)) {
-            psInsert.executeUpdate();
-            ResultSet r = psInsert.getGeneratedKeys();
-            if (!r.next()) {
-                throw new SQLException("Cannot insert default values into Teams table.");
-            }
-            int teamId = r.getInt(1);
-            movePlayer(conn, uuid, teamId);
-            return new TeamProgression(teamId);
+        try (Connection conn = openConnection()) {
+            TeamProgression team = createNewTeam(conn);
+            movePlayer(conn, uuid, team.getTeamId());
+            return team;
         }
     }
 

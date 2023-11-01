@@ -43,7 +43,7 @@
 
     <properties>
         <!-- Project Properties -->
-        <apiVersion>2.2.6</apiVersion> <!-- Change also in Versions class -->
+        <apiVersion>2.2.7</apiVersion> <!-- Change also in Versions class -->
         <libbyVersion>1.1.5</libbyVersion>
         <projectEncoding>UTF-8</projectEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -88,7 +88,7 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>23.0.0</version>
+            <version>24.0.1</version>
             <scope>provided</scope>
         </dependency>
 
@@ -96,7 +96,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.20.1-R0.1-SNAPSHOT</version>
+            <version>1.20.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
             <optional>true</optional> <!-- Don't use latest api into per-version code -->
         </dependency>
@@ -105,7 +105,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
-            <version>4.8.0</version>
+            <version>5.2.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -113,7 +113,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.9.1</version>
+            <version>5.10.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -125,10 +125,11 @@
         <plugins>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
+                <version>3.2.1</version>
                 <configuration>
                     <parallel>none</parallel>
                     <trimStackTrace>false</trimStackTrace>
+                    <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds> <!-- 5 minutes -->
                 </configuration>
             </plugin>
         </plugins>

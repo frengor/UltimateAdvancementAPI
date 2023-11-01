@@ -10,7 +10,6 @@ import java.lang.reflect.Array;
 import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Immutable copy of the non-null elements of a {@link Set}.

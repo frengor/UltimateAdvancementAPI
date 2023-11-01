@@ -1,7 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.events.team;
 
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;

@@ -27,6 +27,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
@@ -54,11 +55,13 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.checkSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValue;
@@ -91,10 +94,11 @@ public final class DatabaseManager implements Closeable {
     private static final int LOAD_EVENTS_DELAY = 3;
 
     // A single-thread executor is used to maintain executed queries sequential
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(new DatabaseManagerThreadFactory());
 
     private final EventManager eventManager;
     private final IDatabase database; // Calls to the database must be done using the `executor` thread
+    private final JoinEventWaiter joinEventWaiter;
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
     // Used inside DatabaseManager#close() to not leave uncompleted CompletableFutures
@@ -160,6 +164,7 @@ public final class DatabaseManager implements Closeable {
         this.main = main;
         this.eventManager = main.getEventManager();
         this.database = database;
+        this.joinEventWaiter = new JoinEventWaiter(main.getOwningPlugin());
         commonSetUp();
     }
 
@@ -168,6 +173,8 @@ public final class DatabaseManager implements Closeable {
         database.setUp();
 
         eventManager.register(this, PlayerLoginEvent.class, EventPriority.LOWEST, e -> {
+            joinEventWaiter.onLogin(e.getPlayer().getUniqueId());
+
             final LoadedPlayer loadedPlayer;
 
             synchronized (DatabaseManager.this) {
@@ -238,7 +245,11 @@ public final class DatabaseManager implements Closeable {
                 removeInternalRequest(loadedPlayer);
             });
         });
+        eventManager.register(this, PlayerJoinEvent.class, e -> {
+            joinEventWaiter.onJoin(e.getPlayer().getUniqueId());
+        });
         eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
+            joinEventWaiter.onQuit(e.getPlayer().getUniqueId());
             synchronized (DatabaseManager.this) {
                 // loadedPlayer should be always non-null, but it's better to check it
                 LoadedPlayer loadedPlayer = Objects.requireNonNull(playersLoaded.get(e.getPlayer().getUniqueId()));
@@ -283,6 +294,8 @@ public final class DatabaseManager implements Closeable {
         if (eventManager.isEnabled()) {
             eventManager.unregister(this);
         }
+
+        joinEventWaiter.onClose();
 
         pendingUpdatesManager.unregisterTask();
 
@@ -344,7 +357,9 @@ public final class DatabaseManager implements Closeable {
     private void firePlayerLoadingCompletedEvent(@NotNull Player player, @NotNull LoadedPlayer loadedPlayer) {
         loadedPlayer.addInternalRequest(); // Keep in cache while waiting for the BukkitRunnable
 
-        runSync(main, LOAD_EVENTS_DELAY, () -> {
+        joinEventWaiter.onFinishLoading(player.getUniqueId(), LOAD_EVENTS_DELAY, () -> {
+            checkSync(); // To catch bugs
+
             synchronized (DatabaseManager.this) {
                 if (closed.get()) {
                     return;
@@ -367,14 +382,23 @@ public final class DatabaseManager implements Closeable {
                 processUnredeemed(loadedPlayer, player);
             }
             main.updatePlayer(player);
+        }, () -> {
+            // On cancel remove the internal request since the task didn't run
+            if (!closed.get()) {
+                removeInternalRequest(loadedPlayer);
+            }
         });
     }
 
     private void firePlayerLoadingFailedEvent(@NotNull Player player, @NotNull Throwable error) {
-        runSync(main, () -> {
+        joinEventWaiter.onFinishLoading(player.getUniqueId(), 0, () -> {
+            checkSync(); // To catch bugs
+
             if (!closed.get() && player.isOnline()) { // Make sure the player is still online
                 callEventCatchingExceptions(new PlayerLoadingFailedEvent(player, error));
             }
+        }, () -> {
+            // Nothing to do on cancel
         });
     }
 
@@ -632,6 +656,7 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
+        checkSync(); // Bukkit.getPlayer must be called on the main thread
         return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), otherTeamProgression);
     }
 
@@ -723,6 +748,7 @@ public final class DatabaseManager implements Closeable {
      * @see UltimateAdvancementAPI#movePlayerInNewTeam(UUID)
      */
     public CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID uuid) throws UserNotLoadedException {
+        checkSync(); // Bukkit.getPlayer must be called on the main thread
         return movePlayerInNewTeam(uuid, Bukkit.getPlayer(uuid));
     }
 
@@ -795,14 +821,16 @@ public final class DatabaseManager implements Closeable {
 
         runAsyncOnExecutor(completableFuture, () -> {
             synchronized (DatabaseManager.this) {
-                if (Bukkit.getPlayer(uuid) != null) {
-                    completableFuture.completeExceptionally(new IllegalStateException("Player is online."));
+                LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+                if (loadedPlayer != null) {
+                    if (loadedPlayer.isOnline()) {
+                        completableFuture.completeExceptionally(new IllegalStateException("Player " + uuid + " is online."));
+                    } else {
+                        completableFuture.completeExceptionally(new IllegalStateException("Player " + uuid + " is loaded."));
+                    }
                     return;
                 }
-                if (playersLoaded.containsKey(uuid)) {
-                    completableFuture.completeExceptionally(new IllegalStateException("Player is temporary loaded."));
-                    return;
-                }
+                // TODO call searchPlayerTeam(uuid) and handle player's team
             }
             try {
                 database.unregisterPlayer(uuid);
@@ -1277,15 +1305,12 @@ public final class DatabaseManager implements Closeable {
                 throw new IllegalStateException("Plugin is not enabled.");
             }
 
-            loadedPlayer = playersLoaded.computeIfAbsent(uuid, LoadedPlayer::new);
-            loadedPlayer.setOnline(Bukkit.getPlayer(uuid) != null); // Just to be sure
+            // addPlayerToCache(...) already adds 1 internal request to the player
+            loadedPlayer = addPlayerToCache(uuid, false);
 
             // Don't do this here, it's better to do it before returning below in the runAsync lambda. This avoids
             // counting this plugin request in the return value of #getLoadingRequestsAmount(...) in case of a DB error
             // loadedPlayer.addPluginRequest(requester);
-
-            // Keep in cache waiting for runAsyncOnExecutor(...)
-            loadedPlayer.addInternalRequest();
         }
 
         runAsyncOnExecutor(completableFuture, () -> {
@@ -1379,6 +1404,63 @@ public final class DatabaseManager implements Closeable {
             if (loadedPlayer != null)
                 removePluginRequest(loadedPlayer, requester);
         }
+    }
+
+    /**
+     * Creates a new empty team with {@code 1} <i>loading request</i> for the team and the provided requester plugin.
+     * <p>The method {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} can be used to remove the <i>loading request</i>.
+     * <p>For more information about <i>loading requests</i> see {@link #addLoadingRequestToTeam(TeamProgression, Plugin)},
+     * {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} and {@link #getLoadingRequestsAmount(TeamProgression, Plugin)}.
+     * <p>Also, a plugin should only use its own instance as requester to not interfere with other plugins.
+     *
+     * @param requester The plugin which requested to create the team.
+     * @return A {@link CompletableFuture} which provides the {@link TeamProgression} of the new team.
+     * @see #addLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #removeLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
+     */
+    @NotNull
+    public CompletableFuture<TeamProgression> createNewTeamWithOneLoadingRequest(@NotNull Plugin requester) {
+        checkClosed();
+        Preconditions.checkNotNull(requester, "Plugin is null.");
+
+        synchronized (DatabaseManager.this) {
+            if (!requester.isEnabled()) {
+                throw new IllegalStateException("Plugin is not enabled.");
+            }
+        }
+
+        CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
+
+        runAsyncOnExecutor(completableFuture, () -> {
+            TeamProgression team;
+            try {
+                team = database.createNewTeam();
+            } catch (SQLException e) {
+                System.err.println("Cannot create a new team:");
+                e.printStackTrace();
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
+            } catch (Exception e) {
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
+            }
+
+            synchronized (DatabaseManager.this) {
+                // Check again if the plugin is enabled
+                if (!requester.isEnabled()) {
+                    completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
+                    return;
+                }
+
+                LoadedTeam loadedTeam = addTeamToCache(team);
+                loadedTeam.addPluginRequest(requester);
+            }
+
+            completableFuture.complete(team);
+        });
+
+        return completableFuture;
     }
 
     /**
@@ -1591,9 +1673,11 @@ public final class DatabaseManager implements Closeable {
     }
 
     @NotNull
-    private synchronized LoadedPlayer addPlayerToCache(@NotNull UUID uuid, boolean isOnline) {
+    private synchronized LoadedPlayer addPlayerToCache(@NotNull UUID uuid, boolean setOnline) {
         LoadedPlayer loadedPlayer = playersLoaded.computeIfAbsent(uuid, LoadedPlayer::new);
-        loadedPlayer.setOnline(isOnline);
+        if (setOnline) {
+            loadedPlayer.setOnline(true);
+        }
         loadedPlayer.addInternalRequest(); // Make sure the player will not be removed from cache
         return loadedPlayer;
     }
@@ -1640,7 +1724,7 @@ public final class DatabaseManager implements Closeable {
 
     private synchronized void updateLoadedPlayerTeam(@NotNull LoadedPlayer player, @NotNull LoadedTeam newTeam) {
         // If this method will ever be modified to be called concurrently, see the comment inside TeamProgression#movePlayer
-        AdvancementUtils.checkSync(); // Must be called sync since it calls TeamUpdateEvents
+        checkSync(); // Must be called sync since it calls TeamUpdateEvents
 
         LoadedTeam oldTeam = player.getPlayerTeam();
         Preconditions.checkArgument(oldTeam != null, "Player " + player.getUuid() + " was being moved but isn't part of a team.");
@@ -1686,7 +1770,7 @@ public final class DatabaseManager implements Closeable {
         pendingUpdatesManager.registerTeamUpdate(player, team, () -> {
             completableFuture.complete(completingObj);
 
-            AdvancementUtils.checkSync(); // To catch bugs, done after completing the completable future to avoid not completing it
+            checkSync(); // To catch bugs, done after completing the completable future to avoid not completing it
 
             if (playerToMove != null && playerToMove.isOnline()) {
                 // We are already on main thread here since we are in the callback
@@ -2007,7 +2091,7 @@ public final class DatabaseManager implements Closeable {
         }
 
         void applyUpdates() {
-            AdvancementUtils.checkSync();
+            checkSync(); // To catch bugs
 
             synchronized (DatabaseManager.this) {
                 if (closed.get()) {
@@ -2092,6 +2176,22 @@ public final class DatabaseManager implements Closeable {
                             '}';
                 };
             }
+        }
+    }
+
+    private static final class DatabaseManagerThreadFactory implements ThreadFactory {
+        private final AtomicInteger id = new AtomicInteger(1);
+        private final ThreadFactory factory = Executors.defaultThreadFactory();
+
+        @Override
+        public Thread newThread(@NotNull Runnable runnable) {
+            Thread t = factory.newThread(runnable);
+            try {
+                t.setName("DatabaseManager-thread-" + id.getAndIncrement());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return t;
         }
     }
 }

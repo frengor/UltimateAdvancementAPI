@@ -8,25 +8,31 @@ import org.jetbrains.annotations.Range;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Deque;
-import java.util.EnumSet;
+import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
+import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-public class FallibleDBImpl implements IDatabase {
+public class BlockingDBImpl implements IDatabase {
 
     private final IDatabase inner;
     private final Deque<Boolean> planning = new LinkedList<>();
-    private final Set<DBOperation> filter = EnumSet.allOf(DBOperation.class);
+    private final Map<DBOperation, BlockedDB> blocking = new EnumMap<>(DBOperation.class);
 
-    public FallibleDBImpl(@NotNull IDatabase inner) {
+    public BlockingDBImpl(@NotNull IDatabase inner) {
         this.inner = Objects.requireNonNull(inner);
+    }
+
+    @NotNull
+    public synchronized BlockedDB getBlockedDB(DBOperation operation) {
+        return Objects.requireNonNull(blocking.get(operation));
     }
 
     public synchronized void addToPlanning(boolean... planning) {
@@ -44,17 +50,30 @@ public class FallibleDBImpl implements IDatabase {
         this.planning.clear();
     }
 
-    public synchronized void addFallibleOps(DBOperation... operations) {
-        this.filter.addAll(Arrays.asList(operations));
+    public synchronized void addBlockingOps(DBOperation... operations) {
+        for (DBOperation op : operations) {
+            this.blocking.put(op, new BlockedDB(op));
+        }
     }
 
-    public synchronized void setFallibleOps(DBOperation... operations) {
-        clearFallibleOps();
-        addFallibleOps(operations);
+    public synchronized void setBlockingOps(DBOperation... operations) {
+        clearBlockingOps();
+        addBlockingOps(operations);
     }
 
-    public synchronized void clearFallibleOps() {
-        this.filter.clear();
+    public synchronized void clearBlockingOps() {
+        List<DBOperation> blocked = new LinkedList<>(); // LinkedList is fine since elements are added only in case of failure
+        for (BlockedDB op : blocking.values()) {
+            if (op.isBlocked()) {
+                blocked.add(op.operation);
+            }
+        }
+        if (!blocked.isEmpty()) {
+            StringJoiner j = new StringJoiner(", ");
+            blocked.forEach(op -> j.add(op.name()));
+            throw new IllegalStateException("Tried to clear blocking operation while being blocked on: " + j);
+        }
+        this.blocking.clear();
     }
 
     @Override
@@ -186,35 +205,85 @@ public class FallibleDBImpl implements IDatabase {
         inner.clearUpTeams();
     }
 
-    private synchronized void checkPlanning(DBOperation operation) throws SQLException {
-        if (filter.contains(operation) && !planning.isEmpty() && !planning.removeFirst()) {
-            throw new PlannedFailureException();
+    private void checkPlanning(DBOperation operation) {
+        BlockedDB blocked;
+        synchronized (this) {
+            blocked = blocking.get(operation);
+            if (blocked == null || planning.isEmpty() || planning.removeFirst()) {
+                return;
+            }
+        }
+        try {
+            blocked.block();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public static final class PlannedFailureException extends SQLException {
-        public PlannedFailureException() {
-            super("Planned failure!");
+    public static final class BlockedDB {
+        private final DBOperation operation;
+        private CompletableFuture<Void> blocker;
+        private CompletableFuture<Void> waiter;
+
+        BlockedDB(DBOperation operation) {
+            this.operation = operation;
         }
 
-        @Override
-        public void printStackTrace() {
-            // Don't print the entire stack trace, the failure is fine. However, at the same time,
-            // print at least that the failure is planned to avoid possible confusion with other printed messages
-            System.err.println(PlannedFailureException.class.getName() + ": " + this.getMessage());
+        void block() throws ExecutionException, InterruptedException {
+            CompletableFuture<Void> block;
+            synchronized (this) {
+                if (blocker != null) {
+                    throw new IllegalStateException("A " + operation.name() + " db operation is already blocked.");
+                }
+                block = blocker = new CompletableFuture<>();
+                if (waiter == null) {
+                    waiter = CompletableFuture.completedFuture(null);
+                } else {
+                    try {
+                        waiter.complete(null);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            block.get();
         }
-    }
 
-    public static final class RuntimePlannedFailureException extends RuntimeException {
-        public RuntimePlannedFailureException() {
-            super("Planned runtime failure!");
+        public synchronized boolean isBlocked() {
+            return blocker != null;
         }
 
-        @Override
-        public void printStackTrace() {
-            // Don't print the entire stack trace, the failure is fine. However, at the same time,
-            // print at least that the failure is planned to avoid possible confusion with other printed messages
-            System.err.println(RuntimePlannedFailureException.class.getName() + ": " + this.getMessage());
+        public void waitBlock() {
+            CompletableFuture<Void> wait;
+            synchronized (this) {
+                if (isBlocked() || waiter != null) {
+                    return;
+                }
+                wait = waiter = new CompletableFuture<>();
+            }
+            try {
+                wait.get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public void waitBlockAndResume() {
+            waitBlock();
+            resume();
+        }
+
+        public synchronized void resume() {
+            if (blocker == null) {
+                throw new IllegalStateException(operation.name() + " db operation is not blocked.");
+            }
+            try {
+                blocker.complete(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                blocker = null;
+            }
         }
     }
 }

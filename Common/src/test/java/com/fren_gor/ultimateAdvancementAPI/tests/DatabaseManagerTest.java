@@ -6,9 +6,11 @@ import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
+import com.fren_gor.ultimateAdvancementAPI.database.BlockingDBImpl;
+import com.fren_gor.ultimateAdvancementAPI.database.BlockingDBImpl.BlockedDB;
+import com.fren_gor.ultimateAdvancementAPI.database.DBUtils.DBOperation;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl;
-import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl.DBOperation;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
@@ -67,6 +69,7 @@ public class DatabaseManagerTest {
     private AdvancementMain advancementMain;
     private DatabaseManager databaseManager;
     private FallibleDBImpl fallible;
+    private BlockingDBImpl blocking;
     private ExecutorService executor;
 
     private AdvancementKey KEY1;
@@ -76,7 +79,7 @@ public class DatabaseManagerTest {
     @BeforeEach
     void init() throws Exception {
         server = Utils.mockServer();
-        advancementMain = Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), main -> dbManagerConstructor.newInstance(main, fallible = new FallibleDBImpl(new InMemory(main.getLogger()))));
+        advancementMain = Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), main -> dbManagerConstructor.newInstance(main, fallible = new FallibleDBImpl(blocking = new BlockingDBImpl(new InMemory(main.getLogger())))));
         databaseManager = advancementMain.getDatabaseManager();
         assertNotNull(fallible);
         executor = (ExecutorService) executorField.get(databaseManager);
@@ -92,9 +95,7 @@ public class DatabaseManagerTest {
         if (!executor.isShutdown()) {
             // Wait for pending tasks before closing the server
             // This cycle should ideally let tasks waiting for the server main thread to finish
-            waitForPendingTasks();
             for (int i = 0; i < 20; i++) {
-                server.getScheduler().performOneTick();
                 waitForPendingTasks();
             }
         }
@@ -433,9 +434,11 @@ public class DatabaseManagerTest {
 
         try {
             manager.register(listener, PlayerRegisteredEvent.class, e -> {
+                AdvancementUtils.checkSync();
                 if (e.getPlayerUUID().equals(p.getUniqueId())) {
                     var cf = loaded.get();
-                    assertTrue(cf == null || !cf.isDone());
+                    assertNotNull(cf);
+                    assertFalse(cf.isDone());
                     registered.complete(null);
                 } else {
                     fail("Registered another player: " + e.getPlayerUUID());
@@ -454,7 +457,7 @@ public class DatabaseManagerTest {
                 fail("Player loading failed: " + e.getPlayer().getName() + " (" + e.getPlayer().getUniqueId() + ')');
             });
 
-            waitForPendingTasksNoTicking();
+            waitForPendingTasks(false);
 
             loaded.set(databaseManager.loadAndAddLoadingRequestToPlayer(p.getUniqueId(), plugin));
             loaded.get().handle((team, err) -> {
@@ -534,15 +537,15 @@ public class DatabaseManagerTest {
         TeamProgression team = databaseManager.getTeamProgression(p1);
 
         var cf1 = databaseManager.movePlayerInNewTeam(p1);
-        waitForPendingTasksNoTicking();
-        Paused paused = pauseFutureTasksNoTicking();
+        waitForPendingTasks(false);
+        Paused paused = pauseFutureTasks(false);
         var cf2 = databaseManager.movePlayerInNewTeam(p2);
 
         new Thread(() -> {
             while (!executor.isShutdown()) {
                 Thread.yield();
             }
-            paused.resumeAsync();
+            paused.resume();
         }).start();
 
         databaseManager.close();
@@ -565,8 +568,84 @@ public class DatabaseManagerTest {
 
     @Test
     void joinAndQuitTest() {
+        blocking.setBlockingOps(DBOperation.LOAD_OR_REGISTER_PLAYER);
+        blocking.setPlanning(false);
         PlayerMock p = server.addPlayer();
-        disconnectPlayer(p, false);
+        disconnectPlayer(p, false, blocking.getBlockedDB(DBOperation.LOAD_OR_REGISTER_PLAYER));
+    }
+
+    @Test
+    void createNewTeamTest() throws Exception {
+        MockPlugin plugin = MockBukkit.createMockPlugin();
+        PlayerMock p1 = loadPlayer();
+
+        TeamProgression team = waitCompletion(databaseManager.createNewTeamWithOneLoadingRequest(plugin)).get();
+        assertTrue(team.isValid());
+        assertEquals(1, databaseManager.getLoadingRequestsAmount(team, plugin));
+
+        PlayerMock p2 = loadPlayer();
+
+        TeamProgression t1 = databaseManager.getTeamProgression(p1);
+        TeamProgression t2 = databaseManager.getTeamProgression(p2);
+        assertNotEquals(t1.getTeamId(), t2.getTeamId()); // Just to be sure
+        assertNotEquals(team.getTeamId(), t1.getTeamId());
+        assertNotEquals(team.getTeamId(), t2.getTeamId());
+
+        databaseManager.removeLoadingRequestToTeam(team, plugin);
+        assertFalse(team.isValid());
+    }
+
+    @Test
+    void createNewTeamAndMovePlayerInsideTest() throws Exception {
+        MockPlugin plugin = MockBukkit.createMockPlugin();
+        PlayerMock p1 = loadPlayer();
+
+        TeamProgression t1 = databaseManager.getTeamProgression(p1);
+
+        TeamProgression team = waitCompletion(databaseManager.createNewTeamWithOneLoadingRequest(plugin)).get();
+        assertTrue(team.isValid());
+        assertEquals(1, databaseManager.getLoadingRequestsAmount(team, plugin));
+
+        waitCompletion(databaseManager.updatePlayerTeam(p1, team)).get();
+
+        assertFalse(t1.isValid());
+
+        databaseManager.removeLoadingRequestToTeam(team, plugin);
+        assertTrue(team.isValid());
+        assertEquals(0, databaseManager.getLoadingRequestsAmount(team, plugin));
+
+        disconnectPlayer(p1);
+        assertFalse(team.isValid());
+    }
+
+    @Test
+    void makeSurePlayerAreNotMovedBeforeRegisterEventTest() throws Exception {
+        MockPlugin plugin = MockBukkit.createMockPlugin();
+        TeamProgression team = waitCompletion(databaseManager.createNewTeamWithOneLoadingRequest(plugin)).get();
+
+        Paused paused = pauseFutureTasks();
+
+        PlayerMock p = server.addPlayer();
+
+        server.getPluginManager().assertEventNotFired(PlayerRegisteredEvent.class);
+        assertTrue(team.isValid());
+
+        assertThrows(UserNotLoadedException.class, () -> databaseManager.updatePlayerTeam(p, team));
+
+        server.getPluginManager().assertEventNotFired(PlayerRegisteredEvent.class);
+        assertTrue(team.isValid());
+
+        // Let PlayerRegisteredEvent fire
+        paused.resume();
+        waitForPendingTasks();
+        server.getScheduler().performTicks(20);
+
+        server.getPluginManager().assertEventFired(PlayerRegisteredEvent.class);
+        assertTrue(team.isValid());
+
+        waitCompletion(databaseManager.updatePlayerTeam(p, team)).get();
+        databaseManager.removeLoadingRequestToTeam(team, plugin);
+        disconnectPlayer(p);
     }
 
     private PlayerMock loadPlayer() {
@@ -624,13 +703,13 @@ public class DatabaseManagerTest {
      * Correct to use only if the player's team has only the player itself as member
      */
     private void disconnectPlayer(PlayerMock player) {
-        disconnectPlayer(player, true);
+        disconnectPlayer(player, true, null);
     }
 
     /**
      * Correct to use only if the player's team has only the player itself as member
      */
-    private void disconnectPlayer(PlayerMock player, boolean checkTeamSize) {
+    private void disconnectPlayer(PlayerMock player, boolean checkTeamSize, BlockedDB blocking) {
         if (checkTeamSize) {
             assertEquals(1, databaseManager.getTeamProgression(player).getSize(), "Incorrect usage of disconnectPlayer inside tests");
         }
@@ -653,10 +732,15 @@ public class DatabaseManagerTest {
                 }
             });
 
-            // Pause future tasks before calling disconnect to avoid deadlock caused by the workaround to MockBukkit's bugged scheduler
-            Paused p = pauseFutureTasksNoTicking();
+            if (blocking != null) {
+                blocking.waitBlock();
+            }
+
             player.disconnect();
-            p.resume();
+
+            if (blocking != null) {
+                blocking.resume();
+            }
 
             waitCompletion(finished);
 
@@ -668,49 +752,32 @@ public class DatabaseManagerTest {
 
     @Contract("_ -> param1")
     private <T> CompletableFuture<T> waitCompletion(CompletableFuture<T> completableFuture) {
-        if (completableFuture == null) {
-            return null;
-        }
-        while (!completableFuture.isDone()) {
-            server.getScheduler().performOneTick();
-            Thread.yield();
-        }
-        return completableFuture;
+        return waitCompletion(completableFuture, true);
     }
 
-    @Contract("_ -> param1")
-    private <T> CompletableFuture<T> waitCompletionNoTicking(CompletableFuture<T> completableFuture) {
+    @Contract("_, _ -> param1")
+    private <T> CompletableFuture<T> waitCompletion(CompletableFuture<T> completableFuture, boolean ticking) {
         if (completableFuture == null) {
             return null;
         }
         while (!completableFuture.isDone()) {
+            if (ticking) {
+                server.getScheduler().performOneTick();
+            }
             Thread.yield();
         }
         return completableFuture;
     }
 
     private Paused pauseFutureTasks() {
-        CompletableFuture<Void> waiter = new CompletableFuture<>();
-        CompletableFuture<Void> blocker = new CompletableFuture<>();
-
-        CompletableFuture<Void> paused = CompletableFuture.runAsync(() -> {
-            try {
-                waiter.complete(null);
-                blocker.get();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }, executor);
-
-        waitCompletion(waiter);
-        return new Paused(blocker, paused);
+        return pauseFutureTasks(true);
     }
 
-    private Paused pauseFutureTasksNoTicking() {
+    private Paused pauseFutureTasks(boolean ticking) {
         CompletableFuture<Void> waiter = new CompletableFuture<>();
         CompletableFuture<Void> blocker = new CompletableFuture<>();
 
-        CompletableFuture<Void> paused = CompletableFuture.runAsync(() -> {
+        CompletableFuture.runAsync(() -> {
             try {
                 waiter.complete(null);
                 blocker.get();
@@ -719,39 +786,29 @@ public class DatabaseManagerTest {
             }
         }, executor);
 
-        waitCompletionNoTicking(waiter);
-        return new Paused(blocker, paused);
+        waitCompletion(waiter, ticking);
+        return new Paused(blocker);
     }
 
     private void waitForPendingTasks() {
+        waitForPendingTasks(true);
+    }
+
+    private void waitForPendingTasks(boolean ticking) {
         CompletableFuture<Void> cf = new CompletableFuture<>();
         CompletableFuture.runAsync(() -> cf.complete(null), executor);
 
-        waitCompletion(cf);
+        waitCompletion(cf, ticking);
     }
 
-    private void waitForPendingTasksNoTicking() throws Exception {
-        CompletableFuture<Void> cf = new CompletableFuture<>();
-        CompletableFuture.runAsync(() -> cf.complete(null), executor);
-
-        waitCompletionNoTicking(cf);
-    }
-
-    private final class Paused {
+    private static final class Paused {
         private final CompletableFuture<Void> blocker;
-        private final CompletableFuture<Void> paused;
 
-        private Paused(CompletableFuture<Void> blocker, CompletableFuture<Void> paused) {
+        private Paused(CompletableFuture<Void> blocker) {
             this.blocker = blocker;
-            this.paused = paused;
         }
 
         public void resume() {
-            this.blocker.complete(null);
-            waitCompletion(this.paused);
-        }
-
-        public void resumeAsync() {
             this.blocker.complete(null);
         }
     }

@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -351,21 +350,20 @@ public class ReentrantUpdaterLockTest {
     @Test
     void tryLockTest() throws Exception {
         assertTrue(lock.tryLockExclusiveLock());
-        CompletableFuture<Void> cf = new CompletableFuture<>();
+        CompletableFuture<Boolean> cf = new CompletableFuture<>();
         new Thread(() -> {
-            assertFalse(lock.tryLock());
-            cf.complete(null);
+            cf.complete(lock.tryLock());
         }).start();
-        cf.get(6, TimeUnit.SECONDS);
+        assertFalse(cf.get(6, TimeUnit.SECONDS));
     }
 
     @Test
     void tryLockTimedTest() throws Exception {
         assertTrue(lock.tryLockExclusiveLock());
-        CompletableFuture<Void> cf = new CompletableFuture<>();
+        CompletableFuture<Boolean> cf = new CompletableFuture<>();
         Thread t = new Thread(() -> {
             try {
-                assertFalse(lock.tryLock(1, TimeUnit.SECONDS));
+                cf.complete(lock.tryLock(500, TimeUnit.MILLISECONDS));
             } catch (InterruptedException e) {
                 cf.completeExceptionally(e);
                 return;
@@ -384,10 +382,10 @@ public class ReentrantUpdaterLockTest {
     @Test
     void tryLockTimedZeroTimeTest() throws Exception {
         assertTrue(lock.tryLockExclusiveLock());
-        CompletableFuture<Void> cf = new CompletableFuture<>();
+        CompletableFuture<Boolean> cf = new CompletableFuture<>();
         Thread t = new Thread(() -> {
             try {
-                assertFalse(lock.tryLock(0, TimeUnit.SECONDS));
+                cf.complete(lock.tryLock(0, TimeUnit.SECONDS));
             } catch (InterruptedException e) {
                 cf.completeExceptionally(e);
                 return;
@@ -396,7 +394,7 @@ public class ReentrantUpdaterLockTest {
         });
         t.start();
         try {
-            cf.get(6, TimeUnit.SECONDS);
+            assertFalse(cf.get(6, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             t.interrupt();
             fail(e);
@@ -413,14 +411,14 @@ public class ReentrantUpdaterLockTest {
         Thread t = new Thread(() -> {
             for (int i = 0; i < 100; i++) {
                 if (shouldStop.get()) {
-                    fail("Timeout!");
+                    cf.completeExceptionally(new RuntimeException("Timeout!"));
                     return;
                 }
                 try {
                     lock.lockInterruptibly();
                 } catch (InterruptedException e) {
                     if (shouldStop.get()) {
-                        fail("Timeout!");
+                        cf.completeExceptionally(new RuntimeException("Timeout!"));
                         return;
                     }
                     canContinue.set(true);
@@ -441,7 +439,7 @@ public class ReentrantUpdaterLockTest {
         Thread t1 = new Thread(() -> {
             for (int i = 0; i < 100; i++) {
                 if (shouldStop.get()) {
-                    fail("Timeout!");
+                    cf1.completeExceptionally(new RuntimeException("Timeout!"));
                     return;
                 }
                 t.interrupt();
@@ -587,13 +585,6 @@ public class ReentrantUpdaterLockTest {
 
     @Test
     void tryLockTimedTimeoutWithInterruptTest() throws Exception {
-        Field mutex = ReentrantUpdaterLock.class.getDeclaredField("mutex");
-        mutex.setAccessible(true);
-        Field activeLocksCounter = ReentrantUpdaterLock.class.getDeclaredField("activeLocksCounter");
-        activeLocksCounter.setAccessible(true);
-
-        final Semaphore sem = (Semaphore) mutex.get(lock);
-
         assertTrue(lock.tryLockExclusiveLock());
         CompletableFuture<Boolean> cf = new CompletableFuture<>();
         Thread t = new Thread(() -> {
@@ -612,38 +603,33 @@ public class ReentrantUpdaterLockTest {
         long currentTime = System.currentTimeMillis();
         t.start();
 
-        while (!shouldStop.get()) {
-            sem.acquireUninterruptibly();
-            try {
-                if (activeLocksCounter.getLong(lock) == 1) {
-                    break;
-                }
-            } finally {
-                sem.release();
-                Thread.yield();
-            }
+        while (!shouldStop.get() && LockSupport.getBlocker(t) != lock) {
+            Thread.yield();
         }
 
-        LockSupport.unpark(t); // Spurious wakeup
-
-        if (!shouldStop.get()) {
+        if (shouldStop.get()) {
             t.interrupt();
             fail("Timeout");
         }
 
-        // Don't need the timeout no more
+        // Assert that less than 500 milliseconds have passed
+        assertTrue(System.currentTimeMillis() - currentTime < 500);
+
+        LockSupport.unpark(t); // Spurious wakeup
+
+        // The timeout is no longer needed
         interrupted.set(true);
         timeout.interrupt();
 
         try {
-            assertFalse(cf.get(5, TimeUnit.SECONDS));
+            assertFalse(cf.get(1, TimeUnit.SECONDS));
         } catch (Exception e) {
             t.interrupt();
             throw e;
         }
 
         // Assert at least 500 milliseconds have passed
-        assertTrue(System.currentTimeMillis() - currentTime > 500);
+        assertTrue(System.currentTimeMillis() - currentTime >= 500);
     }
 
     @Test
