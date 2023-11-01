@@ -350,21 +350,20 @@ public class ReentrantUpdaterLockTest {
     @Test
     void tryLockTest() throws Exception {
         assertTrue(lock.tryLockExclusiveLock());
-        CompletableFuture<Void> cf = new CompletableFuture<>();
+        CompletableFuture<Boolean> cf = new CompletableFuture<>();
         new Thread(() -> {
-            assertFalse(lock.tryLock());
-            cf.complete(null);
+            cf.complete(lock.tryLock());
         }).start();
-        cf.get(6, TimeUnit.SECONDS);
+        assertFalse(cf.get(6, TimeUnit.SECONDS));
     }
 
     @Test
     void tryLockTimedTest() throws Exception {
         assertTrue(lock.tryLockExclusiveLock());
-        CompletableFuture<Void> cf = new CompletableFuture<>();
+        CompletableFuture<Boolean> cf = new CompletableFuture<>();
         Thread t = new Thread(() -> {
             try {
-                assertFalse(lock.tryLock(1, TimeUnit.SECONDS));
+                cf.complete(lock.tryLock(500, TimeUnit.MILLISECONDS));
             } catch (InterruptedException e) {
                 cf.completeExceptionally(e);
                 return;
@@ -383,10 +382,10 @@ public class ReentrantUpdaterLockTest {
     @Test
     void tryLockTimedZeroTimeTest() throws Exception {
         assertTrue(lock.tryLockExclusiveLock());
-        CompletableFuture<Void> cf = new CompletableFuture<>();
+        CompletableFuture<Boolean> cf = new CompletableFuture<>();
         Thread t = new Thread(() -> {
             try {
-                assertFalse(lock.tryLock(0, TimeUnit.SECONDS));
+                cf.complete(lock.tryLock(0, TimeUnit.SECONDS));
             } catch (InterruptedException e) {
                 cf.completeExceptionally(e);
                 return;
@@ -395,7 +394,7 @@ public class ReentrantUpdaterLockTest {
         });
         t.start();
         try {
-            cf.get(6, TimeUnit.SECONDS);
+            assertFalse(cf.get(6, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             t.interrupt();
             fail(e);
@@ -412,14 +411,14 @@ public class ReentrantUpdaterLockTest {
         Thread t = new Thread(() -> {
             for (int i = 0; i < 100; i++) {
                 if (shouldStop.get()) {
-                    fail("Timeout!");
+                    cf.completeExceptionally(new RuntimeException("Timeout!"));
                     return;
                 }
                 try {
                     lock.lockInterruptibly();
                 } catch (InterruptedException e) {
                     if (shouldStop.get()) {
-                        fail("Timeout!");
+                        cf.completeExceptionally(new RuntimeException("Timeout!"));
                         return;
                     }
                     canContinue.set(true);
@@ -440,7 +439,7 @@ public class ReentrantUpdaterLockTest {
         Thread t1 = new Thread(() -> {
             for (int i = 0; i < 100; i++) {
                 if (shouldStop.get()) {
-                    fail("Timeout!");
+                    cf1.completeExceptionally(new RuntimeException("Timeout!"));
                     return;
                 }
                 t.interrupt();
