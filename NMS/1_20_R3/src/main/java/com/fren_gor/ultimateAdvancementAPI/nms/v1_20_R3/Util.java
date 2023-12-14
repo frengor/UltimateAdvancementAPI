@@ -39,9 +39,7 @@ public class Util {
 
         List<List<String>> list = new ArrayList<>(advCriteria.size());
         for (String name : advCriteria.keySet()) {
-            List<String> l = new ArrayList<>();
-            l.add(name);
-            list.add(l);
+            list.add(List.of(name));
         }
 
         return new AdvancementRequirements(list);
