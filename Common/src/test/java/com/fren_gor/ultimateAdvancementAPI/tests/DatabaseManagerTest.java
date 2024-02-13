@@ -572,6 +572,7 @@ public class DatabaseManagerTest {
         blocking.setPlanning(false);
         PlayerMock p = server.addPlayer();
         disconnectPlayer(p, false, blocking.getBlockedDB(DBOperation.LOAD_OR_REGISTER_PLAYER));
+        server.getPluginManager().assertEventFired(PlayerRegisteredEvent.class, e -> e.getPlayerUUID().equals(p.getUniqueId()));
     }
 
     @Test

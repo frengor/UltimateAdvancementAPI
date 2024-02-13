@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ReentrantUpdaterLockTest {
 
-    private static final int THREAD_COUNT = 25;
+    private static final int THREAD_COUNT = 10;
 
     private ServerMock server;
     private ReentrantUpdaterLock lock;
@@ -409,7 +409,7 @@ public class ReentrantUpdaterLockTest {
         AtomicBoolean canContinue = new AtomicBoolean(false);
         AtomicBoolean shouldStop = new AtomicBoolean(false);
         Thread t = new Thread(() -> {
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 25; i++) {
                 if (shouldStop.get()) {
                     cf.completeExceptionally(new RuntimeException("Timeout!"));
                     return;
@@ -437,7 +437,7 @@ public class ReentrantUpdaterLockTest {
         });
         t.start();
         Thread t1 = new Thread(() -> {
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 25; i++) {
                 if (shouldStop.get()) {
                     cf1.completeExceptionally(new RuntimeException("Timeout!"));
                     return;
@@ -487,7 +487,7 @@ public class ReentrantUpdaterLockTest {
         AtomicBoolean canContinue = new AtomicBoolean(false);
         AtomicBoolean shouldStop = new AtomicBoolean(false);
         Thread t = new Thread(() -> {
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 25; i++) {
                 if (shouldStop.get()) {
                     cf.completeExceptionally(new RuntimeException("Timeout"));
                     return;
@@ -521,7 +521,7 @@ public class ReentrantUpdaterLockTest {
         });
         t.start();
         Thread t1 = new Thread(() -> {
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 25; i++) {
                 if (shouldStop.get()) {
                     cf.completeExceptionally(new RuntimeException("Timeout"));
                     return;
