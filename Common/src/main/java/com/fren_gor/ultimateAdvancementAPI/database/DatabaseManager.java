@@ -105,7 +105,7 @@ public final class DatabaseManager implements Closeable {
     private final Map<Integer, CompletableFuture<?>> uncompletedCompletableFutures = Collections.synchronizedMap(new HashMap<>());
     private final AtomicInteger keysOfUncompletedCFs = new AtomicInteger(0); // Used to generate the keys of uncompletedCompletableFutures map
 
-    // All this fields must be accessed inside a `synchronized (DatabaseManager.this) {...}` block
+    // All these fields must be accessed inside a `synchronized (DatabaseManager.this) {...}` block
     private final AdvancementMain main;
     private final Map<Integer, LoadedTeam> teamsLoaded = new HashMap<>();
     private final Map<UUID, LoadedPlayer> playersLoaded = new HashMap<>();
@@ -1965,7 +1965,7 @@ public final class DatabaseManager implements Closeable {
         private final List<Update> progressionUpdates = new ArrayList<>(10);
         private final Map<Integer, Map<AdvancementKey, Integer>> realProgressions = new HashMap<>(); // Used to calculate increments
 
-        // All this fields must be accessed inside a `synchronized (PendingUpdatesManager.this) {...}` block
+        // All these fields must be accessed inside a `synchronized (PendingUpdatesManager.this) {...}` block
         private boolean updaterTaskIsRegistered = false;
         private BukkitTask task = null;
 
