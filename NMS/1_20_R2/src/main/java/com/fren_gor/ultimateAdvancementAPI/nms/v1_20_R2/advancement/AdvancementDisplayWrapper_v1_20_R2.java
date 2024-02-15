@@ -24,6 +24,13 @@ public class AdvancementDisplayWrapper_v1_20_R2 extends AdvancementDisplayWrappe
         this.frameType = frameType;
     }
 
+    protected AdvancementDisplayWrapper_v1_20_R2(@NotNull net.minecraft.world.item.ItemStack icon, @NotNull Component title, @NotNull Component description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
+        ResourceLocation background = backgroundTexture == null ? null : new ResourceLocation(backgroundTexture);
+        this.display = new DisplayInfo(icon, title, description, background, (FrameType) frameType.toNMS(), showToast, announceChat, hidden);
+        this.display.setLocation(x, y);
+        this.frameType = frameType;
+    }
+
     @Override
     @NotNull
     public ItemStack getIcon() {

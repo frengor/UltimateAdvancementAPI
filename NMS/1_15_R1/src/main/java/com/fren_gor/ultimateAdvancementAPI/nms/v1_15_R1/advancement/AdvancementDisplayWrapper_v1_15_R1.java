@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementD
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import net.minecraft.server.v1_15_R1.AdvancementDisplay;
 import net.minecraft.server.v1_15_R1.AdvancementFrameType;
+import net.minecraft.server.v1_15_R1.IChatBaseComponent;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_15_R1.util.CraftChatMessage;
@@ -57,6 +58,13 @@ public class AdvancementDisplayWrapper_v1_15_R1 extends AdvancementDisplayWrappe
     public AdvancementDisplayWrapper_v1_15_R1(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
         MinecraftKey background = backgroundTexture == null ? null : new MinecraftKey(backgroundTexture);
         this.display = new AdvancementDisplay(CraftItemStack.asNMSCopy(icon), Util.fromString(title), Util.fromString(description), background, (AdvancementFrameType) frameType.toNMS(), showToast, announceChat, hidden);
+        this.display.a(x, y);
+        this.frameType = frameType;
+    }
+
+    protected AdvancementDisplayWrapper_v1_15_R1(@NotNull net.minecraft.server.v1_15_R1.ItemStack icon, @NotNull IChatBaseComponent title, @NotNull IChatBaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
+        MinecraftKey background = backgroundTexture == null ? null : new MinecraftKey(backgroundTexture);
+        this.display = new AdvancementDisplay(icon, title, description, background, (AdvancementFrameType) frameType.toNMS(), showToast, announceChat, hidden);
         this.display.a(x, y);
         this.frameType = frameType;
     }
