@@ -55,7 +55,7 @@ public class AdvancementUtils {
             NOTIFICATION_KEY = MinecraftKeyWrapper.craft("com.fren_gor", "notification");
             AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), "§f§lNotifications§1§2§3§4§5§6§7§8§9§0", "§7Notification page.\n§7Close and reopen advancements to hide.", AdvancementFrameTypeWrapper.TASK, 0, 0, "textures/block/stone.png");
             PREPARED_ROOT = PreparedAdvancementWrapper.craft(ROOT_KEY, 1);
-            ROOT = PREPARED_ROOT.toRootAdvancementWrapper(display);
+            ROOT = PREPARED_ROOT.toAdvancementWrapper(display);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }

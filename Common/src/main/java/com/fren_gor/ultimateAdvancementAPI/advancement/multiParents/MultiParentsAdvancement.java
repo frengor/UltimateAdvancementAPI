@@ -117,7 +117,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
                 tmp = getParent();
             }
             AdvancementDisplayWrapper displayWrapper = display.dispatchGetNMSWrapper(this, player, teamProgression);
-            addedAdvancements.put(getNMSWrapper().toBaseAdvancementWrapper(tmp.getNMSWrapper(), displayWrapper), getProgression(teamProgression));
+            addedAdvancements.put(getNMSWrapper().toAdvancementWrapperWithParent(displayWrapper, tmp.getNMSWrapper()), getProgression(teamProgression));
         }
     }
 

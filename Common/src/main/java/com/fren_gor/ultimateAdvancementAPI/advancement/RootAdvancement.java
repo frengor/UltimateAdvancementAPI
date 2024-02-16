@@ -62,7 +62,7 @@ public class RootAdvancement extends Advancement {
      */
     public void onUpdate(@NotNull Player player, @NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
         // Root advancements are always visible
-        addedAdvancements.put(getNMSWrapper().toRootAdvancementWrapper(display.dispatchGetNMSWrapper(this, player, teamProgression)), getProgression(teamProgression));
+        addedAdvancements.put(getNMSWrapper().toAdvancementWrapper(display.dispatchGetNMSWrapper(this, player, teamProgression)), getProgression(teamProgression));
     }
 
     /**

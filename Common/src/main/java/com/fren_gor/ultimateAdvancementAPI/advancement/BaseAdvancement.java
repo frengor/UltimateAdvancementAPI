@@ -69,7 +69,7 @@ public class BaseAdvancement extends Advancement {
      */
     public void onUpdate(@NotNull Player player, @NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
         if (isVisible(teamProgression)) {
-            addedAdvancements.put(getNMSWrapper().toBaseAdvancementWrapper(parent.getNMSWrapper(), display.dispatchGetNMSWrapper(this, player, teamProgression)), getProgression(teamProgression));
+            addedAdvancements.put(getNMSWrapper().toAdvancementWrapper(display.dispatchGetNMSWrapper(this, player, teamProgression)), getProgression(teamProgression));
         }
     }
 
@@ -84,7 +84,7 @@ public class BaseAdvancement extends Advancement {
         }
 
         try {
-            return wrapper = PreparedAdvancementWrapper.craft(key.getNMSWrapper(), maxProgression);
+            return wrapper = PreparedAdvancementWrapper.craft(key.getNMSWrapper(), parent.getNMSWrapper(), maxProgression);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
