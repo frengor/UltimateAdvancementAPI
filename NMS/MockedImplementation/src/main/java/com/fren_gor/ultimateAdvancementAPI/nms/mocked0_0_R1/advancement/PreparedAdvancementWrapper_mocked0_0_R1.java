@@ -41,16 +41,16 @@ public class PreparedAdvancementWrapper_mocked0_0_R1 extends PreparedAdvancement
     @Override
     @NotNull
     public AdvancementWrapper toAdvancementWrapper(@NotNull AdvancementDisplayWrapper display) {
+        return toAdvancementWrapperWithParent(display, parent);
+    }
+
+    @Override
+    @NotNull
+    public AdvancementWrapper toAdvancementWrapperWithParent(@NotNull AdvancementDisplayWrapper display, @Nullable PreparedAdvancementWrapper parent) {
         if (parent == null) {
             return new AdvancementWrapper_mocked0_0_R1(key, display, maxProgression);
         } else {
             return new AdvancementWrapper_mocked0_0_R1(key, parent, display, maxProgression);
         }
-    }
-
-    @Override
-    @NotNull
-    public AdvancementWrapper toAdvancementWrapperWithParent(@NotNull AdvancementDisplayWrapper display, @NotNull PreparedAdvancementWrapper parent) {
-        return new AdvancementWrapper_mocked0_0_R1(key, parent, display, maxProgression);
     }
 }

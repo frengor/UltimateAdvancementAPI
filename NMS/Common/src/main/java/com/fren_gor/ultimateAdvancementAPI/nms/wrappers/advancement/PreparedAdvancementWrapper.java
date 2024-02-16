@@ -89,12 +89,12 @@ public abstract class PreparedAdvancementWrapper {
     /**
      * Converts this {@code PreparedAdvancementWrapper} into an {@link AdvancementWrapper} with a specific parent advancement.
      *
-     * @param parent The parent of the returned advancement.
      * @param display The display wrapper of this advancement.
+     * @param parent The parent of the returned advancement, may be {@code null}.
      * @return A new {@link AdvancementWrapper} derived from this {@code PreparedAdvancementWrapper}.
      */
     @NotNull
-    public abstract AdvancementWrapper toAdvancementWrapperWithParent(@NotNull AdvancementDisplayWrapper display, @NotNull PreparedAdvancementWrapper parent);
+    public abstract AdvancementWrapper toAdvancementWrapperWithParent(@NotNull AdvancementDisplayWrapper display, @Nullable PreparedAdvancementWrapper parent);
 
     @Override
     public String toString() {

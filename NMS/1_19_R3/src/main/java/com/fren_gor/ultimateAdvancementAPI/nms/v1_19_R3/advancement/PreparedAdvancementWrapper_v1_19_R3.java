@@ -47,16 +47,16 @@ public class PreparedAdvancementWrapper_v1_19_R3 extends PreparedAdvancementWrap
     @Override
     @NotNull
     public AdvancementWrapper toAdvancementWrapper(@NotNull AdvancementDisplayWrapper display) {
+        return toAdvancementWrapperWithParent(display, parent);
+    }
+
+    @Override
+    @NotNull
+    public AdvancementWrapper toAdvancementWrapperWithParent(@NotNull AdvancementDisplayWrapper display, @Nullable PreparedAdvancementWrapper parent) {
         if (parent == null) {
             return new AdvancementWrapper_v1_19_R3(key, display, advCriteria, advRequirements);
         } else {
             return new AdvancementWrapper_v1_19_R3(key, parent, display, advCriteria, advRequirements);
         }
-    }
-
-    @Override
-    @NotNull
-    public AdvancementWrapper toAdvancementWrapperWithParent(@NotNull AdvancementDisplayWrapper display, @NotNull PreparedAdvancementWrapper parent) {
-        return new AdvancementWrapper_v1_19_R3(key, parent, display, advCriteria, advRequirements);
     }
 }
