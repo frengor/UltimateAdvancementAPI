@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
@@ -10,7 +11,7 @@ import java.lang.reflect.Constructor;
 
 /**
  * {@code PreparedAdvancementWrapper} instances can be converted into an {@link AdvancementWrapper}
- * using {@link #toAdvancementWrapper(AdvancementDisplayWrapper)} or {@link #toAdvancementWrapperWithParent(AdvancementDisplayWrapper, PreparedAdvancementWrapper)}.
+ * using {@link #toAdvancementWrapper(AdvancementDisplayWrapper)}.
  */
 public abstract class PreparedAdvancementWrapper {
 
@@ -78,6 +79,16 @@ public abstract class PreparedAdvancementWrapper {
     public abstract int getMaxProgression();
 
     /**
+     * Creates a copy of this {@code PreparedAdvancementWrapper} with the provided parent advancement.
+     *
+     * @param parent The parent of the returned {@code PreparedAdvancementWrapper}, may be {@code null}.
+     * @return A copy of this {@code PreparedAdvancementWrapper} with the provided parent advancement.
+     */
+    @NotNull
+    @Contract("_ -> new")
+    public abstract PreparedAdvancementWrapper withParent(@Nullable PreparedAdvancementWrapper parent);
+
+    /**
      * Converts this {@code PreparedAdvancementWrapper} into an {@link AdvancementWrapper}.
      *
      * @param display The display wrapper of this advancement.
@@ -85,16 +96,6 @@ public abstract class PreparedAdvancementWrapper {
      */
     @NotNull
     public abstract AdvancementWrapper toAdvancementWrapper(@NotNull AdvancementDisplayWrapper display);
-
-    /**
-     * Converts this {@code PreparedAdvancementWrapper} into an {@link AdvancementWrapper} with a specific parent advancement.
-     *
-     * @param display The display wrapper of this advancement.
-     * @param parent The parent of the returned advancement, may be {@code null}.
-     * @return A new {@link AdvancementWrapper} derived from this {@code PreparedAdvancementWrapper}.
-     */
-    @NotNull
-    public abstract AdvancementWrapper toAdvancementWrapperWithParent(@NotNull AdvancementDisplayWrapper display, @Nullable PreparedAdvancementWrapper parent);
 
     @Override
     public String toString() {

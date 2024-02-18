@@ -7,6 +7,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementW
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.Criterion;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
@@ -25,6 +26,13 @@ public class PreparedAdvancementWrapper_v1_20_R2 extends PreparedAdvancementWrap
         this.parent = parent;
         this.advCriteria = Util.getAdvancementCriteria(maxProgression);
         this.advRequirements = Util.getAdvancementRequirements(advCriteria);
+    }
+
+    protected PreparedAdvancementWrapper_v1_20_R2(@NotNull MinecraftKeyWrapper key, @Nullable PreparedAdvancementWrapper parent, @NotNull Map<String, Criterion<?>> advCriteria, @NotNull AdvancementRequirements advRequirements) {
+        this.key = key;
+        this.parent = parent;
+        this.advCriteria = advCriteria;
+        this.advRequirements = advRequirements;
     }
 
     @Override
@@ -48,16 +56,17 @@ public class PreparedAdvancementWrapper_v1_20_R2 extends PreparedAdvancementWrap
     @Override
     @NotNull
     public AdvancementWrapper toAdvancementWrapper(@NotNull AdvancementDisplayWrapper display) {
-        return toAdvancementWrapperWithParent(display, parent);
-    }
-
-    @Override
-    @NotNull
-    public AdvancementWrapper toAdvancementWrapperWithParent(@NotNull AdvancementDisplayWrapper display, @Nullable PreparedAdvancementWrapper parent) {
         if (parent == null) {
             return new AdvancementWrapper_v1_20_R2(key, display, advCriteria, advRequirements);
         } else {
             return new AdvancementWrapper_v1_20_R2(key, parent, display, advCriteria, advRequirements);
         }
+    }
+
+    @Override
+    @NotNull
+    @Contract("_ -> new")
+    public PreparedAdvancementWrapper withParent(@Nullable PreparedAdvancementWrapper parent) {
+        return new PreparedAdvancementWrapper_v1_20_R2(key, parent, advCriteria, advRequirements);
     }
 }

@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
@@ -41,16 +42,17 @@ public class PreparedAdvancementWrapper_mocked0_0_R1 extends PreparedAdvancement
     @Override
     @NotNull
     public AdvancementWrapper toAdvancementWrapper(@NotNull AdvancementDisplayWrapper display) {
-        return toAdvancementWrapperWithParent(display, parent);
-    }
-
-    @Override
-    @NotNull
-    public AdvancementWrapper toAdvancementWrapperWithParent(@NotNull AdvancementDisplayWrapper display, @Nullable PreparedAdvancementWrapper parent) {
         if (parent == null) {
             return new AdvancementWrapper_mocked0_0_R1(key, display, maxProgression);
         } else {
             return new AdvancementWrapper_mocked0_0_R1(key, parent, display, maxProgression);
         }
+    }
+
+    @Override
+    @NotNull
+    @Contract("_ -> new")
+    public PreparedAdvancementWrapper withParent(@Nullable PreparedAdvancementWrapper parent) {
+        return new PreparedAdvancementWrapper_mocked0_0_R1(key, parent, maxProgression);
     }
 }
