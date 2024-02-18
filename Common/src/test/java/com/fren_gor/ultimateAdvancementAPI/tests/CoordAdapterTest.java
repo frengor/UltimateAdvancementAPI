@@ -143,7 +143,7 @@ public class CoordAdapterTest {
         AdvancementMain main = Utils.newAdvancementMain(myPlugin, DatabaseManager::new);
 
         try {
-            AdvancementTab myTab = main.createAdvancementTab(myPlugin, "mytab");
+            AdvancementTab myTab = main.createAdvancementTab(myPlugin, "mytab", "textures/block/stone.png");
 
             // Keys of the advancements to create
             var advKey1 = new AdvancementKey(myPlugin, "first_advancement");
@@ -163,7 +163,7 @@ public class CoordAdapterTest {
             var advDisplay3 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title3").coords(adapter, advKey3).build();
 
             // Create the advancements
-            var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1, "textures/block/stone.png");
+            var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1);
             var adv2 = new BaseAdvancement(advKey2.getKey(), advDisplay2, adv1);
             var adv3 = new BaseAdvancement(advKey3.getKey(), advDisplay3, adv1, 5);
 

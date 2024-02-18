@@ -1,16 +1,14 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement;
 
+import com.fren_gor.ultimateAdvancementAPI.AdvancementUpdater;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -67,9 +65,9 @@ public class BaseAdvancement extends Advancement {
     /**
      * {@inheritDoc}
      */
-    public void onUpdate(@NotNull Player player, @NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) {
         if (isVisible(teamProgression)) {
-            addedAdvancements.put(getNMSWrapper().toAdvancementWrapper(display.dispatchGetNMSWrapper(this, player, teamProgression)), getProgression(teamProgression));
+            advancementUpdater.addBaseAdvancement(getNMSWrapper(), display, getProgression(teamProgression));
         }
     }
 

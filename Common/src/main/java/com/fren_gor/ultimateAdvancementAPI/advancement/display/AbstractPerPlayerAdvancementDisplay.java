@@ -1,9 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
-import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
@@ -96,18 +94,17 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     public abstract float getY(@NotNull Player player);
 
     /**
-     * Returns the {@code AdvancementDisplay} NMS wrapper, using the provided advancement for construction (when necessary).
+     * {@inheritDoc}
      *
-     * @param advancement The advancement used, when necessary, to create the NMS wrapper. Must be not {@code null}.
-     * @return The {@code AdvancementDisplay} NMS wrapper.
+     * @param player The player for which the NMS wrapper is being made.
      */
     @NotNull
-    public abstract AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement, @NotNull Player player);
+    public abstract PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player);
 
     @Override
-    public AdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Advancement advancement, @NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
-        return getNMSWrapper(advancement, player);
+        return getNMSWrapper(player);
     }
 
     @Override

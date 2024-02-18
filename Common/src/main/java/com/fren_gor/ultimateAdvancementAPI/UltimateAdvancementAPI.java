@@ -76,17 +76,18 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Creates a new {@link AdvancementTab} with the provided namespace. The namespace must be unique.
+     * Creates a new {@link AdvancementTab} with the provided namespace and background texture. The namespace must be unique.
      *
      * @param namespace The unique namespace of the tab.
+     * @param backgroundTexture The path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png").
      * @return The new {@link AdvancementTab}.
      * @throws DuplicatedException If another tab with the name already exists.
      * @throws IllegalStateException If the API is not enabled.
      */
     @NotNull
-    @Contract("_ -> new")
-    public AdvancementTab createAdvancementTab(@NotNull String namespace) throws DuplicatedException {
-        return getMain().createAdvancementTab(plugin, namespace);
+    @Contract("_, _ -> new")
+    public AdvancementTab createAdvancementTab(@NotNull String namespace, @NotNull String backgroundTexture) throws DuplicatedException {
+        return getMain().createAdvancementTab(plugin, namespace, backgroundTexture);
     }
 
     /**

@@ -1,9 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
+import com.fren_gor.ultimateAdvancementAPI.AdvancementUpdater;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import org.bukkit.entity.Player;
@@ -11,8 +11,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
-import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -20,13 +18,6 @@ import java.util.UUID;
  * <p>It has no parents and stores the path to the background texture image of the tab. Also, it must be always visible.
  */
 public class RootAdvancement extends Advancement {
-
-    /**
-     * The path of the background texture image.
-     * <p>The corresponding image will be used as the background of the tab in the advancement GUI.
-     */
-    @NotNull
-    private final String backgroundTexture;
 
     @LazyValue
     private PreparedAdvancementWrapper wrapper;
@@ -37,10 +28,9 @@ public class RootAdvancement extends Advancement {
      * @param advancementTab The advancement tab of the advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
-     * @param backgroundTexture The path of the background texture image (like "textures/block/stone.png").
      */
-    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull String backgroundTexture) {
-        this(advancementTab, key, display, backgroundTexture, 1);
+    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
+        this(advancementTab, key, display, 1);
     }
 
     /**
@@ -49,20 +39,19 @@ public class RootAdvancement extends Advancement {
      * @param advancementTab The advancement tab of the advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      * @param display The display information of this advancement.
-     * @param backgroundTexture The path of the background texture image (like "textures/block/stone.png").
      * @param maxProgression The maximum advancement progression.
      */
-    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull String backgroundTexture, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         super(advancementTab, key, display, maxProgression);
-        this.backgroundTexture = Objects.requireNonNull(backgroundTexture, "Background texture is null.");
     }
 
     /**
      * {@inheritDoc}
      */
-    public void onUpdate(@NotNull Player player, @NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
+    @Override
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) {
         // Root advancements are always visible
-        addedAdvancements.put(getNMSWrapper().toAdvancementWrapper(display.dispatchGetNMSWrapper(this, player, teamProgression)), getProgression(teamProgression));
+        advancementUpdater.addRootAdvancement(getNMSWrapper(), display, getProgression(teamProgression));
     }
 
     /**
@@ -119,15 +108,5 @@ public class RootAdvancement extends Advancement {
     @Contract("_ -> true")
     public final boolean isVisible(@NotNull TeamProgression progression) {
         return true;
-    }
-
-    /**
-     * Gets the path to the background texture image of the tab.
-     *
-     * @return The path to the background texture image of the tab.
-     */
-    @NotNull
-    public String getBackgroundTexture() {
-        return backgroundTexture;
     }
 }

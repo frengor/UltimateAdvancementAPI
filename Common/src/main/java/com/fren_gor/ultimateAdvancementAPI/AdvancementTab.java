@@ -4,6 +4,8 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayerAdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
@@ -15,7 +17,9 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.ISendable;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdvancementsWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutSelectAdvancementTabWrapper;
@@ -58,14 +62,14 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 /**
  * The {@code AdvancementTab} class represents a tab in the advancement GUI.
  * <p>Every advancement tab is represented by a unique namespace (not visible in the advancement GUI) and has only one {@link RootAdvancement}.
- * <p>An instance can be obtained using {@link UltimateAdvancementAPI#createAdvancementTab(String)}.
+ * <p>An instance can be obtained using {@link UltimateAdvancementAPI#createAdvancementTab(String, String)}.
  * The returned instance is not initialised, that is it doesn't contain any advancement yet.
  */
 public final class AdvancementTab {
 
     private final Plugin owningPlugin;
     private final EventManager eventManager;
-    private final String namespace;
+    private final String namespace, backgroundTexture;
     private final DatabaseManager databaseManager;
     private volatile Map<AdvancementKey, Advancement> advancements = Collections.emptyMap();
     private final Map<Player, Set<MinecraftKeyWrapper>> players = new HashMap<>();
@@ -78,9 +82,10 @@ public final class AdvancementTab {
     @LazyValue
     private Collection<BaseAdvancement> advsWithoutRoot;
 
-    AdvancementTab(@NotNull Plugin owningPlugin, @NotNull DatabaseManager databaseManager, @NotNull String namespace) {
+    AdvancementTab(@NotNull Plugin owningPlugin, @NotNull DatabaseManager databaseManager, @NotNull String namespace, @NotNull String backgroundTexture) {
         checkNamespace(namespace);
         this.namespace = Objects.requireNonNull(namespace);
+        this.backgroundTexture = Objects.requireNonNull(backgroundTexture);
         this.owningPlugin = Objects.requireNonNull(owningPlugin);
         this.eventManager = new EventManager(owningPlugin);
         this.databaseManager = Objects.requireNonNull(databaseManager);
@@ -797,6 +802,16 @@ public final class AdvancementTab {
     }
 
     /**
+     * Gets the path to the background texture image of the tab.
+     *
+     * @return The path to the background texture image of the tab.
+     */
+    @NotNull
+    public String getBackgroundTexture() {
+        return backgroundTexture;
+    }
+
+    /**
      * Gets the {@link DatabaseManager} of this tab.
      *
      * @return The {@link DatabaseManager} of this tab.
@@ -849,25 +864,17 @@ public final class AdvancementTab {
         @Override
         public void run() {
             // Keep additional space for advancements that might be added by Advancement#onUpdate
-            final int best = advancements.size() + 16;
-            final Map<AdvancementWrapper, Integer> advs = Maps.newHashMapWithExpectedSize(best);
+            final int sizeApprox = advancements.size() + 16;
 
             for (TeamProgression pro : advsToUpdate) {
-                final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(best);
-
-                Player p = pro.getAnOnlineMember(databaseManager);
-                if (p == null) {
-                    continue;
-                }
+                AdvancementUpdater updater = new AdvancementUpdater(rootAdvancement.getKey(), sizeApprox);
 
                 for (Advancement advancement : advancements.values()) {
-                    advancement.onUpdate(p, pro, advs); // TODO Implement per-player and per-team
-                    keys.add(advancement.getKey().getNMSWrapper());
+                    advancement.onUpdate(pro, updater);
                 }
 
-                ISendable sendPacket, noTab, thisTab;
+                ISendable noTab, thisTab;
                 try {
-                    sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(advs);
                     noTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelectNone();
                     thisTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelect(rootAdvancement.getKey().getNMSWrapper());
                 } catch (ReflectiveOperationException e) {
@@ -875,15 +882,61 @@ public final class AdvancementTab {
                     continue;
                 }
 
+                final Map<AdvancementWrapper, Integer> perTeamToSend = Maps.newHashMapWithExpectedSize(sizeApprox);
+
+                // Handle root advancement
+                if (!(updater.getRootDisplay() instanceof AbstractPerPlayerAdvancementDisplay)) {
+                    PreparedAdvancementDisplayWrapper display;
+                    if (updater.getRootDisplay() instanceof AbstractPerTeamAdvancementDisplay perTeam) {
+                        display = perTeam.getNMSWrapper(pro);
+                    } else {
+                        display = updater.getRootDisplay().getNMSWrapper();
+                    }
+                    perTeamToSend.put(updater.getRootWrapper().toAdvancementWrapper(display.toRootAdvancementDisplay(backgroundTexture)), updater.getRootProgression());
+                }
+
+                // Handle base advancements
+                for (var entry : updater.getImmutableAdvancements().entrySet()) {
+                    AdvancementDisplayWrapper display = entry.getValue().getKey().getNMSWrapper().toBaseAdvancementDisplay();
+                    perTeamToSend.put(entry.getKey().toAdvancementWrapper(display), entry.getValue().getValue());
+                }
+                for (var entry : updater.getPerTeamAdvancements().entrySet()) {
+                    AdvancementDisplayWrapper display = entry.getValue().getKey().getNMSWrapper(pro).toBaseAdvancementDisplay();
+                    perTeamToSend.put(entry.getKey().toAdvancementWrapper(display), entry.getValue().getValue());
+                }
+
                 pro.forEachMember(u -> {
                     Player player = Bukkit.getPlayer(u);
                     if (player != null) {
+                        final Map<AdvancementWrapper, Integer> perPlayerToSend = Maps.newHashMapWithExpectedSize(sizeApprox);
+
+                        // Handle root advancement
+                        if (updater.getRootDisplay() instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
+                            AdvancementDisplayWrapper display = perPlayer.getNMSWrapper(player).toRootAdvancementDisplay(backgroundTexture);
+                            perPlayerToSend.put(updater.getRootWrapper().toAdvancementWrapper(display), updater.getRootProgression());
+                        }
+
+                        // Handle base advancements
+                        for (var entry : updater.getPerPlayerAdvancements().entrySet()) {
+                            AdvancementDisplayWrapper display = entry.getValue().getKey().getNMSWrapper(player).toBaseAdvancementDisplay();
+                            perPlayerToSend.put(entry.getKey().toAdvancementWrapper(display), entry.getValue().getValue());
+                        }
+
+                        ISendable sendPacket;
+                        try {
+                            // TODO Add send per-player advancements too
+                            sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(perTeamToSend);
+                        } catch (ReflectiveOperationException e) {
+                            e.printStackTrace();
+                            return;
+                        }
+
                         noTab.sendTo(player);
 
-                        @Nullable Set<MinecraftKeyWrapper> set = players.put(player, keys);
+                        @Nullable Set<MinecraftKeyWrapper> set = players.put(player, updater.getKeys());
                         if (set != null && !set.isEmpty()) {
                             try {
-                                PacketPlayOutAdvancementsWrapper.craftRemovePacket(keys).sendTo(player);
+                                PacketPlayOutAdvancementsWrapper.craftRemovePacket(updater.getKeys()).sendTo(player);
                             } catch (ReflectiveOperationException e) {
                                 e.printStackTrace();
                                 thisTab.sendTo(player);
@@ -895,8 +948,6 @@ public final class AdvancementTab {
                         thisTab.sendTo(player);
                     }
                 });
-
-                advs.clear();
             }
             task = null;
             advsToUpdate.clear();

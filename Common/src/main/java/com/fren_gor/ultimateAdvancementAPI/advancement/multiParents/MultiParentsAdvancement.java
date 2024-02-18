@@ -1,18 +1,16 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.multiParents;
 
+import com.fren_gor.ultimateAdvancementAPI.AdvancementUpdater;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.FakeAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.Unmodifiable;
@@ -101,7 +99,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * {@inheritDoc}
      */
     @Override
-    public void onUpdate(@NotNull Player player, @NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) {
         if (isVisible(teamProgression)) {
             BaseAdvancement tmp = null;
             for (Entry<BaseAdvancement, FakeAdvancement> e : parents.entrySet()) {
@@ -109,15 +107,14 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
                     if (tmp == null) {
                         tmp = e.getKey();
                     } else {
-                        e.getValue().onUpdate(player, teamProgression, addedAdvancements);
+                        e.getValue().onUpdate(teamProgression, advancementUpdater);
                     }
                 }
             }
             if (tmp == null) {
                 tmp = getParent();
             }
-            AdvancementDisplayWrapper displayWrapper = display.dispatchGetNMSWrapper(this, player, teamProgression);
-            addedAdvancements.put(getNMSWrapper().withParent(tmp.getNMSWrapper()).toAdvancementWrapper(displayWrapper), getProgression(teamProgression));
+            advancementUpdater.addBaseAdvancement(getNMSWrapper().withParent(tmp.getNMSWrapper()), display, getProgression(teamProgression));
         }
     }
 

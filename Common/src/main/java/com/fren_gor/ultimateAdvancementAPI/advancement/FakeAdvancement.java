@@ -4,12 +4,9 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDispla
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
-import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -20,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,9 +31,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class FakeAdvancement extends BaseAdvancement {
 
     private static final AtomicInteger FAKE_NUMBER = new AtomicInteger(1);
-
-    @LazyValue
-    private AdvancementWrapper wrapper; // FakeAdvancementDisplay isn't neither per-player nor per-team, so this caching is fine
 
     /**
      * Creates a new {@code FakeAdvancement}.
@@ -58,15 +51,6 @@ public final class FakeAdvancement extends BaseAdvancement {
      */
     public FakeAdvancement(@NotNull Advancement parent, @NotNull FakeAdvancementDisplay display) {
         super("fakeadvancement._-.-_." + FAKE_NUMBER.getAndIncrement(), display, parent);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @NotNull
-    public PreparedAdvancementWrapper getNMSWrapper() {
-        return super.getNMSWrapper();
     }
 
     /**
@@ -152,28 +136,14 @@ public final class FakeAdvancement extends BaseAdvancement {
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void onUpdate(@NotNull Player player, @NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
-        // FakeAdvancementDisplay isn't neither per-player nor per-team, so caching an AdvancementWrapper is fine
-        if (wrapper == null) {
-            try {
-                wrapper = AdvancementWrapper.craftBaseAdvancement(key.getNMSWrapper(), parent.getNMSWrapper(), display.getNMSWrapper(this), maxProgression);
-            } catch (ReflectiveOperationException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        addedAdvancements.put(wrapper, 0); // Just add the advancement, the progression isn't important
-    }
-
-    /**
      * The {@link AdvancementDisplay} used by {@link FakeAdvancement}s.
      *
      * @see FakeAdvancement
      */
     public static final class FakeAdvancementDisplay extends AdvancementDisplay {
+
+        @LazyValue
+        private PreparedAdvancementDisplayWrapper wrapper;
 
         /**
          * Creates a new {@code FakeAdvancementDisplay}.
@@ -204,12 +174,15 @@ public final class FakeAdvancement extends BaseAdvancement {
         /**
          * {@inheritDoc}
          */
-        @Override
         @NotNull
-        public AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement) {
-            Preconditions.checkNotNull(advancement, "Advancement is null.");
+        @Override
+        public PreparedAdvancementDisplayWrapper getNMSWrapper() {
+            if (wrapper != null) {
+                return wrapper;
+            }
+
             try {
-                return AdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y, false, false, true);
+                return wrapper = PreparedAdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y, false, false, true);
             } catch (ReflectiveOperationException e) {
                 throw new RuntimeException(e);
             }

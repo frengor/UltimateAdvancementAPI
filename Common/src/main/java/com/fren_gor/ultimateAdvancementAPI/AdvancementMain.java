@@ -274,26 +274,28 @@ public final class AdvancementMain {
     }
 
     /**
-     * Creates a new {@link AdvancementTab} with the provided namespace. The namespace must be unique.
+     * Creates a new {@link AdvancementTab} with the provided namespace and background texture. The namespace must be unique.
      *
      * @param plugin The owner of the new tab.
      * @param namespace The unique namespace of the tab.
+     * @param backgroundTexture The path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png").
      * @return The new {@link AdvancementTab}.
      * @throws DuplicatedException If another tab with the name already exists.
      * @throws IllegalStateException If the API is not enabled.
-     * @see UltimateAdvancementAPI#createAdvancementTab(String)
+     * @see UltimateAdvancementAPI#createAdvancementTab(String, String)
      */
     @NotNull
-    @Contract("_, _ -> new")
-    public AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace) throws DuplicatedException {
+    @Contract("_, _, _ -> new")
+    public AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace, @NotNull String backgroundTexture) throws DuplicatedException {
         checkInitialisation();
         Preconditions.checkNotNull(plugin, "Plugin is null.");
         Preconditions.checkNotNull(namespace, "Namespace is null.");
+        Preconditions.checkNotNull(backgroundTexture, "Background texture is null.");
         if (tabs.containsKey(namespace)) {
             throw new DuplicatedException("An AdvancementTab with '" + namespace + "' namespace already exists.");
         }
 
-        AdvancementTab tab = new AdvancementTab(plugin, databaseManager, namespace);
+        AdvancementTab tab = new AdvancementTab(plugin, databaseManager, namespace, backgroundTexture);
         tabs.put(namespace, tab);
         pluginMap.computeIfAbsent(plugin, p -> new LinkedList<>()).add(tab);
         return tab;

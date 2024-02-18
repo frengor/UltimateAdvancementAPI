@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement;
 
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
+import com.fren_gor.ultimateAdvancementAPI.AdvancementUpdater;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.announceMessage.IAnnounceMessage;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
@@ -12,7 +13,6 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
@@ -34,7 +34,6 @@ import org.jetbrains.annotations.Range;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -730,15 +729,13 @@ public abstract class Advancement {
 
     /**
      * Handles the serialisation of the advancement into the update packet.
-     * <p>Advancement(s) to be sent have to be added to the provided {@link Map}, which contains the {@link AdvancementWrapper}s paired
-     * with the progression of the provided team.
+     * <p>Advancement(s) to be sent have to be added to the provided {@link AdvancementUpdater}.
+     * <p>This method will be called once per team.
      *
-     * @param player The {@link Player} to which the packet is being sent.
      * @param teamProgression The {@link TeamProgression} of the team of the player.
-     * @param addedAdvancements The {@link Map} in which the advancements to be sent are added as keys.
-     *         The values are the current progressions of the team.
+     * @param advancementUpdater The {@link AdvancementUpdater} in which the advancements to send should be added.
      */
-    public abstract void onUpdate(@NotNull Player player, @NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements);
+    public abstract void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater);
 
     /**
      * Returns the NMS wrapper of this advancement.

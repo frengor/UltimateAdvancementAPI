@@ -1,8 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
-import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -77,6 +76,9 @@ public class AdvancementDisplay extends AbstractAdvancementDisplay {
      * The advancement y coordinate.
      */
     protected final float y;
+
+    @LazyValue
+    private PreparedAdvancementDisplayWrapper wrapper;
 
     /**
      * Creates a new {@code AdvancementDisplay}.
@@ -274,21 +276,18 @@ public class AdvancementDisplay extends AbstractAdvancementDisplay {
     }
 
     /**
-     * Returns the {@code AdvancementDisplay} NMS wrapper, using the provided advancement for construction (when necessary).
+     * Returns the {@code AdvancementDisplay} NMS wrapper.
      *
-     * @param advancement The advancement used, when necessary, to create the NMS wrapper. Must be not {@code null}.
      * @return The {@code AdvancementDisplay} NMS wrapper.
      */
     @NotNull
-    public AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement) {
-        Preconditions.checkNotNull(advancement, "Advancement is null.");
-        AdvancementDisplayWrapper wrapper;
+    public PreparedAdvancementDisplayWrapper getNMSWrapper() {
+        if (wrapper != null) {
+            return wrapper;
+        }
+
         try {
-            if (advancement instanceof RootAdvancement root) {
-                return AdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y, root.getBackgroundTexture());
-            } else {
-                return AdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y);
-            }
+            return wrapper = PreparedAdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
