@@ -56,6 +56,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * The cache for the team's progressions (the key is the team unique id).
      */
     protected final Map<Integer, Integer> progressionsCache = Collections.synchronizedMap(new HashMap<>());
+
     /**
      * The map of pending updates.
      *

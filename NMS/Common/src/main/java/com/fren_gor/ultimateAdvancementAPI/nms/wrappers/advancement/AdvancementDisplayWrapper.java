@@ -75,7 +75,7 @@ public abstract class AdvancementDisplayWrapper extends AbstractWrapper {
      * @param y The y coordinate in the advancement GUI.
      * @param showToast Whether to show toast on grant.
      * @param announceChat Whether to announce grants to chat.
-     * @param hidden Whether the advancement should be not visible in the advancement GUI. Connections to other advancements are always displayed.
+     * @param hidden Whether the advancement shouldn't be visible in the advancement GUI. Connections to other advancements are always displayed.
      * @return A new {@code AdvancementDisplayWrapper}.
      * @throws ReflectiveOperationException If reflections goes wrong.
      */
@@ -95,14 +95,14 @@ public abstract class AdvancementDisplayWrapper extends AbstractWrapper {
      * @param y The y coordinate in the advancement GUI.
      * @param showToast Whether to show toast on grant.
      * @param announceChat Whether to announce grants to chat.
-     * @param hidden Whether the advancement should be not visible in the advancement GUI. Connections to other advancements are always displayed.
+     * @param hidden Whether the advancement shouldn't be visible in the advancement GUI. Connections to other advancements are always displayed.
      * @param backgroundTexture The path of the background texture of the advancement GUI. May be {@code null} if the advancement doesn't have a background texture.
      * @return A new {@code AdvancementDisplayWrapper}.
      * @throws ReflectiveOperationException If reflections goes wrong.
      */
     @NotNull
     public static AdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) throws ReflectiveOperationException {
-        return constructor.newInstance(icon.clone(), title, description, frameType, x, y, showToast, announceChat, hidden, backgroundTexture);
+        return constructor.newInstance(icon, title, description, frameType, x, y, showToast, announceChat, hidden, backgroundTexture);
     }
 
     /**
