@@ -9,15 +9,14 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdva
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.UnmodifiableView;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.List;
 import java.util.Set;
 
 public final class AdvancementUpdater {
@@ -26,32 +25,32 @@ public final class AdvancementUpdater {
     private PreparedAdvancementWrapper rootWrapper;
     private AbstractAdvancementDisplay rootDisplay;
     private int rootProgression;
-    private final Map<PreparedAdvancementWrapper, Entry<AbstractAdvancementDisplay, Integer>> immutableAdvancements;
-    private final Map<PreparedAdvancementWrapper, Entry<AbstractPerTeamAdvancementDisplay, Integer>> perTeamAdvancements;
-    private final Map<PreparedAdvancementWrapper, Entry<AbstractPerPlayerAdvancementDisplay, Integer>> perPlayerAdvancements;
+    private final List<ImmutableUpdateEntry> immutableAdvancements;
+    private final List<PerTeamUpdateEntry> perTeamAdvancements;
+    private final List<PerPlayerUpdateEntry> perPlayerAdvancements;
     private final Set<MinecraftKeyWrapper> keys;
 
     AdvancementUpdater(@NotNull AdvancementKey tabRootKey, int sizeApprox) {
         this.tabRootKey = tabRootKey.getNMSWrapper();
         keys = Sets.newHashSetWithExpectedSize(sizeApprox);
 
-        // Don't allocate sizeApprox for every map, to avoid wasting (too much) space in the average case
+        // Don't allocate sizeApprox for every list to avoid wasting (too much) space in the average case
         sizeApprox = sizeApprox / 2;
-        immutableAdvancements = Maps.newHashMapWithExpectedSize(sizeApprox);
-        perTeamAdvancements = Maps.newHashMapWithExpectedSize(sizeApprox);
-        perPlayerAdvancements = Maps.newHashMapWithExpectedSize(sizeApprox);
+        immutableAdvancements = new ArrayList<>(sizeApprox);
+        perTeamAdvancements = new ArrayList<>(sizeApprox);
+        perPlayerAdvancements = new ArrayList<>(sizeApprox);
     }
 
     public void addBaseAdvancement(@NotNull PreparedAdvancementWrapper advancementWrapper, @NotNull AbstractAdvancementDisplay display, @Range(from = 0, to = Integer.MAX_VALUE) int progression) throws DuplicatedException {
         validateParams(advancementWrapper, display, progression, false);
 
         if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-            perPlayerAdvancements.put(advancementWrapper, Map.entry(perPlayer, progression));
+            perPlayerAdvancements.add(new PerPlayerUpdateEntry(advancementWrapper, perPlayer, progression));
         } else if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
-            perTeamAdvancements.put(advancementWrapper, Map.entry(perTeam, progression));
+            perTeamAdvancements.add(new PerTeamUpdateEntry(advancementWrapper, perTeam, progression));
         } else {
             // Not per-player and not per-team
-            immutableAdvancements.put(advancementWrapper, Map.entry(display, progression));
+            immutableAdvancements.add(new ImmutableUpdateEntry(advancementWrapper, display, progression));
         }
     }
 
@@ -100,18 +99,15 @@ public final class AdvancementUpdater {
         return rootProgression;
     }
 
-    @NotNull
-    Map<PreparedAdvancementWrapper, Entry<AbstractAdvancementDisplay, Integer>> getImmutableAdvancements() {
+    List<ImmutableUpdateEntry> getImmutableAdvancements() {
         return immutableAdvancements;
     }
 
-    @NotNull
-    Map<PreparedAdvancementWrapper, Entry<AbstractPerTeamAdvancementDisplay, Integer>> getPerTeamAdvancements() {
+    List<PerTeamUpdateEntry> getPerTeamAdvancements() {
         return perTeamAdvancements;
     }
 
-    @NotNull
-    Map<PreparedAdvancementWrapper, Entry<AbstractPerPlayerAdvancementDisplay, Integer>> getPerPlayerAdvancements() {
+    List<PerPlayerUpdateEntry> getPerPlayerAdvancements() {
         return perPlayerAdvancements;
     }
 
@@ -119,5 +115,14 @@ public final class AdvancementUpdater {
     @UnmodifiableView
     Set<MinecraftKeyWrapper> getKeys() {
         return Collections.unmodifiableSet(keys);
+    }
+
+    record ImmutableUpdateEntry(PreparedAdvancementWrapper advancementWrapper, AbstractAdvancementDisplay display, int progression) {
+    }
+
+    record PerTeamUpdateEntry(PreparedAdvancementWrapper advancementWrapper, AbstractPerTeamAdvancementDisplay display, int progression) {
+    }
+
+    record PerPlayerUpdateEntry(PreparedAdvancementWrapper advancementWrapper, AbstractPerPlayerAdvancementDisplay display, int progression) {
     }
 }

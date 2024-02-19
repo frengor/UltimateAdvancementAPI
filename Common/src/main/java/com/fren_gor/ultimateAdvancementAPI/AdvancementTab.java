@@ -896,13 +896,13 @@ public final class AdvancementTab {
                 }
 
                 // Handle base advancements
-                for (var entry : updater.getImmutableAdvancements().entrySet()) {
-                    AdvancementDisplayWrapper display = entry.getValue().getKey().getNMSWrapper().toBaseAdvancementDisplay();
-                    perTeamToSend.put(entry.getKey().toAdvancementWrapper(display), entry.getValue().getValue());
+                for (var entry : updater.getImmutableAdvancements()) {
+                    AdvancementDisplayWrapper display = entry.display().getNMSWrapper().toBaseAdvancementDisplay();
+                    perTeamToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
                 }
-                for (var entry : updater.getPerTeamAdvancements().entrySet()) {
-                    AdvancementDisplayWrapper display = entry.getValue().getKey().getNMSWrapper(pro).toBaseAdvancementDisplay();
-                    perTeamToSend.put(entry.getKey().toAdvancementWrapper(display), entry.getValue().getValue());
+                for (var entry : updater.getPerTeamAdvancements()) {
+                    AdvancementDisplayWrapper display = entry.display().getNMSWrapper(pro).toBaseAdvancementDisplay();
+                    perTeamToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
                 }
 
                 pro.forEachMember(u -> {
@@ -917,9 +917,9 @@ public final class AdvancementTab {
                         }
 
                         // Handle base advancements
-                        for (var entry : updater.getPerPlayerAdvancements().entrySet()) {
-                            AdvancementDisplayWrapper display = entry.getValue().getKey().getNMSWrapper(player).toBaseAdvancementDisplay();
-                            perPlayerToSend.put(entry.getKey().toAdvancementWrapper(display), entry.getValue().getValue());
+                        for (var entry : updater.getPerPlayerAdvancements()) {
+                            AdvancementDisplayWrapper display = entry.display().getNMSWrapper(player).toBaseAdvancementDisplay();
+                            perTeamToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
                         }
 
                         ISendable sendPacket;
