@@ -5,7 +5,6 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -13,9 +12,10 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -37,8 +37,13 @@ public final class TeamProgression {
 
     final AtomicBoolean inCache = new AtomicBoolean(false);
     private final int teamId;
-    private final Set<UUID> players;
     private final Map<AdvancementKey, Integer> advancements;
+
+    // Always keep the players set immutable! Copy the set in order to modify it.
+    // Synchronizing on playersLock is necessary to take the reference to players.
+    // Then, no other synchronization is necessary.
+    private Set<UUID> players;
+    private final Object playersLock = new Object();
 
     /**
      * Creates a new TeamProgression for an empty team.
@@ -54,7 +59,7 @@ public final class TeamProgression {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         this.advancements = new ConcurrentHashMap<>();
         this.teamId = teamId;
-        players = new HashSet<>();
+        players = Set.of();
     }
 
     /**
@@ -75,8 +80,7 @@ public final class TeamProgression {
         Preconditions.checkNotNull(members, "Members is null.");
         this.advancements = new ConcurrentHashMap<>(advancements);
         this.teamId = teamId;
-        players = Sets.newHashSetWithExpectedSize(members.size() + 4);
-        players.addAll(members);
+        players = Set.copyOf(members);
     }
 
     private void validateCaller(@NotNull Class<?> caller) throws IllegalOperationException {
@@ -150,20 +154,20 @@ public final class TeamProgression {
      */
     @Contract(pure = true, value = "null -> false")
     public boolean contains(UUID uuid) {
-        synchronized (players) {
-            return players.contains(uuid);
-        }
+        return getMembers().contains(uuid);
     }
 
     /**
-     * Returns a <i>mutable</i> copy of the team members set.
+     * Returns an <i>immutable</i> {@link Set} containing the team members present at the time this method is called.
+     * <p>Changes to the team will not be reflected in the returned {@link Set} (i.e. the members present in the
+     * returned {@link Set} will never change, even if a member joins/leaves the team).
      *
-     * @return A <i>mutable</i> copy of the team members set.
+     * @return An <i>immutable</i> {@link Set} containing the team members present at the time this method is called.
      */
-    @Contract(pure = true, value = "-> new")
-    public Set<@NotNull UUID> getMembersCopy() {
-        synchronized (players) {
-            return new HashSet<>(players);
+    @Unmodifiable
+    public Set<@NotNull UUID> getMembers() {
+        synchronized (playersLock) {
+            return players;
         }
     }
 
@@ -175,9 +179,7 @@ public final class TeamProgression {
     @Contract(pure = true)
     @Range(from = 0, to = Integer.MAX_VALUE)
     public int getSize() {
-        synchronized (players) {
-            return players.size();
-        }
+        return getMembers().size();
     }
 
     /**
@@ -187,7 +189,7 @@ public final class TeamProgression {
      */
     public void forEachMember(@NotNull Consumer<UUID> action) {
         Preconditions.checkNotNull(action, "Consumer is null.");
-        for (UUID u : copyMembersAsArray()) {
+        for (UUID u : getMembers()) {
             action.accept(u);
         }
     }
@@ -201,7 +203,7 @@ public final class TeamProgression {
      */
     public boolean everyMemberMatch(@NotNull Predicate<UUID> action) {
         Preconditions.checkNotNull(action, "Predicate is null.");
-        for (UUID u : copyMembersAsArray()) {
+        for (UUID u : getMembers()) {
             if (!action.test(u)) {
                 return false;
             }
@@ -218,7 +220,7 @@ public final class TeamProgression {
      */
     public boolean anyMemberMatch(@NotNull Predicate<UUID> action) {
         Preconditions.checkNotNull(action, "Predicate is null.");
-        for (UUID u : copyMembersAsArray()) {
+        for (UUID u : getMembers()) {
             if (action.test(u)) {
                 return true;
             }
@@ -235,7 +237,7 @@ public final class TeamProgression {
      */
     public boolean noMemberMatch(@NotNull Predicate<UUID> action) {
         Preconditions.checkNotNull(action, "Predicate is null.");
-        for (UUID u : copyMembersAsArray()) {
+        for (UUID u : getMembers()) {
             if (action.test(u)) {
                 return false;
             }
@@ -260,8 +262,41 @@ public final class TeamProgression {
      * @param uuid The {@link UUID} of the player to be removed.
      */
     void removeMember(UUID uuid) {
-        synchronized (players) {
-            players.remove(uuid);
+        Preconditions.checkNotNull(uuid, "UUID is null");
+        synchronized (playersLock) {
+            Preconditions.checkArgument(players.contains(uuid), "Team " + teamId + " doesn't contain member " + uuid);
+
+            int size = players.size();
+            switch (size) {
+                case 1:
+                    players = Set.of();
+                    break;
+                case 2:
+                    for (UUID u : players) {
+                        if (!u.equals(uuid)) {
+                            players = Set.of(u);
+                            break;
+                        }
+                    }
+                    break;
+                default:
+                    // Copy the members of the team except the one to remove
+                    UUID[] members = new UUID[size - 1];
+                    int i = 0;
+                    Iterator<UUID> it = this.players.iterator();
+                    while (it.hasNext()) {
+                        UUID u = it.next();
+                        if (u.equals(uuid)) {
+                            break;
+                        }
+                        members[i++] = u;
+                    }
+                    while (it.hasNext()) {
+                        members[i++] = it.next();
+                    }
+                    this.players = Set.of(members);
+                    break;
+            }
         }
     }
 
@@ -272,8 +307,16 @@ public final class TeamProgression {
      */
     void addMember(@NotNull UUID uuid) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
-        synchronized (players) {
-            players.add(uuid);
+        synchronized (playersLock) {
+            Preconditions.checkArgument(!players.contains(uuid), "Team " + teamId + " already contains member " + uuid);
+
+            // Copy the members of the team with room for the member to add
+            int size = this.players.size();
+            UUID[] members = new UUID[size + 1];
+            this.players.toArray(members);
+            Preconditions.checkArgument(size == members.length - 1);
+            members[size] = uuid; // size == members.length - 1
+            this.players = Set.of(members);
         }
     }
 
@@ -298,6 +341,10 @@ public final class TeamProgression {
         validateTeamProgression(newTeam);
         Preconditions.checkNotNull(uuid, "UUID is null.");
 
+        if (this == newTeam) {
+            return;
+        }
+
         // Synchronize on both this.players and newTeam.players to perform the move atomically.
         // This is fine from a deadlock POV, since (except for this method) the lock on the players field is never
         // taken while holding the lock on the one of another team.
@@ -307,10 +354,10 @@ public final class TeamProgression {
         // However, this scenario should never happen, since this method is called only by the DatabaseManager
         // while on the main thread, so not in a concurrent manner. In case the DatabaseManager will be modified to make
         // concurrent updates, the above scenario will need to be avoided by the new DatabaseManager implementation
-        synchronized (this.players) {
-            synchronized (newTeam.players) {
-                players.remove(uuid);
-                newTeam.players.add(uuid);
+        synchronized (this.playersLock) {
+            synchronized (newTeam.playersLock) {
+                removeMember(uuid);
+                newTeam.addMember(uuid);
             }
         }
     }
@@ -323,9 +370,7 @@ public final class TeamProgression {
      */
     @Nullable
     public UUID getAMember() {
-        synchronized (players) {
-            return Iterables.getFirst(players, null);
-        }
+        return Iterables.getFirst(getMembers(), null);
     }
 
     /**
@@ -337,24 +382,12 @@ public final class TeamProgression {
     @Nullable
     public Player getAnOnlineMember(@NotNull DatabaseManager manager) {
         Preconditions.checkNotNull(manager, "DatabaseManager is null.");
-        for (UUID u : copyMembersAsArray()) {
+        for (UUID u : getMembers()) {
             if (manager.isLoadedAndOnline(u)) {
                 return Bukkit.getPlayer(u);
             }
         }
         return null;
-    }
-
-    /**
-     * Faster version of {@link #getMembersCopy()}, only for internal usage.
-     *
-     * @return An array which contains the team members.
-     */
-    @NotNull
-    private UUID[] copyMembersAsArray() {
-        synchronized (players) {
-            return players.toArray(new UUID[0]);
-        }
     }
 
     @Override
