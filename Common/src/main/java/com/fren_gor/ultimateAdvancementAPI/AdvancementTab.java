@@ -925,7 +925,16 @@ public final class AdvancementTab {
 
                         ISendable sendPacket;
                         try {
-                            sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(CompositeMap.of(perTeamToSend, perPlayerToSend));
+                            Map<AdvancementWrapper, Integer> toSendMap;
+                            if (perPlayerToSend.isEmpty()) {
+                                toSendMap = perTeamToSend;
+                            } else if (perTeamToSend.isEmpty()) {
+                                toSendMap = perPlayerToSend;
+                            } else {
+                                toSendMap = CompositeMap.of(perTeamToSend, perPlayerToSend);
+                            }
+
+                            sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(toSendMap);
                         } catch (ReflectiveOperationException e) {
                             e.printStackTrace();
                             return;
