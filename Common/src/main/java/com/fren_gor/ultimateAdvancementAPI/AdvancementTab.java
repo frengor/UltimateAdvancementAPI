@@ -26,6 +26,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutSel
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
+import com.fren_gor.ultimateAdvancementAPI.util.CompositeMap;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -924,8 +925,7 @@ public final class AdvancementTab {
 
                         ISendable sendPacket;
                         try {
-                            // TODO Add send per-player advancements too
-                            sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(perTeamToSend);
+                            sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(CompositeMap.of(perTeamToSend, perPlayerToSend));
                         } catch (ReflectiveOperationException e) {
                             e.printStackTrace();
                             return;
