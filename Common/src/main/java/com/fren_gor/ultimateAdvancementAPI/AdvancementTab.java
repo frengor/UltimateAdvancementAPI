@@ -940,7 +940,7 @@ public final class AdvancementTab {
                         // Handle base advancements
                         for (var entry : updater.getPerPlayerAdvancements()) {
                             AdvancementDisplayWrapper display = entry.display().getNMSWrapper(player).toBaseAdvancementDisplay();
-                            perTeamToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
+                            perPlayerToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
                         }
 
                         ISendable sendPacket;
