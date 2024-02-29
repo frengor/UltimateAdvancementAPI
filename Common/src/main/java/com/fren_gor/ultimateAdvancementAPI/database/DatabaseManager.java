@@ -656,7 +656,6 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
-        checkSync(); // Bukkit.getPlayer must be called on the main thread
         return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), otherTeamProgression);
     }
 
@@ -748,7 +747,6 @@ public final class DatabaseManager implements Closeable {
      * @see UltimateAdvancementAPI#movePlayerInNewTeam(UUID)
      */
     public CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID uuid) throws UserNotLoadedException {
-        checkSync(); // Bukkit.getPlayer must be called on the main thread
         return movePlayerInNewTeam(uuid, Bukkit.getPlayer(uuid));
     }
 
