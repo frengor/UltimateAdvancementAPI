@@ -640,7 +640,16 @@ public abstract class Advancement {
         // Show Toast
         if (display.dispatchDoesToast(player, this)) {
             // TODO Find a better solution
-            runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(player, this));
+            if (advancementTab.doesShowToastToTeam()) {
+                advancementTab.getDatabaseManager().getTeamProgression(player).forEachMember(u -> {
+                    Player p = Bukkit.getPlayer(u);
+                    if (p != null) {
+                        runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(p, this));
+                    }
+                });
+            } else {
+                runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(player, this));
+            }
         }
 
         if (giveRewards)

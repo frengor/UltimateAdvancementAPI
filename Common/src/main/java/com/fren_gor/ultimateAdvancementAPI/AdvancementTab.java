@@ -78,6 +78,7 @@ public final class AdvancementTab {
 
     private RootAdvancement rootAdvancement;
     private boolean initialised = false, disposed = false, automaticallyShown = false, automaticallyGrant = false;
+    private boolean showToastToTeam = true;
     @LazyValue
     private Collection<String> advNamespacedKeys;
     @LazyValue
@@ -810,6 +811,25 @@ public final class AdvancementTab {
     @NotNull
     public String getBackgroundTexture() {
         return backgroundTexture;
+    }
+
+    /**
+     * Whether the toast notification should be sent to every team member on advancement grant.
+     * <p>Defaults to {@code true} if not changed using {@link #setShowToastToTeam(boolean)}.
+     *
+     * @return Whether the toast notification should be sent to every team member on advancement grant.
+     */
+    public boolean doesShowToastToTeam() {
+        return showToastToTeam;
+    }
+
+    /**
+     * Sets whether the toast notification should be sent to every team member on advancement grant.
+     *
+     * @param showToastToTeam Whether the toast notification should be sent to every team member on advancement grant.
+     */
+    public void setShowToastToTeam(boolean showToastToTeam) {
+        this.showToastToTeam = showToastToTeam;
     }
 
     /**
