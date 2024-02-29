@@ -6,6 +6,7 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus.NonExtendable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -102,57 +103,68 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     public abstract PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player);
 
     @Override
+    @NonExtendable
     public PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getNMSWrapper(player);
     }
 
     @Override
+    @NonExtendable
     public boolean dispatchDoesToast(Player player, TeamProgression teamProgression) {
         return doesShowToast(player);
     }
 
     @Override
+    @NonExtendable
     public boolean dispatchDoesAnnounceToChat(Player player, TeamProgression teamProgression) {
         return doesAnnounceToChat(player);
     }
 
     @Override
+    @NonExtendable
     public ItemStack dispatchIcon(Player player, TeamProgression teamProgression) {
         return getIcon(player);
     }
 
     @Override
+    @NonExtendable
     public String dispatchTitle(Player player, TeamProgression teamProgression) {
         return getTitle(player);
     }
 
     @Override
+    @NonExtendable
     public BaseComponent[] dispatchTitleBaseComponent(Player player, TeamProgression teamProgression) {
         return getTitleBaseComponent(player);
     }
 
     @Override
+    @NonExtendable
     public List<String> dispatchDescription(Player player, TeamProgression teamProgression) {
         return getDescription(player);
     }
 
     @Override
+    @NonExtendable
     public List<BaseComponent[]> dispatchDescriptionBaseComponent(Player player, TeamProgression teamProgression) {
         return getDescriptionBaseComponent(player);
     }
 
     @Override
+    @NonExtendable
     public AdvancementFrameType dispatchFrame(Player player, TeamProgression teamProgression) {
         return getFrame(player);
     }
 
     @Override
+    @NonExtendable
     public float dispatchX(Player player, TeamProgression teamProgression) {
         return getX(player);
     }
 
     @Override
+    @NonExtendable
     public float dispatchY(Player player, TeamProgression teamProgression) {
         return getY(player);
     }
