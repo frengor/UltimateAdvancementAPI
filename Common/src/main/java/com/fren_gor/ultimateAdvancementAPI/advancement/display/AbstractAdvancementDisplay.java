@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
-import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
@@ -143,13 +143,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #doesShowToast()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return Whether the toast notification should be sent on advancement grant.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public boolean dispatchDoesShowToast(Player player, Advancement advancement) {
-        return dispatchDoesShowToast(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public boolean dispatchDoesShowToast(Player player, AdvancementTab advancementTab) {
+        return dispatchDoesShowToast(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -170,13 +170,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #doesShowToast()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return Whether the toast notification should be sent on advancement grant.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public boolean dispatchDoesShowToast(OfflinePlayer player, Advancement advancement) {
-        return dispatchDoesShowToast(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public boolean dispatchDoesShowToast(OfflinePlayer player, AdvancementTab advancementTab) {
+        return dispatchDoesShowToast(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -197,13 +197,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #doesAnnounceToChat()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return Whether the advancement completion message should be sent on advancement grant.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public boolean dispatchDoesAnnounceToChat(Player player, Advancement advancement) {
-        return dispatchDoesAnnounceToChat(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public boolean dispatchDoesAnnounceToChat(Player player, AdvancementTab advancementTab) {
+        return dispatchDoesAnnounceToChat(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -224,13 +224,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #doesAnnounceToChat()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return Whether the advancement completion message should be sent on advancement grant.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public boolean dispatchDoesAnnounceToChat(OfflinePlayer player, Advancement advancement) {
-        return dispatchDoesAnnounceToChat(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public boolean dispatchDoesAnnounceToChat(OfflinePlayer player, AdvancementTab advancementTab) {
+        return dispatchDoesAnnounceToChat(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -251,13 +251,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getIcon()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The icon of the advancement.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public ItemStack dispatchGetIcon(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetIcon(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public ItemStack dispatchGetIcon(Player player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetIcon(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -278,13 +278,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getIcon()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The icon of the advancement.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public ItemStack dispatchGetIcon(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetIcon(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public ItemStack dispatchGetIcon(OfflinePlayer player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetIcon(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -305,13 +305,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getTitle()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The title of the advancement as a legacy string.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public String dispatchGetTitle(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetTitle(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public String dispatchGetTitle(Player player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetTitle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -332,13 +332,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getTitle()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The title of the advancement as a legacy string.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public String dispatchGetTitle(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetTitle(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public String dispatchGetTitle(OfflinePlayer player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetTitle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -359,13 +359,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getTitleBaseComponent()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The title of the advancement.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public BaseComponent[] dispatchGetTitleBaseComponent(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetTitleBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public BaseComponent[] dispatchGetTitleBaseComponent(Player player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetTitleBaseComponent(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -386,13 +386,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getTitleBaseComponent()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The title of the advancement.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public BaseComponent[] dispatchGetTitleBaseComponent(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetTitleBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public BaseComponent[] dispatchGetTitleBaseComponent(OfflinePlayer player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetTitleBaseComponent(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -413,13 +413,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getDescription()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The description of the advancement as a list of legacy strings.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public List<String> dispatchGetDescription(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetDescription(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public List<String> dispatchGetDescription(Player player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -440,13 +440,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getDescription()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The description of the advancement as a list of legacy strings.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public List<String> dispatchGetDescription(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetDescription(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public List<String> dispatchGetDescription(OfflinePlayer player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -467,13 +467,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getDescriptionBaseComponent()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The description of the advancement.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public List<BaseComponent[]> dispatchGetDescriptionBaseComponent(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetDescriptionBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public List<BaseComponent[]> dispatchGetDescriptionBaseComponent(Player player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetDescriptionBaseComponent(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -494,13 +494,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getDescriptionBaseComponent()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The description of the advancement.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public List<BaseComponent[]> dispatchGetDescriptionBaseComponent(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetDescriptionBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public List<BaseComponent[]> dispatchGetDescriptionBaseComponent(OfflinePlayer player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetDescriptionBaseComponent(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -521,13 +521,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getFrame()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The shape of the advancement frame in the advancement GUI.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public AdvancementFrameType dispatchGetFrame(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetFrame(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public AdvancementFrameType dispatchGetFrame(Player player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetFrame(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -548,13 +548,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getFrame()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The shape of the advancement frame in the advancement GUI.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public AdvancementFrameType dispatchGetFrame(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetFrame(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public AdvancementFrameType dispatchGetFrame(OfflinePlayer player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetFrame(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -575,13 +575,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getX()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The x coordinate.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public float dispatchGetX(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetX(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public float dispatchGetX(Player player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetX(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -602,13 +602,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getX()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The x coordinate.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public float dispatchGetX(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetX(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public float dispatchGetX(OfflinePlayer player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetX(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -629,13 +629,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getY()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The y coordinate.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public float dispatchGetY(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetY(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public float dispatchGetY(Player player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetY(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
@@ -656,13 +656,13 @@ public abstract class AbstractAdvancementDisplay {
      * Dispatches the call to {@link #getY()}.
      *
      * @param player The player used to dispatch the call.
-     * @param advancement The advancement used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The y coordinate.
      * @see AbstractAdvancementDisplay
      */
     @NonExtendable
-    public float dispatchGetY(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchGetY(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public float dispatchGetY(OfflinePlayer player, AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetY(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**

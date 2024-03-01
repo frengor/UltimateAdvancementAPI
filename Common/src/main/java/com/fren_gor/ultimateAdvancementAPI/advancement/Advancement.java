@@ -527,7 +527,8 @@ public abstract class Advancement {
      * @param player The player the toast will be shown to.
      */
     public void displayToastToPlayer(@NotNull Player player) {
-        AdvancementUtils.displayToast(player, display.dispatchGetIcon(player, this), display.dispatchGetTitle(player, this), display.dispatchGetFrame(player, this));
+        TeamProgression team = advancementTab.getDatabaseManager().getTeamProgression(player);
+        AdvancementUtils.displayToast(player, display.dispatchGetIcon(player, team), display.dispatchGetTitle(player, team), display.dispatchGetFrame(player, team));
     }
 
     /**
@@ -625,11 +626,12 @@ public abstract class Advancement {
      */
     public void onGrant(@NotNull Player player, boolean giveRewards) {
         Preconditions.checkNotNull(player, "Player is null.");
+        final TeamProgression progression = advancementTab.getDatabaseManager().getTeamProgression(player);
 
         // Send complete messages
         Boolean gameRule = player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
 
-        if (display.dispatchDoesAnnounceToChat(player, this) && (gameRule == null || gameRule)) {
+        if (display.dispatchDoesAnnounceToChat(player, progression) && (gameRule == null || gameRule)) {
             BaseComponent[] msg = getAnnounceMessage(player);
             if (msg != null)
                 for (Player p : Bukkit.getOnlinePlayers()) {
@@ -638,7 +640,7 @@ public abstract class Advancement {
         }
 
         // Show Toast
-        if (display.dispatchDoesShowToast(player, this)) {
+        if (display.dispatchDoesShowToast(player, progression)) {
             // TODO Find a better solution
             if (advancementTab.doesShowToastToTeam()) {
                 advancementTab.getDatabaseManager().getTeamProgression(player).forEachMember(u -> {

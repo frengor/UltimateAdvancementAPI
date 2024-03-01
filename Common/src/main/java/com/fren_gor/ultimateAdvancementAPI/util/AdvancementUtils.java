@@ -120,10 +120,11 @@ public class AdvancementUtils {
         Preconditions.checkArgument(advancement.isValid(), "Advancement isn't valid.");
 
         final AbstractAdvancementDisplay display = advancement.getDisplay();
+        final TeamProgression pro = advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player);
         final MinecraftKeyWrapper keyWrapper = getUniqueKey(advancement.getAdvancementTab()).getNMSWrapper();
 
         try {
-            AdvancementDisplayWrapper displayWrapper = AdvancementDisplayWrapper.craft(display.dispatchGetIcon(player, advancement), display.dispatchGetTitle(player, advancement), ADV_DESCRIPTION, display.dispatchGetFrame(player, advancement).getNMSWrapper(), 0, 0, true, false, false);
+            AdvancementDisplayWrapper displayWrapper = AdvancementDisplayWrapper.craft(display.dispatchGetIcon(player, pro), display.dispatchGetTitle(player, pro), ADV_DESCRIPTION, display.dispatchGetFrame(player, pro).getNMSWrapper(), 0, 0, true, false, false);
             AdvancementWrapper advWrapper = AdvancementWrapper.craftBaseAdvancement(keyWrapper, advancement.getNMSWrapper(), displayWrapper, 1);
 
             PacketPlayOutAdvancementsWrapper.craftSendPacket(Map.of(advWrapper, 1)).sendTo(player);
@@ -356,9 +357,10 @@ public class AdvancementUtils {
         Preconditions.checkNotNull(advancementCompleter, "Player is null.");
 
         AbstractAdvancementDisplay display = advancement.getDisplay();
-        AdvancementFrameType frame = display.dispatchGetFrame(advancementCompleter, advancement);
-        String title = display.dispatchGetTitle(advancementCompleter, advancement);
-        String description = String.join("\n" + ChatColor.RESET, display.dispatchGetDescription(advancementCompleter, advancement));
+        TeamProgression progression = advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(advancementCompleter);
+        AdvancementFrameType frame = display.dispatchGetFrame(advancementCompleter, progression);
+        String title = display.dispatchGetTitle(advancementCompleter, progression);
+        String description = String.join("\n" + ChatColor.RESET, display.dispatchGetDescription(advancementCompleter, progression));
         ChatColor color = frame.getColor();
         String chatText = frame.getChatText();
 
