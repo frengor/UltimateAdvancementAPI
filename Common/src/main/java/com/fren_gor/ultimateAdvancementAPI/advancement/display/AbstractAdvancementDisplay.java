@@ -1,8 +1,8 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -26,12 +26,7 @@ public abstract class AbstractAdvancementDisplay {
 
     @NonExtendable
     public boolean dispatchDoesToast(Player player, Advancement advancement) {
-        return dispatchDoesToast(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public boolean dispatchDoesToast(Player player, DatabaseManager databaseManager) {
-        return dispatchDoesToast(player, databaseManager.getTeamProgression(player));
+        return dispatchDoesToast(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -42,12 +37,7 @@ public abstract class AbstractAdvancementDisplay {
 
     @NonExtendable
     public boolean dispatchDoesToast(OfflinePlayer player, Advancement advancement) {
-        return dispatchDoesToast(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public boolean dispatchDoesToast(OfflinePlayer player, DatabaseManager databaseManager) {
-        return dispatchDoesToast(player, databaseManager.getTeamProgression(player.getUniqueId()));
+        return dispatchDoesToast(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -65,12 +55,7 @@ public abstract class AbstractAdvancementDisplay {
 
     @NonExtendable
     public boolean dispatchDoesAnnounceToChat(Player player, Advancement advancement) {
-        return dispatchDoesAnnounceToChat(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public boolean dispatchDoesAnnounceToChat(Player player, DatabaseManager databaseManager) {
-        return dispatchDoesAnnounceToChat(player, databaseManager.getTeamProgression(player));
+        return dispatchDoesAnnounceToChat(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -81,12 +66,7 @@ public abstract class AbstractAdvancementDisplay {
 
     @NonExtendable
     public boolean dispatchDoesAnnounceToChat(OfflinePlayer player, Advancement advancement) {
-        return dispatchDoesAnnounceToChat(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public boolean dispatchDoesAnnounceToChat(OfflinePlayer player, DatabaseManager databaseManager) {
-        return dispatchDoesAnnounceToChat(player, databaseManager.getTeamProgression(player.getUniqueId()));
+        return dispatchDoesAnnounceToChat(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -104,13 +84,8 @@ public abstract class AbstractAdvancementDisplay {
     public abstract ItemStack getIcon();
 
     @NonExtendable
-    public ItemStack dispatchIcon(Player player, Advancement advancement) {
-        return dispatchIcon(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public ItemStack dispatchIcon(Player player, DatabaseManager databaseManager) {
-        return dispatchIcon(player, databaseManager.getTeamProgression(player));
+    public ItemStack dispatchIcon(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchIcon(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -120,13 +95,8 @@ public abstract class AbstractAdvancementDisplay {
     }
 
     @NonExtendable
-    public ItemStack dispatchIcon(OfflinePlayer player, Advancement advancement) {
-        return dispatchIcon(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public ItemStack dispatchIcon(OfflinePlayer player, DatabaseManager databaseManager) {
-        return dispatchIcon(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    public ItemStack dispatchIcon(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchIcon(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -146,13 +116,8 @@ public abstract class AbstractAdvancementDisplay {
     }
 
     @NonExtendable
-    public String dispatchTitle(Player player, Advancement advancement) {
-        return dispatchTitle(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public String dispatchTitle(Player player, DatabaseManager databaseManager) {
-        return dispatchTitle(player, databaseManager.getTeamProgression(player));
+    public String dispatchTitle(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchTitle(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -162,13 +127,8 @@ public abstract class AbstractAdvancementDisplay {
     }
 
     @NonExtendable
-    public String dispatchTitle(OfflinePlayer player, Advancement advancement) {
-        return dispatchTitle(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public String dispatchTitle(OfflinePlayer player, DatabaseManager databaseManager) {
-        return dispatchTitle(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    public String dispatchTitle(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchTitle(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -186,13 +146,8 @@ public abstract class AbstractAdvancementDisplay {
     public abstract BaseComponent[] getTitleBaseComponent();
 
     @NonExtendable
-    public BaseComponent[] dispatchTitleBaseComponent(Player player, Advancement advancement) {
-        return dispatchTitleBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public BaseComponent[] dispatchTitleBaseComponent(Player player, DatabaseManager databaseManager) {
-        return dispatchTitleBaseComponent(player, databaseManager.getTeamProgression(player));
+    public BaseComponent[] dispatchTitleBaseComponent(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchTitleBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -202,13 +157,8 @@ public abstract class AbstractAdvancementDisplay {
     }
 
     @NonExtendable
-    public BaseComponent[] dispatchTitleBaseComponent(OfflinePlayer player, Advancement advancement) {
-        return dispatchTitleBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public BaseComponent[] dispatchTitleBaseComponent(OfflinePlayer player, DatabaseManager databaseManager) {
-        return dispatchTitleBaseComponent(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    public BaseComponent[] dispatchTitleBaseComponent(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchTitleBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -228,13 +178,8 @@ public abstract class AbstractAdvancementDisplay {
     }
 
     @NonExtendable
-    public List<String> dispatchDescription(Player player, Advancement advancement) {
-        return dispatchDescription(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public List<String> dispatchDescription(Player player, DatabaseManager databaseManager) {
-        return dispatchDescription(player, databaseManager.getTeamProgression(player));
+    public List<String> dispatchDescription(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchDescription(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -244,13 +189,8 @@ public abstract class AbstractAdvancementDisplay {
     }
 
     @NonExtendable
-    public List<String> dispatchDescription(OfflinePlayer player, Advancement advancement) {
-        return dispatchDescription(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public List<String> dispatchDescription(OfflinePlayer player, DatabaseManager databaseManager) {
-        return dispatchDescription(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    public List<String> dispatchDescription(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchDescription(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -268,13 +208,8 @@ public abstract class AbstractAdvancementDisplay {
     public abstract List<BaseComponent[]> getDescriptionBaseComponent();
 
     @NonExtendable
-    public List<BaseComponent[]> dispatchDescriptionBaseComponent(Player player, Advancement advancement) {
-        return dispatchDescriptionBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public List<BaseComponent[]> dispatchDescriptionBaseComponent(Player player, DatabaseManager databaseManager) {
-        return dispatchDescriptionBaseComponent(player, databaseManager.getTeamProgression(player));
+    public List<BaseComponent[]> dispatchDescriptionBaseComponent(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchDescriptionBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -284,13 +219,8 @@ public abstract class AbstractAdvancementDisplay {
     }
 
     @NonExtendable
-    public List<BaseComponent[]> dispatchDescriptionBaseComponent(OfflinePlayer player, Advancement advancement) {
-        return dispatchDescriptionBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public List<BaseComponent[]> dispatchDescriptionBaseComponent(OfflinePlayer player, DatabaseManager databaseManager) {
-        return dispatchDescriptionBaseComponent(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    public List<BaseComponent[]> dispatchDescriptionBaseComponent(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchDescriptionBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -308,13 +238,8 @@ public abstract class AbstractAdvancementDisplay {
     public abstract AdvancementFrameType getFrame();
 
     @NonExtendable
-    public AdvancementFrameType dispatchFrame(Player player, Advancement advancement) {
-        return dispatchFrame(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public AdvancementFrameType dispatchFrame(Player player, DatabaseManager databaseManager) {
-        return dispatchFrame(player, databaseManager.getTeamProgression(player));
+    public AdvancementFrameType dispatchFrame(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchFrame(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -324,13 +249,8 @@ public abstract class AbstractAdvancementDisplay {
     }
 
     @NonExtendable
-    public AdvancementFrameType dispatchFrame(OfflinePlayer player, Advancement advancement) {
-        return dispatchFrame(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public AdvancementFrameType dispatchFrame(OfflinePlayer player, DatabaseManager databaseManager) {
-        return dispatchFrame(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    public AdvancementFrameType dispatchFrame(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchFrame(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -347,13 +267,8 @@ public abstract class AbstractAdvancementDisplay {
     public abstract float getX();
 
     @NonExtendable
-    public float dispatchX(Player player, Advancement advancement) {
-        return dispatchX(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public float dispatchX(Player player, DatabaseManager databaseManager) {
-        return dispatchX(player, databaseManager.getTeamProgression(player));
+    public float dispatchX(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchX(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -363,13 +278,8 @@ public abstract class AbstractAdvancementDisplay {
     }
 
     @NonExtendable
-    public float dispatchX(OfflinePlayer player, Advancement advancement) {
-        return dispatchX(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public float dispatchX(OfflinePlayer player, DatabaseManager databaseManager) {
-        return dispatchX(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    public float dispatchX(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchX(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -386,13 +296,8 @@ public abstract class AbstractAdvancementDisplay {
     public abstract float getY();
 
     @NonExtendable
-    public float dispatchY(Player player, Advancement advancement) {
-        return dispatchY(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public float dispatchY(Player player, DatabaseManager databaseManager) {
-        return dispatchY(player, databaseManager.getTeamProgression(player));
+    public float dispatchY(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchY(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable
@@ -402,13 +307,8 @@ public abstract class AbstractAdvancementDisplay {
     }
 
     @NonExtendable
-    public float dispatchY(OfflinePlayer player, Advancement advancement) {
-        return dispatchY(player, advancement.getAdvancementTab().getDatabaseManager());
-    }
-
-    @NonExtendable
-    public float dispatchY(OfflinePlayer player, DatabaseManager databaseManager) {
-        return dispatchY(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    public float dispatchY(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchY(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
     @NonExtendable

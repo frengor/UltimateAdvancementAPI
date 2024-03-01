@@ -237,7 +237,8 @@ public final class UltimateAdvancementAPI {
      * @param display The {@link AdvancementDisplay} that contains the graphic information to show.
      */
     public void displayCustomToast(@NotNull Player player, @NotNull AbstractAdvancementDisplay display) {
-        displayCustomToast(player, display.dispatchIcon(player, main.getDatabaseManager()), display.dispatchTitle(player, main.getDatabaseManager()), display.dispatchFrame(player, main.getDatabaseManager()));
+        TeamProgression pro = main.getDatabaseManager().getTeamProgression(player);
+        displayCustomToast(player, display.dispatchIcon(player, pro), display.dispatchTitle(player, pro), display.dispatchFrame(player, pro));
     }
 
     /**

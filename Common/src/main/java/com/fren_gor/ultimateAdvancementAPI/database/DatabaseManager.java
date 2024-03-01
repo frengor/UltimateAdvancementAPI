@@ -1033,6 +1033,19 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
+     * Returns the {@link TeamProgression} of the team of the provided offline player.
+     *
+     * @param player The player.
+     * @return The {@link TeamProgression} of the player's team.
+     * @throws UserNotLoadedException If the player was not loaded into the cache.
+     * @see UltimateAdvancementAPI#getTeamProgression(Player)
+     */
+    @NotNull
+    public TeamProgression getTeamProgression(@NotNull OfflinePlayer player) throws UserNotLoadedException {
+        return getTeamProgression(uuidFromPlayer(player));
+    }
+
+    /**
      * Returns the {@link TeamProgression} of the team of the provided player.
      *
      * @param uuid The {@link UUID} of the player.
