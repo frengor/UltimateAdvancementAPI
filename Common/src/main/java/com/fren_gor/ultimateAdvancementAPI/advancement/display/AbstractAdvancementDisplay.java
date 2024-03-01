@@ -15,6 +15,36 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * A display which contains the graphical information of the advancement, like the title, description, icon, etc.
+ * <p>Direct implementations of this abstract class are supposed to be immutable, that is every method call should always return the same value.
+ * <br>To create per-player and per-team displays extend {@link AbstractPerPlayerAdvancementDisplay} and {@link AbstractPerTeamAdvancementDisplay}, respectively.
+ * <p>A default implementation of an immutable display is {@link AdvancementDisplay}.
+ * <br>
+ * <h2>Dispatch methods</h2>
+ * <p>To make it easier to work with displays, this class provides special {@code dispatch*} methods, which automatically
+ * calls the per-player methods if the instance on which they're called is a per-player display,
+ * the per-team methods if the instance is a per-team display, otherwise the methods of this class are called.
+ * <p>Thus, they're useful when a method needs to be called on a display which isn't known if it's per-player, per-team or immutable. For example:
+ * <pre> {@code public Material getMaterialOfIcon(AbstractAdvancementDisplay display, Player player) {
+ *   UltimateAdvancementAPI API = ...;
+ *
+ *   // display can be anything! Instead of using a bunch of ifs and instanceof, use a dispatch method
+ *   ItemStack icon = display.dispatchGetIcon(player, API.getTeamProgression(player));
+ *
+ *   return icon.getType();
+ * }}</pre>
+ * <h2>Optimizing immutable displays</h2>
+ * <p>Classes which <i>directly</i> extends {@code AbstractAdvancementDisplay} (i.e. {@code class *className* extends AbstractAdvancementDisplay})
+ * are considered immutable, so every method call should always return the same value.
+ * <br>Thus, it's suggested to create and store the values to be returned by the various methods once and simply returning them afterward.
+ * The most important method where this applies is {@link #getNMSWrapper()}, since reducing the creation of NMS wrappers
+ * usually leads to improved performance.
+ *
+ * @see AbstractPerPlayerAdvancementDisplay
+ * @see AbstractPerTeamAdvancementDisplay
+ * @see AdvancementDisplay
+ */
 public abstract class AbstractAdvancementDisplay {
 
     /**
@@ -32,17 +62,19 @@ public abstract class AbstractAdvancementDisplay {
     public abstract boolean doesAnnounceToChat();
 
     /**
-     * Gets a clone of the icon.
+     * Returns the icon of the advancement.
      *
-     * @return A clone of the icon.
+     * @return The icon of the advancement.
      */
     @NotNull
     public abstract ItemStack getIcon();
 
     /**
-     * Returns the title of the advancement.
+     * Returns the title of the advancement as a legacy string.
      *
-     * @return The title of the advancement.
+     * @implNote The default implementation returns the title returned by {@link #getTitleBaseComponent()} converted into a legacy string.
+     *
+     * @return The title of the advancement as a legacy string.
      */
     @NotNull
     public String getTitle() {
@@ -58,9 +90,11 @@ public abstract class AbstractAdvancementDisplay {
     public abstract BaseComponent[] getTitleBaseComponent();
 
     /**
-     * Returns the description of the advancement.
+     * Returns the description of the advancement as a list of legacy strings.
      *
-     * @return The description of the advancement.
+     * @implNote The default implementation returns the description returned by {@link #getDescriptionBaseComponent()} converted into a list of legacy strings.
+     *
+     * @return The description of the advancement as a list of legacy strings.
      */
     @Unmodifiable
     public List<String> getDescription() {
@@ -105,226 +139,554 @@ public abstract class AbstractAdvancementDisplay {
     @NotNull
     public abstract PreparedAdvancementDisplayWrapper getNMSWrapper();
 
+    /**
+     * Dispatches the call to {@link #doesShowToast()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return Whether the toast notification should be sent on advancement grant.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public boolean dispatchDoesToast(Player player, Advancement advancement) {
-        return dispatchDoesToast(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public boolean dispatchDoesShowToast(Player player, Advancement advancement) {
+        return dispatchDoesShowToast(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #doesShowToast()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return Whether the toast notification should be sent on advancement grant.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public boolean dispatchDoesToast(Player player, TeamProgression teamProgression) {
+    public boolean dispatchDoesShowToast(Player player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return doesShowToast();
     }
 
+    /**
+     * Dispatches the call to {@link #doesShowToast()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return Whether the toast notification should be sent on advancement grant.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public boolean dispatchDoesToast(OfflinePlayer player, Advancement advancement) {
-        return dispatchDoesToast(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public boolean dispatchDoesShowToast(OfflinePlayer player, Advancement advancement) {
+        return dispatchDoesShowToast(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #doesShowToast()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return Whether the toast notification should be sent on advancement grant.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public boolean dispatchDoesToast(OfflinePlayer player, TeamProgression teamProgression) {
+    public boolean dispatchDoesShowToast(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return doesShowToast();
     }
 
+    /**
+     * Dispatches the call to {@link #doesAnnounceToChat()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return Whether the advancement completion message should be sent on advancement grant.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
     public boolean dispatchDoesAnnounceToChat(Player player, Advancement advancement) {
         return dispatchDoesAnnounceToChat(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #doesAnnounceToChat()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return Whether the advancement completion message should be sent on advancement grant.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
     public boolean dispatchDoesAnnounceToChat(Player player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return doesAnnounceToChat();
     }
 
+    /**
+     * Dispatches the call to {@link #doesAnnounceToChat()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return Whether the advancement completion message should be sent on advancement grant.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
     public boolean dispatchDoesAnnounceToChat(OfflinePlayer player, Advancement advancement) {
         return dispatchDoesAnnounceToChat(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #doesAnnounceToChat()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return Whether the advancement completion message should be sent on advancement grant.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
     public boolean dispatchDoesAnnounceToChat(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return doesAnnounceToChat();
     }
 
+    /**
+     * Dispatches the call to {@link #getIcon()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The icon of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public ItemStack dispatchIcon(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchIcon(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public ItemStack dispatchGetIcon(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetIcon(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getIcon()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The icon of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public ItemStack dispatchIcon(Player player, TeamProgression teamProgression) {
+    public ItemStack dispatchGetIcon(Player player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getIcon();
     }
 
+    /**
+     * Dispatches the call to {@link #getIcon()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The icon of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public ItemStack dispatchIcon(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchIcon(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public ItemStack dispatchGetIcon(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetIcon(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getIcon()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The icon of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public ItemStack dispatchIcon(OfflinePlayer player, TeamProgression teamProgression) {
+    public ItemStack dispatchGetIcon(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getIcon();
     }
 
+    /**
+     * Dispatches the call to {@link #getTitle()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The title of the advancement as a legacy string.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public String dispatchTitle(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchTitle(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public String dispatchGetTitle(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetTitle(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getTitle()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The title of the advancement as a legacy string.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public String dispatchTitle(Player player, TeamProgression teamProgression) {
+    public String dispatchGetTitle(Player player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getTitle();
     }
 
+    /**
+     * Dispatches the call to {@link #getTitle()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The title of the advancement as a legacy string.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public String dispatchTitle(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchTitle(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public String dispatchGetTitle(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetTitle(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getTitle()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The title of the advancement as a legacy string.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public String dispatchTitle(OfflinePlayer player, TeamProgression teamProgression) {
+    public String dispatchGetTitle(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getTitle();
     }
 
+    /**
+     * Dispatches the call to {@link #getTitleBaseComponent()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The title of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public BaseComponent[] dispatchTitleBaseComponent(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchTitleBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public BaseComponent[] dispatchGetTitleBaseComponent(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetTitleBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getTitleBaseComponent()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The title of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public BaseComponent[] dispatchTitleBaseComponent(Player player, TeamProgression teamProgression) {
+    public BaseComponent[] dispatchGetTitleBaseComponent(Player player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getTitleBaseComponent();
     }
 
+    /**
+     * Dispatches the call to {@link #getTitleBaseComponent()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The title of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public BaseComponent[] dispatchTitleBaseComponent(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchTitleBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public BaseComponent[] dispatchGetTitleBaseComponent(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetTitleBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getTitleBaseComponent()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The title of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public BaseComponent[] dispatchTitleBaseComponent(OfflinePlayer player, TeamProgression teamProgression) {
+    public BaseComponent[] dispatchGetTitleBaseComponent(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getTitleBaseComponent();
     }
 
+    /**
+     * Dispatches the call to {@link #getDescription()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The description of the advancement as a list of legacy strings.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public List<String> dispatchDescription(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchDescription(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public List<String> dispatchGetDescription(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetDescription(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getDescription()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The description of the advancement as a list of legacy strings.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public List<String> dispatchDescription(Player player, TeamProgression teamProgression) {
+    public List<String> dispatchGetDescription(Player player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getDescription();
     }
 
+    /**
+     * Dispatches the call to {@link #getDescription()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The description of the advancement as a list of legacy strings.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public List<String> dispatchDescription(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchDescription(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public List<String> dispatchGetDescription(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetDescription(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getDescription()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The description of the advancement as a list of legacy strings.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public List<String> dispatchDescription(OfflinePlayer player, TeamProgression teamProgression) {
+    public List<String> dispatchGetDescription(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getDescription();
     }
 
+    /**
+     * Dispatches the call to {@link #getDescriptionBaseComponent()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The description of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public List<BaseComponent[]> dispatchDescriptionBaseComponent(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchDescriptionBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public List<BaseComponent[]> dispatchGetDescriptionBaseComponent(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetDescriptionBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getDescriptionBaseComponent()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The description of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public List<BaseComponent[]> dispatchDescriptionBaseComponent(Player player, TeamProgression teamProgression) {
+    public List<BaseComponent[]> dispatchGetDescriptionBaseComponent(Player player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getDescriptionBaseComponent();
     }
 
+    /**
+     * Dispatches the call to {@link #getDescriptionBaseComponent()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The description of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public List<BaseComponent[]> dispatchDescriptionBaseComponent(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchDescriptionBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public List<BaseComponent[]> dispatchGetDescriptionBaseComponent(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetDescriptionBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getDescriptionBaseComponent()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The description of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public List<BaseComponent[]> dispatchDescriptionBaseComponent(OfflinePlayer player, TeamProgression teamProgression) {
+    public List<BaseComponent[]> dispatchGetDescriptionBaseComponent(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getDescriptionBaseComponent();
     }
 
+    /**
+     * Dispatches the call to {@link #getFrame()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The shape of the advancement frame in the advancement GUI.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public AdvancementFrameType dispatchFrame(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchFrame(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public AdvancementFrameType dispatchGetFrame(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetFrame(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getFrame()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The shape of the advancement frame in the advancement GUI.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public AdvancementFrameType dispatchFrame(Player player, TeamProgression teamProgression) {
+    public AdvancementFrameType dispatchGetFrame(Player player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getFrame();
     }
 
+    /**
+     * Dispatches the call to {@link #getFrame()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The shape of the advancement frame in the advancement GUI.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public AdvancementFrameType dispatchFrame(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchFrame(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public AdvancementFrameType dispatchGetFrame(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetFrame(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getFrame()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The shape of the advancement frame in the advancement GUI.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public AdvancementFrameType dispatchFrame(OfflinePlayer player, TeamProgression teamProgression) {
+    public AdvancementFrameType dispatchGetFrame(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getFrame();
     }
 
+    /**
+     * Dispatches the call to {@link #getX()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The x coordinate.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public float dispatchX(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchX(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public float dispatchGetX(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetX(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getX()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The x coordinate.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public float dispatchX(Player player, TeamProgression teamProgression) {
+    public float dispatchGetX(Player player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getX();
     }
 
+    /**
+     * Dispatches the call to {@link #getX()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The x coordinate.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public float dispatchX(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchX(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public float dispatchGetX(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetX(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getX()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The x coordinate.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public float dispatchX(OfflinePlayer player, TeamProgression teamProgression) {
+    public float dispatchGetX(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getX();
     }
 
+    /**
+     * Dispatches the call to {@link #getY()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The y coordinate.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public float dispatchY(Player player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchY(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public float dispatchGetY(Player player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetY(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getY()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The y coordinate.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public float dispatchY(Player player, TeamProgression teamProgression) {
+    public float dispatchGetY(Player player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getY();
     }
 
+    /**
+     * Dispatches the call to {@link #getY()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancement The advancement used to dispatch the call.
+     * @return The y coordinate.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public float dispatchY(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
-        return dispatchY(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
+    public float dispatchGetY(OfflinePlayer player, Advancement advancement) throws UserNotLoadedException {
+        return dispatchGetY(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
     }
 
+    /**
+     * Dispatches the call to {@link #getY()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The y coordinate.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
-    public float dispatchY(OfflinePlayer player, TeamProgression teamProgression) {
+    public float dispatchGetY(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getY();
     }
 
+    /**
+     * Dispatches the call to {@link #getNMSWrapper()}.
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The NMS wrapper of the display.
+     * @see AbstractAdvancementDisplay
+     */
     @NonExtendable
     public PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes

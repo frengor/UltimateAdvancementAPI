@@ -13,11 +13,19 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * A display which provides customized values based on the provided player.
+ * <p>The overload of the methods without parameters (i.e. the methods inherited from the super class) should return
+ * values which are "good enough" for every player.
+ *
+ * @implNote The default implementation of the methods which takes a {@link Player} calls the {@link OfflinePlayer} methods.
+ */
 public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvancementDisplay {
 
     /**
      * Returns whether the toast notification should be sent on advancement grant.
      *
+     * @param player The player.
      * @return Whether the toast notification should be sent on advancement grant.
      */
     public boolean doesShowToast(@NotNull Player player) {
@@ -27,6 +35,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns whether the toast notification should be sent on advancement grant.
      *
+     * @param player The player.
      * @return Whether the toast notification should be sent on advancement grant.
      */
     public abstract boolean doesShowToast(@NotNull OfflinePlayer player);
@@ -34,6 +43,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns whether the advancement completion message should be sent on advancement grant.
      *
+     * @param player The player.
      * @return Whether the advancement completion message should be sent on advancement grant.
      */
     public boolean doesAnnounceToChat(@NotNull Player player) {
@@ -43,14 +53,16 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns whether the advancement completion message should be sent on advancement grant.
      *
+     * @param player The player.
      * @return Whether the advancement completion message should be sent on advancement grant.
      */
     public abstract boolean doesAnnounceToChat(@NotNull OfflinePlayer player);
 
     /**
-     * Gets a clone of the icon.
+     * Returns the icon of the advancement.
      *
-     * @return A clone of the icon.
+     * @param player The player.
+     * @return The icon of the advancement.
      */
     @NotNull
     public ItemStack getIcon(@NotNull Player player) {
@@ -58,17 +70,21 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     }
 
     /**
-     * Gets a clone of the icon.
+     * Returns the icon of the advancement.
      *
-     * @return A clone of the icon.
+     * @param player The player.
+     * @return The icon of the advancement.
      */
     @NotNull
     public abstract ItemStack getIcon(@NotNull OfflinePlayer player);
 
     /**
-     * Returns the title of the advancement.
+     * Returns the title of the advancement as a legacy string.
      *
-     * @return The title of the advancement.
+     * @implNote The default implementation returns the title returned by {@link #getTitleBaseComponent(Player)} converted into a legacy string.
+     *
+     * @param player The player.
+     * @return The title of the advancement as a legacy string.
      */
     @NotNull
     public String getTitle(@NotNull Player player) {
@@ -76,9 +92,12 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     }
 
     /**
-     * Returns the title of the advancement.
+     * Returns the title of the advancement as a legacy string.
      *
-     * @return The title of the advancement.
+     * @implNote The default implementation returns the title returned by {@link #getTitleBaseComponent(OfflinePlayer)} converted into a legacy string.
+     *
+     * @param player The player.
+     * @return The title of the advancement as a legacy string.
      */
     @NotNull
     public String getTitle(@NotNull OfflinePlayer player) {
@@ -88,6 +107,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the title of the advancement.
      *
+     * @param player The player.
      * @return The title of the advancement.
      */
     @NotNull
@@ -98,15 +118,19 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the title of the advancement.
      *
+     * @param player The player.
      * @return The title of the advancement.
      */
     @NotNull
     public abstract BaseComponent[] getTitleBaseComponent(@NotNull OfflinePlayer player);
 
     /**
-     * Returns the description of the advancement.
+     * Returns the description of the advancement as a list of legacy strings.
      *
-     * @return The description of the advancement.
+     * @implNote The default implementation returns the description returned by {@link #getDescriptionBaseComponent(Player)} converted into a list of legacy strings.
+     *
+     * @param player The player.
+     * @return The description of the advancement as a list of legacy strings.
      */
     @Unmodifiable
     public List<String> getDescription(@NotNull Player player) {
@@ -114,9 +138,12 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     }
 
     /**
-     * Returns the description of the advancement.
+     * Returns the description of the advancement as a list of legacy strings.
      *
-     * @return The description of the advancement.
+     * @implNote The default implementation returns the description returned by {@link #getDescriptionBaseComponent(OfflinePlayer)} converted into a list of legacy strings.
+     *
+     * @param player The player.
+     * @return The description of the advancement as a list of legacy strings.
      */
     @Unmodifiable
     public List<String> getDescription(@NotNull OfflinePlayer player) {
@@ -126,6 +153,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the description of the advancement.
      *
+     * @param player The player.
      * @return The description of the advancement.
      */
     @Unmodifiable
@@ -136,6 +164,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the description of the advancement.
      *
+     * @param player The player.
      * @return The description of the advancement.
      */
     @Unmodifiable
@@ -144,6 +173,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the shape of the advancement frame in the advancement GUI.
      *
+     * @param player The player.
      * @return The shape of the advancement frame in the advancement GUI.
      */
     @NotNull
@@ -154,6 +184,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the shape of the advancement frame in the advancement GUI.
      *
+     * @param player The player.
      * @return The shape of the advancement frame in the advancement GUI.
      */
     @NotNull
@@ -162,6 +193,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the advancement position relative to the x-axis.
      *
+     * @param player The player.
      * @return The x coordinate.
      */
     public float getX(@NotNull Player player) {
@@ -171,6 +203,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the advancement position relative to the x-axis.
      *
+     * @param player The player.
      * @return The x coordinate.
      */
     public abstract float getX(@NotNull OfflinePlayer player);
@@ -178,6 +211,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the advancement position relative to the y-axis.
      *
+     * @param player The player.
      * @return The y coordinate.
      */
     public float getY(@NotNull Player player) {
@@ -187,138 +221,203 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the advancement position relative to the y-axis.
      *
+     * @param player The player.
      * @return The y coordinate.
      */
     public abstract float getY(@NotNull OfflinePlayer player);
 
     /**
-     * {@inheritDoc}
+     * Returns the NMS wrapper of the display.
      *
-     * @param player The player for which the NMS wrapper is being made.
+     * @param player The player.
+     * @return The NMS wrapper of the display.
      */
     @NotNull
     public abstract PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player);
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public boolean dispatchDoesToast(Player player, TeamProgression teamProgression) {
+    public boolean dispatchDoesShowToast(Player player, TeamProgression teamProgression) {
         return doesShowToast(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public boolean dispatchDoesToast(OfflinePlayer player, TeamProgression teamProgression) {
+    public boolean dispatchDoesShowToast(OfflinePlayer player, TeamProgression teamProgression) {
         return doesShowToast(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
     public boolean dispatchDoesAnnounceToChat(Player player, TeamProgression teamProgression) {
         return doesAnnounceToChat(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
     public boolean dispatchDoesAnnounceToChat(OfflinePlayer player, TeamProgression teamProgression) {
         return doesAnnounceToChat(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public ItemStack dispatchIcon(Player player, TeamProgression teamProgression) {
+    public ItemStack dispatchGetIcon(Player player, TeamProgression teamProgression) {
         return getIcon(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public ItemStack dispatchIcon(OfflinePlayer player, TeamProgression teamProgression) {
+    public ItemStack dispatchGetIcon(OfflinePlayer player, TeamProgression teamProgression) {
         return getIcon(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public String dispatchTitle(Player player, TeamProgression teamProgression) {
+    public String dispatchGetTitle(Player player, TeamProgression teamProgression) {
         return getTitle(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public String dispatchTitle(OfflinePlayer player, TeamProgression teamProgression) {
+    public String dispatchGetTitle(OfflinePlayer player, TeamProgression teamProgression) {
         return getTitle(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public BaseComponent[] dispatchTitleBaseComponent(Player player, TeamProgression teamProgression) {
+    public BaseComponent[] dispatchGetTitleBaseComponent(Player player, TeamProgression teamProgression) {
         return getTitleBaseComponent(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public BaseComponent[] dispatchTitleBaseComponent(OfflinePlayer player, TeamProgression teamProgression) {
+    public BaseComponent[] dispatchGetTitleBaseComponent(OfflinePlayer player, TeamProgression teamProgression) {
         return getTitleBaseComponent(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public List<String> dispatchDescription(Player player, TeamProgression teamProgression) {
+    public List<String> dispatchGetDescription(Player player, TeamProgression teamProgression) {
         return getDescription(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public List<String> dispatchDescription(OfflinePlayer player, TeamProgression teamProgression) {
+    public List<String> dispatchGetDescription(OfflinePlayer player, TeamProgression teamProgression) {
         return getDescription(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public List<BaseComponent[]> dispatchDescriptionBaseComponent(Player player, TeamProgression teamProgression) {
+    public List<BaseComponent[]> dispatchGetDescriptionBaseComponent(Player player, TeamProgression teamProgression) {
         return getDescriptionBaseComponent(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public List<BaseComponent[]> dispatchDescriptionBaseComponent(OfflinePlayer player, TeamProgression teamProgression) {
+    public List<BaseComponent[]> dispatchGetDescriptionBaseComponent(OfflinePlayer player, TeamProgression teamProgression) {
         return getDescriptionBaseComponent(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public AdvancementFrameType dispatchFrame(Player player, TeamProgression teamProgression) {
+    public AdvancementFrameType dispatchGetFrame(Player player, TeamProgression teamProgression) {
         return getFrame(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public AdvancementFrameType dispatchFrame(OfflinePlayer player, TeamProgression teamProgression) {
+    public AdvancementFrameType dispatchGetFrame(OfflinePlayer player, TeamProgression teamProgression) {
         return getFrame(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public float dispatchX(Player player, TeamProgression teamProgression) {
+    public float dispatchGetX(Player player, TeamProgression teamProgression) {
         return getX(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public float dispatchX(OfflinePlayer player, TeamProgression teamProgression) {
+    public float dispatchGetX(OfflinePlayer player, TeamProgression teamProgression) {
         return getX(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public float dispatchY(Player player, TeamProgression teamProgression) {
+    public float dispatchGetY(Player player, TeamProgression teamProgression) {
         return getY(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
-    public float dispatchY(OfflinePlayer player, TeamProgression teamProgression) {
+    public float dispatchGetY(OfflinePlayer player, TeamProgression teamProgression) {
         return getY(player);
     }
 
+    /**
+     * @hidden
+     */
     @Override
     @NonExtendable
     public PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) {

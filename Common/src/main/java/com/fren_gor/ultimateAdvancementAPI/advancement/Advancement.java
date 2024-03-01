@@ -527,7 +527,7 @@ public abstract class Advancement {
      * @param player The player the toast will be shown to.
      */
     public void displayToastToPlayer(@NotNull Player player) {
-        AdvancementUtils.displayToast(player, display.dispatchIcon(player, this), display.dispatchTitle(player, this), display.dispatchFrame(player, this));
+        AdvancementUtils.displayToast(player, display.dispatchGetIcon(player, this), display.dispatchGetTitle(player, this), display.dispatchGetFrame(player, this));
     }
 
     /**
@@ -638,7 +638,7 @@ public abstract class Advancement {
         }
 
         // Show Toast
-        if (display.dispatchDoesToast(player, this)) {
+        if (display.dispatchDoesShowToast(player, this)) {
             // TODO Find a better solution
             if (advancementTab.doesShowToastToTeam()) {
                 advancementTab.getDatabaseManager().getTeamProgression(player).forEachMember(u -> {

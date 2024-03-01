@@ -814,7 +814,7 @@ public final class AdvancementTab {
     }
 
     /**
-     * Whether the toast notification should be sent to every team member on advancement grant.
+     * Returns whether the toast notification should be sent to every team member on advancement grant.
      * <p>Defaults to {@code true} if not changed using {@link #setShowToastToTeam(boolean)}.
      *
      * @return Whether the toast notification should be sent to every team member on advancement grant.
