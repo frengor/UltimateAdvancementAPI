@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus.NonExtendable;
@@ -117,7 +118,19 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
 
     @Override
     @NonExtendable
+    public boolean dispatchDoesToast(OfflinePlayer player, TeamProgression teamProgression) {
+        return doesShowToast(teamProgression);
+    }
+
+    @Override
+    @NonExtendable
     public boolean dispatchDoesAnnounceToChat(Player player, TeamProgression teamProgression) {
+        return doesAnnounceToChat(teamProgression);
+    }
+
+    @Override
+    @NonExtendable
+    public boolean dispatchDoesAnnounceToChat(OfflinePlayer player, TeamProgression teamProgression) {
         return doesAnnounceToChat(teamProgression);
     }
 
@@ -129,7 +142,19 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
 
     @Override
     @NonExtendable
+    public ItemStack dispatchIcon(OfflinePlayer player, TeamProgression teamProgression) {
+        return getIcon(teamProgression);
+    }
+
+    @Override
+    @NonExtendable
     public String dispatchTitle(Player player, TeamProgression teamProgression) {
+        return getTitle(teamProgression);
+    }
+
+    @Override
+    @NonExtendable
+    public String dispatchTitle(OfflinePlayer player, TeamProgression teamProgression) {
         return getTitle(teamProgression);
     }
 
@@ -141,7 +166,19 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
 
     @Override
     @NonExtendable
+    public BaseComponent[] dispatchTitleBaseComponent(OfflinePlayer player, TeamProgression teamProgression) {
+        return getTitleBaseComponent(teamProgression);
+    }
+
+    @Override
+    @NonExtendable
     public List<String> dispatchDescription(Player player, TeamProgression teamProgression) {
+        return getDescription(teamProgression);
+    }
+
+    @Override
+    @NonExtendable
+    public List<String> dispatchDescription(OfflinePlayer player, TeamProgression teamProgression) {
         return getDescription(teamProgression);
     }
 
@@ -153,7 +190,19 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
 
     @Override
     @NonExtendable
+    public List<BaseComponent[]> dispatchDescriptionBaseComponent(OfflinePlayer player, TeamProgression teamProgression) {
+        return getDescriptionBaseComponent(teamProgression);
+    }
+
+    @Override
+    @NonExtendable
     public AdvancementFrameType dispatchFrame(Player player, TeamProgression teamProgression) {
+        return getFrame(teamProgression);
+    }
+
+    @Override
+    @NonExtendable
+    public AdvancementFrameType dispatchFrame(OfflinePlayer player, TeamProgression teamProgression) {
         return getFrame(teamProgression);
     }
 
@@ -165,7 +214,19 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
 
     @Override
     @NonExtendable
+    public float dispatchX(OfflinePlayer player, TeamProgression teamProgression) {
+        return getX(teamProgression);
+    }
+
+    @Override
+    @NonExtendable
     public float dispatchY(Player player, TeamProgression teamProgression) {
+        return getY(teamProgression);
+    }
+
+    @Override
+    @NonExtendable
+    public float dispatchY(OfflinePlayer player, TeamProgression teamProgression) {
         return getY(teamProgression);
     }
 }

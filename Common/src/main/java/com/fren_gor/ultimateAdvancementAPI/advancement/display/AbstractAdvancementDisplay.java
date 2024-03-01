@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus.NonExtendable;
@@ -39,6 +40,22 @@ public abstract class AbstractAdvancementDisplay {
         return doesShowToast();
     }
 
+    @NonExtendable
+    public boolean dispatchDoesToast(OfflinePlayer player, Advancement advancement) {
+        return dispatchDoesToast(player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    @NonExtendable
+    public boolean dispatchDoesToast(OfflinePlayer player, DatabaseManager databaseManager) {
+        return dispatchDoesToast(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    }
+
+    @NonExtendable
+    public boolean dispatchDoesToast(OfflinePlayer player, TeamProgression teamProgression) {
+        // This method is overridden in per-player and per-team classes
+        return doesShowToast();
+    }
+
     /**
      * Returns whether the advancement completion message should be sent on advancement grant.
      *
@@ -58,6 +75,22 @@ public abstract class AbstractAdvancementDisplay {
 
     @NonExtendable
     public boolean dispatchDoesAnnounceToChat(Player player, TeamProgression teamProgression) {
+        // This method is overridden in per-player and per-team classes
+        return doesAnnounceToChat();
+    }
+
+    @NonExtendable
+    public boolean dispatchDoesAnnounceToChat(OfflinePlayer player, Advancement advancement) {
+        return dispatchDoesAnnounceToChat(player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    @NonExtendable
+    public boolean dispatchDoesAnnounceToChat(OfflinePlayer player, DatabaseManager databaseManager) {
+        return dispatchDoesAnnounceToChat(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    }
+
+    @NonExtendable
+    public boolean dispatchDoesAnnounceToChat(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return doesAnnounceToChat();
     }
@@ -82,6 +115,22 @@ public abstract class AbstractAdvancementDisplay {
 
     @NonExtendable
     public ItemStack dispatchIcon(Player player, TeamProgression teamProgression) {
+        // This method is overridden in per-player and per-team classes
+        return getIcon();
+    }
+
+    @NonExtendable
+    public ItemStack dispatchIcon(OfflinePlayer player, Advancement advancement) {
+        return dispatchIcon(player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    @NonExtendable
+    public ItemStack dispatchIcon(OfflinePlayer player, DatabaseManager databaseManager) {
+        return dispatchIcon(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    }
+
+    @NonExtendable
+    public ItemStack dispatchIcon(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getIcon();
     }
@@ -112,6 +161,22 @@ public abstract class AbstractAdvancementDisplay {
         return getTitle();
     }
 
+    @NonExtendable
+    public String dispatchTitle(OfflinePlayer player, Advancement advancement) {
+        return dispatchTitle(player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    @NonExtendable
+    public String dispatchTitle(OfflinePlayer player, DatabaseManager databaseManager) {
+        return dispatchTitle(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    }
+
+    @NonExtendable
+    public String dispatchTitle(OfflinePlayer player, TeamProgression teamProgression) {
+        // This method is overridden in per-player and per-team classes
+        return getTitle();
+    }
+
     /**
      * Returns the title of the advancement.
      *
@@ -132,6 +197,22 @@ public abstract class AbstractAdvancementDisplay {
 
     @NonExtendable
     public BaseComponent[] dispatchTitleBaseComponent(Player player, TeamProgression teamProgression) {
+        // This method is overridden in per-player and per-team classes
+        return getTitleBaseComponent();
+    }
+
+    @NonExtendable
+    public BaseComponent[] dispatchTitleBaseComponent(OfflinePlayer player, Advancement advancement) {
+        return dispatchTitleBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    @NonExtendable
+    public BaseComponent[] dispatchTitleBaseComponent(OfflinePlayer player, DatabaseManager databaseManager) {
+        return dispatchTitleBaseComponent(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    }
+
+    @NonExtendable
+    public BaseComponent[] dispatchTitleBaseComponent(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getTitleBaseComponent();
     }
@@ -162,6 +243,22 @@ public abstract class AbstractAdvancementDisplay {
         return getDescription();
     }
 
+    @NonExtendable
+    public List<String> dispatchDescription(OfflinePlayer player, Advancement advancement) {
+        return dispatchDescription(player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    @NonExtendable
+    public List<String> dispatchDescription(OfflinePlayer player, DatabaseManager databaseManager) {
+        return dispatchDescription(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    }
+
+    @NonExtendable
+    public List<String> dispatchDescription(OfflinePlayer player, TeamProgression teamProgression) {
+        // This method is overridden in per-player and per-team classes
+        return getDescription();
+    }
+
     /**
      * Returns the description of the advancement.
      *
@@ -182,6 +279,22 @@ public abstract class AbstractAdvancementDisplay {
 
     @NonExtendable
     public List<BaseComponent[]> dispatchDescriptionBaseComponent(Player player, TeamProgression teamProgression) {
+        // This method is overridden in per-player and per-team classes
+        return getDescriptionBaseComponent();
+    }
+
+    @NonExtendable
+    public List<BaseComponent[]> dispatchDescriptionBaseComponent(OfflinePlayer player, Advancement advancement) {
+        return dispatchDescriptionBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    @NonExtendable
+    public List<BaseComponent[]> dispatchDescriptionBaseComponent(OfflinePlayer player, DatabaseManager databaseManager) {
+        return dispatchDescriptionBaseComponent(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    }
+
+    @NonExtendable
+    public List<BaseComponent[]> dispatchDescriptionBaseComponent(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getDescriptionBaseComponent();
     }
@@ -210,6 +323,22 @@ public abstract class AbstractAdvancementDisplay {
         return getFrame();
     }
 
+    @NonExtendable
+    public AdvancementFrameType dispatchFrame(OfflinePlayer player, Advancement advancement) {
+        return dispatchFrame(player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    @NonExtendable
+    public AdvancementFrameType dispatchFrame(OfflinePlayer player, DatabaseManager databaseManager) {
+        return dispatchFrame(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    }
+
+    @NonExtendable
+    public AdvancementFrameType dispatchFrame(OfflinePlayer player, TeamProgression teamProgression) {
+        // This method is overridden in per-player and per-team classes
+        return getFrame();
+    }
+
     /**
      * Returns the advancement position relative to the x-axis.
      *
@@ -233,6 +362,22 @@ public abstract class AbstractAdvancementDisplay {
         return getX();
     }
 
+    @NonExtendable
+    public float dispatchX(OfflinePlayer player, Advancement advancement) {
+        return dispatchX(player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    @NonExtendable
+    public float dispatchX(OfflinePlayer player, DatabaseManager databaseManager) {
+        return dispatchX(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    }
+
+    @NonExtendable
+    public float dispatchX(OfflinePlayer player, TeamProgression teamProgression) {
+        // This method is overridden in per-player and per-team classes
+        return getX();
+    }
+
     /**
      * Returns the advancement position relative to the y-axis.
      *
@@ -252,6 +397,22 @@ public abstract class AbstractAdvancementDisplay {
 
     @NonExtendable
     public float dispatchY(Player player, TeamProgression teamProgression) {
+        // This method is overridden in per-player and per-team classes
+        return getY();
+    }
+
+    @NonExtendable
+    public float dispatchY(OfflinePlayer player, Advancement advancement) {
+        return dispatchY(player, advancement.getAdvancementTab().getDatabaseManager());
+    }
+
+    @NonExtendable
+    public float dispatchY(OfflinePlayer player, DatabaseManager databaseManager) {
+        return dispatchY(player, databaseManager.getTeamProgression(player.getUniqueId()));
+    }
+
+    @NonExtendable
+    public float dispatchY(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getY();
     }
