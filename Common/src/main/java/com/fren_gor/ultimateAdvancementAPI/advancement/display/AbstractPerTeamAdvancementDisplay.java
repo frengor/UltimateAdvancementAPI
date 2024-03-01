@@ -105,13 +105,6 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
 
     @Override
     @NonExtendable
-    public PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        // This method is overridden in per-player and per-team classes
-        return getNMSWrapper(teamProgression);
-    }
-
-    @Override
-    @NonExtendable
     public boolean dispatchDoesToast(Player player, TeamProgression teamProgression) {
         return doesShowToast(teamProgression);
     }
@@ -228,5 +221,11 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
     @NonExtendable
     public float dispatchY(OfflinePlayer player, TeamProgression teamProgression) {
         return getY(teamProgression);
+    }
+
+    @Override
+    @NonExtendable
+    public PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getNMSWrapper(teamProgression);
     }
 }

@@ -24,6 +24,87 @@ public abstract class AbstractAdvancementDisplay {
      */
     public abstract boolean doesShowToast();
 
+    /**
+     * Returns whether the advancement completion message should be sent on advancement grant.
+     *
+     * @return Whether the advancement completion message should be sent on advancement grant.
+     */
+    public abstract boolean doesAnnounceToChat();
+
+    /**
+     * Gets a clone of the icon.
+     *
+     * @return A clone of the icon.
+     */
+    @NotNull
+    public abstract ItemStack getIcon();
+
+    /**
+     * Returns the title of the advancement.
+     *
+     * @return The title of the advancement.
+     */
+    @NotNull
+    public String getTitle() {
+        return TextComponent.toLegacyText(getTitleBaseComponent());
+    }
+
+    /**
+     * Returns the title of the advancement.
+     *
+     * @return The title of the advancement.
+     */
+    @NotNull
+    public abstract BaseComponent[] getTitleBaseComponent();
+
+    /**
+     * Returns the description of the advancement.
+     *
+     * @return The description of the advancement.
+     */
+    @Unmodifiable
+    public List<String> getDescription() {
+        return getDescriptionBaseComponent().stream().map(TextComponent::toLegacyText).toList();
+    }
+
+    /**
+     * Returns the description of the advancement.
+     *
+     * @return The description of the advancement.
+     */
+    @Unmodifiable
+    public abstract List<BaseComponent[]> getDescriptionBaseComponent();
+
+    /**
+     * Returns the shape of the advancement frame in the advancement GUI.
+     *
+     * @return The shape of the advancement frame in the advancement GUI.
+     */
+    @NotNull
+    public abstract AdvancementFrameType getFrame();
+
+    /**
+     * Returns the advancement position relative to the x-axis.
+     *
+     * @return The x coordinate.
+     */
+    public abstract float getX();
+
+    /**
+     * Returns the advancement position relative to the y-axis.
+     *
+     * @return The y coordinate.
+     */
+    public abstract float getY();
+
+    /**
+     * Returns the NMS wrapper of the display.
+     *
+     * @return The NMS wrapper of the display.
+     */
+    @NotNull
+    public abstract PreparedAdvancementDisplayWrapper getNMSWrapper();
+
     @NonExtendable
     public boolean dispatchDoesToast(Player player, Advancement advancement) {
         return dispatchDoesToast(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
@@ -45,13 +126,6 @@ public abstract class AbstractAdvancementDisplay {
         // This method is overridden in per-player and per-team classes
         return doesShowToast();
     }
-
-    /**
-     * Returns whether the advancement completion message should be sent on advancement grant.
-     *
-     * @return Whether the advancement completion message should be sent on advancement grant.
-     */
-    public abstract boolean doesAnnounceToChat();
 
     @NonExtendable
     public boolean dispatchDoesAnnounceToChat(Player player, Advancement advancement) {
@@ -75,14 +149,6 @@ public abstract class AbstractAdvancementDisplay {
         return doesAnnounceToChat();
     }
 
-    /**
-     * Gets a clone of the icon.
-     *
-     * @return A clone of the icon.
-     */
-    @NotNull
-    public abstract ItemStack getIcon();
-
     @NonExtendable
     public ItemStack dispatchIcon(Player player, Advancement advancement) throws UserNotLoadedException {
         return dispatchIcon(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
@@ -103,16 +169,6 @@ public abstract class AbstractAdvancementDisplay {
     public ItemStack dispatchIcon(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getIcon();
-    }
-
-    /**
-     * Returns the title of the advancement.
-     *
-     * @return The title of the advancement.
-     */
-    @NotNull
-    public String getTitle() {
-        return TextComponent.toLegacyText(getTitleBaseComponent());
     }
 
     @NonExtendable
@@ -137,14 +193,6 @@ public abstract class AbstractAdvancementDisplay {
         return getTitle();
     }
 
-    /**
-     * Returns the title of the advancement.
-     *
-     * @return The title of the advancement.
-     */
-    @NotNull
-    public abstract BaseComponent[] getTitleBaseComponent();
-
     @NonExtendable
     public BaseComponent[] dispatchTitleBaseComponent(Player player, Advancement advancement) throws UserNotLoadedException {
         return dispatchTitleBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
@@ -165,16 +213,6 @@ public abstract class AbstractAdvancementDisplay {
     public BaseComponent[] dispatchTitleBaseComponent(OfflinePlayer player, TeamProgression teamProgression) {
         // This method is overridden in per-player and per-team classes
         return getTitleBaseComponent();
-    }
-
-    /**
-     * Returns the description of the advancement.
-     *
-     * @return The description of the advancement.
-     */
-    @Unmodifiable
-    public List<String> getDescription() {
-        return getDescriptionBaseComponent().stream().map(TextComponent::toLegacyText).toList();
     }
 
     @NonExtendable
@@ -199,14 +237,6 @@ public abstract class AbstractAdvancementDisplay {
         return getDescription();
     }
 
-    /**
-     * Returns the description of the advancement.
-     *
-     * @return The description of the advancement.
-     */
-    @Unmodifiable
-    public abstract List<BaseComponent[]> getDescriptionBaseComponent();
-
     @NonExtendable
     public List<BaseComponent[]> dispatchDescriptionBaseComponent(Player player, Advancement advancement) throws UserNotLoadedException {
         return dispatchDescriptionBaseComponent(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
@@ -228,14 +258,6 @@ public abstract class AbstractAdvancementDisplay {
         // This method is overridden in per-player and per-team classes
         return getDescriptionBaseComponent();
     }
-
-    /**
-     * Returns the shape of the advancement frame in the advancement GUI.
-     *
-     * @return The shape of the advancement frame in the advancement GUI.
-     */
-    @NotNull
-    public abstract AdvancementFrameType getFrame();
 
     @NonExtendable
     public AdvancementFrameType dispatchFrame(Player player, Advancement advancement) throws UserNotLoadedException {
@@ -259,13 +281,6 @@ public abstract class AbstractAdvancementDisplay {
         return getFrame();
     }
 
-    /**
-     * Returns the advancement position relative to the x-axis.
-     *
-     * @return The x coordinate.
-     */
-    public abstract float getX();
-
     @NonExtendable
     public float dispatchX(Player player, Advancement advancement) throws UserNotLoadedException {
         return dispatchX(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
@@ -288,13 +303,6 @@ public abstract class AbstractAdvancementDisplay {
         return getX();
     }
 
-    /**
-     * Returns the advancement position relative to the y-axis.
-     *
-     * @return The y coordinate.
-     */
-    public abstract float getY();
-
     @NonExtendable
     public float dispatchY(Player player, Advancement advancement) throws UserNotLoadedException {
         return dispatchY(player, advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player));
@@ -316,14 +324,6 @@ public abstract class AbstractAdvancementDisplay {
         // This method is overridden in per-player and per-team classes
         return getY();
     }
-
-    /**
-     * Returns the NMS wrapper of the display.
-     *
-     * @return The NMS wrapper of the display.
-     */
-    @NotNull
-    public abstract PreparedAdvancementDisplayWrapper getNMSWrapper();
 
     @NonExtendable
     public PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) {
