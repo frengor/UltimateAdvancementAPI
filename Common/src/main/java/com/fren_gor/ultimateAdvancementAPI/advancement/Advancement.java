@@ -50,7 +50,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 /**
  * The {@code Advancement} class is the parent class of every advancement.
  * It provides the basic methods and fields to work with advancements.
- * <p>It is extended only by RootAdvancement and BaseAdvancement. It cannot be extended by any other class, which should extends
+ * <p>It is extended only by {@link RootAdvancement} and {@link BaseAdvancement}. It cannot be extended by any other class, which should extend one of those instead.
  */
 public abstract class Advancement {
 

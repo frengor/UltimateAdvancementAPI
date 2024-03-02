@@ -1,7 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.util;
 
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractImmutableAdvancementDisplay;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -74,10 +73,10 @@ public final class CoordAdapter {
     }
 
     /**
-     * Gets the converted x coordinate to be used in a {@link AdvancementDisplay}.
+     * Gets the converted x coordinate to be used in an advancement display.
      *
      * @param key The {@link AdvancementKey} of the coordinate.
-     * @return The converted x coordinate to be used in a {@link AdvancementDisplay}.
+     * @return The converted x coordinate to be used in an advancement display.
      * @throws IllegalArgumentException If the provided {@link AdvancementKey} is not present in the adapter.
      */
     public float getX(@NotNull AdvancementKey key) throws IllegalArgumentException {
@@ -87,10 +86,10 @@ public final class CoordAdapter {
     }
 
     /**
-     * Gets the converted y coordinate to be used in a {@link AdvancementDisplay}.
+     * Gets the converted y coordinate to be used in an advancement display.
      *
      * @param key The {@link AdvancementKey} of the coordinate.
-     * @return The converted y coordinate to be used in a {@link AdvancementDisplay}.
+     * @return The converted y coordinate to be used in an advancement display.
      * @throws IllegalArgumentException If the provided {@link AdvancementKey} is not present in the adapter.
      */
     public float getY(@NotNull AdvancementKey key) throws IllegalArgumentException {
@@ -100,10 +99,10 @@ public final class CoordAdapter {
     }
 
     /**
-     * Gets the converted x and y coordinates to be used in a {@link AdvancementDisplay}.
+     * Gets the converted x and y coordinates to be used in an advancement display.
      *
      * @param key The {@link AdvancementKey} of the coordinates.
-     * @return The converted x and y coordinates to be used in a {@link AdvancementDisplay}.
+     * @return The converted x and y coordinates to be used in an advancement display.
      * @throws IllegalArgumentException If the provided {@link AdvancementKey} is not present in the adapter.
      */
     @NotNull
@@ -114,12 +113,12 @@ public final class CoordAdapter {
     }
 
     /**
-     * Converts back the provided {@link AdvancementDisplay}'s x coordinate to the original one.
+     * Converts back the provided {@link AbstractImmutableAdvancementDisplay}'s x coordinate to the original one.
      *
-     * @param display The {@link AdvancementDisplay}.
+     * @param display The {@link AbstractImmutableAdvancementDisplay}.
      * @return The original x coordinate.
      */
-    public float getOriginalX(@NotNull AbstractAdvancementDisplay display) {
+    public float getOriginalX(@NotNull AbstractImmutableAdvancementDisplay display) {
         return getOriginalX(Objects.requireNonNull(display, "AbstractAdvancementDisplay is null.").getX());
     }
 
@@ -149,12 +148,12 @@ public final class CoordAdapter {
     }
 
     /**
-     * Converts back the provided {@link AdvancementDisplay}'s y coordinate to the original one.
+     * Converts back the provided {@link AbstractImmutableAdvancementDisplay}'s y coordinate to the original one.
      *
-     * @param display The {@link AdvancementDisplay}.
+     * @param display The {@link AbstractImmutableAdvancementDisplay}.
      * @return The original y coordinate.
      */
-    public float getOriginalY(@NotNull AbstractAdvancementDisplay display) {
+    public float getOriginalY(@NotNull AbstractImmutableAdvancementDisplay display) {
         return getOriginalY(Objects.requireNonNull(display, "AbstractAdvancementDisplay is null.").getY());
     }
 
@@ -184,13 +183,13 @@ public final class CoordAdapter {
     }
 
     /**
-     * Converts back the provided {@link AdvancementDisplay}'s x and y coordinates to the original ones.
+     * Converts back the provided {@link AbstractImmutableAdvancementDisplay}'s x and y coordinates to the original ones.
      *
-     * @param display The {@link AdvancementDisplay}.
+     * @param display The {@link AbstractImmutableAdvancementDisplay}.
      * @return The original x and y coordinates.
      */
     @NotNull
-    public Coord getOriginalXAndY(@NotNull AdvancementDisplay display) {
+    public Coord getOriginalXAndY(@NotNull AbstractImmutableAdvancementDisplay display) {
         Preconditions.checkNotNull(display, "AdvancementDisplay is null.");
         return getOriginalXAndY(display.getX(), display.getY());
     }

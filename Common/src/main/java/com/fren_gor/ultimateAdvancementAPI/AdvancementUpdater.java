@@ -1,6 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractImmutableAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayerAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
@@ -48,9 +49,12 @@ public final class AdvancementUpdater {
             perPlayerAdvancements.add(new PerPlayerUpdateEntry(advancementWrapper, perPlayer, progression));
         } else if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
             perTeamAdvancements.add(new PerTeamUpdateEntry(advancementWrapper, perTeam, progression));
-        } else {
+        } else if (display instanceof AbstractImmutableAdvancementDisplay immutable) {
             // Not per-player and not per-team
-            immutableAdvancements.add(new ImmutableUpdateEntry(advancementWrapper, display, progression));
+            immutableAdvancements.add(new ImmutableUpdateEntry(advancementWrapper, immutable, progression));
+        } else {
+            // Should never happen
+            throw new ClassCastException(display.getClass().getName() + " is not an immutable, per-team or per-player display.");
         }
     }
 
@@ -117,7 +121,7 @@ public final class AdvancementUpdater {
         return Collections.unmodifiableSet(keys);
     }
 
-    record ImmutableUpdateEntry(PreparedAdvancementWrapper advancementWrapper, AbstractAdvancementDisplay display, int progression) {
+    record ImmutableUpdateEntry(PreparedAdvancementWrapper advancementWrapper, AbstractImmutableAdvancementDisplay display, int progression) {
     }
 
     record PerTeamUpdateEntry(PreparedAdvancementWrapper advancementWrapper, AbstractPerTeamAdvancementDisplay display, int progression) {

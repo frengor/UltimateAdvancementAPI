@@ -1,5 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement;
 
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractImmutableAdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayerAdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
@@ -7,6 +11,10 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
+import com.fren_gor.ultimateAdvancementAPI.util.display.ImmutableAdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.display.PerPlayerAdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.display.PerTeamAdvancementDisplayWrapper;
+import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -40,7 +48,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @param y The y coordinate of the advancement.
      */
     public FakeAdvancement(@NotNull Advancement parent, float x, float y) {
-        this(parent, new FakeAdvancementDisplay(Material.GRASS_BLOCK, "FakeAdvancement", AdvancementFrameType.TASK, x, y));
+        super("fakeadvancement._-.-_." + FAKE_NUMBER.getAndIncrement(), new FakeAdvancementDisplay(Material.GRASS_BLOCK, "FakeAdvancement", AdvancementFrameType.TASK, x, y), parent);
     }
 
     /**
@@ -49,8 +57,8 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @param parent The parent of the advancement.
      * @param display The display information of this advancement.
      */
-    public FakeAdvancement(@NotNull Advancement parent, @NotNull FakeAdvancementDisplay display) {
-        super("fakeadvancement._-.-_." + FAKE_NUMBER.getAndIncrement(), display, parent);
+    public FakeAdvancement(@NotNull Advancement parent, @NotNull AbstractAdvancementDisplay display) {
+        super("fakeadvancement._-.-_." + FAKE_NUMBER.getAndIncrement(), wrapDisplay(display), parent);
     }
 
     /**
@@ -135,8 +143,63 @@ public final class FakeAdvancement extends BaseAdvancement {
         return null;
     }
 
+    private static AbstractAdvancementDisplay wrapDisplay(@NotNull AbstractAdvancementDisplay display) {
+        Preconditions.checkNotNull(display, "AbstractAdvancementDisplay is null.");
+
+        if (display instanceof AbstractImmutableAdvancementDisplay immutable) {
+            return new ImmutableAdvancementDisplayWrapper(immutable) {
+                // Optimize since the display is immutable
+                @LazyValue
+                private PreparedAdvancementDisplayWrapper wrapper;
+
+                @Override
+                @NotNull
+                public PreparedAdvancementDisplayWrapper getNMSWrapper() {
+                    if (wrapper != null) {
+                        return wrapper;
+                    }
+
+                    try {
+                        // Only x and y matters here, since FakeAdvancements are invisible
+                        return wrapper = PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), "FakeAdvancement", "", AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(), wrapped.getY(), false, false, true);
+                    } catch (ReflectiveOperationException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+        } else if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
+            return new PerTeamAdvancementDisplayWrapper(perTeam) {
+                @Override
+                @NotNull
+                public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull TeamProgression progression) {
+                    try {
+                        // Only x and y matters here, since FakeAdvancements are invisible
+                        return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), "FakeAdvancement", "", AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(progression), wrapped.getY(progression), false, false, true);
+                    } catch (ReflectiveOperationException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+        } else if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
+            return new PerPlayerAdvancementDisplayWrapper(perPlayer) {
+                @Override
+                public @NotNull PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player) {
+                    try {
+                        // Only x and y matters here, since FakeAdvancements are invisible
+                        return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), "FakeAdvancement", "", AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(player), wrapped.getY(player), false, false, true);
+                    } catch (ReflectiveOperationException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+        } else {
+            // Should never happen
+            throw new ClassCastException(display.getClass().getName() + " is not an immutable, per-team or per-player display.");
+        }
+    }
+
     /**
-     * The {@link AdvancementDisplay} used by {@link FakeAdvancement}s.
+     * The {@link AdvancementDisplay} used by {@link FakeAdvancement#FakeAdvancement(Advancement, float, float)}.
      *
      * @see FakeAdvancement
      */

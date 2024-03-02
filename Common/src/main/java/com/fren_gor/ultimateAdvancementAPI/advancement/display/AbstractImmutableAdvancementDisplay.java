@@ -12,278 +12,253 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
- * A display which provides customized values based on the provided team.
+ * A display which is immutable, that is every method call should always return the same value.
+ * <p>A default implementation of an immutable display is {@link AdvancementDisplay}.
+ * <br>
+ * <h2>Optimizing immutable displays</h2>
+ * <p>It's suggested to create and store the values to be returned by the various methods once and simply return them afterward
+ * (this technique is also known as <a href="https://en.wikipedia.org/wiki/Memoization">memoization</a>).
+ * The most important method where this applies is {@link #getNMSWrapper()}, since reducing the creation of NMS wrappers
+ * usually leads to better performance.
  */
-public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancementDisplay {
+public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvancementDisplay {
 
     /**
      * Returns whether the toast notification should be sent on advancement grant.
      *
-     * @param progression The {@link TeamProgression} of the team.
      * @return Whether the toast notification should be sent on advancement grant.
      */
-    public abstract boolean doesShowToast(@NotNull TeamProgression progression);
+    public abstract boolean doesShowToast();
 
     /**
      * Returns whether the advancement completion message should be sent on advancement grant.
      *
-     * @param progression The {@link TeamProgression} of the team.
      * @return Whether the advancement completion message should be sent on advancement grant.
      */
-    public abstract boolean doesAnnounceToChat(@NotNull TeamProgression progression);
+    public abstract boolean doesAnnounceToChat();
 
     /**
      * Returns the icon of the advancement.
      *
-     * @param progression The {@link TeamProgression} of the team.
      * @return The icon of the advancement.
      */
     @NotNull
-    public abstract ItemStack getIcon(@NotNull TeamProgression progression);
+    public abstract ItemStack getIcon();
 
     /**
      * Returns the title of the advancement as a legacy string.
      *
-     * @implNote The default implementation returns the title returned by {@link #getTitleBaseComponent(TeamProgression)} converted into a legacy string.
+     * @implNote The default implementation returns the title returned by {@link #getTitleBaseComponent()} converted into a legacy string.
      *
-     * @param progression The {@link TeamProgression} of the team.
      * @return The title of the advancement as a legacy string.
      */
     @NotNull
-    public String getTitle(@NotNull TeamProgression progression) {
-        return TextComponent.toLegacyText(getTitleBaseComponent(progression));
+    public String getTitle() {
+        return TextComponent.toLegacyText(getTitleBaseComponent());
     }
 
     /**
      * Returns the title of the advancement.
      *
-     * @param progression The {@link TeamProgression} of the team.
      * @return The title of the advancement.
      */
     @NotNull
-    public abstract BaseComponent[] getTitleBaseComponent(@NotNull TeamProgression progression);
+    public abstract BaseComponent[] getTitleBaseComponent();
 
     /**
      * Returns the description of the advancement as a list of legacy strings.
      *
-     * @implNote The default implementation returns the description returned by {@link #getDescriptionBaseComponent(TeamProgression)} converted into a list of legacy strings.
+     * @implNote The default implementation returns the description returned by {@link #getDescriptionBaseComponent()} converted into a list of legacy strings.
      *
-     * @param progression The {@link TeamProgression} of the team.
      * @return The description of the advancement as a list of legacy strings.
      */
     @NotNull
-    public List<String> getDescription(@NotNull TeamProgression progression) {
-        return getDescriptionBaseComponent(progression).stream().map(TextComponent::toLegacyText).toList();
+    public List<String> getDescription() {
+        return getDescriptionBaseComponent().stream().map(TextComponent::toLegacyText).toList();
     }
 
     /**
      * Returns the description of the advancement.
      *
-     * @param progression The {@link TeamProgression} of the team.
      * @return The description of the advancement.
      */
     @NotNull
-    public abstract List<BaseComponent[]> getDescriptionBaseComponent(@NotNull TeamProgression progression);
+    public abstract List<BaseComponent[]> getDescriptionBaseComponent();
 
     /**
      * Returns the shape of the advancement frame in the advancement GUI.
      *
-     * @param progression The {@link TeamProgression} of the team.
      * @return The shape of the advancement frame in the advancement GUI.
      */
     @NotNull
-    public abstract AdvancementFrameType getFrame(@NotNull TeamProgression progression);
+    public abstract AdvancementFrameType getFrame();
 
     /**
      * Returns the advancement position relative to the x-axis.
      *
-     * @param progression The {@link TeamProgression} of the team.
      * @return The x coordinate.
      */
-    public abstract float getX(@NotNull TeamProgression progression);
+    public abstract float getX();
 
     /**
      * Returns the advancement position relative to the y-axis.
      *
-     * @param progression The {@link TeamProgression} of the team.
      * @return The y coordinate.
      */
-    public abstract float getY(@NotNull TeamProgression progression);
+    public abstract float getY();
 
     /**
      * Returns the NMS wrapper of the display.
      *
-     * @param progression The {@link TeamProgression} of the team.
      * @return The NMS wrapper of the display.
      */
     @NotNull
-    public abstract PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull TeamProgression progression);
+    public abstract PreparedAdvancementDisplayWrapper getNMSWrapper();
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final boolean dispatchDoesShowToast(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return doesShowToast(teamProgression);
+        return doesShowToast();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final boolean dispatchDoesShowToast(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return doesShowToast(teamProgression);
+        return doesShowToast();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final boolean dispatchDoesAnnounceToChat(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return doesAnnounceToChat(teamProgression);
+        return doesAnnounceToChat();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final boolean dispatchDoesAnnounceToChat(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return doesAnnounceToChat(teamProgression);
+        return doesAnnounceToChat();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final ItemStack dispatchGetIcon(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getIcon(teamProgression);
+        return getIcon();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final ItemStack dispatchGetIcon(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getIcon(teamProgression);
+        return getIcon();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final String dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getTitle(teamProgression);
+        return getTitle();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final String dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getTitle(teamProgression);
+        return getTitle();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final BaseComponent[] dispatchGetTitleBaseComponent(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getTitleBaseComponent(teamProgression);
+        return getTitleBaseComponent();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final BaseComponent[] dispatchGetTitleBaseComponent(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getTitleBaseComponent(teamProgression);
+        return getTitleBaseComponent();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final List<String> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getDescription(teamProgression);
+        return getDescription();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final List<String> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getDescription(teamProgression);
+        return getDescription();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getDescriptionBaseComponent(teamProgression);
+        return getDescriptionBaseComponent();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getDescriptionBaseComponent(teamProgression);
+        return getDescriptionBaseComponent();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final AdvancementFrameType dispatchGetFrame(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getFrame(teamProgression);
+        return getFrame();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final AdvancementFrameType dispatchGetFrame(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getFrame(teamProgression);
+        return getFrame();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final float dispatchGetX(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getX(teamProgression);
+        return getX();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final float dispatchGetX(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getX(teamProgression);
+        return getX();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final float dispatchGetY(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getY(teamProgression);
+        return getY();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final float dispatchGetY(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getY(teamProgression);
+        return getY();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public final PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getNMSWrapper(teamProgression);
+        return getNMSWrapper();
     }
 }

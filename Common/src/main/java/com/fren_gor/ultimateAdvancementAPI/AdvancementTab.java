@@ -4,6 +4,7 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractImmutableAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayerAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
@@ -56,6 +57,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey.checkNamespace;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
@@ -908,10 +910,15 @@ public final class AdvancementTab {
                 // Handle root advancement
                 if (!(updater.getRootDisplay() instanceof AbstractPerPlayerAdvancementDisplay)) {
                     PreparedAdvancementDisplayWrapper display;
-                    if (updater.getRootDisplay() instanceof AbstractPerTeamAdvancementDisplay perTeam) {
+                    if (updater.getRootDisplay() instanceof AbstractImmutableAdvancementDisplay immutable) {
+                        display = immutable.getNMSWrapper();
+                    } else if (updater.getRootDisplay() instanceof AbstractPerTeamAdvancementDisplay perTeam) {
                         display = perTeam.getNMSWrapper(pro);
                     } else {
-                        display = updater.getRootDisplay().getNMSWrapper();
+                        // Should never arrive here
+                        String msg = updater.getRootDisplay().getClass().getName() + " is not an immutable, per-team or per-player display.";
+                        owningPlugin.getLogger().log(Level.SEVERE, msg, new ClassCastException(msg));
+                        continue; // Don't send any advancement in this case
                     }
                     perTeamToSend.put(updater.getRootWrapper().toAdvancementWrapper(display.toRootAdvancementDisplay(backgroundTexture)), updater.getRootProgression());
                 }

@@ -17,10 +17,12 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * The {@code AdvancementDisplay} class contains the graphical information of the advancement.
- * <p>It contains the title, description, icon, etc. etc.
+ * The default implementation of an immutable display.
+ *
+ * @see AbstractAdvancementDisplay
+ * @see AbstractImmutableAdvancementDisplay
  */
-public class AdvancementDisplay extends AbstractAdvancementDisplay {
+public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
 
     /**
      * The icon of the advancement in the advancement GUI.
@@ -325,13 +327,16 @@ public class AdvancementDisplay extends AbstractAdvancementDisplay {
      *
      * @return The description of the advancement.
      */
+    @Override
+    @NotNull
     @Unmodifiable
     public List<String> getDescription() {
         return description;
     }
 
-    @Unmodifiable
     @Override
+    @NotNull
+    @Unmodifiable
     public List<BaseComponent[]> getDescriptionBaseComponent() {
         return getDescription().stream().map(TextComponent::fromLegacyText).toList();
     }

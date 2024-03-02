@@ -90,7 +90,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
                 this.parents.clear();
                 throw new IllegalArgumentException("A parent advancement (" + advancement.getKey() + ") is not owned by this tab (" + advancementTab + ").");
             }
-            FakeAdvancement adv = new FakeAdvancement(advancement, display.getX(), display.getY());
+            FakeAdvancement adv = new FakeAdvancement(advancement, display);
             this.parents.put(advancement, adv);
         }
     }
