@@ -1,5 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
+import com.fren_gor.ultimateAdvancementAPI.AdvancementTab.PerPlayerBackgroundTextureFn;
+import com.fren_gor.ultimateAdvancementAPI.AdvancementTab.PerTeamBackgroundTextureFn;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
@@ -88,6 +90,36 @@ public final class UltimateAdvancementAPI {
     @Contract("_, _ -> new")
     public AdvancementTab createAdvancementTab(@NotNull String namespace, @NotNull String backgroundTexture) throws DuplicatedException {
         return getMain().createAdvancementTab(plugin, namespace, backgroundTexture);
+    }
+
+    /**
+     * Creates a new {@link AdvancementTab} with the provided namespace and a per-team background texture. The namespace must be unique.
+     *
+     * @param namespace The unique namespace of the tab.
+     * @param perTeamBackgroundTextureFn A function which, given a team, returns the path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png") for that team.
+     * @return The new {@link AdvancementTab}.
+     * @throws DuplicatedException If another tab with the name already exists.
+     * @throws IllegalStateException If the API is not enabled.
+     */
+    @NotNull
+    @Contract("_, _ -> new")
+    public AdvancementTab createAdvancementTab(@NotNull String namespace, @NotNull PerTeamBackgroundTextureFn perTeamBackgroundTextureFn) throws DuplicatedException {
+        return getMain().createAdvancementTab(plugin, namespace, perTeamBackgroundTextureFn);
+    }
+
+    /**
+     * Creates a new {@link AdvancementTab} with the provided namespace and a per-player background texture. The namespace must be unique.
+     *
+     * @param namespace The unique namespace of the tab.
+     * @param perPlayerBackgroundTextureFn A function which, given a player, returns the path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png") for that player.
+     * @return The new {@link AdvancementTab}.
+     * @throws DuplicatedException If another tab with the name already exists.
+     * @throws IllegalStateException If the API is not enabled.
+     */
+    @NotNull
+    @Contract("_, _ -> new")
+    public AdvancementTab createAdvancementTab(@NotNull String namespace, @NotNull PerPlayerBackgroundTextureFn perPlayerBackgroundTextureFn) throws DuplicatedException {
+        return getMain().createAdvancementTab(plugin, namespace, perPlayerBackgroundTextureFn);
     }
 
     /**
