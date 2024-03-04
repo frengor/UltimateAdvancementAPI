@@ -91,10 +91,9 @@ public final class Utils {
 
     /**
      * Must be called inside a:
-     * <blockquote><pre>
-     * Utils.mockServer(() -> {
+     * <pre> {@code Utils.mockServer(() -> {
      *     newAdvancementMain(...)
-     * }</pre></blockquote>
+     * }}</pre>
      *
      * @param plugin The plugin
      * @param databaseManagerSupplier The database manager supplier.

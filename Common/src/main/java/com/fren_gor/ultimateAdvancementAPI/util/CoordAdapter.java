@@ -13,8 +13,7 @@ import java.util.Objects;
  * The {@code CoordAdapter} class adds support for advancement negative coordinates.
  * <p>Note that the x-axis points to the right (as usual), whereas the y-axis points downward.
  * <p>An example usage is shown below:
- * <blockquote><pre>
- * // Keys of the advancements to create
+ * <pre> {@code // Keys of the advancements to create
  * var advKey1 = new AdvancementKey(myPlugin, "first_advancement");
  * var advKey2 = new AdvancementKey(myPlugin, "second_advancement");
  * var advKey3 = new AdvancementKey(myPlugin, "third_advancement");
@@ -34,7 +33,7 @@ import java.util.Objects;
  * // Create the advancements
  * var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1, "textures/block/stone.png");
  * var adv2 = new BaseAdvancement(advKey2.getKey(), advDisplay2, adv1);
- * var adv3 = new BaseAdvancement(advKey3.getKey(), advDisplay3, adv1, 5);</pre></blockquote>
+ * var adv3 = new BaseAdvancement(advKey3.getKey(), advDisplay3, adv1, 5);}</pre>
  *
  * @since 2.1.0
  */

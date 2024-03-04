@@ -73,14 +73,13 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
  * <p>The caching system caches teams using {@link TeamProgression}s and keeps a link between each online player and the
  * associated {@link TeamProgression}. Two players who are part of the same team will always be associated to the same {@link TeamProgression} object.
  * More formally, the object returned by {@link #getTeamProgression(Player)} is the same if and only the players are members of the same team:
- * <blockquote><pre>
- * TeamProgression teamP1 = getProgression(playerOne);
+ * <pre> {@code TeamProgression teamP1 = getProgression(playerOne);
  * TeamProgression teamP2 = getProgression(playerTwo);
  * if (teamP1.contains(p2)) { // Players are members of the same team
  *    assert teamP1 == teamP2;
  * } else { // Players are in two separate teams
  *    assert teamP1 != teamP2;
- * }</pre></blockquote>
+ * }}</pre>
  * By default, players are kept in cache until they quit.
  * However, this behavior can be overridden through the {@link #loadAndAddLoadingRequestToPlayer(UUID, Plugin)} method,
  * which forces a player to stay in cache even if they quit. If the player is not online, they'll be loaded.

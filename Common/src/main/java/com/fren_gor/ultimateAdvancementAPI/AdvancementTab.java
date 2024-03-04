@@ -663,9 +663,7 @@ public final class AdvancementTab {
     /**
      * Utility method which automatically shows this tab to every player just after they have been loaded.
      * <p>More formally, this is equivalent to calling:
-     * <blockquote><pre>
-     * tab.registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOWEST, e -> tab.showTab(e.getPlayer()));
-     * </pre></blockquote>
+     * <pre> {@code tab.registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOWEST, e -> tab.showTab(e.getPlayer()));}</pre>
      *
      * @return This {@code AdvancementTab}.
      * @throws IllegalStateException If the tab is not initialised.
@@ -687,9 +685,7 @@ public final class AdvancementTab {
     /**
      * Utility method which automatically grants the root advancement of this tab to every player after they have been loaded.
      * <p>More formally, this is equivalent to calling:
-     * <blockquote><pre>
-     * tab.registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOW, e -> tab.grantRootAdvancement(e.getPlayer()));
-     * </pre></blockquote>
+     * <pre> {@code tab.registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOW, e -> tab.grantRootAdvancement(e.getPlayer()));}</pre>
      *
      * @return This {@code AdvancementTab}.
      * @throws IllegalStateException If the tab is not initialised.
@@ -1006,10 +1002,16 @@ public final class AdvancementTab {
         }
     }
 
+    /**
+     * A function which, given a team, returns the path of the background texture image of the tab for that team.
+     */
     @FunctionalInterface
     public interface PerTeamBackgroundTextureFn extends Function<TeamProgression, String> {
     }
 
+    /**
+     * A function which, given a player, returns the path of the background texture image of the tab for that player.
+     */
     @FunctionalInterface
     public interface PerPlayerBackgroundTextureFn extends Function<Player, String> {
     }

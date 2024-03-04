@@ -247,8 +247,7 @@ public class AdvancementUtils {
     /**
      * Schedules the provided consumer to execute on the main thread when the {@link CompletableFuture} completes.
      * <p>Example usage:
-     * <blockquote><pre>
-     * runSync(completableFuture, myPlugin, (result, err) -> {
+     * <pre> {@code runSync(completableFuture, myPlugin, (result, err) -> {
      *     if (err != null) {
      *         // An error occurred
      *         // Code which handle the error
@@ -256,8 +255,7 @@ public class AdvancementUtils {
      *     }
      *
      *     // Code which handle the result
-     * });
-     * </pre></blockquote>
+     * });}</pre>
      *
      * @param completableFuture The {@link CompletableFuture} which will complete in the future.
      * @param plugin The plugin which will schedule the task on Bukkit.
@@ -276,8 +274,7 @@ public class AdvancementUtils {
     /**
      * Schedules the provided consumer to execute on the main thread when the {@link CompletableFuture} completes.
      * <p>Example usage:
-     * <blockquote><pre>
-     * runSync(completableFuture, 0, myPlugin, (result, err) -> {
+     * <pre> {@code runSync(completableFuture, 0, myPlugin, (result, err) -> {
      *     if (err != null) {
      *         // An error occurred
      *         // Code which handle the error
@@ -285,8 +282,7 @@ public class AdvancementUtils {
      *     }
      *
      *     // Code which handle the result
-     * });
-     * </pre></blockquote>
+     * });}</pre>
      *
      * @param completableFuture The {@link CompletableFuture} which will complete in the future.
      * @param delay The delay in ticks to wait between the {@link CompletableFuture} competition and the execution of

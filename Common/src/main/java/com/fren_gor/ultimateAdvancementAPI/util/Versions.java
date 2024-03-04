@@ -174,13 +174,11 @@ public class Versions {
      * Returns the input string unless it starts with {@code 'v'}. In that case, this method returns the string without the first letter.
      * If {@code null}, this method returns {@code null}.
      * <p>Examples:
-     * <blockquote><pre>
-     * removeInitialV("v1_15_R1") returns "1_15_R1"
+     * <pre> {@code removeInitialV("v1_15_R1") returns "1_15_R1"
      * removeInitialV("1_15_R1") returns "1_15_R1"
      * removeInitialV("") returns ""
      * removeInitialV("vv1_15_R1") returns "v1_15_R1"
-     * removeInitialV(null) returns null
-     * </pre></blockquote>
+     * removeInitialV(null) returns null}</pre>
      *
      * @param string The input string
      * @return {@code null} if the string is {@code null}, the string itself if the first character isn't {@code 'v'},
