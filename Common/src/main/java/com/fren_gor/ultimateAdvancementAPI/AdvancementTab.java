@@ -944,61 +944,62 @@ public final class AdvancementTab {
                 perTeamToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
             }
 
-            pro.forEachMember(u -> {
-                Player player = Bukkit.getPlayer(u);
-                if (player != null) {
-                    final Map<AdvancementWrapper, Integer> perPlayerToSend = Maps.newHashMapWithExpectedSize(sizeApprox);
-
-                    // Handle root advancement
-                    if (updater.getRootDisplay() instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-                        String background = perTeamBackground != null ? perTeamBackground : perPlayerBackgroundTextureFn.apply(player);
-                        AdvancementDisplayWrapper display = perPlayer.getNMSWrapper(player).toRootAdvancementDisplay(background);
-                        perPlayerToSend.put(updater.getRootWrapper().toAdvancementWrapper(display), updater.getRootProgression());
-                    } else if (rootDisplay != null && perTeamBackground == null) {
-                        AdvancementDisplayWrapper display = rootDisplay.toRootAdvancementDisplay(perPlayerBackgroundTextureFn.apply(player));
-                        perPlayerToSend.put(updater.getRootWrapper().toAdvancementWrapper(display), updater.getRootProgression());
+            for (UUID u : pro.getMembers()) {
+                try {
+                    Player player = Bukkit.getPlayer(u);
+                    if (player != null) {
+                        updatePlayer(player, updater, perTeamToSend, perTeamBackground, rootDisplay, noTab, thisTab, sizeApprox);
                     }
-
-                    // Handle base advancements
-                    for (var entry : updater.getPerPlayerAdvancements()) {
-                        AdvancementDisplayWrapper display = entry.display().getNMSWrapper(player).toBaseAdvancementDisplay();
-                        perPlayerToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
-                    }
-
-                    ISendable sendPacket;
-                    try {
-                        Map<AdvancementWrapper, Integer> toSendMap;
-                        if (perPlayerToSend.isEmpty()) {
-                            toSendMap = perTeamToSend;
-                        } else if (perTeamToSend.isEmpty()) {
-                            toSendMap = perPlayerToSend;
-                        } else {
-                            toSendMap = CompositeMap.of(perTeamToSend, perPlayerToSend);
-                        }
-
-                        sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(toSendMap);
-                    } catch (ReflectiveOperationException e) {
-                        e.printStackTrace();
-                        return;
-                    }
-
-                    noTab.sendTo(player);
-
-                    @Nullable Set<MinecraftKeyWrapper> set = players.put(player, updater.getKeys());
-                    if (set != null && !set.isEmpty()) {
-                        try {
-                            PacketPlayOutAdvancementsWrapper.craftRemovePacket(updater.getKeys()).sendTo(player);
-                        } catch (ReflectiveOperationException e) {
-                            e.printStackTrace();
-                            thisTab.sendTo(player);
-                            return; // TODO Check
-                        }
-                    }
-
-                    sendPacket.sendTo(player);
-                    thisTab.sendTo(player);
+                } catch (Exception e) {
+                    owningPlugin.getLogger().log(Level.SEVERE, "Error sending advancements to player " + u, e);
                 }
-            });
+            }
+        }
+
+        private void updatePlayer(Player player, AdvancementUpdater updater, Map<AdvancementWrapper, Integer> perTeamToSend, String perTeamBackground, PreparedAdvancementDisplayWrapper rootDisplay, ISendable noTab, ISendable thisTab, int sizeApprox) throws ReflectiveOperationException {
+            final Map<AdvancementWrapper, Integer> perPlayerToSend = Maps.newHashMapWithExpectedSize(sizeApprox);
+
+            // Handle root advancement
+            if (updater.getRootDisplay() instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
+                String background = perTeamBackground != null ? perTeamBackground : perPlayerBackgroundTextureFn.apply(player);
+                AdvancementDisplayWrapper display = perPlayer.getNMSWrapper(player).toRootAdvancementDisplay(background);
+                perPlayerToSend.put(updater.getRootWrapper().toAdvancementWrapper(display), updater.getRootProgression());
+            } else if (rootDisplay != null && perTeamBackground == null) {
+                AdvancementDisplayWrapper display = rootDisplay.toRootAdvancementDisplay(perPlayerBackgroundTextureFn.apply(player));
+                perPlayerToSend.put(updater.getRootWrapper().toAdvancementWrapper(display), updater.getRootProgression());
+            }
+
+            // Handle base advancements
+            for (var entry : updater.getPerPlayerAdvancements()) {
+                AdvancementDisplayWrapper display = entry.display().getNMSWrapper(player).toBaseAdvancementDisplay();
+                perPlayerToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
+            }
+
+            Map<AdvancementWrapper, Integer> toSendMap;
+            if (perPlayerToSend.isEmpty()) {
+                toSendMap = perTeamToSend;
+            } else if (perTeamToSend.isEmpty()) {
+                toSendMap = perPlayerToSend;
+            } else {
+                toSendMap = CompositeMap.of(perTeamToSend, perPlayerToSend);
+            }
+
+            ISendable sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(toSendMap);
+
+            noTab.sendTo(player);
+
+            @Nullable Set<MinecraftKeyWrapper> set = players.put(player, updater.getKeys());
+            if (set != null && !set.isEmpty()) {
+                try {
+                    PacketPlayOutAdvancementsWrapper.craftRemovePacket(updater.getKeys()).sendTo(player);
+                } catch (ReflectiveOperationException e) {
+                    thisTab.sendTo(player); // Show again if sending the remove packet fails
+                    throw e;
+                }
+            }
+
+            sendPacket.sendTo(player);
+            thisTab.sendTo(player);
         }
     }
 
