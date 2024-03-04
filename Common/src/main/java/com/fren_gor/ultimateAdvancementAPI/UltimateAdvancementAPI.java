@@ -30,8 +30,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.logging.Level;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
@@ -917,39 +919,38 @@ public final class UltimateAdvancementAPI {
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(internalAction, "internalAction is null.");
 
-        final DatabaseManager ds = getMain().getDatabaseManager();
+        final AdvancementMain main = getMain();
+        final DatabaseManager ds = main.getDatabaseManager();
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
 
-        ds.loadAndAddLoadingRequestToPlayer(uuid, plugin).handleAsync((progression, exception) -> {
-            if (exception != null) {
-                completableFuture.completeExceptionally(exception);
-                new RuntimeException("An exception occurred while loading user " + uuid + ':', exception.getCause()).printStackTrace();
-            } else {
-                internalAction.apply(ds).handleAsync((res, exc) -> {
-                    if (exc != null) {
-                        completableFuture.completeExceptionally(exc);
-                        new RuntimeException("An exception occurred while calling API method:", exc).printStackTrace();
-                        ds.removeLoadingRequestToPlayer(uuid, plugin);
-                    } else {
-                        completableFuture.complete(res);
-                        if (action != null) {
-                            runSync(plugin, () -> {
-                                try {
-                                    if (plugin.isEnabled())
-                                        action.accept(res);
-                                } catch (Exception t) {
-                                    new RuntimeException("An exception occurred while calling " + plugin.getName() + "'s Consumer:", t).printStackTrace();
-                                } finally {
-                                    ds.removeLoadingRequestToPlayer(uuid, plugin);
-                                }
-                            });
-                        } else {
+        ds.loadAndAddLoadingRequestToPlayer(uuid, plugin).thenRun(() -> {
+            CompletableFuture.supplyAsync(() -> internalAction.apply(ds)).thenCompose(c -> c).thenAcceptAsync(res -> {
+                completableFuture.complete(res);
+                if (action != null) {
+                    runSync(plugin, () -> {
+                        try {
+                            if (plugin.isEnabled())
+                                action.accept(res);
+                        } catch (Exception e) {
+                            main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling " + plugin.getName() + "'s Consumer", e);
+                        } finally {
                             ds.removeLoadingRequestToPlayer(uuid, plugin);
                         }
-                    }
-                    return null;
-                });
-            }
+                    });
+                } else {
+                    ds.removeLoadingRequestToPlayer(uuid, plugin);
+                }
+            }).exceptionallyAsync(err -> {
+                err = getCause(err);
+                completableFuture.completeExceptionally(err);
+                main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling an API method", err);
+                ds.removeLoadingRequestToPlayer(uuid, plugin);
+                return null;
+            });
+        }).exceptionallyAsync(err -> {
+            err = getCause(err);
+            completableFuture.completeExceptionally(err);
+            main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while loading user " + uuid, err);
             return null;
         });
 
@@ -965,54 +966,57 @@ public final class UltimateAdvancementAPI {
         Preconditions.checkNotNull(uuid2, "2nd UUID is null.");
         Preconditions.checkNotNull(internalAction, "internalAction is null.");
 
-        final DatabaseManager ds = getMain().getDatabaseManager();
+        final AdvancementMain main = getMain();
+        final DatabaseManager ds = main.getDatabaseManager();
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
 
-        ds.loadAndAddLoadingRequestToPlayer(uuid1, plugin).handleAsync((progression1, lexc1) -> {
-            if (lexc1 != null) {
-                completableFuture.completeExceptionally(lexc1);
-                new RuntimeException("An exception occurred while loading 1st user " + uuid1 + ':', lexc1.getCause()).printStackTrace();
-            } else {
-                ds.loadAndAddLoadingRequestToPlayer(uuid2, plugin).handleAsync((progression2, lexc2) -> {
-                    if (lexc2 != null) {
-                        completableFuture.completeExceptionally(lexc2);
-                        new RuntimeException("An exception occurred while loading 2nd user " + uuid2 + ':', lexc2.getCause()).printStackTrace();
-                    } else {
-                        internalAction.apply(ds).handleAsync((res, exception) -> {
-                            if (exception != null) {
-                                completableFuture.completeExceptionally(exception);
-                                new RuntimeException("An exception occurred while calling API method:", exception).printStackTrace();
+        ds.loadAndAddLoadingRequestToPlayer(uuid1, plugin).thenRun(() -> {
+            ds.loadAndAddLoadingRequestToPlayer(uuid2, plugin).thenRun(() -> {
+                CompletableFuture.supplyAsync(() -> internalAction.apply(ds)).thenCompose(c -> c).thenAcceptAsync(res -> {
+                    completableFuture.complete(res);
+                    if (action != null) {
+                        runSync(plugin, () -> {
+                            try {
+                                if (plugin.isEnabled())
+                                    action.accept(res);
+                            } catch (Exception e) {
+                                main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling " + plugin.getName() + "'s Consumer", e);
+                            } finally {
                                 ds.removeLoadingRequestToPlayer(uuid1, plugin);
                                 ds.removeLoadingRequestToPlayer(uuid2, plugin);
-                            } else {
-                                completableFuture.complete(res);
-                                if (action != null) {
-                                    runSync(plugin, () -> {
-                                        try {
-                                            if (plugin.isEnabled())
-                                                action.accept(res);
-                                        } catch (Exception t) {
-                                            new RuntimeException("An exception occurred while calling " + plugin.getName() + "'s Consumer:", t).printStackTrace();
-                                        } finally {
-                                            ds.removeLoadingRequestToPlayer(uuid1, plugin);
-                                            ds.removeLoadingRequestToPlayer(uuid2, plugin);
-                                        }
-                                    });
-                                } else {
-                                    ds.removeLoadingRequestToPlayer(uuid1, plugin);
-                                    ds.removeLoadingRequestToPlayer(uuid2, plugin);
-                                }
                             }
-                            return null;
                         });
+                    } else {
+                        ds.removeLoadingRequestToPlayer(uuid1, plugin);
+                        ds.removeLoadingRequestToPlayer(uuid2, plugin);
                     }
+                }).exceptionallyAsync(err -> {
+                    err = getCause(err);
+                    completableFuture.completeExceptionally(err);
+                    main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling an API method", err);
+                    ds.removeLoadingRequestToPlayer(uuid1, plugin);
+                    ds.removeLoadingRequestToPlayer(uuid2, plugin);
                     return null;
                 });
-            }
+            }).exceptionallyAsync(err -> {
+                err = getCause(err);
+                completableFuture.completeExceptionally(err);
+                main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while loading user " + uuid2, err);
+                ds.removeLoadingRequestToPlayer(uuid1, plugin);
+                return null;
+            });
+        }).exceptionallyAsync(err -> {
+            err = getCause(err);
+            completableFuture.completeExceptionally(err);
+            main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while loading user " + uuid1, err);
             return null;
         });
 
         return completableFuture;
+    }
+
+    private Throwable getCause(Throwable t) {
+        return t instanceof CompletionException ? t.getCause() : t;
     }
 
     private <T> CompletableFuture<T> callSyncIfNotNull(@NotNull CompletableFuture<T> completableFuture, @Nullable Consumer<T> action) {
