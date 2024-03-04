@@ -885,6 +885,10 @@ public final class AdvancementTab {
             final int sizeApprox = advancements.size() + 16;
 
             for (TeamProgression pro : advsToUpdate) {
+                if (!pro.isValid()) {
+                    continue;
+                }
+
                 try {
                     updateTeam(pro, sizeApprox);
                 } catch (Exception e) {
