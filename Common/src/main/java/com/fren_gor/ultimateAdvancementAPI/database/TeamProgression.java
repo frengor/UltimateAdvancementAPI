@@ -165,6 +165,7 @@ public final class TeamProgression {
      * @return An <i>immutable</i> {@link Set} containing the team members present at the time this method is called.
      */
     @Unmodifiable
+    @NotNull
     public Set<@NotNull UUID> getMembers() {
         synchronized (playersLock) {
             return players;
@@ -261,7 +262,7 @@ public final class TeamProgression {
      *
      * @param uuid The {@link UUID} of the player to be removed.
      */
-    void removeMember(UUID uuid) {
+    void removeMember(@NotNull UUID uuid) {
         Preconditions.checkNotNull(uuid, "UUID is null");
         synchronized (playersLock) {
             Preconditions.checkArgument(players.contains(uuid), "Team " + teamId + " doesn't contain member " + uuid);
