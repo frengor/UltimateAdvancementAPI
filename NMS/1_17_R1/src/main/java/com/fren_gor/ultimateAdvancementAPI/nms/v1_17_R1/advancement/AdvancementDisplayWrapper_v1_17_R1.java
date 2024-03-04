@@ -1,12 +1,14 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_17_R1.advancement;
 
+import com.fren_gor.ultimateAdvancementAPI.nms.v1_17_R1.Util;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.advancements.FrameType;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_17_R1.util.CraftChatMessage;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +20,14 @@ public class AdvancementDisplayWrapper_v1_17_R1 extends AdvancementDisplayWrappe
 
     public AdvancementDisplayWrapper_v1_17_R1(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
         ResourceLocation background = backgroundTexture == null ? null : new ResourceLocation(backgroundTexture);
-        this.display = new DisplayInfo(CraftItemStack.asNMSCopy(icon), new TextComponent(title), new TextComponent(description), background, (FrameType) frameType.toNMS(), showToast, announceChat, hidden);
+        this.display = new DisplayInfo(CraftItemStack.asNMSCopy(icon), Util.fromString(title), Util.fromString(description), background, (FrameType) frameType.toNMS(), showToast, announceChat, hidden);
+        this.display.setLocation(x, y);
+        this.frameType = frameType;
+    }
+
+    protected AdvancementDisplayWrapper_v1_17_R1(@NotNull net.minecraft.world.item.ItemStack icon, @NotNull Component title, @NotNull Component description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
+        ResourceLocation background = backgroundTexture == null ? null : new ResourceLocation(backgroundTexture);
+        this.display = new DisplayInfo(icon, title, description, background, (FrameType) frameType.toNMS(), showToast, announceChat, hidden);
         this.display.setLocation(x, y);
         this.frameType = frameType;
     }
@@ -32,13 +41,13 @@ public class AdvancementDisplayWrapper_v1_17_R1 extends AdvancementDisplayWrappe
     @Override
     @NotNull
     public String getTitle() {
-        return ((TextComponent) display.getTitle()).getText();
+        return CraftChatMessage.fromComponent(display.getTitle());
     }
 
     @Override
     @NotNull
     public String getDescription() {
-        return ((TextComponent) display.getDescription()).getText();
+        return CraftChatMessage.fromComponent(display.getDescription());
     }
 
     @Override

@@ -4,29 +4,33 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 public class PreparedAdvancementWrapper_mocked0_0_R1 extends PreparedAdvancementWrapper {
 
     private final MinecraftKeyWrapper key;
-    private final AdvancementDisplayWrapper display;
+    private final PreparedAdvancementWrapper parent;
     private final int maxProgression;
 
-    public PreparedAdvancementWrapper_mocked0_0_R1(@NotNull MinecraftKeyWrapper key, @NotNull AdvancementDisplayWrapper display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    public PreparedAdvancementWrapper_mocked0_0_R1(@NotNull MinecraftKeyWrapper key, @Nullable PreparedAdvancementWrapper parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         this.key = key;
-        this.display = display;
+        this.parent = parent;
         this.maxProgression = maxProgression;
     }
 
+    @Override
     @NotNull
     public MinecraftKeyWrapper getKey() {
         return key;
     }
 
-    @NotNull
-    public AdvancementDisplayWrapper getDisplay() {
-        return display;
+    @Override
+    @Nullable
+    public PreparedAdvancementWrapper getParent() {
+        return parent;
     }
 
     @Override
@@ -37,13 +41,18 @@ public class PreparedAdvancementWrapper_mocked0_0_R1 extends PreparedAdvancement
 
     @Override
     @NotNull
-    public AdvancementWrapper toRootAdvancementWrapper() {
-        return new AdvancementWrapper_mocked0_0_R1(key, display, maxProgression);
+    public AdvancementWrapper toAdvancementWrapper(@NotNull AdvancementDisplayWrapper display) {
+        if (parent == null) {
+            return new AdvancementWrapper_mocked0_0_R1(key, display, maxProgression);
+        } else {
+            return new AdvancementWrapper_mocked0_0_R1(key, parent, display, maxProgression);
+        }
     }
 
     @Override
     @NotNull
-    public AdvancementWrapper toBaseAdvancementWrapper(@NotNull AdvancementWrapper parent) {
-        return new AdvancementWrapper_mocked0_0_R1(key, parent, display, maxProgression);
+    @Contract("_ -> new")
+    public PreparedAdvancementWrapper withParent(@Nullable PreparedAdvancementWrapper parent) {
+        return new PreparedAdvancementWrapper_mocked0_0_R1(key, parent, maxProgression);
     }
 }

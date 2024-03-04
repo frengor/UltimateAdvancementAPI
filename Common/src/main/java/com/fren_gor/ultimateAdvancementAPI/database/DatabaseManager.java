@@ -656,7 +656,6 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
-        checkSync(); // Bukkit.getPlayer must be called on the main thread
         return updatePlayerTeam(playerToMove, Bukkit.getPlayer(playerToMove), otherTeamProgression);
     }
 
@@ -748,7 +747,6 @@ public final class DatabaseManager implements Closeable {
      * @see UltimateAdvancementAPI#movePlayerInNewTeam(UUID)
      */
     public CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID uuid) throws UserNotLoadedException {
-        checkSync(); // Bukkit.getPlayer must be called on the main thread
         return movePlayerInNewTeam(uuid, Bukkit.getPlayer(uuid));
     }
 
@@ -1031,6 +1029,19 @@ public final class DatabaseManager implements Closeable {
      */
     @NotNull
     public TeamProgression getTeamProgression(@NotNull Player player) throws UserNotLoadedException {
+        return getTeamProgression(uuidFromPlayer(player));
+    }
+
+    /**
+     * Returns the {@link TeamProgression} of the team of the provided offline player.
+     *
+     * @param player The player.
+     * @return The {@link TeamProgression} of the player's team.
+     * @throws UserNotLoadedException If the player was not loaded into the cache.
+     * @see UltimateAdvancementAPI#getTeamProgression(Player)
+     */
+    @NotNull
+    public TeamProgression getTeamProgression(@NotNull OfflinePlayer player) throws UserNotLoadedException {
         return getTeamProgression(uuidFromPlayer(player));
     }
 

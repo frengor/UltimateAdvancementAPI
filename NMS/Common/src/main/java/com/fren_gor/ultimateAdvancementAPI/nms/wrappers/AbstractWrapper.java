@@ -3,7 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.nms.wrappers;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A generic NMS wrappers.
+ * A generic NMS wrapper.
  */
 public abstract class AbstractWrapper {
 

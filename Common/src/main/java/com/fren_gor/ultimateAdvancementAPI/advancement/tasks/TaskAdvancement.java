@@ -1,13 +1,15 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
+import com.fren_gor.ultimateAdvancementAPI.AdvancementUpdater;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
@@ -18,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -65,7 +66,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * @param display The display information of this task.
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      */
-    public TaskAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask) {
+    public TaskAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask) {
         this(key, display, multitask, 1);
     }
 
@@ -77,21 +78,8 @@ public class TaskAdvancement extends BaseAdvancement {
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param maxProgression The maximum progression of the task.
      */
-    public TaskAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    public TaskAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         super(key, display, Objects.requireNonNull(multitask, "AbstractMultiTasksAdvancement is null."), maxProgression);
-    }
-
-    /**
-     * {@inheritDoc}
-     * This method returns {@code null} by default.
-     *
-     * @return Always {@code null}.
-     */
-    @Override
-    @Nullable
-    @Contract(pure = true, value = "_ -> null")
-    public final BaseComponent[] getAnnounceMessage(@NotNull Player player) {
-        return null;
     }
 
     /**
@@ -199,6 +187,19 @@ public class TaskAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
+     * Since {@code TaskAdvancement}s are not sent to players, this method always returns {@code null}.
+     *
+     * @return Always {@code null}.
+     */
+    @Override
+    @Nullable
+    @Contract("_ -> null")
+    public final BaseComponent[] getAnnounceMessage(@NotNull Player player) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
      * <p>Since {@code TaskAdvancement}s are not sent to players, this method doesn't send toast notifications and chat messages.
      */
     @Override
@@ -249,7 +250,7 @@ public class TaskAdvancement extends BaseAdvancement {
      */
     @Override
     @NotNull
-    public final AdvancementWrapper getNMSWrapper() {
+    public final PreparedAdvancementWrapper getNMSWrapper() {
         throw new UnsupportedOperationException();
     }
 
@@ -271,7 +272,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Every time this method is called.
      */
     @Override
-    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) {
         throw new UnsupportedOperationException();
     }
 }

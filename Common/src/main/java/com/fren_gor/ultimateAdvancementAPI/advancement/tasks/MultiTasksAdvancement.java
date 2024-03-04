@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
@@ -56,6 +56,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * The cache for the team's progressions (the key is the team unique id).
      */
     protected final Map<Integer, Integer> progressionsCache = Collections.synchronizedMap(new HashMap<>());
+
     /**
      * The map of pending updates.
      *
@@ -73,7 +74,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * @param parent The parent of this advancement.
      * @param maxProgression The sum of the maximum progressions of all the tasks that will be registered.
      */
-    public MultiTasksAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    public MultiTasksAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         super(key, display, parent, maxProgression);
     }
 

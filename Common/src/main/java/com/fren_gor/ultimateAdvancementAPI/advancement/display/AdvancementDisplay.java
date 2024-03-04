@@ -1,14 +1,12 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
-import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -19,24 +17,20 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * The {@code AdvancementDisplay} class contains the graphical information of the advancement.
- * <p>It contains the title, description, icon, etc. etc.
+ * The default implementation of an immutable display.
+ *
+ * @see AbstractAdvancementDisplay
+ * @see AbstractImmutableAdvancementDisplay
  */
-public class AdvancementDisplay {
+public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
 
     /**
      * The icon of the advancement in the advancement GUI.
      */
     protected final ItemStack icon;
 
-    /**
-     * The fancy title used by {@link Advancement#getAnnounceMessage(Player)}.
-     */
     protected final BaseComponent[] chatTitle = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
 
-    /**
-     * The fancy description used by {@link Advancement#getAnnounceMessage(Player)}.
-     */
     protected final BaseComponent[] chatDescription = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
 
     /**
@@ -84,6 +78,9 @@ public class AdvancementDisplay {
      * The advancement y coordinate.
      */
     protected final float y;
+
+    @LazyValue
+    private PreparedAdvancementDisplayWrapper wrapper;
 
     /**
      * Creates a new {@code AdvancementDisplay}.
@@ -271,26 +268,6 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Gets the {@link BaseComponent} array that contains the fancy title. Used by {@link Advancement#getAnnounceMessage(Player)}.
-     *
-     * @return The {@link BaseComponent} array that contains the fancy title.
-     */
-    @NotNull
-    public BaseComponent[] getChatTitle() {
-        return chatTitle.clone();
-    }
-
-    /**
-     * Gets the {@link BaseComponent} array that contains the fancy description. Used by {@link Advancement#getAnnounceMessage(Player)}.
-     *
-     * @return The {@link BaseComponent} array that contains the fancy description.
-     */
-    @NotNull
-    public BaseComponent[] getChatDescription() {
-        return chatDescription.clone();
-    }
-
-    /**
      * Gets a clone of the icon.
      *
      * @return A clone of the icon.
@@ -301,21 +278,18 @@ public class AdvancementDisplay {
     }
 
     /**
-     * Returns the {@code AdvancementDisplay} NMS wrapper, using the provided advancement for construction (when necessary).
+     * Returns the {@code AdvancementDisplay} NMS wrapper.
      *
-     * @param advancement The advancement used, when necessary, to create the NMS wrapper. Must be not {@code null}.
      * @return The {@code AdvancementDisplay} NMS wrapper.
      */
     @NotNull
-    public AdvancementDisplayWrapper getNMSWrapper(@NotNull Advancement advancement) {
-        Preconditions.checkNotNull(advancement, "Advancement is null.");
-        AdvancementDisplayWrapper wrapper;
+    public PreparedAdvancementDisplayWrapper getNMSWrapper() {
+        if (wrapper != null) {
+            return wrapper;
+        }
+
         try {
-            if (advancement instanceof RootAdvancement root) {
-                return AdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y, root.getBackgroundTexture());
-            } else {
-                return AdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y);
-            }
+            return wrapper = PreparedAdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
@@ -327,8 +301,15 @@ public class AdvancementDisplay {
      * @return The title of the advancement.
      */
     @NotNull
+    @Override
     public String getTitle() {
         return title;
+    }
+
+    @NotNull
+    @Override
+    public BaseComponent[] getTitleBaseComponent() {
+        return TextComponent.fromLegacyText(getTitle());
     }
 
     /**
@@ -346,9 +327,18 @@ public class AdvancementDisplay {
      *
      * @return The description of the advancement.
      */
+    @Override
+    @NotNull
     @Unmodifiable
     public List<String> getDescription() {
         return description;
+    }
+
+    @Override
+    @NotNull
+    @Unmodifiable
+    public List<BaseComponent[]> getDescriptionBaseComponent() {
+        return getDescription().stream().map(TextComponent::fromLegacyText).toList();
     }
 
     /**
@@ -428,6 +418,20 @@ public class AdvancementDisplay {
          * @param title The title of the advancement.
          */
         public Builder(@NotNull ItemStack icon, @NotNull String title) {
+            super(icon, title);
+        }
+
+        /**
+         * Creates a new {@code AdvancementDisplay.Builder}.
+         * <p>By default, the advancement display returned by {@link #build()} won't show both the toast message and
+         * the announcement message in the chat upon advancement completion.
+         * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
+         * <p>The default {@code defaultColor} is {@link AdvancementFrameType#getColor() AdvancementFrameType.TASK.getColor()}.
+         *
+         * @param icon The advancement's icon in the advancement GUI.
+         * @param title The title of the advancement.
+         */
+        public Builder(@NotNull ItemStack icon, @NotNull BaseComponent[] title) {
             super(icon, title);
         }
 

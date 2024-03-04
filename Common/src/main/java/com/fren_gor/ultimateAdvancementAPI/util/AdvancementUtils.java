@@ -4,7 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.UltimateAdvancementAPI;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
@@ -13,11 +13,15 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisabl
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdvancementsWrapper;
 import com.google.common.base.Preconditions;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.HoverEvent.Action;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -42,6 +46,7 @@ public class AdvancementUtils {
 
     public static final MinecraftKeyWrapper ROOT_KEY, NOTIFICATION_KEY;
     private static final String ADV_DESCRIPTION = "\n§7A notification.";
+    private static final PreparedAdvancementWrapper PREPARED_ROOT;
     private static final AdvancementWrapper ROOT;
 
     static {
@@ -49,7 +54,8 @@ public class AdvancementUtils {
             ROOT_KEY = MinecraftKeyWrapper.craft("com.fren_gor", "root");
             NOTIFICATION_KEY = MinecraftKeyWrapper.craft("com.fren_gor", "notification");
             AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), "§f§lNotifications§1§2§3§4§5§6§7§8§9§0", "§7Notification page.\n§7Close and reopen advancements to hide.", AdvancementFrameTypeWrapper.TASK, 0, 0, "textures/block/stone.png");
-            ROOT = AdvancementWrapper.craftRootAdvancement(ROOT_KEY, display, 1);
+            PREPARED_ROOT = PreparedAdvancementWrapper.craft(ROOT_KEY, 1);
+            ROOT = PREPARED_ROOT.toAdvancementWrapper(display);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
@@ -73,7 +79,7 @@ public class AdvancementUtils {
 
         try {
             AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(icon, title, ADV_DESCRIPTION, frame.getNMSWrapper(), 1, 0, true, false, false);
-            AdvancementWrapper notification = AdvancementWrapper.craftBaseAdvancement(NOTIFICATION_KEY, ROOT, display, 1);
+            AdvancementWrapper notification = AdvancementWrapper.craftBaseAdvancement(NOTIFICATION_KEY, PREPARED_ROOT, display, 1);
             PacketPlayOutAdvancementsWrapper.craftSendPacket(Map.of(
                     ROOT, 1,
                     notification, 1
@@ -113,11 +119,12 @@ public class AdvancementUtils {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkArgument(advancement.isValid(), "Advancement isn't valid.");
 
-        final AdvancementDisplay display = advancement.getDisplay();
+        final AbstractAdvancementDisplay display = advancement.getDisplay();
+        final TeamProgression pro = advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player);
         final MinecraftKeyWrapper keyWrapper = getUniqueKey(advancement.getAdvancementTab()).getNMSWrapper();
 
         try {
-            AdvancementDisplayWrapper displayWrapper = AdvancementDisplayWrapper.craft(display.getIcon(), display.getTitle(), ADV_DESCRIPTION, display.getFrame().getNMSWrapper(), 0, 0, true, false, false);
+            AdvancementDisplayWrapper displayWrapper = AdvancementDisplayWrapper.craft(display.dispatchGetIcon(player, pro), display.dispatchGetTitle(player, pro), ADV_DESCRIPTION, display.dispatchGetFrame(player, pro).getNMSWrapper(), 0, 0, true, false, false);
             AdvancementWrapper advWrapper = AdvancementWrapper.craftBaseAdvancement(keyWrapper, advancement.getNMSWrapper(), displayWrapper, 1);
 
             PacketPlayOutAdvancementsWrapper.craftSendPacket(Map.of(advWrapper, 1)).sendTo(player);
@@ -342,6 +349,44 @@ public class AdvancementUtils {
     public static TeamProgression progressionFromUUID(@NotNull UUID uuid, @NotNull AdvancementTab tab) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
         return tab.getDatabaseManager().getTeamProgression(uuid);
+    }
+
+    @NotNull
+    public static BaseComponent[] getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+        Preconditions.checkNotNull(advancement, "Advancement is null.");
+        Preconditions.checkNotNull(advancementCompleter, "Player is null.");
+
+        AbstractAdvancementDisplay display = advancement.getDisplay();
+        TeamProgression progression = advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(advancementCompleter);
+        AdvancementFrameType frame = display.dispatchGetFrame(advancementCompleter, progression);
+        String title = display.dispatchGetTitle(advancementCompleter, progression);
+        String description = String.join("\n" + ChatColor.RESET, display.dispatchGetDescription(advancementCompleter, progression));
+        ChatColor color = frame.getColor();
+        String chatText = frame.getChatText();
+
+        Preconditions.checkNotNull(frame, "Display returned a null frame.");
+        Preconditions.checkNotNull(title, "Display returned a null title.");
+        Preconditions.checkNotNull(description, "Display returned a null description.");
+        Preconditions.checkNotNull(color, "Frame returned a null color.");
+        Preconditions.checkNotNull(chatText, "Frame returned a null chatText.");
+
+        return new ComponentBuilder(advancementCompleter.getName() + ' ' + frame.getChatText() + ' ')
+                .color(ChatColor.WHITE)
+                .append(new ComponentBuilder("[")
+                                .color(frame.getColor())
+                                .event(new HoverEvent(Action.SHOW_TEXT, new ComponentBuilder("")
+                                        .append(title, FormatRetention.NONE)
+                                        .append("\n")
+                                        .append(description, FormatRetention.NONE)
+                                        .create()))
+                                .create()
+                        , FormatRetention.NONE)
+                .append(title, FormatRetention.EVENTS)
+                .append(new ComponentBuilder("]")
+                                .color(frame.getColor())
+                                .create()
+                        , FormatRetention.EVENTS)
+                .create();
     }
 
     private AdvancementUtils() {

@@ -4,6 +4,9 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractImmutableAdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayerAdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
@@ -15,12 +18,15 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.ISendable;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdvancementsWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutSelectAdvancementTabWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
+import com.fren_gor.ultimateAdvancementAPI.util.CompositeMap;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -51,6 +57,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.logging.Level;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey.checkNamespace;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
@@ -58,33 +66,39 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 /**
  * The {@code AdvancementTab} class represents a tab in the advancement GUI.
  * <p>Every advancement tab is represented by a unique namespace (not visible in the advancement GUI) and has only one {@link RootAdvancement}.
- * <p>An instance can be obtained using {@link UltimateAdvancementAPI#createAdvancementTab(String)}.
+ * <p>An instance can be obtained using {@link UltimateAdvancementAPI#createAdvancementTab(String, String)}.
  * The returned instance is not initialised, that is it doesn't contain any advancement yet.
  */
 public final class AdvancementTab {
 
     private final Plugin owningPlugin;
     private final EventManager eventManager;
-    private final String namespace;
+    private final String namespace, backgroundTexture;
+    private final PerTeamBackgroundTextureFn perTeamBackgroundTextureFn;
+    private final PerPlayerBackgroundTextureFn perPlayerBackgroundTextureFn;
     private final DatabaseManager databaseManager;
     private volatile Map<AdvancementKey, Advancement> advancements = Collections.emptyMap();
     private final Map<Player, Set<MinecraftKeyWrapper>> players = new HashMap<>();
-    private final AdvsUpdateRunnable updateManager;
+    private final AdvsUpdateRunnable updateManager = new AdvsUpdateRunnable();
 
     private RootAdvancement rootAdvancement;
     private boolean initialised = false, disposed = false, automaticallyShown = false, automaticallyGrant = false;
+    private boolean showToastToTeam = true;
     @LazyValue
     private Collection<String> advNamespacedKeys;
     @LazyValue
     private Collection<BaseAdvancement> advsWithoutRoot;
 
-    AdvancementTab(@NotNull Plugin owningPlugin, @NotNull DatabaseManager databaseManager, @NotNull String namespace) {
+    AdvancementTab(@NotNull Plugin owningPlugin, @NotNull DatabaseManager databaseManager, @NotNull String namespace, String backgroundTexture, PerTeamBackgroundTextureFn perTeamBackgroundTextureFn, PerPlayerBackgroundTextureFn perPlayerBackgroundTextureFn) {
         checkNamespace(namespace);
+        Preconditions.checkArgument(backgroundTexture != null || perTeamBackgroundTextureFn != null || perPlayerBackgroundTextureFn != null, "At least a background texture must be provided.");
         this.namespace = Objects.requireNonNull(namespace);
+        this.backgroundTexture = backgroundTexture;
+        this.perTeamBackgroundTextureFn = perTeamBackgroundTextureFn;
+        this.perPlayerBackgroundTextureFn = perPlayerBackgroundTextureFn;
         this.owningPlugin = Objects.requireNonNull(owningPlugin);
         this.eventManager = new EventManager(owningPlugin);
         this.databaseManager = Objects.requireNonNull(databaseManager);
-        this.updateManager = new AdvsUpdateRunnable();
         eventManager.register(this, PlayerQuitEvent.class, e -> players.remove(e.getPlayer()));
     }
 
@@ -797,6 +811,25 @@ public final class AdvancementTab {
     }
 
     /**
+     * Returns whether the toast notification should be sent to every team member on advancement grant.
+     * <p>Defaults to {@code true} if not changed using {@link #setShowToastToTeam(boolean)}.
+     *
+     * @return Whether the toast notification should be sent to every team member on advancement grant.
+     */
+    public boolean doesShowToastToTeam() {
+        return showToastToTeam;
+    }
+
+    /**
+     * Sets whether the toast notification should be sent to every team member on advancement grant.
+     *
+     * @param showToastToTeam Whether the toast notification should be sent to every team member on advancement grant.
+     */
+    public void setShowToastToTeam(boolean showToastToTeam) {
+        this.showToastToTeam = showToastToTeam;
+    }
+
+    /**
      * Gets the {@link DatabaseManager} of this tab.
      *
      * @return The {@link DatabaseManager} of this tab.
@@ -849,53 +882,135 @@ public final class AdvancementTab {
         @Override
         public void run() {
             // Keep additional space for advancements that might be added by Advancement#onUpdate
-            final int best = advancements.size() + 16;
-            final Map<AdvancementWrapper, Integer> advs = Maps.newHashMapWithExpectedSize(best);
+            final int sizeApprox = advancements.size() + 16;
 
             for (TeamProgression pro : advsToUpdate) {
-                final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(best);
-
-                for (Advancement advancement : advancements.values()) {
-                    advancement.onUpdate(pro, advs);
-                    keys.add(advancement.getKey().getNMSWrapper());
-                }
-
-                ISendable sendPacket, noTab, thisTab;
-                try {
-                    sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(advs);
-                    noTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelectNone();
-                    thisTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelect(rootAdvancement.getKey().getNMSWrapper());
-                } catch (ReflectiveOperationException e) {
-                    e.printStackTrace();
+                if (!pro.isValid()) {
                     continue;
                 }
 
-                pro.forEachMember(u -> {
-                    Player player = Bukkit.getPlayer(u);
-                    if (player != null) {
-                        noTab.sendTo(player);
-
-                        @Nullable Set<MinecraftKeyWrapper> set = players.put(player, keys);
-                        if (set != null && !set.isEmpty()) {
-                            try {
-                                PacketPlayOutAdvancementsWrapper.craftRemovePacket(keys).sendTo(player);
-                            } catch (ReflectiveOperationException e) {
-                                e.printStackTrace();
-                                thisTab.sendTo(player);
-                                return; // TODO Check
-                            }
-                        }
-
-                        sendPacket.sendTo(player);
-                        thisTab.sendTo(player);
-                    }
-                });
-
-                advs.clear();
+                try {
+                    updateTeam(pro, sizeApprox);
+                } catch (Exception e) {
+                    owningPlugin.getLogger().log(Level.SEVERE, "Error sending advancements to team with id " + pro.getTeamId(), e);
+                }
             }
             task = null;
             advsToUpdate.clear();
             scheduled = false;
         }
+
+        private void updateTeam(TeamProgression pro, int sizeApprox) throws ReflectiveOperationException {
+            final AdvancementUpdater updater = new AdvancementUpdater(rootAdvancement.getKey(), sizeApprox);
+
+            for (Advancement advancement : advancements.values()) {
+                advancement.onUpdate(pro, updater);
+            }
+
+            final ISendable noTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelectNone();
+            final ISendable thisTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelect(rootAdvancement.getKey().getNMSWrapper());
+
+            final Map<AdvancementWrapper, Integer> perTeamToSend = Maps.newHashMapWithExpectedSize(sizeApprox);
+
+            // Handle root advancement
+            final String perTeamBackground; // Null if the background texture is per-player
+            final PreparedAdvancementDisplayWrapper rootDisplay; // Null if the root display is per-player
+
+            if (updater.getRootDisplay() instanceof AbstractImmutableAdvancementDisplay immutable) {
+                rootDisplay = immutable.getNMSWrapper();
+            } else if (updater.getRootDisplay() instanceof AbstractPerTeamAdvancementDisplay perTeam) {
+                rootDisplay = perTeam.getNMSWrapper(pro);
+            } else {
+                // Per-player root display
+                rootDisplay = null;
+            }
+
+            if (backgroundTexture != null) {
+                perTeamBackground = backgroundTexture;
+            } else if (perTeamBackgroundTextureFn != null) {
+                perTeamBackground = perTeamBackgroundTextureFn.apply(pro);
+            } else {
+                // Per-player background texture
+                perTeamBackground = null;
+            }
+
+            if (rootDisplay != null && perTeamBackground != null) {
+                perTeamToSend.put(updater.getRootWrapper().toAdvancementWrapper(rootDisplay.toRootAdvancementDisplay(perTeamBackground)), updater.getRootProgression());
+            }
+
+            // Handle base advancements
+            for (var entry : updater.getImmutableAdvancements()) {
+                AdvancementDisplayWrapper display = entry.display().getNMSWrapper().toBaseAdvancementDisplay();
+                perTeamToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
+            }
+            for (var entry : updater.getPerTeamAdvancements()) {
+                AdvancementDisplayWrapper display = entry.display().getNMSWrapper(pro).toBaseAdvancementDisplay();
+                perTeamToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
+            }
+
+            pro.forEachMember(u -> {
+                Player player = Bukkit.getPlayer(u);
+                if (player != null) {
+                    final Map<AdvancementWrapper, Integer> perPlayerToSend = Maps.newHashMapWithExpectedSize(sizeApprox);
+
+                    // Handle root advancement
+                    if (updater.getRootDisplay() instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
+                        String background = perTeamBackground != null ? perTeamBackground : perPlayerBackgroundTextureFn.apply(player);
+                        AdvancementDisplayWrapper display = perPlayer.getNMSWrapper(player).toRootAdvancementDisplay(background);
+                        perPlayerToSend.put(updater.getRootWrapper().toAdvancementWrapper(display), updater.getRootProgression());
+                    } else if (rootDisplay != null && perTeamBackground == null) {
+                        AdvancementDisplayWrapper display = rootDisplay.toRootAdvancementDisplay(perPlayerBackgroundTextureFn.apply(player));
+                        perPlayerToSend.put(updater.getRootWrapper().toAdvancementWrapper(display), updater.getRootProgression());
+                    }
+
+                    // Handle base advancements
+                    for (var entry : updater.getPerPlayerAdvancements()) {
+                        AdvancementDisplayWrapper display = entry.display().getNMSWrapper(player).toBaseAdvancementDisplay();
+                        perPlayerToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
+                    }
+
+                    ISendable sendPacket;
+                    try {
+                        Map<AdvancementWrapper, Integer> toSendMap;
+                        if (perPlayerToSend.isEmpty()) {
+                            toSendMap = perTeamToSend;
+                        } else if (perTeamToSend.isEmpty()) {
+                            toSendMap = perPlayerToSend;
+                        } else {
+                            toSendMap = CompositeMap.of(perTeamToSend, perPlayerToSend);
+                        }
+
+                        sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(toSendMap);
+                    } catch (ReflectiveOperationException e) {
+                        e.printStackTrace();
+                        return;
+                    }
+
+                    noTab.sendTo(player);
+
+                    @Nullable Set<MinecraftKeyWrapper> set = players.put(player, updater.getKeys());
+                    if (set != null && !set.isEmpty()) {
+                        try {
+                            PacketPlayOutAdvancementsWrapper.craftRemovePacket(updater.getKeys()).sendTo(player);
+                        } catch (ReflectiveOperationException e) {
+                            e.printStackTrace();
+                            thisTab.sendTo(player);
+                            return; // TODO Check
+                        }
+                    }
+
+                    sendPacket.sendTo(player);
+                    thisTab.sendTo(player);
+                }
+            });
+        }
+    }
+
+    @FunctionalInterface
+    public interface PerTeamBackgroundTextureFn extends Function<TeamProgression, String> {
+    }
+
+    @FunctionalInterface
+    public interface PerPlayerBackgroundTextureFn extends Function<Player, String> {
     }
 }

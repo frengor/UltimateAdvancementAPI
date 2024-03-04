@@ -1,8 +1,10 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement;
 
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.AdvancementUpdater;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -22,7 +24,7 @@ public class BaseAdvancement extends Advancement {
     protected final Advancement parent;
 
     @LazyValue
-    private AdvancementWrapper wrapper;
+    private PreparedAdvancementWrapper wrapper;
 
     /**
      * Creates a new {@code BaseAdvancement} with a maximum progression of {@code 1}.
@@ -32,7 +34,7 @@ public class BaseAdvancement extends Advancement {
      * @param display The display information of this advancement.
      * @param parent The parent of this advancement.
      */
-    public BaseAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent) {
+    public BaseAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull Advancement parent) {
         this(key, display, parent, 1);
     }
 
@@ -45,7 +47,7 @@ public class BaseAdvancement extends Advancement {
      * @param parent The parent of this advancement.
      * @param maxProgression The maximum advancement progression.
      */
-    public BaseAdvancement(@NotNull String key, @NotNull AdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    public BaseAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         super(Objects.requireNonNull(parent, "Parent advancement is null.").advancementTab, key, display, maxProgression);
         this.parent = parent;
     }
@@ -63,15 +65,24 @@ public class BaseAdvancement extends Advancement {
     /**
      * {@inheritDoc}
      */
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) {
+        if (isVisible(teamProgression)) {
+            advancementUpdater.addBaseAdvancement(getNMSWrapper(), display, getProgression(teamProgression));
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
-    public AdvancementWrapper getNMSWrapper() {
+    public PreparedAdvancementWrapper getNMSWrapper() {
         if (wrapper != null) {
             return wrapper;
         }
 
         try {
-            return wrapper = AdvancementWrapper.craftBaseAdvancement(key.getNMSWrapper(), parent.getNMSWrapper(), display.getNMSWrapper(this), maxProgression);
+            return wrapper = PreparedAdvancementWrapper.craft(key.getNMSWrapper(), parent.getNMSWrapper(), maxProgression);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }

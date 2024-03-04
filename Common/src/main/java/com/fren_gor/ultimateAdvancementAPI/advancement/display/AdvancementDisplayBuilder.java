@@ -4,11 +4,14 @@ import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter.Coord;
 import com.google.common.base.Preconditions;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -60,6 +63,32 @@ public abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuil
      * The advancement y coordinate. Must be &gt;= 0.
      */
     protected float y = 0;
+
+    /**
+     * Creates a new {@code AdvancementDisplayBuilder}.
+     * <p>By default, the advancement display returned by {@link #build()} won't show both the toast message and
+     * the announcement message in the chat upon advancement completion.
+     * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
+     *
+     * @param icon The material of the advancement's icon in the advancement GUI.
+     * @param title The title of the advancement.
+     */
+    protected AdvancementDisplayBuilder(@NotNull Material icon, @NotNull BaseComponent[] title) {
+        this(icon, TextComponent.toLegacyText(title));
+    }
+
+    /**
+     * Creates a new {@code AdvancementDisplayBuilder}.
+     * <p>By default, the advancement display returned by {@link #build()} won't show both the toast message and
+     * the announcement message in the chat upon advancement completion.
+     * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
+     *
+     * @param icon The advancement's icon in the advancement GUI.
+     * @param title The title of the advancement.
+     */
+    protected AdvancementDisplayBuilder(@NotNull ItemStack icon, @NotNull BaseComponent[] title) {
+        this(icon, TextComponent.toLegacyText(title));
+    }
 
     /**
      * Creates a new {@code AdvancementDisplayBuilder}.
@@ -171,6 +200,30 @@ public abstract class AdvancementDisplayBuilder<T extends AdvancementDisplayBuil
     @NotNull
     public T description(@NotNull List<String> description) {
         this.description = List.copyOf(description);
+        return (T) this;
+    }
+
+    /**
+     * Sets the description of the advancement.
+     *
+     * @param description The description of the advancement.
+     * @return This builder.
+     */
+    @NotNull
+    public T descriptionBaseComponent(@NotNull BaseComponent[]... description) {
+        this.description = Arrays.stream(description).map(TextComponent::toLegacyText).toList();
+        return (T) this;
+    }
+
+    /**
+     * Sets the description of the advancement.
+     *
+     * @param description The description of the advancement.
+     * @return This builder.
+     */
+    @NotNull
+    public T descriptionBaseComponent(@NotNull List<BaseComponent[]> description) {
+        this.description = description.stream().map(TextComponent::toLegacyText).toList();
         return (T) this;
     }
 
