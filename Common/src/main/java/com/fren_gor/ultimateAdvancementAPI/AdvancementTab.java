@@ -430,7 +430,7 @@ public final class AdvancementTab {
 
         try {
             pluginManager.callEvent(new AdvancementRegistrationEvent(rootAdvancement));
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             onRegisterFail();
             throw e;
         }
@@ -445,7 +445,7 @@ public final class AdvancementTab {
 
             try {
                 pluginManager.callEvent(new AdvancementRegistrationEvent(adv));
-            } catch (IllegalStateException e) {
+            } catch (Exception e) {
                 onRegisterFail();
                 throw e;
             }
@@ -589,7 +589,7 @@ public final class AdvancementTab {
                 // Trigger AdvancementDisposeEvent
                 try {
                     pluginManager.callEvent(new AdvancementDisposeEvent(a));
-                } catch (IllegalStateException e) {
+                } catch (Exception e) {
                     owningPlugin.getLogger().log(Level.WARNING, "An exception has occurred while calling AdvancementDisposeEvent for " + a, e);
                 }
                 // Dispose the advancement
@@ -597,7 +597,7 @@ public final class AdvancementTab {
                 // Trigger AdvancementDisposedEvent
                 try {
                     pluginManager.callEvent(new AdvancementDisposedEvent(a.getKey()));
-                } catch (IllegalStateException e) {
+                } catch (Exception e) {
                     owningPlugin.getLogger().log(Level.WARNING, "An exception has occurred while calling AdvancementDisposedEvent for " + a, e);
                 }
             } catch (Exception e) {

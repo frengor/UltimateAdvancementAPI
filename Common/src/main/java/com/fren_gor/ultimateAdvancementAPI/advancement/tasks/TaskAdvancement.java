@@ -101,7 +101,7 @@ public class TaskAdvancement extends BaseAdvancement {
 
             try {
                 Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), this));
-            } catch (IllegalStateException e) {
+            } catch (Exception e) {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
 
@@ -135,7 +135,7 @@ public class TaskAdvancement extends BaseAdvancement {
 
             try {
                 Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), this));
-            } catch (IllegalStateException e) {
+            } catch (Exception e) {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
 

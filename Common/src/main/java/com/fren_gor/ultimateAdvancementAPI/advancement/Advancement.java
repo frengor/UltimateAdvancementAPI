@@ -373,7 +373,7 @@ public abstract class Advancement {
 
             try {
                 Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), Advancement.this));
-            } catch (IllegalStateException e) {
+            } catch (Exception e) {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
 
@@ -475,7 +475,7 @@ public abstract class Advancement {
 
             try {
                 Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), Advancement.this));
-            } catch (IllegalStateException e) {
+            } catch (Exception e) {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
 
