@@ -505,7 +505,7 @@ public final class AdvancementTab {
                 showTab(p);
             } catch (Exception e) {
                 // Add other players anyway
-                e.printStackTrace();
+                owningPlugin.getLogger().log(Level.SEVERE, "Couldn't show tab " + namespace + " to player " + p.getName(), e);
             }
         }
     }
@@ -542,7 +542,7 @@ public final class AdvancementTab {
                 hideTab(p);
             } catch (Exception e) {
                 // Remove other players anyway
-                e.printStackTrace();
+                owningPlugin.getLogger().log(Level.SEVERE, "Couldn't hide tab " + namespace + " to player " + p.getName(), e);
             }
         }
     }
@@ -568,7 +568,7 @@ public final class AdvancementTab {
         try {
             PacketPlayOutAdvancementsWrapper.craftRemovePacket(keys).sendTo(player);
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            owningPlugin.getLogger().log(Level.SEVERE, "Couldn't send remove packet to player " + player.getName(), e);
         }
     }
 
@@ -590,8 +590,7 @@ public final class AdvancementTab {
                 try {
                     pluginManager.callEvent(new AdvancementDisposeEvent(a));
                 } catch (IllegalStateException e) {
-                    System.err.println("An exception has occurred while calling AdvancementDisposeEvent for " + a);
-                    e.printStackTrace();
+                    owningPlugin.getLogger().log(Level.WARNING, "An exception has occurred while calling AdvancementDisposeEvent for " + a, e);
                 }
                 // Dispose the advancement
                 a.onDispose();
@@ -599,11 +598,10 @@ public final class AdvancementTab {
                 try {
                     pluginManager.callEvent(new AdvancementDisposedEvent(a.getKey()));
                 } catch (IllegalStateException e) {
-                    System.err.println("An exception has occurred while calling AdvancementDisposedEvent for " + a);
-                    e.printStackTrace();
+                    owningPlugin.getLogger().log(Level.WARNING, "An exception has occurred while calling AdvancementDisposedEvent for " + a, e);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                owningPlugin.getLogger().log(Level.SEVERE, "An exception occurred disposing advancement " + a, e);
             }
         }
         advancements = Collections.emptyMap();

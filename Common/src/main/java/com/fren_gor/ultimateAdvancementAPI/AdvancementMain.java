@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -259,14 +260,14 @@ public final class AdvancementMain {
             synchronized (tabs) {
                 Iterator<AdvancementTab> it = tabs.values().iterator();
                 while (it.hasNext()) {
+                    AdvancementTab tab = it.next();
                     try {
-                        AdvancementTab tab = it.next();
                         if (tab.isActive()) {
                             tab.dispose();
                         }
                         it.remove();
                     } catch (Exception t) {
-                        t.printStackTrace();
+                        owningPlugin.getLogger().log(Level.SEVERE, "Couldn't disable tab " + tab.getNamespace(), t);
                     }
                 }
             }

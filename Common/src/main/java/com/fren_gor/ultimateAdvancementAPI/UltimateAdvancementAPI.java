@@ -932,7 +932,7 @@ public final class UltimateAdvancementAPI {
                             if (plugin.isEnabled())
                                 action.accept(res);
                         } catch (Exception e) {
-                            main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling " + plugin.getName() + "'s Consumer", e);
+                            main.getLogger().log(Level.SEVERE, "An exception occurred while calling " + plugin.getName() + "'s Consumer", e);
                         } finally {
                             ds.removeLoadingRequestToPlayer(uuid, plugin);
                         }
@@ -943,14 +943,14 @@ public final class UltimateAdvancementAPI {
             }).exceptionallyAsync(err -> {
                 err = getCause(err);
                 completableFuture.completeExceptionally(err);
-                main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling an API method", err);
+                main.getLogger().log(Level.SEVERE, "An exception occurred while calling an API method", err);
                 ds.removeLoadingRequestToPlayer(uuid, plugin);
                 return null;
             });
         }).exceptionallyAsync(err -> {
             err = getCause(err);
             completableFuture.completeExceptionally(err);
-            main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while loading user " + uuid, err);
+            main.getLogger().log(Level.SEVERE, "An exception occurred while loading user " + uuid, err);
             return null;
         });
 
@@ -980,7 +980,7 @@ public final class UltimateAdvancementAPI {
                                 if (plugin.isEnabled())
                                     action.accept(res);
                             } catch (Exception e) {
-                                main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling " + plugin.getName() + "'s Consumer", e);
+                                main.getLogger().log(Level.SEVERE, "An exception occurred while calling " + plugin.getName() + "'s Consumer", e);
                             } finally {
                                 ds.removeLoadingRequestToPlayer(uuid1, plugin);
                                 ds.removeLoadingRequestToPlayer(uuid2, plugin);
@@ -993,7 +993,7 @@ public final class UltimateAdvancementAPI {
                 }).exceptionallyAsync(err -> {
                     err = getCause(err);
                     completableFuture.completeExceptionally(err);
-                    main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling an API method", err);
+                    main.getLogger().log(Level.SEVERE, "An exception occurred while calling an API method", err);
                     ds.removeLoadingRequestToPlayer(uuid1, plugin);
                     ds.removeLoadingRequestToPlayer(uuid2, plugin);
                     return null;
@@ -1001,14 +1001,14 @@ public final class UltimateAdvancementAPI {
             }).exceptionallyAsync(err -> {
                 err = getCause(err);
                 completableFuture.completeExceptionally(err);
-                main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while loading user " + uuid2, err);
+                main.getLogger().log(Level.SEVERE, "An exception occurred while loading user " + uuid2, err);
                 ds.removeLoadingRequestToPlayer(uuid1, plugin);
                 return null;
             });
         }).exceptionallyAsync(err -> {
             err = getCause(err);
             completableFuture.completeExceptionally(err);
-            main.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while loading user " + uuid1, err);
+            main.getLogger().log(Level.SEVERE, "An exception occurred while loading user " + uuid1, err);
             return null;
         });
 

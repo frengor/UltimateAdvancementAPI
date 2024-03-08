@@ -11,6 +11,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.logging.Level;
+
 /**
  * <a href="https://github.com/JorelAli/CommandAPI">CommandAPI</a> manager, which loads the correct version of the API
  * and the correct implementation of the commands.
@@ -56,8 +58,7 @@ public class CommandAPIManager {
         try {
             libbyManager.loadLibrary(commandAPILibrary);
         } catch (Exception e) {
-            Bukkit.getLogger().warning("[UltimateAdvancementAPI-Commands] Can't load library " + commandAPILibrary.toString() + '!');
-            e.printStackTrace();
+            Bukkit.getLogger().log(Level.WARNING, "[UltimateAdvancementAPI-Commands] Cannot load library " + commandAPILibrary.toString() + '!', e);
             return null;
         }
 
@@ -66,15 +67,14 @@ public class CommandAPIManager {
         try {
             clazz = Class.forName(manager);
         } catch (ClassNotFoundException e) {
-            Bukkit.getLogger().info("[UltimateAdvancementAPI-Commands] Can't find CommandAPIManager Class! (" + manager + ")");
-            e.printStackTrace();
+            Bukkit.getLogger().log(Level.WARNING, "[UltimateAdvancementAPI-Commands] Cannot find CommandAPIManager Class! (" + manager + ")", e);
             return null;
         }
 
         try {
             return new CommonLoadable((ILoadable) clazz.getDeclaredConstructor().newInstance());
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            Bukkit.getLogger().log(Level.WARNING, "[UltimateAdvancementAPI-Commands] Cannot load CommandAPIManager Class! (" + manager + ")", e);
             return null;
         }
     }

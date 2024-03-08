@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Scanner;
+import java.util.logging.Level;
 
 public class AdvancementPlugin extends JavaPlugin {
 
@@ -58,8 +59,8 @@ public class AdvancementPlugin extends JavaPlugin {
             try {
                 commandAPIManager.onLoad(main, this);
             } catch (Exception e) {
-                Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] An exception occurred while loading commands for UltimateAdvancementAPI, continuing without them:");
-                e.printStackTrace();
+                Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] An exception occurred while loading commands for UltimateAdvancementAPI, continuing without them.");
+                getLogger().log(Level.WARNING, "An exception occurred while loading commands for UltimateAdvancementAPI", e);
                 commandAPIManager = null;
             }
         }
@@ -81,9 +82,9 @@ public class AdvancementPlugin extends JavaPlugin {
         }
         try {
             configManager.enable(main);
-        } catch (RuntimeException e) {
-            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] An exception occurred while enabling UltimateAdvancementAPI:");
-            e.printStackTrace();
+        } catch (Exception e) {
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] An exception occurred while enabling UltimateAdvancementAPI.");
+            getLogger().log(Level.SEVERE, "An exception occurred while enabling UltimateAdvancementAPI", e);
             // main.disable() is already called by AdvancementMain#failEnable(Exception)
             return;
         }
@@ -93,8 +94,8 @@ public class AdvancementPlugin extends JavaPlugin {
                 commandAPIManager.onEnable();
                 commandsEnabled = true;
             } catch (Exception e) {
-                Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] An exception occurred while enabling commands for UltimateAdvancementAPI, continuing without them:");
-                e.printStackTrace();
+                Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] An exception occurred while enabling commands for UltimateAdvancementAPI, continuing without them.");
+                getLogger().log(Level.WARNING, "An exception occurred while enabling commands for UltimateAdvancementAPI", e);
             }
         }
 
@@ -105,8 +106,8 @@ public class AdvancementPlugin extends JavaPlugin {
                     try {
                         AdvancementUtils.disableVanillaAdvancements();
                     } catch (Exception e) {
-                        Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] Couldn't disable vanilla advancements:");
-                        e.printStackTrace();
+                        Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] Cannot disable vanilla advancements.");
+                        getLogger().log(Level.WARNING, "Cannot disable vanilla advancements", e);
                     }
                 }
             }.runTaskLater(this, 20);

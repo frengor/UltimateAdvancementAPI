@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
+import java.util.logging.Level;
 
 public class AdvancementUtils {
 
@@ -306,7 +307,7 @@ public class AdvancementUtils {
                 try {
                     consumer.accept(result, err);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    plugin.getLogger().log(Level.WARNING, "An exception occurred while executing runSync's consumer of " + plugin.getDescription().getFullName(), e);
                 }
             } else {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> consumer.accept(result, err), delay);

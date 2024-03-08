@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromUUID;
@@ -366,14 +367,14 @@ public abstract class Advancement {
 
         runSync(completableFuture, advancementTab.getOwningPlugin(), (result, err) -> {
             if (err != null) {
-                err.printStackTrace();
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while incrementing the progression of " + key, err);
                 return; // Don't go on in case of a db error
             }
 
             try {
                 Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), Advancement.this));
             } catch (IllegalStateException e) {
-                e.printStackTrace();
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
 
             handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
@@ -468,14 +469,14 @@ public abstract class Advancement {
 
         runSync(completableFuture, advancementTab.getOwningPlugin(), (result, err) -> {
             if (err != null) {
-                err.printStackTrace();
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while setting the progression of " + key, err);
                 return; // Don't go on in case of a db error
             }
 
             try {
                 Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), Advancement.this));
             } catch (IllegalStateException e) {
-                e.printStackTrace();
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
 
             handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
@@ -580,7 +581,7 @@ public abstract class Advancement {
             try {
                 return (boolean) iVisibilityMethod.invokeWithArguments(this, progression);
             } catch (Throwable e) {
-                e.printStackTrace();
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred evaluating the visibility of " + key, e);
             }
         }
         // Visible by default
@@ -610,7 +611,7 @@ public abstract class Advancement {
             try {
                 return (BaseComponent[]) iAnnounceMessageMethod.invokeWithArguments(this, player);
             } catch (Throwable e) {
-                e.printStackTrace();
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred evaluating the announce message of " + key, e);
             }
         }
 

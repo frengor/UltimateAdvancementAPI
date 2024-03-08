@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
+import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
@@ -31,6 +32,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
@@ -428,12 +431,13 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             int oldProgr = 0, newProgr = 0;
             try {
                 for (CompletableFuture<ProgressionUpdateResult> res : results) {
-                    final ProgressionUpdateResult progr = res.get();
+                    // res is already completed
+                    final ProgressionUpdateResult progr = res.get(0, TimeUnit.SECONDS);
                     oldProgr += progr.oldProgression();
                     newProgr += progr.newProgression();
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while setting the progression of " + key, e);
             } finally {
                 completableFuture.complete(new ProgressionUpdateResult(oldProgr, newProgr));
             }

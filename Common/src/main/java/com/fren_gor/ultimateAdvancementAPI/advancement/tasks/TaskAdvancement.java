@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Range;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValueStrict;
@@ -94,14 +95,14 @@ public class TaskAdvancement extends BaseAdvancement {
 
         runSync(completableFuture, advancementTab.getOwningPlugin(), (result, err) -> {
             if (err != null) {
-                err.printStackTrace();
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while incrementing the progression of " + key, err);
                 return; // Don't go on in case of a db error
             }
 
             try {
                 Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), this));
             } catch (IllegalStateException e) {
-                e.printStackTrace();
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
 
             // Use try-finally to make sure to call reloadTasks, since not doing so will leak memory
@@ -128,14 +129,14 @@ public class TaskAdvancement extends BaseAdvancement {
 
         runSync(completableFuture, advancementTab.getOwningPlugin(), (result, err) -> {
             if (err != null) {
-                err.printStackTrace();
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while setting the progression of " + key, err);
                 return; // Don't go on in case of a db error
             }
 
             try {
                 Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), this));
             } catch (IllegalStateException e) {
-                e.printStackTrace();
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
 
             // Use try-finally to make sure to call reloadTasks, since not doing so will leak memory

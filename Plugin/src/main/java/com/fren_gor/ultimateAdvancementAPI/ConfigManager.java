@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.logging.Level;
 
 public class ConfigManager {
 
@@ -45,8 +46,8 @@ public class ConfigManager {
         try {
             config.load(configFile);
         } catch (IOException | InvalidConfigurationException e) {
-            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "An error occurred loading the config file.");
-            e.printStackTrace();
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] An error occurred loading the config file.");
+            plugin.getLogger().log(Level.SEVERE, "An error occurred loading the config file.", e);
             return true;
         }
 
@@ -54,7 +55,7 @@ public class ConfigManager {
 
         String type = config.getString("storage-type");
         if (type == null) {
-            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Could not find \"storage-type\".");
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] Could not find \"storage-type\".");
             return true;
         }
 
@@ -73,7 +74,7 @@ public class ConfigManager {
         } else if (type.equalsIgnoreCase("InMemory")) {
             storageType = DB_TYPE.IN_MEMORY;
         } else {
-            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Invalid storage type \"" + type + "\".");
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] Invalid storage type \"" + type + "\".");
             return true;
         }
 

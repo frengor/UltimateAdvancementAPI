@@ -60,6 +60,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.checkSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
@@ -95,6 +97,7 @@ public final class DatabaseManager implements Closeable {
     // A single-thread executor is used to maintain executed queries sequential
     private final ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("DatabaseManager Thread - %d").build());
 
+    private final Logger logger;
     private final EventManager eventManager;
     private final IDatabase database; // Calls to the database must be done using the `executor` thread
     private final JoinEventWaiter joinEventWaiter;
@@ -161,6 +164,7 @@ public final class DatabaseManager implements Closeable {
     private DatabaseManager(@NotNull AdvancementMain main, @NotNull IDatabase database) throws Exception {
         Preconditions.checkNotNull(main, "AdvancementMain is null.");
         this.main = main;
+        this.logger = main.getLogger();
         this.eventManager = main.getEventManager();
         this.database = database;
         this.joinEventWaiter = new JoinEventWaiter(main.getOwningPlugin());
@@ -236,8 +240,7 @@ public final class DatabaseManager implements Closeable {
                         firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
                     });
                 } catch (Exception ex) {
-                    System.err.println("Cannot load player " + e.getPlayer().getName() + ':');
-                    ex.printStackTrace();
+                    logger.log(Level.SEVERE, "Cannot load player " + e.getPlayer().getName(), ex);
                     firePlayerLoadingFailedEvent(e.getPlayer(), ex);
                 }
             }).whenComplete((v, k) -> {
@@ -274,9 +277,8 @@ public final class DatabaseManager implements Closeable {
         runAsyncOnExecutor(() -> {
             try {
                 database.clearUpTeams();
-            } catch (SQLException e) {
-                System.err.println("Cannot clear up unused team ids:");
-                e.printStackTrace();
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Cannot clear up unused team ids", e);
             }
         });
     }
@@ -305,15 +307,14 @@ public final class DatabaseManager implements Closeable {
                 // There are other tasks
                 executor.shutdownNow();
                 if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-                    System.err.println("It was not possible to terminate some tasks while closing DatabaseManager.");
+                    logger.log(Level.SEVERE, "It was not possible to terminate some tasks while closing the DatabaseManager");
                 }
             }
         } catch (InterruptedException ignored) {
             executor.shutdownNow();
             Thread.currentThread().interrupt(); // Preserve interrupt status
         } catch (Exception e) {
-            System.err.println("An exception occurred shutting down the executor thread while closing DatabaseManager:");
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "An exception occurred shutting down the executor thread while closing the DatabaseManager", e);
             executor.shutdownNow();
         }
 
@@ -331,8 +332,7 @@ public final class DatabaseManager implements Closeable {
                     try {
                         database.unregisterPlayer(player.getUuid());
                     } catch (Exception e) {
-                        System.err.println("Couldn't unregister player " + player.getUuid() + " (waiting PlayerRegisteredEvent) while closing DatabaseManager:");
-                        e.printStackTrace();
+                        logger.log(Level.SEVERE, "Couldn't unregister player " + player.getUuid() + " (waiting PlayerRegisteredEvent) while closing the DatabaseManager", e);
                     }
                 }
             }
@@ -348,8 +348,7 @@ public final class DatabaseManager implements Closeable {
         try {
             database.close();
         } catch (Exception e) {
-            System.err.println("Couldn't close the database connection while closing DatabaseManager:");
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Couldn't close the database connection while closing the DatabaseManager", e);
         }
     }
 
@@ -490,8 +489,7 @@ public final class DatabaseManager implements Closeable {
             try {
                 list = database.getUnredeemed(loadedTeam.getTeamProgression().getTeamId());
             } catch (Exception e) {
-                System.err.println("Cannot fetch unredeemed advancements:");
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "Couldn't fetch unredeemed advancements for player " + player.getName(), e);
                 return;
             }
 
@@ -517,8 +515,7 @@ public final class DatabaseManager implements Closeable {
             try {
                 database.unsetUnredeemed(Collections.unmodifiableList(list), loadedTeam.getTeamProgression().getTeamId());
             } catch (Exception e) {
-                System.err.println("Couldn't unset unredeemed advancements for player " + player.getName() + ":");
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "Couldn't unset unredeemed advancements for player " + player.getName(), e);
                 return;
             }
 
@@ -545,8 +542,7 @@ public final class DatabaseManager implements Closeable {
                                 try {
                                     database.setUnredeemed(entry.getKey(), entry.getValue(), teamId);
                                 } catch (Exception e) {
-                                    System.err.println("Error restoring unredeemed advancement '" + entry.getKey() + "' for team " + teamId + ':');
-                                    e.printStackTrace();
+                                    logger.log(Level.SEVERE, "Error restoring unredeemed advancement '" + entry.getKey() + "' for team " + teamId, e);
                                 }
                             }
                         }, executor).whenComplete((r, e) -> {
@@ -559,8 +555,7 @@ public final class DatabaseManager implements Closeable {
                         try {
                             e.getKey().onGrant(player, e.getValue());
                         } catch (Exception err) {
-                            System.err.println("onGrant method of advancement '" + e.getKey().getKey() + "' has thrown an error:");
-                            err.printStackTrace();
+                            logger.log(Level.SEVERE, "onGrant method of advancement '" + e.getKey().getKey() + "' threw an exception", err);
                         }
                     }
                 } finally {
@@ -599,12 +594,8 @@ public final class DatabaseManager implements Closeable {
         runAsyncOnExecutor(completableFuture, () -> {
             try {
                 database.updatePlayerName(player.getUniqueId(), player.getName());
-            } catch (SQLException e) {
-                System.err.println("Cannot update player " + player.getName() + " name:");
-                e.printStackTrace();
-                completableFuture.completeExceptionally(new DatabaseException(e));
-                return;
             } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't update player " + player.getName() + " name", e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
@@ -702,12 +693,8 @@ public final class DatabaseManager implements Closeable {
         runAsyncOnExecutor(completableFuture, () -> {
             try {
                 database.movePlayer(playerToMove, otherTeamProgression.getTeamId());
-            } catch (SQLException e) {
-                System.err.println("Cannot move player " + (ptm == null ? playerToMove : ptm) + " into team " + otherTeamProgression.getTeamId());
-                e.printStackTrace();
-                completableFuture.completeExceptionally(new DatabaseException(e));
-                return;
             } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't move player " + (ptm == null ? playerToMove : ptm) + " into team " + otherTeamProgression.getTeamId(), e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
@@ -769,12 +756,8 @@ public final class DatabaseManager implements Closeable {
             final TeamProgression newPro;
             try {
                 newPro = database.movePlayerInNewTeam(uuid);
-            } catch (SQLException e) {
-                System.err.println("Cannot remove player " + (ptr == null ? uuid : ptr.getName()) + " from their team:");
-                e.printStackTrace();
-                completableFuture.completeExceptionally(new DatabaseException(e));
-                return;
             } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't remove player " + (ptr == null ? uuid : ptr.getName()) + " from their team", e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
@@ -831,12 +814,8 @@ public final class DatabaseManager implements Closeable {
             }
             try {
                 database.unregisterPlayer(uuid);
-            } catch (SQLException e) {
-                System.err.println("Cannot unregister player " + uuid + ':');
-                e.printStackTrace();
-                completableFuture.completeExceptionally(new DatabaseException(e));
-                return;
             } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't unregister player " + uuid, e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
@@ -911,12 +890,8 @@ public final class DatabaseManager implements Closeable {
             int old = pendingUpdatesManager.getCurrentValue(progression, key);
             try {
                 database.updateAdvancement(key, progression.getTeamId(), newProgression);
-            } catch (SQLException e) {
-                System.err.println("Cannot set progression of advancement " + key + " to team " + progression.getTeamId() + ':');
-                e.printStackTrace();
-                completableFuture.completeExceptionally(new DatabaseException(e));
-                return;
             } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't set progression of advancement " + key + " to team " + progression.getTeamId(), e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
@@ -1000,12 +975,8 @@ public final class DatabaseManager implements Closeable {
                 }
                 try {
                     database.updateAdvancement(key, progression.getTeamId(), incremented);
-                } catch (SQLException e) {
-                    System.err.println("Cannot increment progression of advancement " + key + " to team " + progression.getTeamId() + ':');
-                    e.printStackTrace();
-                    completableFuture.completeExceptionally(new DatabaseException(e));
-                    return;
                 } catch (Exception e) {
+                    logger.log(Level.SEVERE, "Couldn't increment progression of advancement " + key + " to team " + progression.getTeamId(), e);
                     completableFuture.completeExceptionally(new DatabaseException(e));
                     return;
                 }
@@ -1109,13 +1080,8 @@ public final class DatabaseManager implements Closeable {
             boolean res;
             try {
                 res = database.isUnredeemed(key, pro.getTeamId());
-            } catch (SQLException e) {
-                System.err.println("Cannot fetch unredeemed advancements of team " + pro.getTeamId() + ':');
-                e.printStackTrace();
-                completableFuture.completeExceptionally(new DatabaseException(e));
-                return;
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "Couldn't fetch unredeemed advancements of team " + pro.getTeamId(), e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
@@ -1172,12 +1138,8 @@ public final class DatabaseManager implements Closeable {
         runAsyncOnExecutor(completableFuture, () -> {
             try {
                 database.setUnredeemed(key, giveRewards, pro.getTeamId());
-            } catch (SQLException e) {
-                System.err.println("Cannot set unredeemed advancement " + key + " to team " + pro.getTeamId() + ':');
-                e.printStackTrace();
-                completableFuture.completeExceptionally(new DatabaseException(e));
-                return;
             } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't set unredeemed advancement " + key + " to team " + pro.getTeamId(), e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
@@ -1232,12 +1194,8 @@ public final class DatabaseManager implements Closeable {
         runAsyncOnExecutor(completableFuture, () -> {
             try {
                 database.unsetUnredeemed(key, pro.getTeamId());
-            } catch (SQLException e) {
-                System.err.println("Cannot set unredeemed advancement " + key + " to team " + pro.getTeamId() + ':');
-                e.printStackTrace();
-                completableFuture.completeExceptionally(new DatabaseException(e));
-                return;
             } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't set unredeemed advancement " + key + " to team " + pro.getTeamId(), e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
@@ -1267,12 +1225,8 @@ public final class DatabaseManager implements Closeable {
             String name;
             try {
                 name = database.getPlayerName(uuid);
-            } catch (SQLException e) {
-                System.err.println("Cannot fetch player name of " + uuid + ':');
-                e.printStackTrace();
-                completableFuture.completeExceptionally(new DatabaseException(e));
-                return;
             } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't fetch player name of " + uuid, e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
@@ -1373,12 +1327,8 @@ public final class DatabaseManager implements Closeable {
                     loadedPlayer.addPluginRequest(requester);
                     completableFuture.complete(pro);
                 });
-            } catch (SQLException e) {
-                System.err.println("Cannot load offline player " + uuid + ':');
-                e.printStackTrace();
-                completableFuture.completeExceptionally(new DatabaseException(e));
-                return;
             } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't load offline player " + uuid, e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
@@ -1446,12 +1396,8 @@ public final class DatabaseManager implements Closeable {
             TeamProgression team;
             try {
                 team = database.createNewTeam();
-            } catch (SQLException e) {
-                System.err.println("Cannot create a new team:");
-                e.printStackTrace();
-                completableFuture.completeExceptionally(new DatabaseException(e));
-                return;
             } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't create a new team", e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
@@ -1835,11 +1781,11 @@ public final class DatabaseManager implements Closeable {
         }, executor);
     }
 
-    private static <E extends Event> void callEventCatchingExceptions(@NotNull E event) {
+    private <E extends Event> void callEventCatchingExceptions(@NotNull E event) {
         try {
             Bukkit.getPluginManager().callEvent(event);
         } catch (Exception exception) {
-            exception.printStackTrace();
+            logger.log(Level.SEVERE, "An exception occurred while calling event " + event.getClass().getSimpleName(), exception);
         }
     }
 
@@ -2118,7 +2064,7 @@ public final class DatabaseManager implements Closeable {
                         case PLAYER_REGISTERED_UPDATE -> {
                             if (update.player.getPlayerTeam() != null) {
                                 // Player was already in a team, probably a bug
-                                new RuntimeException("Player " + update.player.getUuid() + " was already loaded: " + update).printStackTrace();
+                                logger.severe("Player " + update.player.getUuid() + " was already loaded: " + update + ". This is a UltimateAdvancementAPI bug, please report it here: https://github.com/frengor/UltimateAdvancementAPI/issues");
                             } else {
                                 update.team.getTeamProgression().addMember(update.player.getUuid());
                                 update.team.addInternalRequest();
@@ -2144,8 +2090,7 @@ public final class DatabaseManager implements Closeable {
                     try {
                         update.callback.run();
                     } catch (Exception e) {
-                        System.err.println("An exception occurred while executing the callback for update " + update + ':');
-                        e.printStackTrace();
+                        logger.log(Level.SEVERE, "An exception occurred while executing the callback for update " + update, e);
                     }
 
                     // Remove request since the callback returned
