@@ -4,10 +4,13 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+
+import java.util.Objects;
 
 public class PreparedAdvancementWrapper_mocked0_0_R1 extends PreparedAdvancementWrapper {
 
@@ -16,7 +19,8 @@ public class PreparedAdvancementWrapper_mocked0_0_R1 extends PreparedAdvancement
     private final int maxProgression;
 
     public PreparedAdvancementWrapper_mocked0_0_R1(@NotNull MinecraftKeyWrapper key, @Nullable PreparedAdvancementWrapper parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
-        this.key = key;
+        Preconditions.checkArgument(maxProgression >= 1, "maxProgression < 1");
+        this.key = Objects.requireNonNull(key);
         this.parent = parent;
         this.maxProgression = maxProgression;
     }
@@ -42,6 +46,7 @@ public class PreparedAdvancementWrapper_mocked0_0_R1 extends PreparedAdvancement
     @Override
     @NotNull
     public AdvancementWrapper toAdvancementWrapper(@NotNull AdvancementDisplayWrapper display) {
+        Preconditions.checkNotNull(display);
         if (parent == null) {
             return new AdvancementWrapper_mocked0_0_R1(key, display, maxProgression);
         } else {

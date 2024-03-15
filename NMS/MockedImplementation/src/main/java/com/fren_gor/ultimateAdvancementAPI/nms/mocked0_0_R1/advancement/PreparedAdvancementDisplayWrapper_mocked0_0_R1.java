@@ -17,10 +17,10 @@ public class PreparedAdvancementDisplayWrapper_mocked0_0_R1 extends PreparedAdva
     private final boolean showToast, announceChat, hidden;
 
     public PreparedAdvancementDisplayWrapper_mocked0_0_R1(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) {
-        this.icon = icon.clone();
-        this.title = title;
-        this.description = description;
-        this.frameType = frameType;
+        this.icon = Objects.requireNonNull(icon).clone();
+        this.title = Objects.requireNonNull(title);
+        this.description = Objects.requireNonNull(description);
+        this.frameType = Objects.requireNonNull(frameType);
         this.x = x;
         this.y = y;
         this.showToast = showToast;

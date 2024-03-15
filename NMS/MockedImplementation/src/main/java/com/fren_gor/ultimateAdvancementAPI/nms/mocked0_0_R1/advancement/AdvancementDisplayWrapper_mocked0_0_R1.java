@@ -6,6 +6,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class AdvancementDisplayWrapper_mocked0_0_R1 extends AdvancementDisplayWrapper {
 
     private final AdvancementFrameTypeWrapper frameType;
@@ -16,12 +18,12 @@ public class AdvancementDisplayWrapper_mocked0_0_R1 extends AdvancementDisplayWr
     private final boolean showToast, announceChat, hidden;
 
     public AdvancementDisplayWrapper_mocked0_0_R1(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
-        this.frameType = frameType;
+        this.frameType = Objects.requireNonNull(frameType);
         this.x = x;
         this.y = y;
-        this.icon = icon.clone();
-        this.title = title;
-        this.description = description;
+        this.icon = Objects.requireNonNull(icon).clone();
+        this.title = Objects.requireNonNull(title);
+        this.description = Objects.requireNonNull(description);
         this.showToast = showToast;
         this.announceChat = announceChat;
         this.hidden = hidden;

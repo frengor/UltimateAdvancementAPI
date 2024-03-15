@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class MinecraftKeyWrapper_mocked0_0_R1 extends MinecraftKeyWrapper {
@@ -14,10 +15,14 @@ public class MinecraftKeyWrapper_mocked0_0_R1 extends MinecraftKeyWrapper {
     private final String namespace, key;
 
     public MinecraftKeyWrapper_mocked0_0_R1(@NotNull Object key) {
-        throw new UnsupportedOperationException();
+        MinecraftKeyWrapper_mocked0_0_R1 castedKey = (MinecraftKeyWrapper_mocked0_0_R1) Objects.requireNonNull(key);
+        this.namespace = castedKey.namespace;
+        this.key = castedKey.key;
     }
 
     public MinecraftKeyWrapper_mocked0_0_R1(@NotNull String namespace, @NotNull String key) {
+        Preconditions.checkNotNull(namespace);
+        Preconditions.checkNotNull(key);
         Preconditions.checkArgument(VALID_NAMESPACE.matcher(namespace).matches());
         Preconditions.checkArgument(VALID_KEY.matcher(key).matches());
         this.namespace = namespace;
