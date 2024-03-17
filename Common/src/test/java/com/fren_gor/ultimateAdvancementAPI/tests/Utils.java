@@ -118,6 +118,7 @@ public final class Utils {
         return main;
     }
 
+    @FunctionalInterface
     public interface DatabaseManagerSupplier {
         @NotNull
         DatabaseManager apply(AdvancementMain main) throws Exception;
