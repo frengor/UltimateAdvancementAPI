@@ -54,13 +54,6 @@ public class DatabaseManagerTest {
     @AutoInject
     private DatabaseManagerMock databaseManagerMock;
 
-    @AutoInject
-    private AdvancementKey KEY1;
-    @AutoInject
-    private AdvancementKey KEY2;
-    @AutoInject
-    private AdvancementKey KEY3;
-
     @Test
     void playerLoadingTest() throws Exception {
         PlayerMock pl1 = loadPlayer();
@@ -74,29 +67,29 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    void advancementSetProgressionTest() throws Exception {
+    void advancementSetProgressionTest(@AutoInject AdvancementKey key) throws Exception {
         PlayerMock p = loadPlayer();
 
-        ProgressionUpdateResult result = databaseManagerMock.waitCompletion(dbManager.setProgression(KEY1, p, 10)).get();
+        ProgressionUpdateResult result = databaseManagerMock.waitCompletion(dbManager.setProgression(key, p, 10)).get();
         assertEquals(0, result.oldProgression());
         assertEquals(10, result.newProgression());
         p.disconnect();
     }
 
     @Test
-    void advancementSetProgressionWithFailureTest() throws Exception {
+    void advancementSetProgressionWithFailureTest(@AutoInject AdvancementKey key) throws Exception {
         PlayerMock p = loadPlayer();
 
         Paused paused = databaseManagerMock.pauseFutureTasks();
 
         databaseManagerMock.getFallible().setFallibleOps(DBOperation.UPDATE_ADVANCEMENT);
         databaseManagerMock.getFallible().addToPlanning(true, false, true);
-        CompletableFuture<ProgressionUpdateResult> updateResult1 = dbManager.setProgression(KEY2, p, 10);
+        CompletableFuture<ProgressionUpdateResult> updateResult1 = dbManager.setProgression(key, p, 10);
 
         // This should fail
-        CompletableFuture<ProgressionUpdateResult> updateResult2 = dbManager.setProgression(KEY2, p, 20);
+        CompletableFuture<ProgressionUpdateResult> updateResult2 = dbManager.setProgression(key, p, 20);
 
-        CompletableFuture<ProgressionUpdateResult> updateResult3 = dbManager.setProgression(KEY2, p, 30);
+        CompletableFuture<ProgressionUpdateResult> updateResult3 = dbManager.setProgression(key, p, 30);
 
         paused.resume();
 
@@ -117,10 +110,10 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    void advancementIncrementProgressionTest() throws Exception {
+    void advancementIncrementProgressionTest(@AutoInject AdvancementKey key) throws Exception {
         PlayerMock p = loadPlayer();
 
-        ProgressionUpdateResult updateResult = databaseManagerMock.waitCompletion(dbManager.incrementProgression(KEY1, p, 10)).get();
+        ProgressionUpdateResult updateResult = databaseManagerMock.waitCompletion(dbManager.incrementProgression(key, p, 10)).get();
 
         assertEquals(0, updateResult.oldProgression());
         assertEquals(10, updateResult.newProgression());
@@ -128,19 +121,19 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    void advancementIncrementProgressionWithFailureTest() throws Exception {
+    void advancementIncrementProgressionWithFailureTest(@AutoInject AdvancementKey key) throws Exception {
         PlayerMock p = loadPlayer();
 
         Paused paused = databaseManagerMock.pauseFutureTasks();
 
         databaseManagerMock.getFallible().setFallibleOps(DBOperation.UPDATE_ADVANCEMENT);
         databaseManagerMock.getFallible().addToPlanning(true, false, true);
-        CompletableFuture<ProgressionUpdateResult> updateResult1 = dbManager.incrementProgression(KEY2, p, 10);
+        CompletableFuture<ProgressionUpdateResult> updateResult1 = dbManager.incrementProgression(key, p, 10);
 
         // This should fail
-        CompletableFuture<ProgressionUpdateResult> updateResult2 = dbManager.incrementProgression(KEY2, p, 20);
+        CompletableFuture<ProgressionUpdateResult> updateResult2 = dbManager.incrementProgression(key, p, 20);
 
-        CompletableFuture<ProgressionUpdateResult> updateResult3 = dbManager.incrementProgression(KEY2, p, 30);
+        CompletableFuture<ProgressionUpdateResult> updateResult3 = dbManager.incrementProgression(key, p, 30);
 
         paused.resume();
 
@@ -442,7 +435,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    void updaterLockLockingTest() throws Exception {
+    void updaterLockLockingTest(@AutoInject AdvancementKey key) throws Exception {
         PlayerMock pl = loadPlayer();
         CompletableFuture<Void> completed = new CompletableFuture<>();
         CompletableFuture<Void> releaseLock = new CompletableFuture<>();
@@ -460,7 +453,7 @@ public class DatabaseManagerTest {
 
         databaseManagerMock.waitCompletion(completed);
 
-        var cf = dbManager.setProgression(KEY1, pl, 10);
+        var cf = dbManager.setProgression(key, pl, 10);
 
         for (int i = 0; i < 100; i++) {
             assertFalse(cf.isDone());

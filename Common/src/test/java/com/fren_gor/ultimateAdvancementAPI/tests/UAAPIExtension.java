@@ -20,11 +20,13 @@ import java.lang.reflect.Modifier;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback {
+public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
 
     private static final Namespace UAAPI_NAMESPACE = Namespace.create(UAAPIExtension.class);
     private static final String ADV_KEY_NAMESPACE = "a-namespace_";
     private static final String ADV_KEY_PREFIX = "a_-key/";
+
+    private static final AtomicInteger ADV_KEYS_UNIQUE_KEY = new AtomicInteger();
 
     @Override
     public void beforeEach(ExtensionContext extensionContext) throws Exception {
@@ -55,8 +57,7 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback {
                 .filter(field -> field.getType() == AdvancementKey.class)
                 .toList();
         if (!keysToInject.isEmpty()) {
-            initKeys(extensionContext);
-            keysToInject.forEach(field -> injectAdvKey(field, testInstance, extensionContext));
+            keysToInject.forEach(field -> injectField(field, testInstance, createAdvKey()));
         }
     }
 
@@ -85,6 +86,16 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback {
         }
     }
 
+    @Override
+    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+        return parameterContext.isAnnotated(AutoInject.class) && parameterContext.getParameter().getType() == AdvancementKey.class;
+    }
+
+    @Override
+    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+        return createAdvKey();
+    }
+
     private boolean shouldInject(Class<?> type) {
         return type == ServerMock.class || type == AdvancementMain.class || type == DatabaseManagerMock.class || type == DatabaseManager.class;
     }
@@ -95,10 +106,8 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback {
         injectField(field, testInstance, val);
     }
 
-    private void injectAdvKey(Field field, Object testInstance, ExtensionContext extensionContext) {
-        var store = extensionContext.getStore(UAAPI_NAMESPACE);
-        var index = store.get(AdvancementKey.class, AtomicInteger.class);
-        injectField(field, testInstance, new AdvancementKey(ADV_KEY_NAMESPACE, ADV_KEY_PREFIX + index.incrementAndGet()));
+    private AdvancementKey createAdvKey() {
+        return new AdvancementKey(ADV_KEY_NAMESPACE, ADV_KEY_PREFIX + ADV_KEYS_UNIQUE_KEY.incrementAndGet());
     }
 
     private void injectField(Field field, Object testInstance, Object value) {
@@ -137,10 +146,5 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback {
             store.put(DatabaseManager.class, dbManagerMock.getDatabaseManager());
             return dbManagerMock.getDatabaseManager();
         }));
-    }
-
-    private void initKeys(ExtensionContext extensionContext) {
-        var store = extensionContext.getStore(UAAPI_NAMESPACE);
-        store.getOrComputeIfAbsent(AdvancementKey.class, k -> new AtomicInteger(), AtomicInteger.class);
     }
 }
