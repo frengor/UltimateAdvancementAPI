@@ -6,6 +6,8 @@ import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -197,11 +199,22 @@ public class FallibleDBImpl implements IDatabase {
             super("Planned failure!");
         }
 
+        // Don't print the entire stack trace, the failure is fine. However, at the same time,
+        // print at least that the failure is planned to avoid possible confusion with other printed messages
+
         @Override
         public void printStackTrace() {
-            // Don't print the entire stack trace, the failure is fine. However, at the same time,
-            // print at least that the failure is planned to avoid possible confusion with other printed messages
             System.err.println(PlannedFailureException.class.getName() + ": " + this.getMessage());
+        }
+
+        @Override
+        public void printStackTrace(PrintStream s) {
+            s.print(PlannedFailureException.class.getName() + ": " + this.getMessage());
+        }
+
+        @Override
+        public void printStackTrace(PrintWriter s) {
+            s.print(PlannedFailureException.class.getName() + ": " + this.getMessage());
         }
     }
 
@@ -210,11 +223,22 @@ public class FallibleDBImpl implements IDatabase {
             super("Planned runtime failure!");
         }
 
+        // Don't print the entire stack trace, the failure is fine. However, at the same time,
+        // print at least that the failure is planned to avoid possible confusion with other printed messages
+
         @Override
         public void printStackTrace() {
-            // Don't print the entire stack trace, the failure is fine. However, at the same time,
-            // print at least that the failure is planned to avoid possible confusion with other printed messages
             System.err.println(RuntimePlannedFailureException.class.getName() + ": " + this.getMessage());
+        }
+
+        @Override
+        public void printStackTrace(PrintStream s) {
+            s.print(RuntimePlannedFailureException.class.getName() + ": " + this.getMessage());
+        }
+
+        @Override
+        public void printStackTrace(PrintWriter s) {
+            s.print(RuntimePlannedFailureException.class.getName() + ": " + this.getMessage());
         }
     }
 }
