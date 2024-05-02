@@ -106,6 +106,13 @@
 
         <dependency>
             <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_20_R4</artifactId>
+            <version>${apiVersion}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-nms-common</artifactId>
             <version>${apiVersion}</version>
             <scope>compile</scope>
