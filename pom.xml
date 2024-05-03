@@ -45,6 +45,7 @@
         <!-- Project Properties -->
         <apiVersion>2.2.8</apiVersion> <!-- Change also in Versions class -->
         <libbyVersion>1.1.5</libbyVersion>
+        <maven.javadoc.skip>false</maven.javadoc.skip>
         <projectEncoding>UTF-8</projectEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

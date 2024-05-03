@@ -73,6 +73,7 @@
                         </artifactItems>
                         <outputDirectory>${project.build.directory}</outputDirectory>
                         <localRepositoryDirectory>${project.build.directory}/downloaded-javadocs</localRepositoryDirectory>
+                        <skip>${maven.javadoc.skip}</skip>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -93,6 +94,7 @@
                                         <classifier>javadoc</classifier>
                                     </artifact>
                                 </artifacts>
+                                <skipAttach>${maven.javadoc.skip}</skipAttach>
                             </configuration>
                         </execution>
                     </executions>
