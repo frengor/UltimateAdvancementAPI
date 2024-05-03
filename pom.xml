@@ -6,7 +6,7 @@
 
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi-parent</artifactId>
-    <version>parent-SNAPSHOT</version>
+    <version>2.2.8</version>
     <packaging>pom</packaging>
 
     <name>UltimateAdvancementAPI-Parent</name>
@@ -137,11 +137,21 @@
                         </execution>
                     </executions>
                     <configuration>
-                        <createDependencyReducedPom>false</createDependencyReducedPom>
+                        <createDependencyReducedPom>true</createDependencyReducedPom>
+                        <useDependencyReducedPomInJar>true</useDependencyReducedPomInJar>
+                        <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
                         <minimizeJar>false</minimizeJar>
                         <createSourcesJar>true</createSourcesJar>
-                        <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
                         <shadeSourcesContent>true</shadeSourcesContent>
+
+                        <filters>
+                            <filter>
+                                <artifact>*:*</artifact>
+                                <excludes>
+                                    <exclude>META-INF/.libs/README.md</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -231,8 +241,32 @@
                         </tags>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
             </plugins>
         </pluginManagement>
-    </build>
 
+        <plugins>
+            <!-- Clean dependency-reduced-pom.xml -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>.</directory>
+                            <includes>
+                                <include>dependency-reduced-pom.xml</include>
+                            </includes>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

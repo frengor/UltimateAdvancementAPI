@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-parent</artifactId>
-        <version>parent-SNAPSHOT</version>
+        <version>2.2.8</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-common</artifactId>
@@ -43,7 +43,7 @@
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-nms-common</artifactId>
             <version>${apiVersion}</version>
-            <scope>provided</scope> <!-- ultimateadvancementapi-nms-distribution will be shaded into ultimateadvancementapi-shadeable module -->
+            <scope>compile</scope> <!-- ultimateadvancementapi-nms-distribution will be shaded into ultimateadvancementapi-shadeable module -->
         </dependency>
 
         <!-- SQLite is already bundled with Spigot, but not with SpigotAPI -->
@@ -79,22 +79,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <configuration>
-                    <relocations>
-                        <relocation>
-                            <pattern>net.byteflux.libby</pattern>
-                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>com.fren_gor.eventManagerAPI</pattern>
-                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.events</shadedPattern>
-                        </relocation>
-                    </relocations>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
             </plugin>
             <plugin>
@@ -115,5 +99,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-parent</artifactId>
-        <version>parent-SNAPSHOT</version>
+        <version>2.2.8</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-plugin</artifactId>
@@ -24,24 +24,22 @@
     <dependencies>
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-nms-common</artifactId>
-            <version>${apiVersion}</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- UltimateAdvancementAPI Common - for IntelliJ -->
-        <dependency>
-            <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-common</artifactId>
             <version>${apiVersion}</version>
-            <scope>provided</scope>
         </dependency>
 
-        <!-- UltimateAdvancementAPI Commands - for IntelliJ -->
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-common</artifactId>
+            <artifactId>ultimateadvancementapi-nms-distribution</artifactId>
             <version>${apiVersion}</version>
-            <scope>provided</scope>
+            <type>pom</type>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-distribution</artifactId>
+            <version>${apiVersion}</version>
+            <type>pom</type>
         </dependency>
 
         <!-- bStats -->
@@ -50,21 +48,6 @@
             <artifactId>bstats-bukkit</artifactId>
             <version>2.2.1</version>
             <scope>compile</scope>
-        </dependency>
-
-        <!-- Compiled dependencies -->
-        <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-shadeable</artifactId>
-            <version>${apiVersion}</version>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands</artifactId>
-            <version>${apiVersion}</version>
-            <scope>runtime</scope>
         </dependency>
     </dependencies>
 
@@ -104,6 +87,10 @@
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
                         </relocation>
                         <relocation>
+                            <pattern>dev.jorel.commandapi</pattern>
+                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
+                        </relocation>
+                        <relocation>
                             <pattern>com.fren_gor.eventManagerAPI</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.events</shadedPattern>
                         </relocation>
@@ -114,5 +101,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

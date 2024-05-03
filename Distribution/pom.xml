@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-parent</artifactId>
-        <version>parent-SNAPSHOT</version>
+        <version>2.2.8</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-distribution</artifactId>
@@ -22,10 +22,8 @@
     </modules>
 
     <properties>
-        <!-- Overridden by modules -->
-        <outputDirectoryClasses>${project.build.directory}/dependency-classes</outputDirectoryClasses>
-        <outputDirectorySources>${project.build.directory}/dependency-sources</outputDirectorySources>
-        <outputDirectoryJavadocJar>${project.build.directory}/dependency-javadoc</outputDirectoryJavadocJar>
+        <!-- (optionally) overridden by modules -->
+        <javadocArtifactId>ultimateadvancementapi-common</javadocArtifactId>
     </properties>
 
     <build>
@@ -33,53 +31,48 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <artifactId>maven-shade-plugin</artifactId>
                     <configuration>
-                        <excludes>**/META-INF/maven/**</excludes>
+                        <relocations>
+                            <relocation>
+                                <pattern>net.byteflux.libby</pattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
+                            </relocation>
+                            <relocation>
+                                <pattern>dev.jorel.commandapi</pattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
+                            </relocation>
+                            <relocation>
+                                <pattern>com.fren_gor.eventManagerAPI</pattern>
+                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.events</shadedPattern>
+                            </relocation>
+                        </relocations>
                     </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-antrun-plugin</artifactId>
-                    <version>3.0.0</version>
-                    <executions>
-                        <execution>
-                            <id>create-jars</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>run</goal>
-                            </goals>
-                            <configuration>
-                                <target>
-                                    <copy todir="${project.build.directory}" overwrite="true">
-                                        <fileset dir="${outputDirectoryJavadocJar}" includes="*.jar"/>
-                                        <regexpmapper from="(.*)-javadoc.jar" to="${project.build.finalName}-javadoc.jar"/>
-                                    </copy>
-                                </target>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jar-plugin</artifactId>
+                    <artifactId>maven-dependency-plugin</artifactId>
                     <version>3.2.0</version>
                     <executions>
                         <execution>
-                            <id>sources</id>
-                            <phase>package</phase>
+                            <phase>prepare-package</phase>
                             <goals>
-                                <goal>jar</goal>
+                                <goal>copy</goal>
                             </goals>
-                            <configuration>
-                                <classifier>sources</classifier>
-                                <classesDirectory>${outputDirectorySources}</classesDirectory>
-                            </configuration>
                         </execution>
                     </executions>
                     <configuration>
-                        <classesDirectory>${outputDirectoryClasses}</classesDirectory>
+                        <artifactItems>
+                            <artifactItem>
+                                <groupId>com.frengor</groupId>
+                                <artifactId>${javadocArtifactId}</artifactId>
+                                <version>${apiVersion}</version>
+                                <classifier>javadoc</classifier>
+                                <destFileName>${project.build.finalName}-javadoc.jar</destFileName>
+                            </artifactItem>
+                        </artifactItems>
+                        <outputDirectory>${project.build.directory}</outputDirectory>
+                        <localRepositoryDirectory>${project.build.directory}/downloaded-javadocs</localRepositoryDirectory>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -88,7 +81,6 @@
                     <version>3.2.0</version>
                     <executions>
                         <execution>
-                            <id>attach-artifacts</id>
                             <phase>package</phase>
                             <goals>
                                 <goal>attach-artifact</goal>
@@ -108,5 +100,4 @@
             </plugins>
         </pluginManagement>
     </build>
-
 </project>
