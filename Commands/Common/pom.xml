@@ -29,6 +29,13 @@
             <version>${libbyVersion}</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-common</artifactId>
+            <version>${apiVersion}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

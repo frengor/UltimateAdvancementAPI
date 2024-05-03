@@ -19,14 +19,24 @@ public class BStats {
     private static final Map<String, Map<String, Integer>> apiMcVersions = new HashMap<>(), apiNMSVersions = new HashMap<>();
 
     public static void init(AdvancementPlugin plugin) {
-        apiMcVersions.put(Versions.getApiVersion(), Collections.singletonMap(Versions.getNMSVersionsRange(), 1));
-        apiNMSVersions.put(Versions.getApiVersion(), Collections.singletonMap(Versions.removeInitialV(Versions.getNMSVersion()), 1));
+
+        String versionsRange = Versions.getNMSVersionsRange();
 
         Metrics metrics = new Metrics(plugin, BSTATS_ID);
 
         metrics.addCustomChart(new SimplePie("vanilla_advancements", () -> plugin.getConfigManager().getDisableVanillaAdvancements() ? "Disabled" : "Not Disabled"));
         metrics.addCustomChart(new SimplePie("database_type", () -> plugin.getConfigManager().getStorageType().getFancyName()));
-        metrics.addCustomChart(new DrilldownPie("api_-_minecraft_version", () -> apiMcVersions));
-        metrics.addCustomChart(new DrilldownPie("api_-_nms_version", () -> apiNMSVersions));
+
+        if (versionsRange != null) {
+            apiMcVersions.put(Versions.getApiVersion(), Collections.singletonMap(Versions.getNMSVersionsRange(), 1));
+            metrics.addCustomChart(new DrilldownPie("api_-_minecraft_version", () -> apiMcVersions));
+        }
+
+        Versions.getNMSVersion().ifPresent(version -> {
+            apiNMSVersions.put(Versions.getApiVersion(), Collections.singletonMap(Versions.removeInitialV(version), 1));
+            metrics.addCustomChart(new DrilldownPie("api_-_nms_version", () -> apiNMSVersions));
+
+        });
+
     }
 }

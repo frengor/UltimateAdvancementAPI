@@ -22,6 +22,12 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-common</artifactId>
+            <version>${apiVersion}</version>
+            <scope>provided</scope>
+        </dependency>
         <!-- UltimateAdvancementAPI Common - for IntelliJ -->
         <dependency>
             <groupId>com.frengor</groupId>

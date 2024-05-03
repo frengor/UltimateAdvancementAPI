@@ -11,6 +11,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 /**
  * <a href="https://github.com/JorelAli/CommandAPI">CommandAPI</a> manager, which loads the correct version of the API
  * and the correct implementation of the commands.
@@ -39,11 +41,14 @@ public class CommandAPIManager {
     @Nullable
     public static ILoadable loadManager(@NotNull LibraryManager libbyManager) {
         Preconditions.checkNotNull(libbyManager, "LibraryManager is null.");
-        CommandAPIVersion ver = CommandAPIVersion.getVersionToLoad(Versions.getNMSVersion());
-        if (ver == null) {
+
+        Optional<CommandAPIVersion> verOpt = Versions.getNMSVersion().map(CommandAPIVersion::getVersionToLoad);
+        if (verOpt.isEmpty()) {
             // Skip code down below if nms version is invalid
             return null;
         }
+
+        CommandAPIVersion ver = verOpt.get();
 
         // Download correct version of CommandAPI
         libbyManager.addMavenCentral();

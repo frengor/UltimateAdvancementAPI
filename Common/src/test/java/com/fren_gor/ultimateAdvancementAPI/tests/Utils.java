@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.tests;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
+import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -15,6 +16,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
@@ -83,9 +85,20 @@ public final class Utils {
     }
 
     public static MockedStatic<Bukkit> mockServer() {
+
+        try {
+            Field f = Versions.class.getDeclaredField("COMPLETE_VERSION");
+            f.setAccessible(true);
+            f.set(null, Optional.of("serverVersion1_17_R1"));
+
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+
         MockedStatic<Bukkit> bukkitMock = Mockito.mockStatic(Bukkit.class);
         Server server = InterfaceImplementer.newFakeServer();
         bukkitMock.when(Bukkit::getServer).thenReturn(server);
+        bukkitMock.when(Bukkit::getBukkitVersion).thenReturn("serverVersion1.17.1-R0.1-SNAPSHOT");
         assertSame("Server mock failed", Bukkit.getServer(), server);
         PluginManager plManager = new SimplePluginManager(server, new SimpleCommandMap(server));
         bukkitMock.when(Bukkit::getPluginManager).thenReturn(plManager);
