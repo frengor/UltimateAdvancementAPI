@@ -48,22 +48,6 @@
             </resource>
         </resources>
         <plugins>
-            <!-- Generate Mojang mapped jar -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>generate-mojang-mapped-jar</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <classifier>mojang-mapped</classifier>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <!-- Generate Spigot mapped jar -->
             <plugin>
                 <groupId>net.md-5</groupId>
