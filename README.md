@@ -1,12 +1,13 @@
 # UltimateAdvancementAPI
-[![Build Status main Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/badge/icon?subject=main)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/)
-[![Build Status dev Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/badge/icon?subject=dev)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/)
-[![License](https://img.shields.io/badge/license-LGPL--3.0-orange)](https://github.com/frengor/UltimateAdvancementAPI/blob/main/LGPL)
-[![Version](https://frengor.com/UltimateAdvancementAPI/last-release.php)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
-[![Issues](https://img.shields.io/github/issues/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/issues)
-[![Stars](https://img.shields.io/github/stars/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/stargazers)
-[![Forks](https://img.shields.io/github/forks/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/network)
-[![Contributors](https://img.shields.io/github/contributors/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/graphs/contributors)
+[![Build Status main Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/badge/icon?subject=main&style=flat)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/)
+[![Build Status dev Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/badge/icon?subject=dev&style=flat)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/)
+[![License](https://img.shields.io/badge/license-LGPL--3.0-orange?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/blob/main/LGPL)
+[![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.spigotmc.org%2Fsimple%2F0.2%2Findex.php%3Faction%3DgetResource%26id%3D95585&query=current_version&style=flat&label=version&color=blue&cacheSeconds=300
+)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
+[![Issues](https://img.shields.io/github/issues/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/issues)
+[![Stars](https://img.shields.io/github/stars/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/stargazers)
+[![Forks](https://img.shields.io/github/forks/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/network)
+[![Contributors](https://img.shields.io/github/contributors/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/graphs/contributors)
 
 A powerful API to create custom advancements for your minecraft server.
 
