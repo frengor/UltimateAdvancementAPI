@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.frengor</groupId>
+        <artifactId>ultimateadvancementapi-commands-parent</artifactId>
+        <version>2.2.8</version>
+    </parent>
+
+    <artifactId>ultimateadvancementapi-commands-distribution-mojang-mapped</artifactId>
+    <name>UltimateAdvancementAPI-Commands-Distribution-Mojang-Mapped</name>
+    <version>2.2.8</version>
+    <url>${parent.url}</url>
+    <packaging>pom</packaging>
+
+    <properties>
+        <!-- Skip deploy -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
+    <dependencies>
+        <!-- Command Modules -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-commandapi-9-3-0</artifactId>
+            <version>${apiVersion}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-commandapi-9-4-1</artifactId>
+            <version>${apiVersion}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-common-mojang-mapped</artifactId>
+            <version>${apiVersion}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-common</artifactId>
+            <version>${apiVersion}</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+</project>

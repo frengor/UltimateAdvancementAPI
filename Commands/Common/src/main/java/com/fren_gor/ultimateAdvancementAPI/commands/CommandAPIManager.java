@@ -50,12 +50,18 @@ public class CommandAPIManager {
 
         CommandAPIVersion ver = verOpt.get();
 
+        String commandAPIArtifactId = "commandapi-bukkit-shade";
+        if (MojangMappingsHandler.isMojangMapped()) {
+            commandAPIArtifactId += "-mojang-mapped";
+        }
+
         // Download correct version of CommandAPI
         libbyManager.addMavenCentral();
         Library commandAPILibrary = Library.builder()
                 .groupId("dev{}jorel")
-                .artifactId("commandapi-bukkit-shade")
-                .version(ver.getVersion()).checksum(ver.getChecksum())
+                .artifactId(commandAPIArtifactId)
+                .version(ver.getVersion())
+                .checksum(ver.getChecksum())
                 .relocate("dev{}jorel{}commandapi", "dev.jorel.commandapi") // Should be changed by shading
                 .build();
         try {

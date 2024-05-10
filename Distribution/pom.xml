@@ -17,8 +17,10 @@
 
     <modules>
         <module>API</module>
-        <module>Shadeable</module>
         <module>Commands</module>
+        <module>CommandsMojangMapped</module>
+        <module>Shadeable</module>
+        <module>ShadeableMojangMapped</module>
     </modules>
 
     <properties>
@@ -32,6 +34,15 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>shade</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>shade</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                     <configuration>
                         <relocations>
                             <relocation>

@@ -36,7 +36,9 @@ pipeline {
             echo 'Archiving artifacts...'
             archiveArtifacts artifacts: "Distribution/API/target/*.jar", excludes: '**/original-*.jar'
             archiveArtifacts artifacts: "Distribution/Shadeable/target/*.jar", excludes: '**/original-*.jar'
+            archiveArtifacts artifacts: "Distribution/ShadeableMojangMapped/target/*.jar", excludes: '**/original-*.jar'
             archiveArtifacts artifacts: "Distribution/Commands/target/*.jar", excludes: '**/original-*.jar'
+            archiveArtifacts artifacts: "Distribution/CommandsMojangMapped/target/*.jar", excludes: '**/original-*.jar'
             archiveArtifacts artifacts: "Plugin/target/*.jar", excludes: '**/original-*.jar'
             echo 'Archiving javadoc...'
             //javadoc javadocDir: "Common/target/apidocs", keepAll: false

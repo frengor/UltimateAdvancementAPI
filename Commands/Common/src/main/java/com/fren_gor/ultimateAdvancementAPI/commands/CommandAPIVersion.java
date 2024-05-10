@@ -1,43 +1,50 @@
 package com.fren_gor.ultimateAdvancementAPI.commands;
 
+import com.google.common.base.Preconditions;
 import net.byteflux.libby.LibraryManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Enum containing the used versions of <a href="https://github.com/JorelAli/CommandAPI">CommandAPI</a>.
  */
 public enum CommandAPIVersion {
-    v9_3_0("9.3.0", "K9cYHoWiGLP8z+cyYb5NIarVE9fzMeJRqHu1UJ+Li/U=", "9_3_0", List.of(
-            "v1_15_R1"
-    )),
-    LATEST("9.4.1", "Da02iS6EksSGPV/B8+cuf+MOfClRCrz966do5E7kFYo=", "9_4_1", List.of(
-            "v1_16_R1",
-            "v1_16_R2",
-            "v1_16_R3",
-            "v1_17_R1",
-            "v1_18_R1",
-            "v1_18_R2",
-            "v1_19_R1",
-            "v1_19_R2",
-            "v1_19_R3",
-            "v1_20_R1",
-            "v1_20_R2",
-            "v1_20_R3",
-            "v1_20_R4"
-    ));
+    v9_3_0("9.3.0", "K9cYHoWiGLP8z+cyYb5NIarVE9fzMeJRqHu1UJ+Li/U=", null, "9_3_0",
+            List.of(
+                    "v1_15_R1"
+            )
+    ),
+    LATEST("9.4.1", "Da02iS6EksSGPV/B8+cuf+MOfClRCrz966do5E7kFYo=", "MFAXsPUoiQmP232g9yAd+1qnb1Ub7AZ1xnmNeeSYUiA=", "9_4_1",
+            List.of(
+                    "v1_16_R1",
+                    "v1_16_R2",
+                    "v1_16_R3",
+                    "v1_17_R1",
+                    "v1_18_R1",
+                    "v1_18_R2",
+                    "v1_19_R1",
+                    "v1_19_R2",
+                    "v1_19_R3",
+                    "v1_20_R1",
+                    "v1_20_R2",
+                    "v1_20_R3",
+                    "v1_20_R4"
+            )
+    );
 
-    private final String version, checksum, suffix;
+    private final String version, checksum, mojangMappedChecksum, suffix;
     private final List<String> supportedVersions;
 
-    CommandAPIVersion(@NotNull String version, @NotNull String checksum, @NotNull String suffix, @NotNull List<String> supportedVersions) {
-        this.version = version;
-        this.checksum = checksum;
-        this.suffix = suffix;
-        this.supportedVersions = supportedVersions;
+    CommandAPIVersion(@NotNull String version, @NotNull String checksum, @Nullable String mojangMappedChecksum, @NotNull String suffix, @NotNull List<String> supportedVersions) {
+        this.version = Objects.requireNonNull(version, "Version is null.");
+        this.checksum = Objects.requireNonNull(checksum, "Checksum is null.");
+        this.mojangMappedChecksum = mojangMappedChecksum;
+        this.suffix = Objects.requireNonNull(suffix, "Suffix is null.");
+        this.supportedVersions = Objects.requireNonNull(supportedVersions, "SupportedVersions is null.");
     }
 
     /**
@@ -57,6 +64,8 @@ public enum CommandAPIVersion {
      */
     @NotNull
     public String getChecksum() {
+        String checksum = MojangMappingsHandler.isMojangMapped() ? this.mojangMappedChecksum : this.checksum;
+        Preconditions.checkArgument(checksum != null, "CommandAPI " + this.version + " doesn't support Mojang mappings.");
         return checksum;
     }
 

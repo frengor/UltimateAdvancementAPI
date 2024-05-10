@@ -22,9 +22,11 @@
 
     <modules>
         <module>Common</module>
+        <module>CommonMojangMapped</module>
         <module>CommandAPI-9.3.0</module>
         <module>CommandAPI-9.4.1</module>
         <module>Distribution</module>
+        <module>DistributionMojangMapped</module>
     </modules>
 
     <dependencies>
