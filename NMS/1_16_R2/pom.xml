@@ -12,9 +12,12 @@
 
     <artifactId>ultimateadvancementapi-nms-1_16_R2</artifactId>
     <name>UltimateAdvancementAPI-NMS-1_16_R2</name>
-    <version>2.2.8</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
+
+    <properties>
+        <mc-version>1.16.3-R0.1-SNAPSHOT</mc-version>
+    </properties>
 
     <dependencies>
         <!-- NMS Common Module -->
@@ -29,7 +32,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.16.3-R0.1-SNAPSHOT</version>
+            <version>${mc-version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

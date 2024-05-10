@@ -12,7 +12,6 @@
 
     <artifactId>ultimateadvancementapi-shadeable-mojang-mapped</artifactId>
     <name>UltimateAdvancementAPI-Shadeable-Mojang-Mapped</name>
-    <version>2.2.8</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 

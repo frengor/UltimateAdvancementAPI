@@ -12,14 +12,8 @@
 
     <artifactId>ultimateadvancementapi-commands-common-mojang-mapped</artifactId>
     <name>UltimateAdvancementAPI-Commands-Common-Mojang-Mapped</name>
-    <version>2.2.8</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
-
-    <properties>
-        <!-- Skip deploy -->
-        <maven.deploy.skip>true</maven.deploy.skip>
-    </properties>
 
     <build>
         <resources>

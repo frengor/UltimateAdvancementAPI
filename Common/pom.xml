@@ -12,7 +12,6 @@
 
     <artifactId>ultimateadvancementapi-common</artifactId>
     <name>UltimateAdvancementAPI-Common</name>
-    <version>2.2.8</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 

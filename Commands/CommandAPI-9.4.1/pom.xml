@@ -12,14 +12,8 @@
 
     <artifactId>ultimateadvancementapi-commands-commandapi-9-4-1</artifactId>
     <name>UltimateAdvancementAPI-Commands-CommandAPI-9-4-1</name>
-    <version>2.2.8</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
-
-    <properties>
-        <!-- Skip deploy -->
-        <maven.deploy.skip>true</maven.deploy.skip>
-    </properties>
 
     <dependencies>
         <!-- Common Module -->

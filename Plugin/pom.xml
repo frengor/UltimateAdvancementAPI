@@ -12,12 +12,11 @@
 
     <artifactId>ultimateadvancementapi-plugin</artifactId>
     <name>UltimateAdvancementAPI-Plugin</name>
-    <version>2.2.8</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
     <properties>
-        <mojangMappedJarFile>${project.build.directory}/${build.finalName}-Mojang-Mapped.jar</mojangMappedJarFile>
+        <mojangMappedJarFile>${project.build.directory}/${project.build.finalName}-Mojang-Mapped.jar</mojangMappedJarFile>
 
         <!-- Skip deploy -->
         <maven.deploy.skip>true</maven.deploy.skip>
@@ -200,7 +199,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

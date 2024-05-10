@@ -12,14 +12,8 @@
 
     <artifactId>ultimateadvancementapi-commands-distribution-mojang-mapped</artifactId>
     <name>UltimateAdvancementAPI-Commands-Distribution-Mojang-Mapped</name>
-    <version>2.2.8</version>
     <url>${parent.url}</url>
     <packaging>pom</packaging>
-
-    <properties>
-        <!-- Skip deploy -->
-        <maven.deploy.skip>true</maven.deploy.skip>
-    </properties>
 
     <dependencies>
         <!-- Command Modules -->

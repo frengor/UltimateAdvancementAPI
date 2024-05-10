@@ -12,7 +12,6 @@
 
     <artifactId>ultimateadvancementapi-nms-distribution-mojang-mapped</artifactId>
     <name>UltimateAdvancementAPI-NMS-Distribution-mojang-mapped</name>
-    <version>2.2.8</version>
     <url>${parent.url}</url>
     <packaging>pom</packaging>
 
