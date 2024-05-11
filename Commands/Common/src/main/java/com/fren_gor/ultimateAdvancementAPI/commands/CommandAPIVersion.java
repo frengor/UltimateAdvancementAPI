@@ -36,7 +36,8 @@ public enum CommandAPIVersion {
             )
     );
 
-    private final String version, checksum, mojangMappedChecksum, suffix;
+    private final String version, suffix;
+    final String checksum, mojangMappedChecksum; // Used in tests
     private final List<String> supportedVersions;
 
     CommandAPIVersion(@NotNull String version, @NotNull String checksum, @Nullable String mojangMappedChecksum, @NotNull String suffix, @NotNull List<String> supportedVersions) {
