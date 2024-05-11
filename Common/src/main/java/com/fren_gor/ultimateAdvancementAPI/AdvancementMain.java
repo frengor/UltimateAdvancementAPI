@@ -99,10 +99,9 @@ public final class AdvancementMain {
         if (!LOADED.compareAndSet(false, true)) {
             throw new IllegalStateException("UltimateAdvancementAPI is getting loaded twice.");
         }
+
         // Check mc version
-
         Optional<String> version = Versions.getNMSVersion();
-
         if (version.isEmpty()) {
             INVALID_VERSION.set(true);
             String fancy = Versions.getSupportedNMSVersions().stream().map(Versions::getNMSVersionsRange).collect(Collectors.joining(", ", "[", "]"));

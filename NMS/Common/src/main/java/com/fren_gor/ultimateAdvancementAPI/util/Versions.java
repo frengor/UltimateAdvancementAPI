@@ -1,7 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.util;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +85,6 @@ public class Versions {
      */
     @NotNull
     public static Optional<String> getNMSVersion() {
-
         if (COMPLETE_VERSION != null) {
             return COMPLETE_VERSION;
         }
@@ -98,7 +96,6 @@ public class Versions {
                 .orElse(null);
 
         return COMPLETE_VERSION = (version != null ? Optional.of(version) : Optional.empty());
-
     }
 
     /**
@@ -143,9 +140,7 @@ public class Versions {
      */
     @Nullable
     public static String getNMSVersionsRange() {
-
         return getNMSVersion().map(Versions::getNMSVersionsRange).orElse(null);
-
     }
 
     /**
@@ -173,9 +168,7 @@ public class Versions {
     @UnmodifiableView
     @Nullable
     public static List<@NotNull String> getNMSVersionsList() {
-
         return getNMSVersion().map(Versions::getNMSVersionsList).orElse(null);
-
     }
 
     /**

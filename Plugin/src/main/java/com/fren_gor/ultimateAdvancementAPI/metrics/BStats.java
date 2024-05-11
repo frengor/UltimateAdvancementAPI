@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.DrilldownPie;
 import org.bstats.charts.SimplePie;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,8 +20,7 @@ public class BStats {
     private static final Map<String, Map<String, Integer>> apiMcVersions = new HashMap<>(), apiNMSVersions = new HashMap<>();
 
     public static void init(AdvancementPlugin plugin) {
-
-        String versionsRange = Versions.getNMSVersionsRange();
+        @Nullable String versionsRange = Versions.getNMSVersionsRange();
 
         Metrics metrics = new Metrics(plugin, BSTATS_ID);
 
@@ -35,8 +35,6 @@ public class BStats {
         Versions.getNMSVersion().ifPresent(version -> {
             apiNMSVersions.put(Versions.getApiVersion(), Collections.singletonMap(Versions.removeInitialV(version), 1));
             metrics.addCustomChart(new DrilldownPie("api_-_nms_version", () -> apiNMSVersions));
-
         });
-
     }
 }
