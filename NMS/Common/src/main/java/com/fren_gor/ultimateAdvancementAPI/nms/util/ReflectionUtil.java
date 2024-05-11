@@ -1,8 +1,11 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.util;
 
+import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 /**
  * Reflection utility class.
@@ -10,21 +13,19 @@ import org.jetbrains.annotations.Nullable;
 public class ReflectionUtil {
 
     /**
-     * The complete NMS version (like {@code v1_17_R1}).
+     * The Minecraft version.
+     * <p>For example {@code 1.17.1}.
      */
-    public static final String COMPLETE_VERSION = Bukkit.getServer().getClass().getName().split("\\.")[3];
+    public static final String MINECRAFT_VERSION = Bukkit.getBukkitVersion().split("-")[0];
+
+    private static final String CRAFTBUKKIT_PACKAGE = Bukkit.getServer().getClass().getPackage().getName();
 
     /**
      * The NMS version.
      * <p>For example, for {@code v1_17_R1} it is {@code 17}.
      */
-    public static final int VERSION = Integer.parseInt(COMPLETE_VERSION.split("_")[1]);
+    public static final int VERSION = Integer.parseInt(MINECRAFT_VERSION.split("\\.")[1]);
 
-    /**
-     * The NMS release.
-     * <p>For example, for {@code v1_17_R1} it is {@code 1}.
-     */
-    public static final int RELEASE = Integer.parseInt(COMPLETE_VERSION.split("R")[1]);
     private static final boolean IS_1_17 = VERSION >= 17;
 
     /**
@@ -39,11 +40,22 @@ public class ReflectionUtil {
      */
     @Nullable
     public static Class<?> getNMSClass(@NotNull String name, @NotNull String mcPackage) {
-        String path = "net.minecraft." + (IS_1_17 ? mcPackage : "server." + COMPLETE_VERSION) + '.' + name;
+        String path;
+        if (IS_1_17) {
+            path = "net.minecraft." + mcPackage + '.' + name;
+        } else {
+            Optional<String> version = Versions.getNMSVersion();
+            if (version.isEmpty()) {
+                Bukkit.getLogger().severe("[UltimateAdvancementAPI] Unsupported Minecraft version! (" + MINECRAFT_VERSION + ")");
+                return null;
+            }
+            path = "net.minecraft.server." + version.get() + '.' + name;
+        }
+
         try {
             return Class.forName(path);
         } catch (ClassNotFoundException e) {
-            Bukkit.getLogger().info("[UltimateAdvancementAPI] Can't find NMS Class! (" + path + ")");
+            Bukkit.getLogger().severe("[UltimateAdvancementAPI] Can't find NMS Class! (" + path + ")");
             return null;
         }
     }
@@ -56,11 +68,11 @@ public class ReflectionUtil {
      */
     @Nullable
     public static Class<?> getCBClass(@NotNull String name) {
-        String cb = "org.bukkit.craftbukkit." + COMPLETE_VERSION + "." + name;
+        String cb = CRAFTBUKKIT_PACKAGE + "." + name;
         try {
             return Class.forName(cb);
         } catch (ClassNotFoundException e) {
-            Bukkit.getLogger().info("[UltimateAdvancementAPI] Can't find CB Class! (" + cb + ")");
+            Bukkit.getLogger().severe("[UltimateAdvancementAPI] Can't find CB Class! (" + cb + ")");
             return null;
         }
     }
@@ -73,16 +85,22 @@ public class ReflectionUtil {
      */
     @Nullable
     public static <T> Class<? extends T> getWrapperClass(@NotNull Class<T> clazz) {
+        Optional<String> version = Versions.getNMSVersion();
+        if (version.isEmpty()) {
+            Bukkit.getLogger().severe("[UltimateAdvancementAPI] Unsupported Minecraft version! (" + MINECRAFT_VERSION + ")");
+            return null;
+        }
+
         String name = clazz.getName();
         String validPackage = "com.fren_gor.ultimateAdvancementAPI.nms.wrappers.";
         if (!name.startsWith(validPackage)) {
             throw new IllegalArgumentException("Invalid class " + name + '.');
         }
-        String wrapper = "com.fren_gor.ultimateAdvancementAPI.nms." + COMPLETE_VERSION + "." + name.substring(validPackage.length()) + '_' + COMPLETE_VERSION;
+        String wrapper = "com.fren_gor.ultimateAdvancementAPI.nms." + version.get() + "." + name.substring(validPackage.length()) + '_' + version.get();
         try {
             return Class.forName(wrapper).asSubclass(clazz);
         } catch (ClassNotFoundException e) {
-            Bukkit.getLogger().info("[UltimateAdvancementAPI] Can't find Wrapper Class! (" + wrapper + ")");
+            Bukkit.getLogger().severe("[UltimateAdvancementAPI] Can't find Wrapper Class! (" + wrapper + ")");
             return null;
         }
     }

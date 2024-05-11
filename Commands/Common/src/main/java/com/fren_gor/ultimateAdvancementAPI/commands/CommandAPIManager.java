@@ -11,6 +11,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 /**
  * <a href="https://github.com/JorelAli/CommandAPI">CommandAPI</a> manager, which loads the correct version of the API
  * and the correct implementation of the commands.
@@ -39,18 +41,27 @@ public class CommandAPIManager {
     @Nullable
     public static ILoadable loadManager(@NotNull LibraryManager libbyManager) {
         Preconditions.checkNotNull(libbyManager, "LibraryManager is null.");
-        CommandAPIVersion ver = CommandAPIVersion.getVersionToLoad(Versions.getNMSVersion());
-        if (ver == null) {
+
+        Optional<CommandAPIVersion> verOpt = Versions.getNMSVersion().map(CommandAPIVersion::getVersionToLoad);
+        if (verOpt.isEmpty()) {
             // Skip code down below if nms version is invalid
             return null;
+        }
+
+        CommandAPIVersion ver = verOpt.get();
+
+        String commandAPIArtifactId = "commandapi-bukkit-shade";
+        if (MojangMappingsHandler.isMojangMapped()) {
+            commandAPIArtifactId += "-mojang-mapped";
         }
 
         // Download correct version of CommandAPI
         libbyManager.addMavenCentral();
         Library commandAPILibrary = Library.builder()
                 .groupId("dev{}jorel")
-                .artifactId("commandapi-bukkit-shade")
-                .version(ver.getVersion()).checksum(ver.getChecksum())
+                .artifactId(commandAPIArtifactId)
+                .version(ver.getVersion())
+                .checksum(ver.getChecksum())
                 .relocate("dev{}jorel{}commandapi", "dev.jorel.commandapi") // Should be changed by shading
                 .build();
         try {

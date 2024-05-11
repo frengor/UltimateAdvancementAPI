@@ -43,7 +43,7 @@ pipeline {
             configFileProvider([configFile(fileId: archiveFileScriptId, variable: 'JAVADOC_SCRIPT')]) {
                 sh "/bin/bash +x $JAVADOC_SCRIPT ${BRANCH_NAME}"
             }
-            
+
             echo 'Cleaning after successful build...'
             cleanWs(cleanWhenNotBuilt: false, notFailBuild: true)
         }

@@ -4,5 +4,5 @@ version: ${apiVersion}
 description: ${project.description}
 authors: [fren_gor, EscanorTargaryen]
 website: ${project.url}
-
+load: STARTUP
 api-version: 1.15

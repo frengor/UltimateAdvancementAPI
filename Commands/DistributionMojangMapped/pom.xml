@@ -7,50 +7,39 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-commands-parent</artifactId>
-        <version>parent-SNAPSHOT</version>
+        <version>2.2.8</version>
     </parent>
 
-    <artifactId>ultimateadvancementapi-commands-commandapi-9-3-0</artifactId>
-    <name>UltimateAdvancementAPI-Commands-CommandAPI-9-3-0</name>
-    <version>2.2.8</version>
+    <artifactId>ultimateadvancementapi-commands-distribution-mojang-mapped</artifactId>
+    <name>UltimateAdvancementAPI-Commands-Distribution-Mojang-Mapped</name>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
-    <properties>
-        <!-- Skip deploy -->
-        <maven.deploy.skip>true</maven.deploy.skip>
-    </properties>
-
     <dependencies>
-        <!-- Common Module -->
+        <!-- Command Modules -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-commandapi-9-3-0</artifactId>
+            <version>${apiVersion}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-commandapi-9-4-1</artifactId>
+            <version>${apiVersion}</version>
+            <scope>compile</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-commands-common</artifactId>
             <version>${apiVersion}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- CommandAPI -->
-        <dependency>
-            <groupId>dev.jorel</groupId>
-            <artifactId>commandapi-bukkit-shade</artifactId>
-            <version>9.2.0</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
     <build>
-        <resources>
-            <resource>
-                <filtering>false</filtering>
-                <directory>../..</directory>
-                <includes>
-                    <include>LICENSE</include>
-                    <include>LGPL</include>
-                    <include>NOTICE</include>
-                </includes>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

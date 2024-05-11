@@ -7,29 +7,13 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-commands-parent</artifactId>
-        <version>parent-SNAPSHOT</version>
+        <version>2.2.8</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-commands-common</artifactId>
     <name>UltimateAdvancementAPI-Commands-Common</name>
-    <version>2.2.8</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
-
-    <properties>
-        <!-- Skip deploy -->
-        <maven.deploy.skip>true</maven.deploy.skip>
-    </properties>
-
-    <dependencies>
-        <!-- Libby -->
-        <dependency>
-            <groupId>net.byteflux</groupId>
-            <artifactId>libby-bukkit</artifactId>
-            <version>${libbyVersion}</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
 
     <build>
         <resources>
@@ -44,10 +28,6 @@
             </resource>
         </resources>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
