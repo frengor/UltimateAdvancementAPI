@@ -77,8 +77,9 @@
         <!-- Mojang-mapped dependencies -->
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-shadeable-mojang-mapped</artifactId>
+            <artifactId>ultimateadvancementapi-shadeable</artifactId>
             <version>${apiVersion}</version>
+            <classifier>mojang-mapped</classifier>
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
@@ -90,8 +91,9 @@
 
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-mojang-mapped</artifactId>
+            <artifactId>ultimateadvancementapi-commands</artifactId>
             <version>${apiVersion}</version>
+            <classifier>mojang-mapped</classifier>
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
@@ -139,8 +141,9 @@
 
                             <artifactSet>
                                 <excludes>
-                                    <exclude>com.frengor:ultimateadvancementapi-shadeable</exclude>
-                                    <exclude>com.frengor:ultimateadvancementapi-commands</exclude>
+                                    <!-- Exclude the artifacts with the default classifier -->
+                                    <exclude>com.frengor:ultimateadvancementapi-shadeable:</exclude>
+                                    <exclude>com.frengor:ultimateadvancementapi-commands:</exclude>
                                 </excludes>
                             </artifactSet>
 
@@ -162,10 +165,18 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>com.frengor:ultimateadvancementapi-shadeable-mojang-mapped</exclude>
-                                    <exclude>com.frengor:ultimateadvancementapi-commands-mojang-mapped</exclude>
+                                    <exclude>com.frengor:ultimateadvancementapi-shadeable:mojang-mapped</exclude>
+                                    <exclude>com.frengor:ultimateadvancementapi-commands:mojang-mapped</exclude>
                                 </excludes>
                             </artifactSet>
+
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <manifestEntries>
+                                        <paperweight-mappings-namespace>spigot</paperweight-mappings-namespace>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
                         </configuration>
                     </execution>
                 </executions>
@@ -194,6 +205,10 @@
                     <createDependencyReducedPom>false</createDependencyReducedPom>
                     <useDependencyReducedPomInJar>false</useDependencyReducedPomInJar>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
             </plugin>
             <!-- The mojang-mapped jar isn't attached by the shade plugin (outputFile prevents attaching) -->
             <plugin>

@@ -17,15 +17,15 @@
 
     <modules>
         <module>API</module>
-        <module>Commands</module>
-        <module>CommandsMojangMapped</module>
         <module>Shadeable</module>
-        <module>ShadeableMojangMapped</module>
+        <module>Commands</module>
     </modules>
 
     <properties>
         <!-- (optionally) overridden by modules -->
         <javadocArtifactId>ultimateadvancementapi-common</javadocArtifactId>
+        <mojangMappedJarFile>${project.build.directory}/${project.build.finalName}-Mojang-Mapped.jar</mojangMappedJarFile>
+        <artifactIdToExclude>overridden-by-modules</artifactIdToExclude>
     </properties>
 
     <build>
@@ -36,11 +36,34 @@
                     <artifactId>maven-shade-plugin</artifactId>
                     <executions>
                         <execution>
+                            <id>shade-mojang-mapped</id>
+                            <configuration>
+                                <outputFile>${mojangMappedJarFile}</outputFile>
+
+                                <artifactSet>
+                                    <excludes>
+                                        <exclude>com.frengor:${artifactIdToExclude}</exclude>
+                                    </excludes>
+                                </artifactSet>
+
+                                <createDependencyReducedPom>false</createDependencyReducedPom>
+                                <useDependencyReducedPomInJar>false</useDependencyReducedPomInJar>
+                                <promoteTransitiveDependencies>false</promoteTransitiveDependencies>
+                            </configuration>
+                        </execution>
+                        <execution>
                             <id>shade</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>shade</goal>
-                            </goals>
+                            <configuration>
+                                <artifactSet>
+                                    <excludes>
+                                        <exclude>com.frengor:${artifactIdToExclude}-mojang-mapped</exclude>
+                                    </excludes>
+                                </artifactSet>
+
+                                <createDependencyReducedPom>false</createDependencyReducedPom>
+                                <useDependencyReducedPomInJar>false</useDependencyReducedPomInJar>
+                                <promoteTransitiveDependencies>false</promoteTransitiveDependencies>
+                            </configuration>
                         </execution>
                     </executions>
                     <configuration>
@@ -92,6 +115,7 @@
                     <artifactId>build-helper-maven-plugin</artifactId>
                     <executions>
                         <execution>
+                            <id>attach-javadoc</id>
                             <phase>package</phase>
                             <goals>
                                 <goal>attach-artifact</goal>
@@ -105,6 +129,19 @@
                                     </artifact>
                                 </artifacts>
                                 <skipAttach>${maven.javadoc.skip}</skipAttach>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <!-- The mojang-mapped jar isn't attached by the shade plugin (outputFile prevents attaching) -->
+                            <id>attach-mojang-mapped-jar</id>
+                            <configuration>
+                                <artifacts>
+                                    <artifact>
+                                        <file>${mojangMappedJarFile}</file>
+                                        <type>jar</type>
+                                        <classifier>mojang-mapped</classifier>
+                                    </artifact>
+                                </artifacts>
                             </configuration>
                         </execution>
                     </executions>

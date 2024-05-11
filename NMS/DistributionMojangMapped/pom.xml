@@ -13,7 +13,7 @@
     <artifactId>ultimateadvancementapi-nms-distribution-mojang-mapped</artifactId>
     <name>UltimateAdvancementAPI-NMS-Distribution-mojang-mapped</name>
     <url>${parent.url}</url>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <dependencies>
         <!-- NMS Modules -->
@@ -110,4 +110,26 @@
             <classifier>mojang-mapped</classifier>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <relocations>
+                        <!-- CraftBukkit relocations for mojang-mapped servers -->
+                        <relocation>
+                            <pattern>org.bukkit.craftbukkit.v1_20_R4</pattern>
+                            <shadedPattern>org.bukkit.craftbukkit</shadedPattern>
+                        </relocation>
+                    </relocations>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

@@ -13,7 +13,7 @@
     <artifactId>ultimateadvancementapi-commands-distribution</artifactId>
     <name>UltimateAdvancementAPI-Commands-Distribution</name>
     <url>${parent.url}</url>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <dependencies>
         <!-- Command Modules -->
@@ -38,4 +38,17 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

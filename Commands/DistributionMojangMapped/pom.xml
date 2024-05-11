@@ -13,7 +13,7 @@
     <artifactId>ultimateadvancementapi-commands-distribution-mojang-mapped</artifactId>
     <name>UltimateAdvancementAPI-Commands-Distribution-Mojang-Mapped</name>
     <url>${parent.url}</url>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <dependencies>
         <!-- Command Modules -->
@@ -33,16 +33,22 @@
 
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-common-mojang-mapped</artifactId>
-            <version>${apiVersion}</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-commands-common</artifactId>
             <version>${apiVersion}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

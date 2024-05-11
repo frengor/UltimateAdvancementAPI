@@ -22,7 +22,6 @@
 
     <modules>
         <module>Common</module>
-        <module>CommonMojangMapped</module>
         <module>CommandAPI-9.3.0</module>
         <module>CommandAPI-9.4.1</module>
         <module>Distribution</module>
@@ -38,4 +37,35 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Used in distribution modules -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>shade</goal>
+                            </goals>
+                            <configuration>
+                                <filters>
+                                    <filter>
+                                        <!-- The distribution modules override MojangMappingsHandler -->
+                                        <artifact>com.frengor:ultimateadvancementapi-commands-common</artifact>
+                                        <excludes>
+                                            <exclude>com/fren_gor/ultimateAdvancementAPI/commands/MojangMappingsHandler**</exclude>
+                                        </excludes>
+                                    </filter>
+                                </filters>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>

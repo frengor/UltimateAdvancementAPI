@@ -1,8 +1,11 @@
 package com.fren_gor.ultimateAdvancementAPI.commands;
 
+import org.jetbrains.annotations.ApiStatus.Internal;
+
 /**
  * Helper class to handle Mojang mapped servers.
  */
+@Internal
 public final class MojangMappingsHandler {
 
     /**
