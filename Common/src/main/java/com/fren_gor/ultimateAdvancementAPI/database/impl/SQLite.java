@@ -174,9 +174,8 @@ public class SQLite implements IDatabase {
 
             r = psTeamId.executeQuery();
             if (!r.next()) { // Player isn't registered
-                try (PreparedStatement psInsert = openConnection().prepareStatement("INSERT INTO `Teams` DEFAULT VALUES;"); PreparedStatement psInsertPl = openConnection().prepareStatement("INSERT INTO `Players` (`UUID`, `Name`, `TeamID`) VALUES (?, ?, ?);")) {
-                    psInsert.executeUpdate();
-                    r = psInsert.getGeneratedKeys();
+                try (PreparedStatement psInsert = openConnection().prepareStatement("INSERT INTO `Teams` DEFAULT VALUES RETURNING `ID`;"); PreparedStatement psInsertPl = openConnection().prepareStatement("INSERT INTO `Players` (`UUID`, `Name`, `TeamID`) VALUES (?, ?, ?);")) {
+                    r = psInsert.executeQuery();
                     if (!r.next()) {
                         throw new SQLException("Cannot insert default values into Teams table.");
                     }
@@ -364,9 +363,8 @@ public class SQLite implements IDatabase {
      */
     @Override
     public TeamProgression movePlayerInNewTeam(@NotNull UUID uuid) throws SQLException {
-        try (PreparedStatement psInsert = openConnection().prepareStatement("INSERT INTO `Teams` DEFAULT VALUES;")) {
-            psInsert.executeUpdate();
-            ResultSet r = psInsert.getGeneratedKeys();
+        try (PreparedStatement psInsert = openConnection().prepareStatement("INSERT INTO `Teams` DEFAULT VALUES RETURNING `ID`;")) {
+            ResultSet r = psInsert.executeQuery();
             if (!r.next()) {
                 throw new SQLException("Cannot insert default values into Teams table.");
             }
