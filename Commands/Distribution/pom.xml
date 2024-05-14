@@ -20,14 +20,14 @@
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-commands-commandapi-9-3-0</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-commands-commandapi-9.5.0-SNAPSHOT</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-commands-common</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

@@ -1,6 +1,6 @@
 main: com.fren_gor.ultimateAdvancementAPI.AdvancementPlugin
 name: UltimateAdvancementAPI
-version: ${apiVersion}
+version: ${project.version}
 description: ${project.description}
 authors: [fren_gor, EscanorTargaryen]
 website: ${project.url}

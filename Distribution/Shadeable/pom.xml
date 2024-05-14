@@ -23,13 +23,13 @@
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-common</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-nms-distribution</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-nms-distribution-mojang-mapped</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>

@@ -41,7 +41,7 @@
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-nms-common</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
             <scope>compile</scope> <!-- ultimateadvancementapi-nms-distribution will be shaded into ultimateadvancementapi-shadeable module -->
         </dependency>
 

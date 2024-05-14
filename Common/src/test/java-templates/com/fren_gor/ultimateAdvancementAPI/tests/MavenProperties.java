@@ -8,7 +8,7 @@ public final class MavenProperties {
     /**
      * Version of the API as defined in the pom.xml
      */
-    public static final String API_VERSION = "${apiVersion}";
+    public static final String API_VERSION = "${project.version}";
 
     private MavenProperties() {
         throw new UnsupportedOperationException("Utility class.");

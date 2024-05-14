@@ -100,7 +100,7 @@
                             <artifactItem>
                                 <groupId>com.frengor</groupId>
                                 <artifactId>${javadocArtifactId}</artifactId>
-                                <version>${apiVersion}</version>
+                                <version>${project.version}</version>
                                 <classifier>javadoc</classifier>
                                 <destFileName>${project.build.finalName}-javadoc.jar</destFileName>
                             </artifactItem>

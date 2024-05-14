@@ -20,7 +20,7 @@
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-commands-common</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
 

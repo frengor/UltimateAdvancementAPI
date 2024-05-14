@@ -43,7 +43,6 @@
 
     <properties>
         <!-- Project Properties -->
-        <apiVersion>2.2.8</apiVersion> <!-- Change also in Versions class -->
         <libbyVersion>1.3.0</libbyVersion>
         <maven.javadoc.skip>false</maven.javadoc.skip>
         <projectEncoding>UTF-8</projectEncoding>
@@ -126,7 +125,7 @@
     </dependencies>
 
     <build>
-        <finalName>${project.name}-${apiVersion}</finalName>
+        <finalName>${project.name}-${project.version}</finalName>
         <defaultGoal>clean install</defaultGoal>
 
         <pluginManagement>
