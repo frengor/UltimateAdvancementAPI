@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -18,6 +19,21 @@ public class ReflectionUtil {
      */
     public static final String MINECRAFT_VERSION = Bukkit.getBukkitVersion().split("-")[0];
 
+    /**
+     * The Minecraft minor version.
+     * <p>For example, for {@code 1.19.2} it is {@code 1}.
+     */
+    public static final int MINOR_VERSION;
+
+    static {
+        var splitted = MINECRAFT_VERSION.split("\\.");
+        if (splitted.length > 2) {
+            MINOR_VERSION = Integer.parseInt(splitted[2]);
+        } else {
+            MINOR_VERSION = 0;
+        }
+    }
+
     private static final String CRAFTBUKKIT_PACKAGE = Bukkit.getServer().getClass().getPackage().getName();
 
     /**
@@ -27,6 +43,22 @@ public class ReflectionUtil {
     public static final int VERSION = Integer.parseInt(MINECRAFT_VERSION.split("\\.")[1]);
 
     private static final boolean IS_1_17 = VERSION >= 17;
+
+    /**
+     * Returns whether the provided class exists.
+     *
+     * @param className The fully qualified name of the class.
+     * @return Whether the provided class exists.
+     */
+    public static boolean classExists(@NotNull String className) {
+        Objects.requireNonNull(className, "ClassName cannot be null.");
+        try {
+            Class.forName(className);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
 
     /**
      * Gets an NMS class using reflections.
