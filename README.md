@@ -15,7 +15,7 @@ A powerful API to create custom advancements for your minecraft server.
 
 **Modrinth Page:** <https://modrinth.com/plugin/ultimateadvancementapi>  
 **Spigot Page:** <https://www.spigotmc.org/resources/95585/>  
-**Hangar Page:** <https://hangar.papermc.io/DevHeim/UltimateAdvancementAPI>
+**Hangar Page:** <https://hangar.papermc.io/DevHeim/UltimateAdvancementAPI>  
 **UltimateAdvancementGenerator:** <https://escanortargaryen.dev/UltimateAdvancementGenerator/>  
 **Discord:** <https://discord.gg/BMg6VJk5n3>  
 **Official Wiki:** <https://github.com/frengor/UltimateAdvancementAPI/wiki/>  
