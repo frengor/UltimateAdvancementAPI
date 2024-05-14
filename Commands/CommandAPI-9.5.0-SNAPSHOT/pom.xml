@@ -10,10 +10,28 @@
         <version>2.2.8</version>
     </parent>
 
-    <artifactId>ultimateadvancementapi-commands-common</artifactId>
-    <name>UltimateAdvancementAPI-Commands-Common</name>
+    <artifactId>ultimateadvancementapi-commands-commandapi-9.5.0-SNAPSHOT</artifactId>
+    <name>UltimateAdvancementAPI-Commands-CommandAPI-9.5.0-SNAPSHOT</name>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- Common Module -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-common</artifactId>
+            <version>${apiVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- CommandAPI -->
+        <dependency>
+            <groupId>dev.jorel</groupId>
+            <artifactId>commandapi-bukkit-shade</artifactId>
+            <version>9.5.0-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <resources>
@@ -26,23 +44,11 @@
                     <include>NOTICE</include>
                 </includes>
             </resource>
-            <resource>
-                <targetPath>META-INF/.libs/</targetPath>
-                <filtering>false</filtering>
-                <directory>src/licenses/</directory>
-            </resource>
         </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <dependencySourceIncludes>${project.groupId}:${project.artifactId}</dependencySourceIncludes>
-                </configuration>
             </plugin>
         </plugins>
     </build>

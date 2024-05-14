@@ -71,6 +71,12 @@
             <id>AlessioDP</id>
             <url>https://repo.alessiodp.com/releases/</url>
         </repository>
+
+        <!-- Maven Central Snapshots -->
+        <repository>
+            <id>maven-central-snapshots</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
     </repositories>
 
     <distributionManagement>
