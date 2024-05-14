@@ -7,92 +7,92 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-distribution</artifactId>
-        <version>parent-SNAPSHOT</version>
+        <version>2.3.0</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-commands</artifactId>
     <name>UltimateAdvancementAPI-Commands</name>
-    <version>2.2.8</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
+
+    <properties>
+        <javadocArtifactId>ultimateadvancementapi-commands-common</javadocArtifactId>
+        <artifactIdToExclude>ultimateadvancementapi-commands-distribution</artifactIdToExclude>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-distribution</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-distribution-mojang-mapped</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
+                <artifactId>maven-shade-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>jar</id>
-                        <phase>generate-sources</phase>
+                        <id>shade-mojang-mapped</id>
+                        <phase>package</phase>
                         <goals>
-                            <goal>unpack</goal>
+                            <goal>shade</goal>
                         </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.frengor</groupId>
-                                    <artifactId>ultimateadvancementapi-commands-distribution</artifactId>
-                                    <version>${apiVersion}</version>
-                                    <type>jar</type>
-                                </artifactItem>
-                            </artifactItems>
-                            <outputDirectory>${outputDirectoryClasses}</outputDirectory>
-                        </configuration>
                     </execution>
                     <execution>
-                        <id>sources</id>
-                        <phase>generate-sources</phase>
+                        <id>shade</id>
+                        <phase>package</phase>
                         <goals>
-                            <goal>unpack</goal>
+                            <goal>shade</goal>
                         </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.frengor</groupId>
-                                    <artifactId>ultimateadvancementapi-commands-distribution</artifactId>
-                                    <version>${apiVersion}</version>
-                                    <type>jar</type>
-                                    <classifier>sources</classifier>
-                                </artifactItem>
-                            </artifactItems>
-                            <outputDirectory>${outputDirectorySources}</outputDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>javadoc</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.frengor</groupId>
-                                    <artifactId>ultimateadvancementapi-commands-common</artifactId>
-                                    <version>${apiVersion}</version>
-                                    <type>jar</type>
-                                    <classifier>javadoc</classifier>
-                                </artifactItem>
-                            </artifactItems>
-                            <outputDirectory>${outputDirectoryJavadocJar}</outputDirectory>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-mojang-mapped-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
-
 </project>

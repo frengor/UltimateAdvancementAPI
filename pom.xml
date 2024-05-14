@@ -6,7 +6,7 @@
 
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi-parent</artifactId>
-    <version>parent-SNAPSHOT</version>
+    <version>2.3.0</version>
     <packaging>pom</packaging>
 
     <name>UltimateAdvancementAPI-Parent</name>
@@ -43,8 +43,8 @@
 
     <properties>
         <!-- Project Properties -->
-        <apiVersion>2.2.8</apiVersion> <!-- Change also in Versions class -->
-        <libbyVersion>1.1.5</libbyVersion>
+        <libbyVersion>1.3.0</libbyVersion>
+        <maven.javadoc.skip>false</maven.javadoc.skip>
         <projectEncoding>UTF-8</projectEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -70,6 +70,12 @@
             <id>AlessioDP</id>
             <url>https://repo.alessiodp.com/releases/</url>
         </repository>
+
+        <!-- Maven Central Snapshots -->
+        <repository>
+            <id>maven-central-snapshots</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
     </repositories>
 
     <distributionManagement>
@@ -88,7 +94,7 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>23.0.0</version>
+            <version>24.1.0</version>
             <scope>provided</scope>
         </dependency>
 
@@ -96,7 +102,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.20.2-R0.1-SNAPSHOT</version>
+            <version>1.20.6-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
             <optional>true</optional> <!-- Don't use latest api into per-version code -->
         </dependency>
@@ -104,8 +110,8 @@
         <!-- Mockito -->
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-inline</artifactId>
-            <version>4.5.1</version>
+            <artifactId>mockito-core</artifactId>
+            <version>5.11.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -119,7 +125,7 @@
     </dependencies>
 
     <build>
-        <finalName>${project.name}-${apiVersion}</finalName>
+        <finalName>${project.name}-${project.version}</finalName>
         <defaultGoal>clean install</defaultGoal>
 
         <pluginManagement>
@@ -128,21 +134,53 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
                     <version>3.3.0</version>
+                    <configuration>
+                        <createDependencyReducedPom>true</createDependencyReducedPom>
+                        <useDependencyReducedPomInJar>true</useDependencyReducedPomInJar>
+                        <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+                        <minimizeJar>false</minimizeJar>
+                        <createSourcesJar>true</createSourcesJar>
+                        <shadeSourcesContent>true</shadeSourcesContent>
+
+                        <filters>
+                            <filter>
+                                <artifact>*:*</artifact>
+                                <excludes>
+                                    <exclude>META-INF/.libs/README.md</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>flatten-maven-plugin</artifactId>
+                    <version>1.6.0</version>
                     <executions>
                         <execution>
-                            <phase>package</phase>
+                            <id>flatten</id>
+                            <phase>process-resources</phase>
                             <goals>
-                                <goal>shade</goal>
+                                <goal>flatten</goal>
+                            </goals>
+                            <configuration>
+                                <defaultOperation>keep</defaultOperation>
+                                <pomElements>
+                                    <properties>remove</properties>
+                                    <dependencies>remove</dependencies>
+                                    <dependencyManagement>remove</dependencyManagement>
+                                    <build>remove</build>
+                                </pomElements>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>clean</id>
+                            <phase>clean</phase>
+                            <goals>
+                                <goal>clean</goal>
                             </goals>
                         </execution>
                     </executions>
-                    <configuration>
-                        <createDependencyReducedPom>false</createDependencyReducedPom>
-                        <minimizeJar>false</minimizeJar>
-                        <createSourcesJar>true</createSourcesJar>
-                        <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
-                        <shadeSourcesContent>true</shadeSourcesContent>
-                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -231,8 +269,37 @@
                         </tags>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
             </plugins>
         </pluginManagement>
-    </build>
 
+        <plugins>
+            <!-- Clean dependency-reduced-pom.xml -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>.</directory>
+                            <includes>
+                                <include>dependency-reduced-pom.xml</include>
+                            </includes>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

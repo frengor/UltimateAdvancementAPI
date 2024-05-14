@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.frengor</groupId>
+        <artifactId>ultimateadvancementapi-nms-parent</artifactId>
+        <version>2.3.0</version>
+    </parent>
+
+    <artifactId>ultimateadvancementapi-nms-distribution-mojang-mapped</artifactId>
+    <name>UltimateAdvancementAPI-NMS-Distribution-mojang-mapped</name>
+    <url>${parent.url}</url>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- NMS Modules -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_15_R1</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_16_R1</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_16_R2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_16_R3</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_17_R1</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_18_R1</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_18_R2</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_19_R1</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_19_R2</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_19_R3</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_20_R1</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_20_R2</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_20_R3</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_20_R4</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <relocations>
+                        <!-- CraftBukkit relocations for mojang-mapped servers -->
+                        <relocation>
+                            <pattern>org.bukkit.craftbukkit.v1_20_R4</pattern>
+                            <shadedPattern>org.bukkit.craftbukkit</shadedPattern>
+                        </relocation>
+                    </relocations>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

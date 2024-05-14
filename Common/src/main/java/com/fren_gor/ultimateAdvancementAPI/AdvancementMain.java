@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
+import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import com.google.common.base.Preconditions;
@@ -32,6 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -97,12 +99,14 @@ public final class AdvancementMain {
         if (!LOADED.compareAndSet(false, true)) {
             throw new IllegalStateException("UltimateAdvancementAPI is getting loaded twice.");
         }
+
         // Check mc version
-        final String actual = Versions.getNMSVersion();
-        if (!Versions.getSupportedNMSVersions().contains(actual)) {
+        Optional<String> version = Versions.getNMSVersion();
+        if (version.isEmpty()) {
             INVALID_VERSION.set(true);
             String fancy = Versions.getSupportedNMSVersions().stream().map(Versions::getNMSVersionsRange).collect(Collectors.joining(", ", "[", "]"));
-            throw new InvalidVersionException(fancy, actual, "Invalid minecraft version, couldn't load UltimateAdvancementAPI. Supported versions are " + fancy + '.');
+            throw new InvalidVersionException(fancy, ReflectionUtil.MINECRAFT_VERSION, "Invalid minecraft version, couldn't load UltimateAdvancementAPI. Supported versions are " + fancy + '.');
+
         }
 
         libbyManager = new BukkitLibraryManager(owningPlugin, libFolder);

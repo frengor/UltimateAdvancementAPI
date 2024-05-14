@@ -7,16 +7,17 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-parent</artifactId>
-        <version>parent-SNAPSHOT</version>
+        <version>2.3.0</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-plugin</artifactId>
     <name>UltimateAdvancementAPI-Plugin</name>
-    <version>2.2.8</version>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
     <properties>
+        <mojangMappedJarFile>${project.build.directory}/${project.build.finalName}-Mojang-Mapped.jar</mojangMappedJarFile>
+
         <!-- Skip deploy -->
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
@@ -26,7 +27,7 @@
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-common</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -34,7 +35,7 @@
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-commands-common</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -46,19 +47,60 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- Compiled dependencies -->
+        <!-- Non mojang-mapped dependencies -->
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-shadeable</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
             <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-commands</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
             <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Mojang-mapped dependencies -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-shadeable</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -87,26 +129,109 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>shade-mojang-mapped</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <outputFile>${mojangMappedJarFile}</outputFile>
+
+                            <artifactSet>
+                                <excludes>
+                                    <!-- Exclude the artifacts with the default classifier -->
+                                    <exclude>com.frengor:ultimateadvancementapi-shadeable:</exclude>
+                                    <exclude>com.frengor:ultimateadvancementapi-commands:</exclude>
+                                </excludes>
+                            </artifactSet>
+
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <manifestEntries>
+                                        <paperweight-mappings-namespace>mojang</paperweight-mappings-namespace>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>shade</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>com.frengor:ultimateadvancementapi-shadeable:mojang-mapped</exclude>
+                                    <exclude>com.frengor:ultimateadvancementapi-commands:mojang-mapped</exclude>
+                                </excludes>
+                            </artifactSet>
+
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <manifestEntries>
+                                        <paperweight-mappings-namespace>spigot</paperweight-mappings-namespace>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
                 <configuration>
                     <relocations>
-                        <relocation>
-                            <pattern>org.bstats</pattern>
-                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.org.bstats</shadedPattern>
-                        </relocation>
                         <relocation>
                             <pattern>net.byteflux.libby</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
                         </relocation>
                         <relocation>
+                            <pattern>dev.jorel.commandapi</pattern>
+                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
+                        </relocation>
+                        <relocation>
                             <pattern>com.fren_gor.eventManagerAPI</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.events</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.bstats</pattern>
+                            <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.org.bstats</shadedPattern>
                         </relocation>
                     </relocations>
                     <createSourcesJar>false</createSourcesJar>
                     <shadeSourcesContent>false</shadeSourcesContent>
+                    <promoteTransitiveDependencies>false</promoteTransitiveDependencies>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <useDependencyReducedPomInJar>false</useDependencyReducedPomInJar>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+            </plugin>
+            <!-- The mojang-mapped jar isn't attached by the shade plugin (outputFile prevents attaching) -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <file>${mojangMappedJarFile}</file>
+                                    <type>jar</type>
+                                    <classifier>mojang-mapped</classifier>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
-
 </project>

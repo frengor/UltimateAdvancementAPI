@@ -1,19 +1,21 @@
 # UltimateAdvancementAPI
-[![Build Status main Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/badge/icon?subject=main)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/)
-[![Build Status dev Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/badge/icon?subject=dev)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/)
-[![License](https://img.shields.io/badge/license-LGPL--3.0-orange)](https://github.com/frengor/UltimateAdvancementAPI/blob/main/LGPL)
-[![Version](https://frengor.com/UltimateAdvancementAPI/last-release.php)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
-[![Issues](https://img.shields.io/github/issues/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/issues)
-[![Stars](https://img.shields.io/github/stars/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/stargazers)
-[![Forks](https://img.shields.io/github/forks/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/network)
-[![Contributors](https://img.shields.io/github/contributors/frengor/UltimateAdvancementAPI)](https://github.com/frengor/UltimateAdvancementAPI/graphs/contributors)
+[![Build Status main Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/badge/icon?subject=main&style=flat)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/)
+[![Build Status dev Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/badge/icon?subject=dev&style=flat)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/)
+[![License](https://img.shields.io/badge/license-LGPL--3.0-orange?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/blob/main/LGPL)
+[![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.spigotmc.org%2Fsimple%2F0.2%2Findex.php%3Faction%3DgetResource%26id%3D95585&query=current_version&style=flat&label=version&color=blue&cacheSeconds=300
+)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
+[![Issues](https://img.shields.io/github/issues/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/issues)
+[![Stars](https://img.shields.io/github/stars/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/stargazers)
+[![Forks](https://img.shields.io/github/forks/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/network)
+[![Contributors](https://img.shields.io/github/contributors/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/graphs/contributors)
 
 A powerful API to create custom advancements for your minecraft server.
 
 ![Advancement Tab Image](https://github.com/frengor/UltimateAdvancementAPI/wiki/images/spigot-photo.png)
 
+**Modrinth Page:** <https://modrinth.com/plugin/ultimateadvancementapi>  
 **Spigot Page:** <https://www.spigotmc.org/resources/95585/>  
-**Download Page:** <https://frengor.com/UltimateAdvancementAPI/>  
+**Hangar Page:** <https://hangar.papermc.io/DevHeim/UltimateAdvancementAPI>
 **UltimateAdvancementGenerator:** <https://escanortargaryen.dev/UltimateAdvancementGenerator/>  
 **Discord:** <https://discord.gg/BMg6VJk5n3>  
 **Official Wiki:** <https://github.com/frengor/UltimateAdvancementAPI/wiki/>  
@@ -33,7 +35,7 @@ A powerful API to create custom advancements for your minecraft server.
 <dependency>
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi</artifactId>
-    <version>2.2.8</version>
+    <version>2.3.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -46,7 +48,8 @@ The plugin used for tests can be found [here](https://github.com/frengor/Ultimat
 
 Feel free to open issues or pull requests. Feature requests can be done opening an issue, the `enhancement` tag will be applied by maintainers.
 
-For pull requests, use the formatting style settings present under `.idea/codeStyles` folder.
+For pull requests, open them towards the `dev` branch, as the `main` branch is only for releases.
+Also, please use the formatting style settings present under `.idea/codeStyles` folder.
 
 ## Required Java version
 

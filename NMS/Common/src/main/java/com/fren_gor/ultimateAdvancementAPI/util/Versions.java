@@ -8,14 +8,15 @@ import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Map.Entry;
+import java.util.Optional;
 
 /**
  * Utility class for handling UltimateAdvancementAPI versions.
  */
 public class Versions {
 
-    private static final String API_VERSION = "2.2.8";
+    private static final String API_VERSION = "2.3.0";
 
     private static final List<String> SUPPORTED_NMS_VERSIONS = List.of(
             "v1_15_R1",
@@ -30,7 +31,8 @@ public class Versions {
             "v1_19_R3",
             "v1_20_R1",
             "v1_20_R2",
-            "v1_20_R3"
+            "v1_20_R3",
+            "v1_20_R4"
     );
 
     private static final Map<String, List<String>> NMS_TO_VERSIONS = Map.ofEntries(
@@ -46,7 +48,8 @@ public class Versions {
             Map.entry("v1_19_R3", List.of("1.19.4")),
             Map.entry("v1_20_R1", List.of("1.20", "1.20.1")),
             Map.entry("v1_20_R2", List.of("1.20.2")),
-            Map.entry("v1_20_R3", List.of("1.20.3", "1.20.4"))
+            Map.entry("v1_20_R3", List.of("1.20.3", "1.20.4")),
+            Map.entry("v1_20_R4", List.of("1.20.5", "1.20.6"))
     );
 
     private static final Map<String, String> NMS_TO_FANCY = Map.ofEntries(
@@ -62,23 +65,37 @@ public class Versions {
             Map.entry("v1_19_R3", "1.19.4"),
             Map.entry("v1_20_R1", "1.20-1.20.1"),
             Map.entry("v1_20_R2", "1.20.2"),
-            Map.entry("v1_20_R3", "1.20.3-1.20.4")
+            Map.entry("v1_20_R3", "1.20.3-1.20.4"),
+            Map.entry("v1_20_R4", "1.20.5-1.20.6")
     );
 
     private static final List<String> SUPPORTED_VERSIONS = SUPPORTED_NMS_VERSIONS.stream()
             .flatMap(s -> NMS_TO_VERSIONS.get(s).stream())
             .toList();
 
+    @Nullable
+    private static Optional<String> COMPLETE_VERSION;
+
     /**
      * Gets the NMS version of the current server.
-     * <p>This returns a {@link String} like {@code "v1_15_R1"}.
+     * <p>This returns a {@link Optional<String>} like {@code "v1_15_R1"}.
      * To remove initial {@code 'v'} see {@link #removeInitialV(String)}.
      *
      * @return The server NMS version.
      */
     @NotNull
-    public static String getNMSVersion() {
-        return ReflectionUtil.COMPLETE_VERSION;
+    public static Optional<String> getNMSVersion() {
+        if (COMPLETE_VERSION != null) {
+            return COMPLETE_VERSION;
+        }
+
+        String version = NMS_TO_VERSIONS.entrySet().stream()
+                .filter(e -> e.getValue().contains(ReflectionUtil.MINECRAFT_VERSION))
+                .map(Entry::getKey)
+                .findFirst()
+                .orElse(null);
+
+        return COMPLETE_VERSION = (version != null ? Optional.of(version) : Optional.empty());
     }
 
     /**
@@ -121,9 +138,9 @@ public class Versions {
      * @return The minecraft versions supported by this server NMS version,
      *         or {@code null} if the server version is not supported (see {@link #getSupportedNMSVersions()}).
      */
-    @NotNull
+    @Nullable
     public static String getNMSVersionsRange() {
-        return Objects.requireNonNull(getNMSVersionsRange(getNMSVersion()), "Server version is not supported!");
+        return getNMSVersion().map(Versions::getNMSVersionsRange).orElse(null);
     }
 
     /**
@@ -149,9 +166,9 @@ public class Versions {
      *         or {@code null} if the server version is not supported (see {@link #getSupportedNMSVersions()}).
      */
     @UnmodifiableView
-    @NotNull
+    @Nullable
     public static List<@NotNull String> getNMSVersionsList() {
-        return Objects.requireNonNull(getNMSVersionsList(getNMSVersion()), "Server version is not supported!");
+        return getNMSVersion().map(Versions::getNMSVersionsList).orElse(null);
     }
 
     /**

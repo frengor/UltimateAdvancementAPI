@@ -7,7 +7,7 @@
     <parent>
         <artifactId>ultimateadvancementapi-parent</artifactId>
         <groupId>com.frengor</groupId>
-        <version>parent-SNAPSHOT</version>
+        <version>2.3.0</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-commands-parent</artifactId>
@@ -22,8 +22,11 @@
 
     <modules>
         <module>Common</module>
-        <module>CommandAPI-9.2.0</module>
+        <module>CommandAPI-9.3.0</module>
+        <!-- <module>CommandAPI-9.4.1</module> -->
+        <module>CommandAPI-9.5.0-SNAPSHOT</module>
         <module>Distribution</module>
+        <module>DistributionMojangMapped</module>
     </modules>
 
     <dependencies>
@@ -31,39 +34,44 @@
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-common</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
             <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.frengor</groupId>
-                    <artifactId>eventmanagerapi</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 
     <build>
         <pluginManagement>
             <plugins>
+                <!-- Used in distribution modules -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <configuration>
-                        <relocations>
-                            <relocation>
-                                <pattern>net.byteflux.libby</pattern>
-                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.net.byteflux.libby</shadedPattern>
-                            </relocation>
-                            <relocation>
-                                <pattern>dev.jorel.commandapi</pattern>
-                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.dev.jorel.commandapi</shadedPattern>
-                            </relocation>
-                            <relocation>
-                                <pattern>com.fren_gor.eventManagerAPI</pattern>
-                                <shadedPattern>com.fren_gor.ultimateAdvancementAPI.events</shadedPattern>
-                            </relocation>
-                        </relocations>
-                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>shade</goal>
+                            </goals>
+                            <configuration>
+                                <filters>
+                                    <filter>
+                                        <!-- The distribution modules override MojangMappingsHandler -->
+                                        <artifact>com.frengor:ultimateadvancementapi-commands-common</artifact>
+                                        <excludes>
+                                            <exclude>com/fren_gor/ultimateAdvancementAPI/commands/MojangMappingsHandler**</exclude>
+                                        </excludes>
+                                    </filter>
+                                    <filter>
+                                        <!-- Don't include the license from CommandAPI -->
+                                        <artifact>dev.jorel:*</artifact>
+                                        <excludes>
+                                            <exclude>LICENSE</exclude>
+                                        </excludes>
+                                    </filter>
+                                </filters>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>

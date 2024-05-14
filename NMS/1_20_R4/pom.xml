@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.frengor</groupId>
+        <artifactId>ultimateadvancementapi-nms-parent</artifactId>
+        <version>2.3.0</version>
+    </parent>
+
+    <artifactId>ultimateadvancementapi-nms-1_20_R4</artifactId>
+    <name>UltimateAdvancementAPI-NMS-1_20_R4</name>
+    <url>${parent.url}</url>
+    <packaging>jar</packaging>
+
+    <properties>
+        <mc-version>1.20.6-R0.1-SNAPSHOT</mc-version>
+    </properties>
+
+    <dependencies>
+        <!-- NMS Common Module -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-common</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Spigot -->
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>${mc-version}</version>
+            <scope>provided</scope>
+            <classifier>remapped-mojang</classifier>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <filtering>false</filtering>
+                <directory>../..</directory>
+                <includes>
+                    <include>LICENSE</include>
+                    <include>LGPL</include>
+                    <include>NOTICE</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-mojang-mapped-jar</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>net.md-5</groupId>
+                <artifactId>specialsource-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

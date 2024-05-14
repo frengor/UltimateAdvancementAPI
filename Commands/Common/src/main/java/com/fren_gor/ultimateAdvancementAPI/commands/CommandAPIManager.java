@@ -11,6 +11,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 /**
  * <a href="https://github.com/JorelAli/CommandAPI">CommandAPI</a> manager, which loads the correct version of the API
  * and the correct implementation of the commands.
@@ -39,26 +41,37 @@ public class CommandAPIManager {
     @Nullable
     public static ILoadable loadManager(@NotNull LibraryManager libbyManager) {
         Preconditions.checkNotNull(libbyManager, "LibraryManager is null.");
-        CommandAPIVersion ver = CommandAPIVersion.getVersionToLoad(Versions.getNMSVersion());
-        if (ver == null) {
+
+        Optional<CommandAPIVersion> verOpt = Versions.getNMSVersion().map(CommandAPIVersion::getVersionToLoad);
+        if (verOpt.isEmpty()) {
             // Skip code down below if nms version is invalid
             return null;
         }
 
-        // Download correct version of CommandAPI
-        libbyManager.addMavenCentral();
-        Library commandAPILibrary = Library.builder()
-                .groupId("dev{}jorel")
-                .artifactId("commandapi-bukkit-shade")
-                .version(ver.getVersion()).checksum(ver.getChecksum())
-                .relocate("dev{}jorel{}commandapi", "dev.jorel.commandapi") // Should be changed by shading
-                .build();
-        try {
-            libbyManager.loadLibrary(commandAPILibrary);
-        } catch (Exception e) {
-            Bukkit.getLogger().warning("[UltimateAdvancementAPI-Commands] Can't load library " + commandAPILibrary.toString() + '!');
-            e.printStackTrace();
-            return null;
+        CommandAPIVersion ver = verOpt.get();
+
+        if (!ver.getVersion().equals("shaded")) {
+            String commandAPIArtifactId = "commandapi-bukkit-shade";
+            if (MojangMappingsHandler.isMojangMapped()) {
+                commandAPIArtifactId += "-mojang-mapped";
+            }
+
+            // Download correct version of CommandAPI
+            libbyManager.addMavenCentral();
+            Library commandAPILibrary = Library.builder()
+                    .groupId("dev{}jorel")
+                    .artifactId(commandAPIArtifactId)
+                    .version(ver.getVersion())
+                    .checksum(ver.getChecksum())
+                    .relocate("dev{}jorel{}commandapi", "dev.jorel.commandapi") // Should be changed by shading
+                    .build();
+            try {
+                libbyManager.loadLibrary(commandAPILibrary);
+            } catch (Exception e) {
+                Bukkit.getLogger().warning("[UltimateAdvancementAPI-Commands] Can't load library " + commandAPILibrary.toString() + '!');
+                e.printStackTrace();
+                return null;
+            }
         }
 
         String manager = "com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v" + ver.getClasspathSuffix() + ".CommandAPIManager";
