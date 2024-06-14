@@ -26,16 +26,9 @@
 
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-commandapi-9.5.0-SNAPSHOT</artifactId>
+            <artifactId>ultimateadvancementapi-commands-commandapi-9.5.0</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>dev.jorel</groupId>
-            <artifactId>commandapi-bukkit-shade</artifactId>
-            <version>9.5.0-SNAPSHOT</version>
-            <scope>compile</scope> <!-- Shade as a workaround for https://github.com/JorelAli/CommandAPI/issues/554#issuecomment-2109503208 -->
         </dependency>
 
         <dependency>

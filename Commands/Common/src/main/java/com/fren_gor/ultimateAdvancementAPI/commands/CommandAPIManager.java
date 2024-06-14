@@ -50,28 +50,26 @@ public class CommandAPIManager {
 
         CommandAPIVersion ver = verOpt.get();
 
-        if (!ver.getVersion().equals("shaded")) {
-            String commandAPIArtifactId = "commandapi-bukkit-shade";
-            if (MojangMappingsHandler.isMojangMapped()) {
-                commandAPIArtifactId += "-mojang-mapped";
-            }
+        String commandAPIArtifactId = "commandapi-bukkit-shade";
+        if (MojangMappingsHandler.isMojangMapped()) {
+            commandAPIArtifactId += "-mojang-mapped";
+        }
 
-            // Download correct version of CommandAPI
-            libbyManager.addMavenCentral();
-            Library commandAPILibrary = Library.builder()
-                    .groupId("dev{}jorel")
-                    .artifactId(commandAPIArtifactId)
-                    .version(ver.getVersion())
-                    .checksum(ver.getChecksum())
-                    .relocate("dev{}jorel{}commandapi", "dev.jorel.commandapi") // Should be changed by shading
-                    .build();
-            try {
-                libbyManager.loadLibrary(commandAPILibrary);
-            } catch (Exception e) {
-                Bukkit.getLogger().warning("[UltimateAdvancementAPI-Commands] Can't load library " + commandAPILibrary.toString() + '!');
-                e.printStackTrace();
-                return null;
-            }
+        // Download correct version of CommandAPI
+        libbyManager.addMavenCentral();
+        Library commandAPILibrary = Library.builder()
+                .groupId("dev{}jorel")
+                .artifactId(commandAPIArtifactId)
+                .version(ver.getVersion())
+                .checksum(ver.getChecksum())
+                .relocate("dev{}jorel{}commandapi", "dev.jorel.commandapi") // Should be changed by shading
+                .build();
+        try {
+            libbyManager.loadLibrary(commandAPILibrary);
+        } catch (Exception e) {
+            Bukkit.getLogger().warning("[UltimateAdvancementAPI-Commands] Can't load library " + commandAPILibrary.toString() + '!');
+            e.printStackTrace();
+            return null;
         }
 
         String manager = "com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v" + ver.getClasspathSuffix() + ".CommandAPIManager";

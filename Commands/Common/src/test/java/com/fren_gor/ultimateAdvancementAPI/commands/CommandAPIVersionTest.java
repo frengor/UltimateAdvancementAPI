@@ -25,10 +25,6 @@ public class CommandAPIVersionTest {
 
         // Try to download every CommandAPI version. This is mainly used to catch checksum errors
         for (CommandAPIVersion version : CommandAPIVersion.values()) {
-            if (version.getVersion().equals("shaded")) {
-                continue;
-            }
-
             Logger logger = Logger.getLogger(getClass().getSimpleName() + "-" + version.getVersion());
             MockLibraryManager manager = new MockLibraryManager(logger, version);
 
