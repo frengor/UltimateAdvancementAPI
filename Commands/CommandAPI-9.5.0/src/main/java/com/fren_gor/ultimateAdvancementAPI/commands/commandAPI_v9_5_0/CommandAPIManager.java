@@ -14,7 +14,12 @@ public class CommandAPIManager implements ILoadable {
 
     @Override
     public void onLoad(@NotNull AdvancementMain main, @NotNull JavaPlugin plugin) {
-        CommandAPI.onLoad(new CommandAPIBukkitConfig(plugin).verboseOutput(false).silentLogs(true));
+        CommandAPI.onLoad(
+                new CommandAPIBukkitConfig(plugin)
+                .verboseOutput(false)
+                .silentLogs(true)
+                .usePluginNamespace()
+        );
 
         new UltimateAdvancementAPICommand(main).register();
     }
