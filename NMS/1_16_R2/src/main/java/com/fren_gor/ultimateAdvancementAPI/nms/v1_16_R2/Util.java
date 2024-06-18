@@ -3,11 +3,14 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v1_16_R2;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.minecraft.server.v1_16_R2.AdvancementProgress;
+import net.minecraft.server.v1_16_R2.ChatComponentText;
 import net.minecraft.server.v1_16_R2.Criterion;
 import net.minecraft.server.v1_16_R2.CriterionProgress;
 import net.minecraft.server.v1_16_R2.CriterionTriggerImpossible;
+import net.minecraft.server.v1_16_R2.IChatBaseComponent;
 import net.minecraft.server.v1_16_R2.Packet;
 import org.bukkit.craftbukkit.v1_16_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R2.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -57,6 +60,14 @@ public class Util {
         }
 
         return advPrg;
+    }
+
+    @NotNull
+    public static IChatBaseComponent fromString(@NotNull String string) {
+        if (string == null || string.isEmpty()) {
+            return ChatComponentText.d;
+        }
+        return CraftChatMessage.fromStringOrNull(string, true);
     }
 
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {

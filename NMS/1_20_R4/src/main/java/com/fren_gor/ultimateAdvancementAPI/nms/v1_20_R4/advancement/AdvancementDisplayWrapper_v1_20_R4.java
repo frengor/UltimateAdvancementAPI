@@ -2,12 +2,12 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v1_20_R4.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
-import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.advancements.AdvancementType;
+import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.contents.PlainTextContents.LiteralContents;
 import net.minecraft.resources.ResourceLocation;
 import org.bukkit.craftbukkit.v1_20_R4.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R4.util.CraftChatMessage;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,13 +35,13 @@ public class AdvancementDisplayWrapper_v1_20_R4 extends AdvancementDisplayWrappe
     @Override
     @NotNull
     public String getTitle() {
-        return ((LiteralContents) display.getTitle().getContents()).text();
+        return CraftChatMessage.fromComponent(display.getTitle());
     }
 
     @Override
     @NotNull
     public String getDescription() {
-        return ((LiteralContents) display.getDescription().getContents()).text();
+        return CraftChatMessage.fromComponent(display.getDescription());
     }
 
     @Override

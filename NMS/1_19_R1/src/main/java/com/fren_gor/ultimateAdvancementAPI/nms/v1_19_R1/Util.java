@@ -7,8 +7,11 @@ import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.CriterionProgress;
 import net.minecraft.advancements.critereon.ImpossibleTrigger;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R1.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -59,6 +62,15 @@ public class Util {
 
         return advPrg;
     }
+
+    @NotNull
+    public static Component fromString(@NotNull String string) {
+        if (string == null || string.isEmpty()) {
+            return CommonComponents.EMPTY;
+        }
+        return CraftChatMessage.fromStringOrNull(string, true);
+    }
+
 
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {
         Preconditions.checkNotNull(player, "Player is null.");
