@@ -26,7 +26,7 @@
 
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-commandapi-9.5.0</artifactId>
+            <artifactId>ultimateadvancementapi-commands-commandapi-9.5.1</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
