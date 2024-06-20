@@ -15,15 +15,14 @@ import java.util.Objects;
 public enum CommandAPIVersion {
     v9_3_0("9.3.0", "K9cYHoWiGLP8z+cyYb5NIarVE9fzMeJRqHu1UJ+Li/U=", null, "9_3_0",
             List.of(
-                    "v1_15_R1"
+                    "v1_15_R1",
+                    "v1_16_R1",
+                    "v1_16_R2",
+                    "v1_16_R3"
             )
     ),
-    // Shaded as a workaround for https://github.com/JorelAli/CommandAPI/issues/554#issuecomment-2109503208
-    /*LATEST("9.4.1", "Da02iS6EksSGPV/B8+cuf+MOfClRCrz966do5E7kFYo=", "MFAXsPUoiQmP232g9yAd+1qnb1Ub7AZ1xnmNeeSYUiA=", "9_4_1",
+    LATEST("9.5.1", "qZL1AWTFPHnBxi9PvtOZpUA9JzA6bn/dTKZhxqFe4Dw=", "JwMePwQPg2P/quTb8iFu//E9pp+I3Xq2gMzUD8V1FjY=", "9_5_1",
             List.of(
-                    "v1_16_R1",
-                    "v1_16_R2",
-                    "v1_16_R3",
                     "v1_17_R1",
                     "v1_18_R1",
                     "v1_18_R2",
@@ -33,24 +32,8 @@ public enum CommandAPIVersion {
                     "v1_20_R1",
                     "v1_20_R2",
                     "v1_20_R3",
-                    "v1_20_R4"
-            )
-    )*/
-    SHADED("shaded", "-", "-", "9_5_0",
-            List.of(
-                    "v1_16_R1",
-                    "v1_16_R2",
-                    "v1_16_R3",
-                    "v1_17_R1",
-                    "v1_18_R1",
-                    "v1_18_R2",
-                    "v1_19_R1",
-                    "v1_19_R2",
-                    "v1_19_R3",
-                    "v1_20_R1",
-                    "v1_20_R2",
-                    "v1_20_R3",
-                    "v1_20_R4"
+                    "v1_20_R4",
+                    "v1_21_R1"
             )
     );
 

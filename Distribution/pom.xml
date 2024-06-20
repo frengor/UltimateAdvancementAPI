@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-parent</artifactId>
-        <version>2.3.1</version>
+        <version>2.4.0</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-distribution</artifactId>
@@ -49,6 +49,14 @@
                                 <createDependencyReducedPom>false</createDependencyReducedPom>
                                 <useDependencyReducedPomInJar>false</useDependencyReducedPomInJar>
                                 <promoteTransitiveDependencies>false</promoteTransitiveDependencies>
+
+                                <transformers>
+                                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                        <manifestEntries>
+                                            <paperweight-mappings-namespace>mojang</paperweight-mappings-namespace>
+                                        </manifestEntries>
+                                    </transformer>
+                                </transformers>
                             </configuration>
                         </execution>
                         <execution>
@@ -63,6 +71,14 @@
                                 <createDependencyReducedPom>false</createDependencyReducedPom>
                                 <useDependencyReducedPomInJar>false</useDependencyReducedPomInJar>
                                 <promoteTransitiveDependencies>false</promoteTransitiveDependencies>
+
+                                <transformers>
+                                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                        <manifestEntries>
+                                            <paperweight-mappings-namespace>spigot</paperweight-mappings-namespace>
+                                        </manifestEntries>
+                                    </transformer>
+                                </transformers>
                             </configuration>
                         </execution>
                     </executions>

@@ -3,11 +3,14 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v1_15_R1;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
+import net.minecraft.server.v1_15_R1.ChatComponentText;
 import net.minecraft.server.v1_15_R1.Criterion;
 import net.minecraft.server.v1_15_R1.CriterionProgress;
 import net.minecraft.server.v1_15_R1.CriterionTriggerImpossible;
+import net.minecraft.server.v1_15_R1.IChatBaseComponent;
 import net.minecraft.server.v1_15_R1.Packet;
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_15_R1.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -15,6 +18,8 @@ import org.jetbrains.annotations.Range;
 import java.util.Map;
 
 public class Util {
+
+    private static final IChatBaseComponent EMPTY = new ChatComponentText("");
 
     @NotNull
     public static Map<String, Criterion> getAdvancementCriteria(@Range(from = 1, to = Integer.MAX_VALUE) int maxProgressions) {
@@ -63,6 +68,14 @@ public class Util {
         Preconditions.checkNotNull(player, "Player is null.");
         Preconditions.checkNotNull(packet, "Packet is null.");
         ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
+    }
+
+    @NotNull
+    public static IChatBaseComponent fromString(@NotNull String string) {
+        if (string == null || string.isEmpty()) {
+            return EMPTY;
+        }
+        return CraftChatMessage.fromStringOrNull(string, true);
     }
 
     private Util() {
