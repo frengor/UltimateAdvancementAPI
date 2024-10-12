@@ -110,7 +110,6 @@ public final class AdvancementMain {
             INVALID_VERSION.set(true);
             String fancy = Versions.getSupportedNMSVersions().stream().map(Versions::getNMSVersionsRange).collect(Collectors.joining(", ", "[", "]"));
             throw new InvalidVersionException(fancy, ReflectionUtil.MINECRAFT_VERSION, "Invalid minecraft version, couldn't load UltimateAdvancementAPI. Supported versions are " + fancy + '.');
-
         }
 
         libbyManager = new BukkitLibraryManager(owningPlugin, libFolder);

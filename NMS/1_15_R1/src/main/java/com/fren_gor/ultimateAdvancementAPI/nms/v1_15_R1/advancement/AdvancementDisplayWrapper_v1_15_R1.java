@@ -5,7 +5,6 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementD
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import net.minecraft.server.v1_15_R1.AdvancementDisplay;
 import net.minecraft.server.v1_15_R1.AdvancementFrameType;
-import net.minecraft.server.v1_15_R1.ChatComponentText;
 import net.minecraft.server.v1_15_R1.IChatBaseComponent;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;

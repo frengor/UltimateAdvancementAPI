@@ -34,8 +34,8 @@
         <!-- See https://github.com/MockBukkit/MockBukkit/issues/462 and https://github.com/MockBukkit/MockBukkit/issues/462#issuecomment-1156574495 -->
         <dependency>
             <groupId>com.github.seeseemelk</groupId>
-            <artifactId>MockBukkit-v1.20</artifactId>
-            <version>3.21.1</version>
+            <artifactId>MockBukkit-v1.21</artifactId>
+            <version>3.133.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-nms-mocked</artifactId>
-            <version>${apiVersion}</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 

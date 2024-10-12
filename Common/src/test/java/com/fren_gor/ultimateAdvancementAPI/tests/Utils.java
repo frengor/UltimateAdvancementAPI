@@ -5,6 +5,7 @@ import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
+import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock;
@@ -14,6 +15,7 @@ import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,6 +27,7 @@ import static org.mockito.Mockito.when;
 public final class Utils {
 
     private static Field mainEventManager, mainDatabaseManager, mainLibbyManager, mainLOADED, mainENABLED, mainINVALID_VERSION;
+    static Field versionsCOMPLETE_VERSION;
 
     static {
         try {
@@ -41,8 +44,14 @@ public final class Utils {
             mainINVALID_VERSION = AdvancementMain.class.getDeclaredField("INVALID_VERSION");
             mainINVALID_VERSION.setAccessible(true);
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-            fail("Cannot get AdvancementMain members.");
+            fail("Cannot get AdvancementMain members.", e);
+        }
+
+        try {
+            versionsCOMPLETE_VERSION = Versions.class.getDeclaredField("COMPLETE_VERSION");
+            versionsCOMPLETE_VERSION.setAccessible(true);
+        } catch (ReflectiveOperationException e) {
+            fail("Cannot get Versions members.", e);
         }
     }
 
@@ -84,6 +93,11 @@ public final class Utils {
     }
 
     public static ServerMock mockServer() {
+        try {
+            versionsCOMPLETE_VERSION.set(null, Optional.of("mocked0_0_R1"));
+        } catch (Exception e) {
+            fail("Couldn't set Versions.COMPLETE_VERSION during mocking.", e);
+        }
         ServerMock server = MockBukkit.mock(new VersionedServerMock());
         MockBukkit.ensureMocking();
         return server;

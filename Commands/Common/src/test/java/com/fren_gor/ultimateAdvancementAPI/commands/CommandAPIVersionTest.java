@@ -3,21 +3,20 @@ package com.fren_gor.ultimateAdvancementAPI.commands;
 import net.byteflux.libby.Library;
 import net.byteflux.libby.LibraryManager;
 import net.byteflux.libby.logging.adapters.JDKLogAdapter;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CommandAPIVersionTest {
 
-    @Rule
-    public TemporaryFolder tmpFolder = TemporaryFolder.builder().assureDeletion().build();
+    @TempDir
+    private Path tmpFolder;
 
     @Test
     public void testDownloads() throws Exception {
@@ -77,7 +76,7 @@ public class CommandAPIVersionTest {
 
     private final class MockLibraryManager extends LibraryManager {
         public MockLibraryManager(Logger logger, CommandAPIVersion version) throws IOException {
-            super(new JDKLogAdapter(logger), tmpFolder.newFolder(version.getClasspathSuffix()).toPath(), ".libs");
+            super(new JDKLogAdapter(logger), tmpFolder.resolve(version.getClasspathSuffix()), ".libs");
         }
 
         @Override
