@@ -6,36 +6,35 @@
 
     <parent>
         <groupId>com.frengor</groupId>
-        <artifactId>ultimateadvancementapi-commands-parent</artifactId>
-        <version>parent-SNAPSHOT</version>
+        <artifactId>ultimateadvancementapi-nms-parent</artifactId>
+        <version>2.4.1</version>
     </parent>
 
-    <artifactId>ultimateadvancementapi-commands-commandapi-9-3-0</artifactId>
-    <name>UltimateAdvancementAPI-Commands-CommandAPI-9-3-0</name>
-    <version>2.2.8</version>
+    <artifactId>ultimateadvancementapi-nms-1_20_R4</artifactId>
+    <name>UltimateAdvancementAPI-NMS-1_20_R4</name>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
     <properties>
-        <!-- Skip deploy -->
-        <maven.deploy.skip>true</maven.deploy.skip>
+        <mc-version>1.20.6-R0.1-SNAPSHOT</mc-version>
     </properties>
 
     <dependencies>
-        <!-- Common Module -->
+        <!-- NMS Common Module -->
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-common</artifactId>
-            <version>${apiVersion}</version>
+            <artifactId>ultimateadvancementapi-nms-common</artifactId>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- CommandAPI -->
+        <!-- Spigot -->
         <dependency>
-            <groupId>dev.jorel</groupId>
-            <artifactId>commandapi-bukkit-shade</artifactId>
-            <version>9.2.0</version>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>${mc-version}</version>
             <scope>provided</scope>
+            <classifier>remapped-mojang</classifier>
         </dependency>
     </dependencies>
 
@@ -54,7 +53,19 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-mojang-mapped-jar</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>net.md-5</groupId>
+                <artifactId>specialsource-maven-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -62,4 +73,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

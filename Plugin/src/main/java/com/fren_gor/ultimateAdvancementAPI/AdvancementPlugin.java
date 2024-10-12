@@ -58,9 +58,9 @@ public class AdvancementPlugin extends JavaPlugin {
         if (commandAPIManager != null) { // In case commands couldn't be loaded
             try {
                 commandAPIManager.onLoad(main, this);
-            } catch (Exception e) {
+            } catch (Throwable t) {
                 Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] An exception occurred while loading commands for UltimateAdvancementAPI, continuing without them.");
-                getLogger().log(Level.WARNING, "An exception occurred while loading commands for UltimateAdvancementAPI", e);
+                getLogger().log(Level.WARNING, "An exception occurred while loading commands for UltimateAdvancementAPI", t);
                 commandAPIManager = null;
             }
         }
@@ -93,9 +93,9 @@ public class AdvancementPlugin extends JavaPlugin {
             try {
                 commandAPIManager.onEnable();
                 commandsEnabled = true;
-            } catch (Exception e) {
+            } catch (Throwable t) {
                 Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] An exception occurred while enabling commands for UltimateAdvancementAPI, continuing without them.");
-                getLogger().log(Level.WARNING, "An exception occurred while enabling commands for UltimateAdvancementAPI", e);
+                getLogger().log(Level.WARNING, "An exception occurred while enabling commands for UltimateAdvancementAPI", t);
             }
         }
 
@@ -123,7 +123,12 @@ public class AdvancementPlugin extends JavaPlugin {
             return;
         }
         if (commandAPIManager != null && commandsEnabled) { // In case commands are not loaded/enabled
-            commandAPIManager.onDisable();
+            try {
+                commandAPIManager.onDisable();
+            } catch (Throwable t) {
+                Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] An exception occurred while disabling commands for UltimateAdvancementAPI:");
+                getLogger().log(Level.WARNING, "An exception occurred while disabling commands for UltimateAdvancementAPI", t);
+            }
         }
         main.disable();
         main = null;

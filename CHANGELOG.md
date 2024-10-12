@@ -1,2 +1,2 @@
-The changelog can be found on the [Official Download Page](https://frengor.com/UltimateAdvancementAPI/) (clicking `Show changelog ▼`) or on the [SpigotMC resource page](https://www.spigotmc.org/resources/95585/updates).  
-This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The changelog can be found on [Modrinth](https://modrinth.com/plugin/ultimateadvancementapi/changelog).  
+Also, this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).

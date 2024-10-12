@@ -78,6 +78,14 @@ public class Util {
         ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
     }
 
+    @NotNull
+    public static IChatBaseComponent fromString(@NotNull String string) {
+        if (string == null || string.isEmpty()) {
+            return EMPTY;
+        }
+        return CraftChatMessage.fromStringOrNull(string, true);
+    }
+
     private Util() {
         throw new UnsupportedOperationException("Utility class.");
     }
