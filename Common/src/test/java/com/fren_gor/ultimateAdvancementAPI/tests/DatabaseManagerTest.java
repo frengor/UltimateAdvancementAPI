@@ -327,7 +327,9 @@ public class DatabaseManagerTest {
     @Test
     void loadAndAddLoadingRequestToPlayerWithNonRegisteredPlayerTest() throws Exception {
         MockPlugin plugin = MockBukkit.createMockPlugin();
-        var cf = databaseManagerMock.waitCompletion(dbManager.loadAndAddLoadingRequestToPlayer(UUID.randomUUID(), plugin));
+        UUID uuid = UUID.randomUUID();
+        plugin.getLogger().warning("Expecting a " + UserNotRegisteredException.class.getSimpleName() + " for user " + uuid + '.');
+        var cf = databaseManagerMock.waitCompletion(dbManager.loadAndAddLoadingRequestToPlayer(uuid, plugin));
         assertTrue(cf.isCompletedExceptionally());
         try {
             cf.get(0, TimeUnit.SECONDS);
