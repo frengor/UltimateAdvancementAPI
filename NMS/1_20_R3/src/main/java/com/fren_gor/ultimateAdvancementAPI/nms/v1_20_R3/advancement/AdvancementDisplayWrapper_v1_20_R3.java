@@ -1,11 +1,11 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_20_R3.advancement;
 
+import com.fren_gor.ultimateAdvancementAPI.nms.v1_20_R3.Util;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.contents.PlainTextContents.LiteralContents;
 import net.minecraft.resources.ResourceLocation;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_20_R3.util.CraftChatMessage;
@@ -22,7 +22,7 @@ public class AdvancementDisplayWrapper_v1_20_R3 extends AdvancementDisplayWrappe
 
     public AdvancementDisplayWrapper_v1_20_R3(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
         ResourceLocation background = backgroundTexture == null ? null : new ResourceLocation(backgroundTexture);
-        this.display = new DisplayInfo(CraftItemStack.asNMSCopy(icon), Component.literal(title), Component.literal(description), Optional.ofNullable(background), (AdvancementType) frameType.toNMS(), showToast, announceChat, hidden);
+        this.display = new DisplayInfo(CraftItemStack.asNMSCopy(icon), Util.fromString(title), Util.fromString(description), Optional.ofNullable(background), (AdvancementType) frameType.toNMS(), showToast, announceChat, hidden);
         this.display.setLocation(x, y);
         this.frameType = frameType;
     }

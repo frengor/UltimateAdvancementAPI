@@ -1,11 +1,12 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_20_R3.advancement;
 
+import com.fren_gor.ultimateAdvancementAPI.nms.v1_20_R3.Util;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.contents.PlainTextContents.LiteralContents;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R3.util.CraftChatMessage;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,8 +22,8 @@ public class PreparedAdvancementDisplayWrapper_v1_20_R3 extends PreparedAdvancem
 
     public PreparedAdvancementDisplayWrapper_v1_20_R3(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) {
         this.icon = CraftItemStack.asNMSCopy(icon);
-        this.title = Component.literal(title);
-        this.description = Component.literal(description);
+        this.title = Util.fromString(title);
+        this.description = Util.fromString(description);
         this.frameType = frameType;
         this.x = x;
         this.y = y;
@@ -40,13 +41,13 @@ public class PreparedAdvancementDisplayWrapper_v1_20_R3 extends PreparedAdvancem
     @Override
     @NotNull
     public String getTitle() {
-        return ((LiteralContents) title.getContents()).text();
+        return CraftChatMessage.fromComponent(title);
     }
 
     @Override
     @NotNull
     public String getDescription() {
-        return ((LiteralContents) description.getContents()).text();
+        return CraftChatMessage.fromComponent(description);
     }
 
     @Override
