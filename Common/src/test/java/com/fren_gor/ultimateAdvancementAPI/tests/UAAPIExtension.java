@@ -4,9 +4,11 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
+import com.fren_gor.ultimateAdvancementAPI.tests.Utils.AbstractMockedServer;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,13 +33,11 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
 
     @Override
     public void beforeEach(ExtensionContext extensionContext) throws Exception {
-        initServerMock(extensionContext);
+        var testMethod = extensionContext.getRequiredTestMethod();
+        initServerMock(extensionContext, testMethod);
 
-        if (extensionContext.getTestClass().isEmpty() || extensionContext.getTestInstance().isEmpty()) {
-            return;
-        }
-        var testClass = extensionContext.getTestClass().get();
-        var testInstance = extensionContext.getTestInstance().get();
+        var testClass = extensionContext.getRequiredTestClass();
+        var testInstance = extensionContext.getRequiredTestInstance();
         var fields = FieldUtils.getFieldsListWithAnnotation(testClass, AutoInject.class)
                 .stream()
                 .filter(field -> !Modifier.isStatic(field.getModifiers()))
@@ -119,13 +120,20 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
         }
     }
 
-    private void initServerMock(ExtensionContext extensionContext) {
+    private void initServerMock(ExtensionContext extensionContext, Method testMethod) throws Exception {
         var store = extensionContext.getStore(UAAPI_NAMESPACE);
         if (MockBukkit.isMocked() || store.get(ServerMock.class) != null) {
-            return;
+            throw new IllegalStateException("Already mocked.");
         }
-        var server = Utils.mockServer();
-        store.put(ServerMock.class, server);
+        @Nullable MockedServerClass serverClassAnnotation = testMethod.getAnnotation(MockedServerClass.class);
+        AbstractMockedServer server;
+        if (serverClassAnnotation == null) {
+            server = Utils.mockServer();
+        } else {
+            var serverClass = serverClassAnnotation.serverClass();
+            server = Utils.mockServerWith(serverClass.getConstructor().newInstance());
+        }
+        store.put(ServerMock.class, Objects.requireNonNull(server));
     }
 
     private void initStore(ExtensionContext extensionContext) {

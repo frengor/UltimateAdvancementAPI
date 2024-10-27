@@ -3,7 +3,7 @@ package org.bukkit.craftbukkit.mocked0_0_R1;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
-import com.fren_gor.ultimateAdvancementAPI.tests.Utils.IMockedServer;
+import com.fren_gor.ultimateAdvancementAPI.tests.Utils.AbstractMockedServer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -13,7 +13,7 @@ import java.util.Optional;
  * <p>Using this class allows {@link ReflectionUtil} to work correctly. A mocked implementation of nms wrappers
  * can be placed in the package {@code com.fren_gor.ultimateAdvancementAPI.nms.mocked0_0_R1}.
  */
-public class VersionedServerMock extends ServerMock implements IMockedServer {
+public class VersionedServerMock extends AbstractMockedServer {
     @NotNull
     @Override
     public Optional<String> getMockedVersion() {

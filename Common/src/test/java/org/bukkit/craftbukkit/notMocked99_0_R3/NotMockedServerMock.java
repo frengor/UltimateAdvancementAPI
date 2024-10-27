@@ -1,10 +1,9 @@
 package org.bukkit.craftbukkit.notMocked99_0_R3;
 
-import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
-import com.fren_gor.ultimateAdvancementAPI.tests.Utils.IMockedServer;
+import com.fren_gor.ultimateAdvancementAPI.tests.Utils.AbstractMockedServer;
 import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,7 +16,7 @@ import java.util.Optional;
  * <p>This differs from {@link VersionedServerMock} since there <strong>isn't</strong> a mocked implementation of the
  * nms wrappers in the package {@code com.fren_gor.ultimateAdvancementAPI.nms.notMocked99_0_R3} (even the package doesn't exist).
  */
-public class NotMockedServerMock extends ServerMock implements IMockedServer {
+public class NotMockedServerMock extends AbstractMockedServer {
     /**
      * Creates a new {@code NotMockedServerMock}.
      *

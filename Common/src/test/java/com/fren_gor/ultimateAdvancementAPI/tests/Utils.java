@@ -87,11 +87,11 @@ public final class Utils {
     }
 
     @NotNull
-    public static ServerMock mockServer() {
+    public static AbstractMockedServer mockServer() {
         return mockServerWith(new VersionedServerMock());
     }
 
-    public static <T extends ServerMock & IMockedServer> void mockServerWith(@NotNull T mock, @NotNull Runnable runnable) {
+    public static <T extends AbstractMockedServer> void mockServerWith(@NotNull T mock, @NotNull Runnable runnable) {
         assertNotNull(mock);
         assertNotNull(runnable);
         try {
@@ -105,7 +105,7 @@ public final class Utils {
     }
 
     @NotNull
-    public static <T extends ServerMock & IMockedServer> T mockServerWith(@NotNull T mock) {
+    public static <T extends AbstractMockedServer> T mockServerWith(@NotNull T mock) {
         assertNotNull(mock);
         T server = MockBukkit.mock(mock);
         MockBukkit.ensureMocking();
@@ -113,7 +113,7 @@ public final class Utils {
         return server;
     }
 
-    private static void updateMockVersion(@NotNull IMockedServer mocked) {
+    private static void updateMockVersion(@NotNull AbstractMockedServer mocked) {
         var version = mocked.getMockedVersion();
         try {
             versionsCOMPLETE_VERSION.set(null, version);
@@ -157,9 +157,9 @@ public final class Utils {
         DatabaseManager apply(AdvancementMain main) throws Exception;
     }
 
-    public interface IMockedServer {
+    public abstract static class AbstractMockedServer extends ServerMock {
         @NotNull
-        Optional<String> getMockedVersion();
+        public abstract Optional<String> getMockedVersion();
     }
 
     private Utils() {
