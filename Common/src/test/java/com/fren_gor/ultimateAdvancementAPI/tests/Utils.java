@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 public final class Utils {
 
     private static Field mainEventManager, mainDatabaseManager, mainLibbyManager, mainLOADED, mainENABLED, mainINVALID_VERSION;
-    static Field versionsCOMPLETE_VERSION;
+    private static Field versionsCOMPLETE_VERSION;
 
     static {
         try {
@@ -83,24 +83,43 @@ public final class Utils {
     }
 
     public static void mockServer(@NotNull Runnable runnable) {
+        mockServerWith(new VersionedServerMock(), runnable);
+    }
+
+    @NotNull
+    public static ServerMock mockServer() {
+        return mockServerWith(new VersionedServerMock());
+    }
+
+    public static <T extends ServerMock & IMockedServer> void mockServerWith(@NotNull T mock, @NotNull Runnable runnable) {
+        assertNotNull(mock);
         assertNotNull(runnable);
-        ServerMock server = mockServer();
         try {
+            mockServerWith(mock);
             runnable.run();
         } finally {
-            MockBukkit.unmock();
+            if (MockBukkit.isMocked()) {
+                MockBukkit.unmock();
+            }
         }
     }
 
-    public static ServerMock mockServer() {
-        try {
-            versionsCOMPLETE_VERSION.set(null, Optional.of("mocked0_0_R1"));
-        } catch (Exception e) {
-            fail("Couldn't set Versions.COMPLETE_VERSION during mocking.", e);
-        }
-        ServerMock server = MockBukkit.mock(new VersionedServerMock());
+    @NotNull
+    public static <T extends ServerMock & IMockedServer> T mockServerWith(@NotNull T mock) {
+        assertNotNull(mock);
+        T server = MockBukkit.mock(mock);
         MockBukkit.ensureMocking();
+        updateMockVersion(mock);
         return server;
+    }
+
+    private static void updateMockVersion(@NotNull IMockedServer mocked) {
+        var version = mocked.getMockedVersion();
+        try {
+            versionsCOMPLETE_VERSION.set(null, version);
+        } catch (Throwable t) {
+            fail("Couldn't set Versions.COMPLETE_VERSION to " + version + " during mocking.", t);
+        }
     }
 
     /**
@@ -136,6 +155,11 @@ public final class Utils {
     public interface DatabaseManagerSupplier {
         @NotNull
         DatabaseManager apply(AdvancementMain main) throws Exception;
+    }
+
+    public interface IMockedServer {
+        @NotNull
+        Optional<String> getMockedVersion();
     }
 
     private Utils() {
