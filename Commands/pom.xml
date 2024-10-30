@@ -23,7 +23,7 @@
     <modules>
         <module>Common</module>
         <module>CommandAPI-9.3.0</module>
-        <module>CommandAPI-9.5.3</module>
+        <module>CommandAPI-9.6.1</module>
         <module>Distribution</module>
         <module>DistributionMojangMapped</module>
     </modules>

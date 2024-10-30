@@ -10,41 +10,42 @@
         <version>2.4.1</version>
     </parent>
 
-    <artifactId>ultimateadvancementapi-commands-distribution-mojang-mapped</artifactId>
-    <name>UltimateAdvancementAPI-Commands-Distribution-Mojang-Mapped</name>
+    <artifactId>ultimateadvancementapi-commands-commandapi-9.6.1</artifactId>
+    <name>UltimateAdvancementAPI-Commands-CommandAPI-9.6.1</name>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
     <dependencies>
-        <!-- Command Modules -->
-        <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-commandapi-9-3-0</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-commandapi-9.6.1</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
-
+        <!-- Common Module -->
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-commands-common</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- CommandAPI -->
+        <dependency>
+            <groupId>dev.jorel</groupId>
+            <artifactId>commandapi-bukkit-shade</artifactId>
+            <version>9.6.1</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <filtering>false</filtering>
+                <directory>../..</directory>
+                <includes>
+                    <include>LICENSE</include>
+                    <include>LGPL</include>
+                    <include>NOTICE</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
