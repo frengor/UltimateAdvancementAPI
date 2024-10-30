@@ -19,7 +19,7 @@
         <!-- Command Modules -->
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-commandapi-9-3-0</artifactId>
+            <artifactId>ultimateadvancementapi-commands-commandapi-9.3.0</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
