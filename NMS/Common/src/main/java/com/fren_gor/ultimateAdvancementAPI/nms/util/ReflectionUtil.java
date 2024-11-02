@@ -21,7 +21,7 @@ public class ReflectionUtil {
 
     /**
      * The Minecraft minor version.
-     * <p>For example, for {@code 1.19.2} it is {@code 1}.
+     * <p>For example, for {@code 1.19.2} it is {@code 2}.
      */
     public static final int MINOR_VERSION;
 
