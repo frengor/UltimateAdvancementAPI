@@ -67,7 +67,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    void advancementSetProgressionTest(@AutoInject AdvancementKey key) throws Exception {
+    void advancementSetProgressionTest(AdvancementKey key) throws Exception {
         PlayerMock p = loadPlayer();
 
         ProgressionUpdateResult result = databaseManagerMock.waitCompletion(dbManager.setProgression(key, p, 10)).get();
@@ -77,7 +77,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    void advancementSetProgressionWithFailureTest(@AutoInject AdvancementKey key) throws Exception {
+    void advancementSetProgressionWithFailureTest(AdvancementKey key) throws Exception {
         PlayerMock p = loadPlayer();
 
         Paused paused = databaseManagerMock.pauseFutureTasks();
@@ -110,7 +110,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    void advancementIncrementProgressionTest(@AutoInject AdvancementKey key) throws Exception {
+    void advancementIncrementProgressionTest(AdvancementKey key) throws Exception {
         PlayerMock p = loadPlayer();
 
         ProgressionUpdateResult updateResult = databaseManagerMock.waitCompletion(dbManager.incrementProgression(key, p, 10)).get();
@@ -121,7 +121,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    void advancementIncrementProgressionWithFailureTest(@AutoInject AdvancementKey key) throws Exception {
+    void advancementIncrementProgressionWithFailureTest(AdvancementKey key) throws Exception {
         PlayerMock p = loadPlayer();
 
         Paused paused = databaseManagerMock.pauseFutureTasks();
@@ -437,7 +437,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    void updaterLockLockingTest(@AutoInject AdvancementKey key) throws Exception {
+    void updaterLockLockingTest(AdvancementKey key) throws Exception {
         PlayerMock pl = loadPlayer();
         CompletableFuture<Void> completed = new CompletableFuture<>();
         CompletableFuture<Void> releaseLock = new CompletableFuture<>();

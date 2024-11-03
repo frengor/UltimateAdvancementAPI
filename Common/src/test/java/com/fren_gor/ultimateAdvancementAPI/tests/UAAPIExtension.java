@@ -89,7 +89,7 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        return parameterContext.isAnnotated(AutoInject.class) && parameterContext.getParameter().getType() == AdvancementKey.class;
+        return parameterContext.getParameter().getType() == AdvancementKey.class;
     }
 
     @Override

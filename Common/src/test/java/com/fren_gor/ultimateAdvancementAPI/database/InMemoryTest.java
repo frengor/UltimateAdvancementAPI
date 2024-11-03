@@ -39,7 +39,7 @@ public class InMemoryTest {
     }
 
     @Test
-    void inMemoryTest(@AutoInject AdvancementKey key) throws Exception {
+    void inMemoryTest(AdvancementKey key) throws Exception {
         UUID uuid = UUID.randomUUID();
         var res = db.loadOrRegisterPlayer(uuid, "Dummy");
         assertEquals(0, res.getKey().getSize());
@@ -68,7 +68,7 @@ public class InMemoryTest {
     }
 
     @Test
-    void testTransactionAtomicity(@AutoInject AdvancementKey key1, @AutoInject AdvancementKey key2, @AutoInject AdvancementKey key3, @AutoInject AdvancementKey key4) throws Exception {
+    void testTransactionAtomicity(AdvancementKey key1, AdvancementKey key2, AdvancementKey key3, AdvancementKey key4) throws Exception {
         UUID uuid = UUID.randomUUID();
         var loadResult = db.loadOrRegisterPlayer(uuid, "Dummy");
         TeamProgression progression = loadResult.getKey();
