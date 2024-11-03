@@ -33,8 +33,12 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
 
     @Override
     public void beforeEach(ExtensionContext extensionContext) throws Exception {
-        var testMethod = extensionContext.getRequiredTestMethod();
-        initServerMock(extensionContext, testMethod);
+        boolean isNoAdvMain = isNoAdvancementMain(extensionContext);
+
+        initServerMock(extensionContext, extensionContext.getRequiredTestMethod());
+        if (!isNoAdvMain) {
+            initStore(extensionContext);
+        }
 
         var testClass = extensionContext.getRequiredTestClass();
         var testInstance = extensionContext.getRequiredTestInstance();
@@ -46,20 +50,13 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
             return;
         }
 
-        var toInject = fields.stream()
-                .filter(field -> shouldInject(field.getType()))
-                .toList();
-        if (!toInject.isEmpty()) {
-            initStore(extensionContext);
-            toInject.forEach(field -> inject(field, testInstance, extensionContext));
-        }
+        fields.stream()
+                .filter(field -> shouldInject(field.getType(), isNoAdvMain))
+                .forEach(field -> inject(field, testInstance, extensionContext));
 
-        var keysToInject = fields.stream()
+        fields.stream()
                 .filter(field -> field.getType() == AdvancementKey.class)
-                .toList();
-        if (!keysToInject.isEmpty()) {
-            keysToInject.forEach(field -> injectField(field, testInstance, createAdvKey()));
-        }
+                .forEach(field -> injectField(field, testInstance, createAdvKey()));
     }
 
     @Override
@@ -97,8 +94,14 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
         return createAdvKey();
     }
 
-    private boolean shouldInject(Class<?> type) {
-        return type == ServerMock.class || type == AdvancementMain.class || type == DatabaseManagerMock.class || type == DatabaseManager.class;
+    private boolean shouldInject(Class<?> type, boolean isNoAdvMain) {
+        return type == ServerMock.class || (
+                !isNoAdvMain && (
+                        type == AdvancementMain.class ||
+                        type == DatabaseManagerMock.class ||
+                        type == DatabaseManager.class
+                )
+        );
     }
 
     private void inject(Field field, Object testInstance, ExtensionContext extensionContext) {
@@ -154,5 +157,10 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
             store.put(DatabaseManager.class, dbManagerMock.getDatabaseManager());
             return dbManagerMock.getDatabaseManager();
         }));
+    }
+
+    private boolean isNoAdvancementMain(ExtensionContext extensionContext) {
+        return extensionContext.getRequiredTestClass().getAnnotation(NoAdvancementMain.class) != null ||
+                extensionContext.getRequiredTestMethod().getAnnotation(NoAdvancementMain.class) != null;
     }
 }

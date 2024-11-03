@@ -15,6 +15,7 @@ public class AdvancementMainTest {
 
     @Test
     @MockedServerClass(serverClass = NotMockedServerMock.class)
+    @NoAdvancementMain
     void loadingWithUnsupportedVersion() {
         MockPlugin pl = MockBukkit.createMockPlugin();
         AdvancementMain main = new AdvancementMain(pl);
