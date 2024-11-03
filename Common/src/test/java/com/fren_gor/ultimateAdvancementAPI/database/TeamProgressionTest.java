@@ -1,13 +1,12 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
-import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
+import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
+import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,20 +17,11 @@ import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(UAAPIExtension.class)
 public class TeamProgressionTest {
 
+    @AutoInject
     private ServerMock server;
-
-    @BeforeEach
-    void init() throws Exception {
-        server = Utils.mockServer();
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        MockBukkit.unmock();
-        server = null;
-    }
 
     @Test
     void emptyTeamTest() {

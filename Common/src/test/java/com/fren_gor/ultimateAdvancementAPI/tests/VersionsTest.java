@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.tests;
 
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.Versions.getApiVersion;
 import static com.fren_gor.ultimateAdvancementAPI.util.Versions.getNMSVersionsList;
@@ -10,6 +11,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.Versions.getSupportedNMSV
 import static com.fren_gor.ultimateAdvancementAPI.util.Versions.removeInitialV;
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(UAAPIExtension.class)
 public class VersionsTest {
 
     @Test
@@ -32,7 +34,7 @@ public class VersionsTest {
 
     @Test
     void getNMSVersionTest() {
-        Utils.mockServer(() -> assertEquals("mocked0_0_R1", Versions.getNMSVersion().get()));
+        assertEquals("mocked0_0_R1", Versions.getNMSVersion().get());
     }
 
     @Test

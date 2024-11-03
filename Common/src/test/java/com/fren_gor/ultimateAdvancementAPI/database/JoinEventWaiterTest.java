@@ -2,18 +2,22 @@ package com.fren_gor.ultimateAdvancementAPI.database;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
-import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
+import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
+import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(UAAPIExtension.class)
 public class JoinEventWaiterTest {
 
+    @AutoInject
     private ServerMock server;
     private JoinEventWaiter joinEventWaiter;
 
@@ -21,7 +25,6 @@ public class JoinEventWaiterTest {
 
     @BeforeEach
     void setUp() {
-        server = Utils.mockServer();
         joinEventWaiter = new JoinEventWaiter(MockBukkit.createMockPlugin());
         uuid = UUID.randomUUID();
 
@@ -29,13 +32,6 @@ public class JoinEventWaiterTest {
         do {
             uuid2 = UUID.randomUUID();
         } while (uuid.equals(uuid2));
-    }
-
-    @AfterEach
-    void tearDown() {
-        joinEventWaiter = null;
-        MockBukkit.unmock();
-        server = null;
     }
 
     @Test

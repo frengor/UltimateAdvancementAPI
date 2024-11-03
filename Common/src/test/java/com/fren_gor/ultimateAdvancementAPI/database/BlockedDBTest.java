@@ -2,12 +2,15 @@ package com.fren_gor.ultimateAdvancementAPI.database;
 
 import com.fren_gor.ultimateAdvancementAPI.database.BlockingDBImpl.BlockedDB;
 import com.fren_gor.ultimateAdvancementAPI.database.DBUtils.DBOperation;
+import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CyclicBarrier;
 
+@ExtendWith(UAAPIExtension.class)
 public class BlockedDBTest {
 
     @Test

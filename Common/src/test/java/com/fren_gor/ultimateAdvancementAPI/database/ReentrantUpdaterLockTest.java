@@ -1,13 +1,13 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.SyncExecutionException;
-import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
+import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
+import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
 import org.bukkit.Bukkit;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -23,23 +23,18 @@ import java.util.concurrent.locks.LockSupport;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(UAAPIExtension.class)
 public class ReentrantUpdaterLockTest {
 
     private static final int THREAD_COUNT = 10;
 
+    @AutoInject
     private ServerMock server;
     private ReentrantUpdaterLock lock;
 
     @BeforeEach
     void init() {
-        server = Utils.mockServer();
         lock = new ReentrantUpdaterLock();
-    }
-
-    @AfterEach
-    void tearDown() {
-        MockBukkit.unmock();
-        server = null;
     }
 
     @Test

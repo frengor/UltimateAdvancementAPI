@@ -1,15 +1,15 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl.RuntimePlannedFailureException;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
-import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
+import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
+import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Iterator;
@@ -21,14 +21,13 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(UAAPIExtension.class)
 public class InMemoryTest {
 
-    private ServerMock server;
     private InMemory db;
 
     @BeforeEach
     void init() throws Exception {
-        server = Utils.mockServer();
         db = new InMemory(Logger.getLogger("InMemoryTest"));
         db.setUp();
     }
@@ -37,12 +36,10 @@ public class InMemoryTest {
     void tearDown() throws Exception {
         db.close();
         db = null;
-        MockBukkit.unmock();
-        server = null;
     }
 
     @Test
-    void inMemoryTest() throws Exception {
+    void inMemoryTest(@AutoInject AdvancementKey key) throws Exception {
         UUID uuid = UUID.randomUUID();
         var res = db.loadOrRegisterPlayer(uuid, "Dummy");
         assertEquals(0, res.getKey().getSize());
@@ -59,7 +56,6 @@ public class InMemoryTest {
         res.getKey().addMember(uuid);
         assertTrue(res.getKey().contains(uuid));
 
-        AdvancementKey key = new AdvancementKey("test", "adv");
         db.updateAdvancement(key, res.getKey().getTeamId(), 10);
 
         boolean executedAtLeastOnce = false;
@@ -72,16 +68,11 @@ public class InMemoryTest {
     }
 
     @Test
-    void testTransactionAtomicity() throws Exception {
+    void testTransactionAtomicity(@AutoInject AdvancementKey key1, @AutoInject AdvancementKey key2, @AutoInject AdvancementKey key3, @AutoInject AdvancementKey key4) throws Exception {
         UUID uuid = UUID.randomUUID();
         var loadResult = db.loadOrRegisterPlayer(uuid, "Dummy");
         TeamProgression progression = loadResult.getKey();
         progression.addMember(uuid);
-
-        final AdvancementKey key1 = new AdvancementKey("dummy", "adv1");
-        final AdvancementKey key2 = new AdvancementKey("dummy", "adv2");
-        final AdvancementKey key3 = new AdvancementKey("dummy", "adv3");
-        final AdvancementKey key4 = new AdvancementKey("dummy", "adv4");
 
         final Entry<AdvancementKey, Boolean> entry1 = new SimpleEntry<>(key1, true);
         final Entry<AdvancementKey, Boolean> entry2 = new SimpleEntry<>(key2, false);

@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Collection;
 import java.util.List;
@@ -27,20 +28,11 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(UAAPIExtension.class)
 public class CoordAdapterTest {
 
-    private ServerMock server;
-
-    @BeforeEach
-    void init() {
-        server = Utils.mockServer();
-    }
-
-    @AfterEach
-    void tearDown() {
-        MockBukkit.unmock();
-        server = null;
-    }
+    @AutoInject
+    private AdvancementMain main;
 
     @Test
     void basicCoordTest() {
@@ -140,43 +132,38 @@ public class CoordAdapterTest {
     @Test
     void docCodeTest() {
         Plugin myPlugin = MockBukkit.createMockPlugin("myPlugin");
-        AdvancementMain main = Utils.newAdvancementMain(myPlugin, DatabaseManager::new);
 
-        try {
-            AdvancementTab myTab = main.createAdvancementTab(myPlugin, "mytab", "textures/block/stone.png");
+        AdvancementTab myTab = main.createAdvancementTab(myPlugin, "mytab", "textures/block/stone.png");
 
-            // Keys of the advancements to create
-            var advKey1 = new AdvancementKey(myPlugin, "first_advancement");
-            var advKey2 = new AdvancementKey(myPlugin, "second_advancement");
-            var advKey3 = new AdvancementKey(myPlugin, "third_advancement");
+        // Keys of the advancements to create
+        var advKey1 = new AdvancementKey(myPlugin, "first_advancement");
+        var advKey2 = new AdvancementKey(myPlugin, "second_advancement");
+        var advKey3 = new AdvancementKey(myPlugin, "third_advancement");
 
-            // Create the CoordAdapter instance
-            CoordAdapter adapter = CoordAdapter.builder()
-                    .add(advKey1, 0, 0)  // Will become (0, 1)
-                    .add(advKey2, 1, -1) // Will become (1, 0)
-                    .add(advKey3, 1, 1)  // Will become (1, 2)
-                    .build();
+        // Create the CoordAdapter instance
+        CoordAdapter adapter = CoordAdapter.builder()
+                .add(advKey1, 0, 0)  // Will become (0, 1)
+                .add(advKey2, 1, -1) // Will become (1, 0)
+                .add(advKey3, 1, 1)  // Will become (1, 2)
+                .build();
 
-            // Create the AdvancementDisplays
-            var advDisplay1 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title1").coords(adapter, advKey1).build();
-            var advDisplay2 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title2").coords(adapter, advKey2).build();
-            var advDisplay3 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title3").coords(adapter, advKey3).build();
+        // Create the AdvancementDisplays
+        var advDisplay1 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title1").coords(adapter, advKey1).build();
+        var advDisplay2 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title2").coords(adapter, advKey2).build();
+        var advDisplay3 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title3").coords(adapter, advKey3).build();
 
-            // Create the advancements
-            var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1);
-            var adv2 = new BaseAdvancement(advKey2.getKey(), advDisplay2, adv1);
-            var adv3 = new BaseAdvancement(advKey3.getKey(), advDisplay3, adv1, 5);
+        // Create the advancements
+        var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1);
+        var adv2 = new BaseAdvancement(advKey2.getKey(), advDisplay2, adv1);
+        var adv3 = new BaseAdvancement(advKey3.getKey(), advDisplay3, adv1, 5);
 
-            // Just to be sure the comments above are correct
-            assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(0, 1));
-            assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(1, 0));
-            assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(1, 2));
-            assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(advDisplay1));
-            assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(advDisplay2));
-            assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(advDisplay3));
-        } finally {
-            main.disable();
-        }
+        // Just to be sure the comments above are correct
+        assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(0, 1));
+        assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(1, 0));
+        assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(1, 2));
+        assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(advDisplay1));
+        assertEquals(new Coord(1, -1), adapter.getOriginalXAndY(advDisplay2));
+        assertEquals(new Coord(1, 1), adapter.getOriginalXAndY(advDisplay3));
     }
 
     @Test
