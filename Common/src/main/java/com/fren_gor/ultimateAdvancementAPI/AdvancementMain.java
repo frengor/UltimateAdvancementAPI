@@ -100,9 +100,6 @@ public final class AdvancementMain {
      */
     public void load() throws InvalidVersionException {
         checkSync(); // This is not the AdvancementUtils' one, since AdvancementUtils cannot be used before checking that the current mc version is supported
-        if (!LOADED.compareAndSet(false, true)) {
-            throw new IllegalStateException("UltimateAdvancementAPI is getting loaded twice.");
-        }
 
         // Check mc version
         Optional<String> version = Versions.getNMSVersion();
@@ -110,6 +107,10 @@ public final class AdvancementMain {
             INVALID_VERSION.set(true);
             String fancy = Versions.getSupportedNMSVersions().stream().map(Versions::getNMSVersionsRange).collect(Collectors.joining(", ", "[", "]"));
             throw new InvalidVersionException(fancy, ReflectionUtil.MINECRAFT_VERSION, "Invalid minecraft version, couldn't load UltimateAdvancementAPI. Supported versions are " + fancy + '.');
+        }
+
+        if (!LOADED.compareAndSet(false, true)) {
+            throw new IllegalStateException("UltimateAdvancementAPI is getting loaded twice.");
         }
 
         libbyManager = new BukkitLibraryManager(owningPlugin, libFolder);
