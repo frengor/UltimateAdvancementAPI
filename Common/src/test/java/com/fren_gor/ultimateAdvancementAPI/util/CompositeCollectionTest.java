@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class CompositeCollectionTest {
 
-    Collection<Integer> coll;
+    private Collection<Integer> coll;
 
     @BeforeEach
     void setUp() {

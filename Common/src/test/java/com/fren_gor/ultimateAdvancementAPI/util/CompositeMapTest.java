@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class CompositeMapTest {
 
-    Map<Integer, Integer> map;
+    private Map<Integer, Integer> map;
 
     @BeforeEach
     void setUp() {
