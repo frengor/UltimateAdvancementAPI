@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -103,8 +104,8 @@ public final class AdvancementMain {
 
         // Check mc version
         Optional<String> version = Versions.getNMSVersion();
+        INVALID_VERSION.set(version.isEmpty()); // Always set (useful for tests)
         if (version.isEmpty()) {
-            INVALID_VERSION.set(true);
             String fancy = Versions.getSupportedNMSVersions().stream().map(Versions::getNMSVersionsRange).collect(Collectors.joining(", ", "[", "]"));
             throw new InvalidVersionException(fancy, ReflectionUtil.MINECRAFT_VERSION, "Invalid minecraft version, couldn't load UltimateAdvancementAPI. Supported versions are " + fancy + '.');
         }
@@ -187,6 +188,18 @@ public final class AdvancementMain {
             failEnable(e);
         }
 
+        commonEnablePostDatabase();
+    }
+
+    private void enableForTests(@NotNull Callable<DatabaseManager> databaseManager) {
+        Preconditions.checkNotNull(databaseManager, "DatabaseManager is null");
+
+        commonEnablePreDatabase();
+        try {
+            this.databaseManager = databaseManager.call();
+        } catch (Exception e) {
+            failEnable(e);
+        }
         commonEnablePostDatabase();
     }
 
