@@ -25,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class InMemoryTest {
 
     private InMemory db;
+    @AutoInject
+    private UUID uuid;
 
     @BeforeEach
     void init() throws Exception {
@@ -40,7 +42,6 @@ public class InMemoryTest {
 
     @Test
     void inMemoryTest(AdvancementKey key) throws Exception {
-        UUID uuid = UUID.randomUUID();
         var res = db.loadOrRegisterPlayer(uuid, "Dummy");
         assertEquals(0, res.getKey().getSize());
         assertFalse(res.getKey().contains(uuid));
@@ -69,7 +70,6 @@ public class InMemoryTest {
 
     @Test
     void testTransactionAtomicity(AdvancementKey key1, AdvancementKey key2, AdvancementKey key3, AdvancementKey key4) throws Exception {
-        UUID uuid = UUID.randomUUID();
         var loadResult = db.loadOrRegisterPlayer(uuid, "Dummy");
         TeamProgression progression = loadResult.getKey();
         progression.addMember(uuid);

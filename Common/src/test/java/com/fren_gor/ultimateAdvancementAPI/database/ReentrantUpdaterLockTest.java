@@ -1,8 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
-import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.SyncExecutionException;
-import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
 import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
 import org.bukkit.Bukkit;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,8 +26,6 @@ public class ReentrantUpdaterLockTest {
 
     private static final int THREAD_COUNT = 10;
 
-    @AutoInject
-    private ServerMock server;
     private ReentrantUpdaterLock lock;
 
     @BeforeEach

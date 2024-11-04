@@ -31,64 +31,52 @@ public class TeamProgressionTest {
     }
 
     @Test
-    void creationTest() {
-        PlayerMock player1 = server.addPlayer();
-        PlayerMock player2 = server.addPlayer();
-        PlayerMock player3 = server.addPlayer();
-        player1.disconnect();
-        player2.disconnect();
-        player3.disconnect();
-        TeamProgression pro = TeamProgressionFactory.createTeamProgression(0, player1.getUniqueId());
+    void creationTest(UUID uuid1, UUID uuid2, UUID uuid3) {
+        PlayerMock player1 = new PlayerMock(server, "player1", uuid1);
+        PlayerMock player2 = new PlayerMock(server, "player2", uuid2);
+        PlayerMock player3 = new PlayerMock(server, "player3", uuid3);
+
+        TeamProgression pro = TeamProgressionFactory.createTeamProgression(0, uuid1);
         assertEquals(0, pro.getTeamId());
         assertEquals(1, pro.getSize());
         assertTrue(pro.contains(player1));
-        assertTrue(pro.contains(player1.getUniqueId()));
-        assertFalse(pro.contains(player2.getUniqueId()));
-        assertFalse(pro.contains(player2.getUniqueId()));
+        assertTrue(pro.contains(uuid1));
+        assertFalse(pro.contains(player2));
+        assertFalse(pro.contains(uuid2));
         assertFalse(pro.isValid());
         pro.inCache.set(true);
         assertTrue(pro.isValid());
-        pro.addMember(player2.getUniqueId());
+        pro.addMember(uuid2);
         assertTrue(pro.contains(player1));
-        assertTrue(pro.contains(player1.getUniqueId()));
+        assertTrue(pro.contains(uuid1));
         assertTrue(pro.contains(player2));
-        assertTrue(pro.contains(player2.getUniqueId()));
+        assertTrue(pro.contains(uuid2));
         assertFalse(pro.contains(player3));
-        assertFalse(pro.contains(player3.getUniqueId()));
-        assertTrue(List.of(player1.getUniqueId(), player2.getUniqueId(), player3.getUniqueId()).contains(pro.getAMember()));
+        assertFalse(pro.contains(uuid3));
+        assertTrue(List.of(uuid1, uuid2).contains(pro.getAMember()));
     }
 
     @Test
-    void immutabilityTest() {
+    void immutabilityTest(UUID uuid, UUID uuid1, UUID uuid2) {
         TeamProgression pro = TeamProgressionFactory.createTeamProgression(0);
         Set<UUID> members = pro.getMembers();
 
-        assertThrows(UnsupportedOperationException.class, () -> members.add(UUID.randomUUID()));
-        assertThrows(UnsupportedOperationException.class, () -> members.remove(UUID.randomUUID()));
+        assertThrows(UnsupportedOperationException.class, () -> members.add(uuid1));
+        assertThrows(UnsupportedOperationException.class, () -> members.remove(uuid2));
 
-        UUID uuid = UUID.randomUUID();
         pro.addMember(uuid);
         Set<UUID> members1 = pro.getMembers();
-        assertThrows(UnsupportedOperationException.class, () -> members1.add(UUID.randomUUID()));
-        assertThrows(UnsupportedOperationException.class, () -> members1.remove(UUID.randomUUID()));
+        assertThrows(UnsupportedOperationException.class, () -> members1.add(uuid1));
+        assertThrows(UnsupportedOperationException.class, () -> members1.remove(uuid2));
 
         pro.removeMember(uuid);
         Set<UUID> members2 = pro.getMembers();
-        assertThrows(UnsupportedOperationException.class, () -> members2.add(UUID.randomUUID()));
-        assertThrows(UnsupportedOperationException.class, () -> members2.remove(UUID.randomUUID()));
+        assertThrows(UnsupportedOperationException.class, () -> members2.add(uuid1));
+        assertThrows(UnsupportedOperationException.class, () -> members2.remove(uuid2));
     }
 
     @Test
-    void addRemoveTest() {
-        UUID uuid1 = UUID.randomUUID();
-        UUID uuid2 = UUID.randomUUID();
-        UUID uuid3 = UUID.randomUUID();
-
-        // Just make sure they're not accidentally the same (should never happen, but better be sure)
-        assertNotEquals(uuid1, uuid2);
-        assertNotEquals(uuid2, uuid3);
-        assertNotEquals(uuid1, uuid3);
-
+    void addRemoveTest(UUID uuid1, UUID uuid2, UUID uuid3) {
         Consumer<Set<UUID>> assertContains1 = set -> {
             assertEquals(1, set.size());
             assertTrue(set.contains(uuid1));
@@ -182,11 +170,7 @@ public class TeamProgressionTest {
     }
 
     @Test
-    void advancementProgressionTest() {
-        AdvancementKey key1 = new AdvancementKey("namespace1", "key1");
-        AdvancementKey key2 = new AdvancementKey("namespace1", "key2");
-        AdvancementKey key3 = new AdvancementKey("namespace2", "key3");
-
+    void advancementProgressionTest(AdvancementKey key1, AdvancementKey key2, AdvancementKey key3) {
         TeamProgression pro = TeamProgressionFactory.createTeamProgression(0, Map.of(key1, 10, key2, 5), Collections.emptyList());
 
         assertEquals(10, pro.getRawProgression(key1));

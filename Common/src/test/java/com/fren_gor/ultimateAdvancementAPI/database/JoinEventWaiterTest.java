@@ -4,7 +4,6 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
 import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,18 +19,12 @@ public class JoinEventWaiterTest {
     @AutoInject
     private ServerMock server;
     private JoinEventWaiter joinEventWaiter;
-
+    @AutoInject
     private UUID uuid, uuid2;
 
     @BeforeEach
     void setUp() {
         joinEventWaiter = new JoinEventWaiter(MockBukkit.createMockPlugin());
-        uuid = UUID.randomUUID();
-
-        // Although improbable, make sure uuid1 and uuid2 are not the same
-        do {
-            uuid2 = UUID.randomUUID();
-        } while (uuid.equals(uuid2));
     }
 
     @Test

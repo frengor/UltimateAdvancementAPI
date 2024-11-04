@@ -20,7 +20,11 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
@@ -30,6 +34,7 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
     private static final String ADV_KEY_PREFIX = "a_-key/";
 
     private static final AtomicInteger ADV_KEYS_UNIQUE_KEY = new AtomicInteger();
+    private static final Set<UUID> GENERATED_UUIDS = Collections.synchronizedSet(new HashSet<>());
 
     @Override
     public void beforeEach(ExtensionContext extensionContext) throws Exception {
@@ -57,6 +62,10 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
         fields.stream()
                 .filter(field -> field.getType() == AdvancementKey.class)
                 .forEach(field -> injectField(field, testInstance, createAdvKey()));
+
+        fields.stream()
+                .filter(field -> field.getType() == UUID.class)
+                .forEach(field -> injectField(field, testInstance, createUUID()));
     }
 
     @Override
@@ -86,12 +95,14 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        return parameterContext.getParameter().getType() == AdvancementKey.class;
+        var type = parameterContext.getParameter().getType();
+        return type == AdvancementKey.class || type == UUID.class;
     }
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        return createAdvKey();
+        var type = parameterContext.getParameter().getType();
+        return type == AdvancementKey.class ? createAdvKey() : createUUID();
     }
 
     private boolean shouldInject(Class<?> type, boolean isNoAdvMain) {
@@ -112,6 +123,14 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
 
     private AdvancementKey createAdvKey() {
         return new AdvancementKey(ADV_KEY_NAMESPACE, ADV_KEY_PREFIX + ADV_KEYS_UNIQUE_KEY.incrementAndGet());
+    }
+
+    private UUID createUUID() {
+        UUID uuid;
+        do {
+            uuid = UUID.randomUUID();
+        } while (!GENERATED_UUIDS.add(uuid)); // Although improbable, make sure the generated uuid is truly unique
+        return uuid;
     }
 
     private void injectField(Field field, Object testInstance, Object value) {
