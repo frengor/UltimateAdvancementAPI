@@ -39,6 +39,12 @@ A powerful API to create custom advancements for your minecraft server.
 </dependency>
 ```
 
+#### Example Plugin:
+
+An example of plugin using UltimateAdvancementAPI can be found [here](https://github.com/DevHeim-space/UltimateAdvancementAPI-Showcase).
+
+More examples by the community can be found in the `showcase` forum on [Discord](https://discord.gg/BMg6VJk5n3).
+
 #### Test Plugin:
 
 The plugin used for tests can be found [here](https://github.com/frengor/UltimateAdvancementAPI-Tests).
