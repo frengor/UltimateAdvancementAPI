@@ -62,6 +62,7 @@ public final class Utils {
         } catch (Throwable t) {
             fail("Couldn't set Versions.COMPLETE_VERSION to " + version + " during mocking.", t);
         }
+        assertEquals(version, Versions.getNMSVersion(), "Setting Versions.COMPLETE_VERSION failed!");
     }
 
     /**
