@@ -41,30 +41,13 @@ public final class Utils {
         }
     }
 
-    public static void mockServer(@NotNull Runnable runnable) {
-        mockServerWith(new VersionedServerMock(), runnable);
-    }
-
     @NotNull
-    public static AbstractMockedServer mockServer() {
+    static AbstractMockedServer mockServer() {
         return mockServerWith(new VersionedServerMock());
     }
 
-    public static <T extends AbstractMockedServer> void mockServerWith(@NotNull T mock, @NotNull Runnable runnable) {
-        assertNotNull(mock);
-        assertNotNull(runnable);
-        try {
-            mockServerWith(mock);
-            runnable.run();
-        } finally {
-            if (MockBukkit.isMocked()) {
-                MockBukkit.unmock();
-            }
-        }
-    }
-
     @NotNull
-    public static <T extends AbstractMockedServer> T mockServerWith(@NotNull T mock) {
+    static <T extends AbstractMockedServer> T mockServerWith(@NotNull T mock) {
         assertNotNull(mock);
         T server = MockBukkit.mock(mock);
         MockBukkit.ensureMocking();
@@ -90,7 +73,7 @@ public final class Utils {
      * @param plugin The plugin
      * @param databaseManagerSupplier The database manager supplier.
      */
-    public static AdvancementMain newAdvancementMain(@NotNull Plugin plugin, @NotNull DatabaseManagerSupplier databaseManagerSupplier) {
+    static AdvancementMain newAdvancementMain(@NotNull Plugin plugin, @NotNull DatabaseManagerSupplier databaseManagerSupplier) {
         assertNotNull(Bukkit.getServer(), "newAdvancementMain(...) must be called inside Utils.mockServer(...)");
         assertNotNull(plugin);
         assertNotNull(databaseManagerSupplier);

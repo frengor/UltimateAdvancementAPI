@@ -2,9 +2,9 @@ package com.fren_gor.ultimateAdvancementAPI.tests;
 
 import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
-import com.fren_gor.ultimateAdvancementAPI.database.BlockingDBImpl;
+import com.fren_gor.ultimateAdvancementAPI.tests.database.BlockingDBImpl;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
-import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl;
+import com.fren_gor.ultimateAdvancementAPI.tests.database.FallibleDBImpl;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import org.jetbrains.annotations.Contract;

@@ -1,9 +1,11 @@
-package com.fren_gor.ultimateAdvancementAPI.tests;
+package com.fren_gor.ultimateAdvancementAPI;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.MockPlugin;
-import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
+import com.fren_gor.ultimateAdvancementAPI.tests.MockedServerClass;
+import com.fren_gor.ultimateAdvancementAPI.tests.NoAdvancementMain;
+import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
 import org.bukkit.craftbukkit.notMocked99_0_R3.NotMockedServerMock;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

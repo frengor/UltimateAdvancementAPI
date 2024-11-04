@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
-import com.fren_gor.ultimateAdvancementAPI.database.FallibleDBImpl.RuntimePlannedFailureException;
+import com.fren_gor.ultimateAdvancementAPI.tests.database.FallibleDBImpl.RuntimePlannedFailureException;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
 import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;

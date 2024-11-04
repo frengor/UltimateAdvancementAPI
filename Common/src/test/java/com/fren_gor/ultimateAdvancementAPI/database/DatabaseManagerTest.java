@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.tests;
+package com.fren_gor.ultimateAdvancementAPI.database;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.MockPlugin;
@@ -6,11 +6,11 @@ import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
-import com.fren_gor.ultimateAdvancementAPI.database.BlockingDBImpl.BlockedDB;
-import com.fren_gor.ultimateAdvancementAPI.database.DBUtils.DBOperation;
-import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
-import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
-import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
+import com.fren_gor.ultimateAdvancementAPI.tests.DatabaseManagerMock;
+import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
+import com.fren_gor.ultimateAdvancementAPI.tests.database.BlockingDBImpl.BlockedDB;
+import com.fren_gor.ultimateAdvancementAPI.tests.database.DBOperation;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;

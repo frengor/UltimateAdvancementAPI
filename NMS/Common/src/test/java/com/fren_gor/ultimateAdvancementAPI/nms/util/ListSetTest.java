@@ -1,6 +1,5 @@
-package com.fren_gor.ultimateAdvancementAPI.tests.nms;
+package com.fren_gor.ultimateAdvancementAPI.nms.util;
 
-import com.fren_gor.ultimateAdvancementAPI.nms.util.ListSet;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.junit.jupiter.api.Test;
 

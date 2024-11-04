@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.tests;
+package com.fren_gor.ultimateAdvancementAPI.util;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
@@ -6,8 +6,8 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
-import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter;
+import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
+import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter.Coord;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
