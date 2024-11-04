@@ -20,30 +20,14 @@
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
-    <!-- For MockBukkit -->
-    <repositories>
-        <repository>
-            <id>papermc</id>
-            <url>https://repo.papermc.io/repository/maven-public/</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <!-- MockBukkit -->
         <!-- Put before every other dependency in order to have it loaded before Spigot dependency-->
         <!-- See https://github.com/MockBukkit/MockBukkit/issues/462 and https://github.com/MockBukkit/MockBukkit/issues/462#issuecomment-1156574495 -->
         <dependency>
             <groupId>com.github.seeseemelk</groupId>
-            <artifactId>MockBukkit-v1.21</artifactId>
-            <version>3.133.2</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- slf4j-simple for logging to console during tests -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>2.0.5</version>
+            <artifactId>${mockBukkitArtifact}</artifactId>
+            <version>${mockBukkitVersion}</version>
             <scope>test</scope>
         </dependency>
 
@@ -116,18 +100,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>templating-maven-plugin</artifactId>
-                <version>1.0.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>filter-test-sources</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

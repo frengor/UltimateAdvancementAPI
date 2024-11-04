@@ -15,6 +15,18 @@
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
+    <dependencies>
+        <!-- MockBukkit -->
+        <!-- Put before every other dependency in order to have it loaded before Spigot dependency-->
+        <!-- See https://github.com/MockBukkit/MockBukkit/issues/462 and https://github.com/MockBukkit/MockBukkit/issues/462#issuecomment-1156574495 -->
+        <dependency>
+            <groupId>com.github.seeseemelk</groupId>
+            <artifactId>${mockBukkitArtifact}</artifactId>
+            <version>${mockBukkitVersion}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
     <build>
         <resources>
             <resource>
@@ -35,6 +47,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>templating-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>filter-test-sources</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
