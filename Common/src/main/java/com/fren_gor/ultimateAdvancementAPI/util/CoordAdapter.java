@@ -14,9 +14,9 @@ import java.util.Objects;
  * <p>Note that the x-axis points to the right (as usual), whereas the y-axis points downward.
  * <p>An example usage is shown below:
  * <pre> {@code // Keys of the advancements to create
- * var advKey1 = new AdvancementKey(myPlugin, "first_advancement");
- * var advKey2 = new AdvancementKey(myPlugin, "second_advancement");
- * var advKey3 = new AdvancementKey(myPlugin, "third_advancement");
+ * var advKey1 = new AdvancementKey("tabNamespace", "first_advancement");
+ * var advKey2 = new AdvancementKey("tabNamespace", "second_advancement");
+ * var advKey3 = new AdvancementKey("tabNamespace", "third_advancement");
  *
  * // Create the CoordAdapter instance
  * CoordAdapter adapter = CoordAdapter.builder()

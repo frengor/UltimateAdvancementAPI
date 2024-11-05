@@ -128,13 +128,12 @@ public class CoordAdapterTest {
     @Test
     void docCodeTest() {
         Plugin myPlugin = MockBukkit.createMockPlugin("myPlugin");
-
         AdvancementTab myTab = main.createAdvancementTab(myPlugin, "mytab", "textures/block/stone.png");
 
         // Keys of the advancements to create
-        var advKey1 = new AdvancementKey(myPlugin, "first_advancement");
-        var advKey2 = new AdvancementKey(myPlugin, "second_advancement");
-        var advKey3 = new AdvancementKey(myPlugin, "third_advancement");
+        var advKey1 = new AdvancementKey(myTab.getNamespace(), "first_advancement");
+        var advKey2 = new AdvancementKey(myTab.getNamespace(), "second_advancement");
+        var advKey3 = new AdvancementKey(myTab.getNamespace(), "third_advancement");
 
         // Create the CoordAdapter instance
         CoordAdapter adapter = CoordAdapter.builder()
@@ -152,6 +151,8 @@ public class CoordAdapterTest {
         var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1);
         var adv2 = new BaseAdvancement(advKey2.getKey(), advDisplay2, adv1);
         var adv3 = new BaseAdvancement(advKey3.getKey(), advDisplay3, adv1, 5);
+
+        myTab.registerAdvancements(adv1, adv2, adv3);
 
         // Just to be sure the comments above are correct
         assertEquals(new Coord(0, 0), adapter.getOriginalXAndY(0, 1));
