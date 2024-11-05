@@ -1,10 +1,8 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
-import be.seeseemelk.mockbukkit.ServerMock;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
-import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
 import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -20,9 +18,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(UAAPIExtension.class)
 public class TeamProgressionTest {
 
-    @AutoInject
-    private ServerMock server;
-
     @Test
     void emptyTeamTest() {
         TeamProgression pro = TeamProgressionFactory.createTeamProgression(0);
@@ -31,29 +26,25 @@ public class TeamProgressionTest {
     }
 
     @Test
-    void creationTest(UUID uuid1, UUID uuid2, UUID uuid3) {
-        PlayerMock player1 = new PlayerMock(server, "player1", uuid1);
-        PlayerMock player2 = new PlayerMock(server, "player2", uuid2);
-        PlayerMock player3 = new PlayerMock(server, "player3", uuid3);
-
-        TeamProgression pro = TeamProgressionFactory.createTeamProgression(0, uuid1);
+    void creationTest(Player player1, Player player2, Player player3) {
+        TeamProgression pro = TeamProgressionFactory.createTeamProgression(0, player1.getUniqueId());
         assertEquals(0, pro.getTeamId());
         assertEquals(1, pro.getSize());
         assertTrue(pro.contains(player1));
-        assertTrue(pro.contains(uuid1));
+        assertTrue(pro.contains(player1.getUniqueId()));
         assertFalse(pro.contains(player2));
-        assertFalse(pro.contains(uuid2));
+        assertFalse(pro.contains(player2.getUniqueId()));
         assertFalse(pro.isValid());
         pro.inCache.set(true);
         assertTrue(pro.isValid());
-        pro.addMember(uuid2);
+        pro.addMember(player2.getUniqueId());
         assertTrue(pro.contains(player1));
-        assertTrue(pro.contains(uuid1));
+        assertTrue(pro.contains(player1.getUniqueId()));
         assertTrue(pro.contains(player2));
-        assertTrue(pro.contains(uuid2));
+        assertTrue(pro.contains(player2.getUniqueId()));
         assertFalse(pro.contains(player3));
-        assertFalse(pro.contains(uuid3));
-        assertTrue(List.of(uuid1, uuid2).contains(pro.getAMember()));
+        assertFalse(pro.contains(player3.getUniqueId()));
+        assertTrue(List.of(player1.getUniqueId(), player2.getUniqueId()).contains(pro.getAMember()));
     }
 
     @Test

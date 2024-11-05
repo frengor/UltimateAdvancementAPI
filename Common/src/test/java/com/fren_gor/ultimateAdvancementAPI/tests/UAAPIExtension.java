@@ -2,12 +2,15 @@ package com.fren_gor.ultimateAdvancementAPI.tests;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
+import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.tests.Utils.AbstractMockedServer;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -34,13 +37,14 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
     private static final String ADV_KEY_PREFIX = "a_-key/";
 
     private static final AtomicInteger ADV_KEYS_UNIQUE_KEY = new AtomicInteger();
+    private static final AtomicInteger PLAYERS_UNIQUE_ID = new AtomicInteger();
     private static final Set<UUID> GENERATED_UUIDS = Collections.synchronizedSet(new HashSet<>());
 
     @Override
     public void beforeEach(ExtensionContext extensionContext) throws Exception {
         boolean isNoAdvMain = isNoAdvancementMain(extensionContext);
 
-        initServerMock(extensionContext, extensionContext.getRequiredTestMethod());
+        ServerMock server = initServerMock(extensionContext, extensionContext.getRequiredTestMethod());
         if (!isNoAdvMain) {
             initStore(extensionContext);
         }
@@ -66,6 +70,10 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
         fields.stream()
                 .filter(field -> field.getType() == UUID.class)
                 .forEach(field -> injectField(field, testInstance, createUUID()));
+
+        fields.stream()
+                .filter(field -> field.getType() == PlayerMock.class || field.getType() == Player.class)
+                .forEach(field -> injectField(field, testInstance, createPlayer(server)));
     }
 
     @Override
@@ -96,13 +104,21 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getType();
-        return type == AdvancementKey.class || type == UUID.class;
+        return type == AdvancementKey.class || type == UUID.class || type == PlayerMock.class || type == Player.class;
     }
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getType();
-        return type == AdvancementKey.class ? createAdvKey() : createUUID();
+        if (type == AdvancementKey.class) {
+            return createAdvKey();
+        } else if (type == UUID.class) {
+            return createUUID();
+        } else if (type == PlayerMock.class || type == Player.class) {
+            return createPlayer((ServerMock) extensionContext.getStore(UAAPI_NAMESPACE).get(ServerMock.class));
+        } else {
+            throw new ParameterResolutionException("Invalid parameter type " + type.getName());
+        }
     }
 
     private boolean shouldInject(Class<?> type, boolean isNoAdvMain) {
@@ -133,6 +149,11 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
         return uuid;
     }
 
+    private PlayerMock createPlayer(@NotNull ServerMock server) {
+        Preconditions.checkNotNull(server, "ServerMock is null.");
+        return new PlayerMock(server, "player" + PLAYERS_UNIQUE_ID.incrementAndGet(), createUUID());
+    }
+
     private void injectField(Field field, Object testInstance, Object value) {
         try {
             field.setAccessible(true);
@@ -142,7 +163,7 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
         }
     }
 
-    private void initServerMock(ExtensionContext extensionContext, Method testMethod) throws Exception {
+    private ServerMock initServerMock(ExtensionContext extensionContext, Method testMethod) throws Exception {
         var store = extensionContext.getStore(UAAPI_NAMESPACE);
         if (MockBukkit.isMocked() || store.get(ServerMock.class) != null) {
             throw new IllegalStateException("Already mocked.");
@@ -156,6 +177,7 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
             server = Utils.mockServerWith(serverClass.getConstructor().newInstance());
         }
         store.put(ServerMock.class, Objects.requireNonNull(server));
+        return server;
     }
 
     private void initStore(ExtensionContext extensionContext) {

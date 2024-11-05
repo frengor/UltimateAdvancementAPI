@@ -164,11 +164,7 @@ public class CoordAdapterTest {
     }
 
     @Test
-    void offsetTest() {
-        Plugin pl = MockBukkit.createMockPlugin("plugin");
-        var parent = new AdvancementKey(pl, "akey");
-        var child = new AdvancementKey(pl, "anotherkey");
-
+    void offsetTest(AdvancementKey parent, AdvancementKey child) {
         assertThrows(IllegalArgumentException.class, () -> CoordAdapter.builder().offset(child, parent, 0, 0));
         for (int i = -10; i <= 10; i++) {
             for (int t = -10; t <= 10; t++) {
