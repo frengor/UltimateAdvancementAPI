@@ -8,6 +8,7 @@ import net.minecraft.server.v1_16_R1.Criterion;
 import net.minecraft.server.v1_16_R1.CriterionProgress;
 import net.minecraft.server.v1_16_R1.CriterionTriggerImpossible;
 import net.minecraft.server.v1_16_R1.IChatBaseComponent;
+import net.minecraft.server.v1_16_R1.IChatBaseComponent.ChatSerializer;
 import net.minecraft.server.v1_16_R1.Packet;
 import org.bukkit.craftbukkit.v1_16_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R1.util.CraftChatMessage;
@@ -67,7 +68,8 @@ public class Util {
         if (string == null || string.isEmpty()) {
             return ChatComponentText.d;
         }
-        return CraftChatMessage.fromStringOrNull(string, true);
+        var component = ChatSerializer.a(string);
+        return component != null ? component : CraftChatMessage.fromStringOrNull(string, true);
     }
 
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {

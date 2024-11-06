@@ -1,9 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -152,13 +150,8 @@ public class FancyAdvancementDisplay extends AdvancementDisplay {
         super(icon, title, frame, showToast, announceChat, x, y, defaultDescriptionColor, description);
         Preconditions.checkNotNull(defaultTitleColor, "Default title color is null.");
 
-        this.chatTitle[0] = new TextComponent(defaultTitleColor + rawTitle);
-
-        if (compactDescription.isEmpty()) {
-            this.chatDescription[0] = new TextComponent(defaultTitleColor + rawTitle);
-        } else {
-            this.chatDescription[0] = new TextComponent(defaultTitleColor + rawTitle + (AdvancementUtils.startsWithEmptyLine(compactDescription) ? "\n" : "\n\n") + compactDescription);
-        }
+        this.chatTitle[0] = fromString(title, defaultTitleColor);
+        this.chatDescription[0] = fromStringList(this.chatTitle[0], description, defaultDescriptionColor);
     }
 
     /**

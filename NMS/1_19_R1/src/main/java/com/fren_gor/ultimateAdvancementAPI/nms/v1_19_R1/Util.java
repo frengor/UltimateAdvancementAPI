@@ -68,7 +68,7 @@ public class Util {
         if (string == null || string.isEmpty()) {
             return CommonComponents.EMPTY;
         }
-        return CraftChatMessage.fromStringOrNull(string, true);
+        return CraftChatMessage.fromJSONOrString(string, true);
     }
 
 

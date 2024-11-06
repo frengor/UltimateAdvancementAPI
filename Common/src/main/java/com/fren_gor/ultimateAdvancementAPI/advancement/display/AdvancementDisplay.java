@@ -6,17 +6,20 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementD
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.StringJoiner;
 
 /**
  * The {@code AdvancementDisplay} class contains the graphical information of the advancement.
@@ -226,23 +229,13 @@ public class AdvancementDisplay {
         }
         this.rawTitle = titleTrimmed.substring(0, toSub).trim();
 
-        this.chatTitle[0] = new TextComponent(defaultColor + rawTitle);
-        // Old code, bugged for unknown reasons (found out that BaseComponent[] must have length 1 or it bugs in HoverEvents)
-        // this.chatDescription = AdvancementUtils.fromStringList(title, this.description);
+        this.chatTitle[0] = fromString(title, defaultColor);
+        this.chatDescription[0] = fromStringList(chatTitle[0], this.description, defaultColor);
 
         if (this.description.isEmpty()) {
             this.compactDescription = "";
         } else {
-            StringJoiner joiner = new StringJoiner("\n" + defaultColor, defaultColor.toString(), "");
-            for (String s : this.description)
-                joiner.add(s);
-
-            this.compactDescription = joiner.toString();
-        }
-        if (compactDescription.isEmpty()) {
-            this.chatDescription[0] = new TextComponent(defaultColor + rawTitle);
-        } else {
-            this.chatDescription[0] = new TextComponent(defaultColor + rawTitle + '\n' + compactDescription);
+            compactDescription = ComponentSerializer.toString(fromStringList(null, this.description, defaultColor));
         }
 
         this.frame = frame;
@@ -510,5 +503,46 @@ public class AdvancementDisplay {
         public ChatColor getDefaultColor() {
             return defaultColor;
         }
+    }
+
+    @NotNull
+    public static BaseComponent fromString(@NotNull String text, @Nullable ChatColor defaultColor) {
+        BaseComponent base = null;
+        try {
+            base = ComponentSerializer.deserialize(text);
+        } catch (Exception ignored) {}
+
+        if (defaultColor == null) {
+            return base != null ? base : TextComponent.fromLegacy(text);
+        }
+
+        if (base == null) {
+            return TextComponent.fromLegacy(text, defaultColor);
+        } else if (!base.hasStyle() || !base.getStyle().hasColor()) {
+            base.setColor(defaultColor);
+        }
+        return base;
+    }
+
+    @NotNull
+    public static BaseComponent fromStringList(@Nullable BaseComponent title, @NotNull List<String> list, @Nullable ChatColor defaultColor) {
+        Preconditions.checkNotNull(list);
+        ComponentBuilder builder = new ComponentBuilder();
+        if (title != null) {
+            builder.append(title, FormatRetention.NONE);
+            if (list.isEmpty()) {
+                return builder.build();
+            }
+            builder.append("\n", FormatRetention.NONE);
+        } else if (list.isEmpty()) {
+            return builder.build();
+        }
+        int i = 0;
+        for (String s : list) {
+            builder.append(fromString(s, defaultColor), FormatRetention.NONE);
+            if (++i < list.size()) // Don't append \n at the end
+                builder.append("\n", FormatRetention.NONE);
+        }
+        return builder.build();
     }
 }
