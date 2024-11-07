@@ -9,6 +9,7 @@ import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
@@ -16,6 +17,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.withSettings;
@@ -39,6 +41,26 @@ public final class Utils {
         } catch (ReflectiveOperationException e) {
             fail("Cannot get Versions members.", e);
         }
+    }
+
+    @Contract("_ -> param1")
+    public static <T> CompletableFuture<T> waitCompletion(CompletableFuture<T> completableFuture) {
+        return waitCompletion(completableFuture, true);
+    }
+
+    @Contract("_, _ -> param1")
+    public static <T> CompletableFuture<T> waitCompletion(CompletableFuture<T> completableFuture, boolean ticking) {
+        MockBukkit.ensureMocking();
+        if (completableFuture == null) {
+            return null;
+        }
+        while (!completableFuture.isDone()) {
+            if (ticking) {
+                MockBukkit.getMock().getScheduler().performOneTick();
+            }
+            Thread.yield();
+        }
+        return completableFuture;
     }
 
     @NotNull

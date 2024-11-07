@@ -187,7 +187,7 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
             throw new IllegalStateException("Duplicated init of AdvancementMain");
         }
         store.put(AdvancementMain.class, Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), main -> {
-            var dbManagerMock = new DatabaseManagerMock(main, MockBukkit.getMock());
+            var dbManagerMock = new DatabaseManagerMock(main);
             if (store.get(DatabaseManagerMock.class) != null) {
                 throw new IllegalStateException("Duplicated init of DatabaseManagerMock");
             }

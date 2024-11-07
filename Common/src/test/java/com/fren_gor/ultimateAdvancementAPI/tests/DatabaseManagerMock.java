@@ -7,13 +7,13 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.tests.database.FallibleDBImpl;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
-import org.jetbrains.annotations.Contract;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
+import static com.fren_gor.ultimateAdvancementAPI.tests.Utils.waitCompletion;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DatabaseManagerMock {
@@ -33,14 +33,12 @@ public class DatabaseManagerMock {
         }
     }
 
-    private final ServerMock server;
     private final DatabaseManager databaseManager;
     private final FallibleDBImpl fallible;
     private final BlockingDBImpl blocking;
     private final ExecutorService executor;
 
-    DatabaseManagerMock(AdvancementMain main, ServerMock server) throws Exception {
-        this.server = server;
+    DatabaseManagerMock(AdvancementMain main) throws Exception {
         this.blocking = new BlockingDBImpl(new InMemory(main.getLogger()));
         this.fallible = new FallibleDBImpl(this.blocking);
         this.databaseManager = dbManagerConstructor.newInstance(main, this.fallible);
@@ -56,25 +54,6 @@ public class DatabaseManagerMock {
                 waitForPendingTasks();
             }
         }
-    }
-
-    @Contract("_ -> param1")
-    public <T> CompletableFuture<T> waitCompletion(CompletableFuture<T> completableFuture) {
-        return waitCompletion(completableFuture, true);
-    }
-
-    @Contract("_, _ -> param1")
-    public <T> CompletableFuture<T> waitCompletion(CompletableFuture<T> completableFuture, boolean ticking) {
-        if (completableFuture == null) {
-            return null;
-        }
-        while (!completableFuture.isDone()) {
-            if (ticking) {
-                server.getScheduler().performOneTick();
-            }
-            Thread.yield();
-        }
-        return completableFuture;
     }
 
     public Paused pauseFutureTasks() {
