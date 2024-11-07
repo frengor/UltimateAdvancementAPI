@@ -1,6 +1,5 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
-import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.tests.database.BlockingDBImpl;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
@@ -16,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 import static com.fren_gor.ultimateAdvancementAPI.tests.Utils.waitCompletion;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DatabaseManagerMock {
+public class DatabaseManagerUtils {
 
     private static final Constructor<DatabaseManager> dbManagerConstructor;
     private static final Field executorField;
@@ -38,7 +37,7 @@ public class DatabaseManagerMock {
     private final BlockingDBImpl blocking;
     private final ExecutorService executor;
 
-    DatabaseManagerMock(AdvancementMain main) throws Exception {
+    DatabaseManagerUtils(AdvancementMain main) throws Exception {
         this.blocking = new BlockingDBImpl(new InMemory(main.getLogger()));
         this.fallible = new FallibleDBImpl(this.blocking);
         this.databaseManager = dbManagerConstructor.newInstance(main, this.fallible);

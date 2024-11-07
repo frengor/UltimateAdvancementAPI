@@ -81,12 +81,12 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
         var store = extensionContext.getStore(UAAPI_NAMESPACE);
         store.remove(AdvancementKey.class, AtomicInteger.class);
         store.remove(DatabaseManager.class, DatabaseManager.class);
-        var dbManagerMock = store.remove(DatabaseManagerMock.class, DatabaseManagerMock.class);
+        var dbManagerUtils = store.remove(DatabaseManagerUtils.class, DatabaseManagerUtils.class);
         var main = store.remove(AdvancementMain.class, AdvancementMain.class);
         store.remove(ServerMock.class, ServerMock.class);
         try {
-            if (dbManagerMock != null) {
-                dbManagerMock.disable();
+            if (dbManagerUtils != null) {
+                dbManagerUtils.disable();
             }
         } finally {
             try {
@@ -125,7 +125,7 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
         return type == ServerMock.class || (
                 !isNoAdvMain && (
                         type == AdvancementMain.class ||
-                        type == DatabaseManagerMock.class ||
+                        type == DatabaseManagerUtils.class ||
                         type == DatabaseManager.class
                 )
         );
@@ -187,16 +187,16 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
             throw new IllegalStateException("Duplicated init of AdvancementMain");
         }
         store.put(AdvancementMain.class, Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), main -> {
-            var dbManagerMock = new DatabaseManagerMock(main);
-            if (store.get(DatabaseManagerMock.class) != null) {
+            var dbManagerUtils = new DatabaseManagerUtils(main);
+            if (store.get(DatabaseManagerUtils.class) != null) {
                 throw new IllegalStateException("Duplicated init of DatabaseManagerMock");
             }
-            store.put(DatabaseManagerMock.class, dbManagerMock);
+            store.put(DatabaseManagerUtils.class, dbManagerUtils);
             if (store.get(DatabaseManager.class) != null) {
                 throw new IllegalStateException("Duplicated init of DatabaseManager");
             }
-            store.put(DatabaseManager.class, dbManagerMock.getDatabaseManager());
-            return dbManagerMock.getDatabaseManager();
+            store.put(DatabaseManager.class, dbManagerUtils.getDatabaseManager());
+            return dbManagerUtils.getDatabaseManager();
         }));
     }
 
