@@ -34,10 +34,16 @@ A powerful API to create custom advancements for your minecraft server.
 <dependency>
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi</artifactId>
-    <version>2.4.1</version>
+    <version>2.4.2</version>
     <scope>provided</scope>
 </dependency>
 ```
+
+#### Example Plugin:
+
+An example of plugin using UltimateAdvancementAPI can be found [here](https://github.com/DevHeim-space/UltimateAdvancementAPI-Showcase).
+
+More examples by the community can be found in the `showcase` forum on [Discord](https://discord.gg/BMg6VJk5n3).
 
 #### Test Plugin:
 
