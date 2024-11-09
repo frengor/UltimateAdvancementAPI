@@ -77,13 +77,14 @@ public final class AdvancementTab {
     private final PerTeamBackgroundTextureFn perTeamBackgroundTextureFn;
     private final PerPlayerBackgroundTextureFn perPlayerBackgroundTextureFn;
     private final DatabaseManager databaseManager;
+    @Unmodifiable
     private volatile Map<AdvancementKey, Advancement> advancements = Collections.emptyMap();
     private final Map<Player, Set<MinecraftKeyWrapper>> players = new HashMap<>();
     private final AdvsUpdateRunnable updateManager = new AdvsUpdateRunnable();
 
     private RootAdvancement rootAdvancement;
-    private boolean initialised = false, disposed = false, automaticallyShown = false, automaticallyGrant = false;
-    private boolean showToastToTeam = true;
+    private volatile boolean initialised = false, disposed = false;
+    private boolean automaticallyShown = false, automaticallyGrant = false, showToastToTeam = true;
     @LazyValue
     private Collection<String> advNamespacedKeys;
     @LazyValue
