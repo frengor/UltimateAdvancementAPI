@@ -574,10 +574,17 @@ public final class AdvancementTab {
     }
 
     void dispose() {
-        checkInitialisation();
+        AdvancementUtils.checkSync();
+        if (disposed) { // Non-atomic read and write is fine here, since this method must be called on the main-thread
+            throw new DisposedException("AdvancementTab is already disposed");
+        }
         disposed = true;
         eventManager.disable();
         updateManager.dispose();
+        if (!initialised) {
+            return; // Just return if not initialized
+        }
+
         var it = players.entrySet().iterator();
         while (it.hasNext()) {
             Entry<Player, Set<MinecraftKeyWrapper>> e = it.next();
