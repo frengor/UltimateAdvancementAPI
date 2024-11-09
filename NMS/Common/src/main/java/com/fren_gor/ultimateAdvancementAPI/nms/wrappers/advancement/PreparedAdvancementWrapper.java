@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,15 +16,15 @@ import java.lang.reflect.Constructor;
  */
 public abstract class PreparedAdvancementWrapper {
 
-    private static Constructor<? extends PreparedAdvancementWrapper> constructor;
+    private static final Constructor<? extends PreparedAdvancementWrapper> constructor;
 
     static {
         var clazz = ReflectionUtil.getWrapperClass(PreparedAdvancementWrapper.class);
-        assert clazz != null : "Wrapper class is null.";
+        Preconditions.checkNotNull(clazz, "PreparedAdvancementWrapper implementation not found.");
         try {
             constructor = clazz.getDeclaredConstructor(MinecraftKeyWrapper.class, PreparedAdvancementWrapper.class, int.class);
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Couldn't initialize PreparedAdvancementWrapper.", e);
         }
     }
 
@@ -51,6 +52,8 @@ public abstract class PreparedAdvancementWrapper {
      */
     @NotNull
     public static PreparedAdvancementWrapper craft(@NotNull MinecraftKeyWrapper key, @Nullable PreparedAdvancementWrapper parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) throws ReflectiveOperationException {
+        Preconditions.checkNotNull(key, "MinecraftKeyWrapper is null.");
+        Preconditions.checkArgument(maxProgression > 0, "Maximum progression cannot be <= 0");
         return constructor.newInstance(key, parent, maxProgression);
     }
 

@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.AbstractWrapper;
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
@@ -13,28 +14,28 @@ public abstract class AdvancementFrameTypeWrapper extends AbstractWrapper {
     /**
      * A frame wrapper with squared shape.
      */
-    public static AdvancementFrameTypeWrapper TASK;
+    public static final AdvancementFrameTypeWrapper TASK;
 
     /**
      * A frame wrapper with rounded top and bottom.
      */
-    public static AdvancementFrameTypeWrapper GOAL;
+    public static final AdvancementFrameTypeWrapper GOAL;
 
     /**
      * A frame wrapper with thorns at the corners.
      */
-    public static AdvancementFrameTypeWrapper CHALLENGE;
+    public static final AdvancementFrameTypeWrapper CHALLENGE;
 
     static {
         var clazz = ReflectionUtil.getWrapperClass(AdvancementFrameTypeWrapper.class);
-        assert clazz != null : "Wrapper class is null.";
+        Preconditions.checkNotNull(clazz, "AdvancementFrameTypeWrapper implementation not found.");
         try {
             Constructor<? extends AdvancementFrameTypeWrapper> constructor = clazz.getDeclaredConstructor(FrameType.class);
             TASK = constructor.newInstance(FrameType.TASK);
             GOAL = constructor.newInstance(FrameType.GOAL);
             CHALLENGE = constructor.newInstance(FrameType.CHALLENGE);
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Couldn't initialize AdvancementFrameTypeWrapper.", e);
         }
     }
 

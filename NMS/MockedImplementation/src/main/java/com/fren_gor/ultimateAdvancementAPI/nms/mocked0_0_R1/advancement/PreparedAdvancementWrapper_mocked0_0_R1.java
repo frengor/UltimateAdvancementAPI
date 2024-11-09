@@ -46,7 +46,7 @@ public class PreparedAdvancementWrapper_mocked0_0_R1 extends PreparedAdvancement
     @Override
     @NotNull
     public AdvancementWrapper toAdvancementWrapper(@NotNull AdvancementDisplayWrapper display) {
-        Preconditions.checkNotNull(display);
+        Preconditions.checkNotNull(display, "AdvancementDisplayWrapper is null.");
         if (parent == null) {
             return new AdvancementWrapper_mocked0_0_R1(key, display, maxProgression);
         } else {

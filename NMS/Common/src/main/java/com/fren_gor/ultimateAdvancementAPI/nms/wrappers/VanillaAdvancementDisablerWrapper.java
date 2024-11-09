@@ -11,18 +11,18 @@ import java.lang.reflect.Modifier;
  */
 public class VanillaAdvancementDisablerWrapper {
 
-    private static Method method;
+    private static final Method disableMethod;
 
     static {
         var clazz = ReflectionUtil.getWrapperClass(VanillaAdvancementDisablerWrapper.class);
-        assert clazz != null : "Wrapper class is null.";
+        Preconditions.checkNotNull(clazz, "VanillaAdvancementDisablerWrapper implementation not found.");
         try {
-            method = clazz.getDeclaredMethod("disableVanillaAdvancements");
-            Preconditions.checkArgument(Modifier.isPublic(method.getModifiers()), "Method disableVanillaAdvancements() is not public.");
-            Preconditions.checkArgument(Modifier.isStatic(method.getModifiers()), "Method disableVanillaAdvancements() is not static.");
+            disableMethod = clazz.getDeclaredMethod("disableVanillaAdvancements");
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Couldn't initialize VanillaAdvancementDisablerWrapper.", e);
         }
+        Preconditions.checkArgument(Modifier.isPublic(disableMethod.getModifiers()), "Method disableVanillaAdvancements() is not public.");
+        Preconditions.checkArgument(Modifier.isStatic(disableMethod.getModifiers()), "Method disableVanillaAdvancements() is not static.");
     }
 
     /**
@@ -31,6 +31,6 @@ public class VanillaAdvancementDisablerWrapper {
      * @throws Exception If disabling goes wrong.
      */
     public static void disableVanillaAdvancements() throws Exception {
-        method.invoke(null);
+        disableMethod.invoke(null);
     }
 }

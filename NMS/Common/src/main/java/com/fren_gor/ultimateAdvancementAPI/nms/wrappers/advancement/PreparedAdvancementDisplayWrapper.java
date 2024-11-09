@@ -1,6 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
+import com.google.common.base.Preconditions;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,15 +13,15 @@ import java.lang.reflect.Constructor;
  */
 public abstract class PreparedAdvancementDisplayWrapper {
 
-    private static Constructor<? extends PreparedAdvancementDisplayWrapper> constructor;
+    private static final Constructor<? extends PreparedAdvancementDisplayWrapper> constructor;
 
     static {
         var clazz = ReflectionUtil.getWrapperClass(PreparedAdvancementDisplayWrapper.class);
-        assert clazz != null : "Wrapper class is null.";
+        Preconditions.checkNotNull(clazz, "PreparedAdvancementDisplayWrapper implementation not found.");
         try {
             constructor = clazz.getDeclaredConstructor(ItemStack.class, String.class, String.class, AdvancementFrameTypeWrapper.class, float.class, float.class, boolean.class, boolean.class, boolean.class);
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Couldn't initialize PreparedAdvancementDisplayWrapper.", e);
         }
     }
 
@@ -59,7 +60,13 @@ public abstract class PreparedAdvancementDisplayWrapper {
      */
     @NotNull
     public static PreparedAdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) throws ReflectiveOperationException {
-        return constructor.newInstance(icon.clone(), title, description, frameType, x, y, showToast, announceChat, hidden);
+        Preconditions.checkNotNull(icon, "Icon is null.");
+        Preconditions.checkNotNull(title, "Title is null.");
+        Preconditions.checkNotNull(description, "Description is null.");
+        Preconditions.checkNotNull(frameType, "Frame type is null.");
+        Preconditions.checkArgument(Float.isFinite(x), "x is not finite.");
+        Preconditions.checkArgument(Float.isFinite(y), "y is not finite.");
+        return constructor.newInstance(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
     }
 
     /**

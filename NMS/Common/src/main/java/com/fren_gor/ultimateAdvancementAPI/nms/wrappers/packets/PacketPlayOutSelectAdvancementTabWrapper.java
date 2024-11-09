@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
@@ -11,20 +12,16 @@ import java.lang.reflect.Constructor;
  */
 public abstract class PacketPlayOutSelectAdvancementTabWrapper implements ISendable {
 
-    private static Constructor<? extends PacketPlayOutSelectAdvancementTabWrapper> selectNoneConstructor, selectConstructor;
+    private static final Constructor<? extends PacketPlayOutSelectAdvancementTabWrapper> selectNoneConstructor, selectConstructor;
 
     static {
         var clazz = ReflectionUtil.getWrapperClass(PacketPlayOutSelectAdvancementTabWrapper.class);
-        assert clazz != null : "Wrapper class is null.";
+        Preconditions.checkNotNull(clazz, "PacketPlayOutSelectAdvancementTabWrapper implementation not found.");
         try {
             selectNoneConstructor = clazz.getDeclaredConstructor();
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-        }
-        try {
             selectConstructor = clazz.getDeclaredConstructor(MinecraftKeyWrapper.class);
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Couldn't initialize PacketPlayOutSelectAdvancementTabWrapper.", e);
         }
     }
 
@@ -48,6 +45,7 @@ public abstract class PacketPlayOutSelectAdvancementTabWrapper implements ISenda
      */
     @NotNull
     public static PacketPlayOutSelectAdvancementTabWrapper craftSelect(@NotNull MinecraftKeyWrapper key) throws ReflectiveOperationException {
+        Preconditions.checkNotNull(key, "MinecraftKeyWrapper is null.");
         return selectConstructor.newInstance(key);
     }
 }

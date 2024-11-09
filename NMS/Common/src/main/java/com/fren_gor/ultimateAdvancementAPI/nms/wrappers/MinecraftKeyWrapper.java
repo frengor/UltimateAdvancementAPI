@@ -1,6 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.wrappers;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
@@ -10,20 +11,16 @@ import java.lang.reflect.Constructor;
  */
 public abstract class MinecraftKeyWrapper extends AbstractWrapper implements Comparable<MinecraftKeyWrapper> {
 
-    private static Constructor<? extends MinecraftKeyWrapper> minecraftKeyConstructor, namespacedKeyConstructor;
+    private static final Constructor<? extends MinecraftKeyWrapper> minecraftKeyConstructor, namespacedKeyConstructor;
 
     static {
         var clazz = ReflectionUtil.getWrapperClass(MinecraftKeyWrapper.class);
-        assert clazz != null : "Wrapper class is null.";
+        Preconditions.checkNotNull(clazz, "MinecraftKeyWrapper implementation not found.");
         try {
             minecraftKeyConstructor = clazz.getDeclaredConstructor(Object.class);
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-        }
-        try {
             namespacedKeyConstructor = clazz.getDeclaredConstructor(String.class, String.class);
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Couldn't initialize MinecraftKeyWrapper.", e);
         }
     }
 

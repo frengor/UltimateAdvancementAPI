@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
+import com.google.common.base.Preconditions;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.Criterion;
 import org.jetbrains.annotations.Contract;
@@ -56,6 +57,7 @@ public class PreparedAdvancementWrapper_v1_20_R3 extends PreparedAdvancementWrap
     @Override
     @NotNull
     public AdvancementWrapper toAdvancementWrapper(@NotNull AdvancementDisplayWrapper display) {
+        Preconditions.checkNotNull(display, "AdvancementDisplayWrapper is null.");
         if (parent == null) {
             return new AdvancementWrapper_v1_20_R3(key, display, advCriteria, advRequirements);
         } else {

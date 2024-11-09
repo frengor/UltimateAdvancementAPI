@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
@@ -14,25 +15,17 @@ import java.util.Set;
  */
 public abstract class PacketPlayOutAdvancementsWrapper implements ISendable {
 
-    private static Constructor<? extends PacketPlayOutAdvancementsWrapper> resetConstructor, sendConstructor, removeConstructor;
+    private static final Constructor<? extends PacketPlayOutAdvancementsWrapper> resetConstructor, sendConstructor, removeConstructor;
 
     static {
         var clazz = ReflectionUtil.getWrapperClass(PacketPlayOutAdvancementsWrapper.class);
-        assert clazz != null : "Wrapper class is null.";
+        Preconditions.checkNotNull(clazz, "PacketPlayOutAdvancementsWrapper implementation not found.");
         try {
             resetConstructor = clazz.getDeclaredConstructor();
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-        }
-        try {
             sendConstructor = clazz.getDeclaredConstructor(Map.class);
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-        }
-        try {
             removeConstructor = clazz.getDeclaredConstructor(Set.class);
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Couldn't initialize PacketPlayOutAdvancementsWrapper.", e);
         }
     }
 
@@ -56,6 +49,7 @@ public abstract class PacketPlayOutAdvancementsWrapper implements ISendable {
      */
     @NotNull
     public static PacketPlayOutAdvancementsWrapper craftSendPacket(@NotNull Map<AdvancementWrapper, Integer> toSend) throws ReflectiveOperationException {
+        Preconditions.checkNotNull(toSend, "Map<AdvancementWrapper, Integer> is null.");
         return sendConstructor.newInstance(toSend);
     }
 
@@ -68,6 +62,7 @@ public abstract class PacketPlayOutAdvancementsWrapper implements ISendable {
      */
     @NotNull
     public static PacketPlayOutAdvancementsWrapper craftRemovePacket(@NotNull Set<MinecraftKeyWrapper> toRemove) throws ReflectiveOperationException {
+        Preconditions.checkNotNull(toRemove, "Set<MinecraftKeyWrapper> is null.");
         return removeConstructor.newInstance(toRemove);
     }
 }
