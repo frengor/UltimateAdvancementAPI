@@ -3,10 +3,9 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v1_20_R2.advancement;
 import com.fren_gor.ultimateAdvancementAPI.nms.v1_20_R2.Util;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.advancements.FrameType;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.contents.LiteralContents;
 import net.minecraft.resources.ResourceLocation;
 import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_20_R2.util.CraftChatMessage;
@@ -22,6 +21,13 @@ public class AdvancementDisplayWrapper_v1_20_R2 extends AdvancementDisplayWrappe
     public AdvancementDisplayWrapper_v1_20_R2(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
         ResourceLocation background = backgroundTexture == null ? null : new ResourceLocation(backgroundTexture);
         this.display = new DisplayInfo(CraftItemStack.asNMSCopy(icon), Util.fromString(title), Util.fromString(description), background, (FrameType) frameType.toNMS(), showToast, announceChat, hidden);
+        this.display.setLocation(x, y);
+        this.frameType = frameType;
+    }
+
+    public AdvancementDisplayWrapper_v1_20_R2(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull BaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
+        ResourceLocation background = backgroundTexture == null ? null : new ResourceLocation(backgroundTexture);
+        this.display = new DisplayInfo(CraftItemStack.asNMSCopy(icon), Util.fromComponent(title), Util.fromComponent(description), background, (FrameType) frameType.toNMS(), showToast, announceChat, hidden);
         this.display.setLocation(x, y);
         this.frameType = frameType;
     }

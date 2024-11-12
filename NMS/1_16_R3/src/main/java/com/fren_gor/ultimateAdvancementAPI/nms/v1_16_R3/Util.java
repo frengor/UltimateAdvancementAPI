@@ -2,6 +2,8 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v1_16_R3;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.server.v1_16_R3.AdvancementProgress;
 import net.minecraft.server.v1_16_R3.ChatComponentText;
 import net.minecraft.server.v1_16_R3.Criterion;
@@ -68,6 +70,15 @@ public class Util {
             return ChatComponentText.d;
         }
         return CraftChatMessage.fromStringOrNull(string, true);
+    }
+
+    @NotNull
+    public static IChatBaseComponent fromComponent(@NotNull BaseComponent component) {
+        if (component == null) {
+            return ChatComponentText.d;
+        }
+        IChatBaseComponent base = CraftChatMessage.fromJSONOrNull(ComponentSerializer.toString(component));
+        return base == null ? ChatComponentText.d : base;
     }
 
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {
