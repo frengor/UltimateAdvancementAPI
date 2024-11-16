@@ -29,5 +29,5 @@ public interface IAnnounceMessage {
      * @return The message to be displayed, or {@code null} if no message should be displayed.
      */
     @Nullable
-    BaseComponent[] getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter);
+    BaseComponent getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter);
 }

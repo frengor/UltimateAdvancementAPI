@@ -2,6 +2,8 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.OfflinePlayer;
@@ -22,6 +24,9 @@ import java.util.List;
  * usually leads to better performance.
  */
 public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvancementDisplay {
+
+    @LazyValue
+    private PreparedAdvancementDisplayWrapper wrapper;
 
     /**
      * Returns whether the toast notification should be sent on advancement grant.
@@ -48,13 +53,13 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the title of the advancement as a legacy string.
      *
-     * @implNote The default implementation returns the title returned by {@link #getTitleBaseComponent()} converted into a legacy string.
+     * @implNote The default implementation returns the title returned by {@link #getTitle()} converted into a legacy string.
      *
      * @return The title of the advancement as a legacy string.
      */
     @NotNull
-    public String getTitle() {
-        return TextComponent.toLegacyText(getTitleBaseComponent());
+    public String getLegacyTitle() {
+        return TextComponent.toLegacyText(getTitle());
     }
 
     /**
@@ -63,18 +68,18 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * @return The title of the advancement.
      */
     @NotNull
-    public abstract BaseComponent[] getTitleBaseComponent();
+    public abstract BaseComponent getTitle();
 
     /**
      * Returns the description of the advancement as a list of legacy strings.
      *
-     * @implNote The default implementation returns the description returned by {@link #getDescriptionBaseComponent()} converted into a list of legacy strings.
+     * @implNote The default implementation returns the description returned by {@link #getDescription()} converted into a list of legacy strings.
      *
      * @return The description of the advancement as a list of legacy strings.
      */
     @NotNull
-    public List<String> getDescription() {
-        return getDescriptionBaseComponent().stream().map(TextComponent::toLegacyText).toList();
+    public List<String> getLegacyDescription() {
+        return getDescription().stream().map(TextComponent::toLegacyText).toList();
     }
 
     /**
@@ -83,7 +88,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * @return The description of the advancement.
      */
     @NotNull
-    public abstract List<BaseComponent[]> getDescriptionBaseComponent();
+    public abstract List<BaseComponent> getDescription();
 
     /**
      * Returns the shape of the advancement frame in the advancement GUI.
@@ -113,11 +118,19 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * @return The NMS wrapper of the display.
      */
     @NotNull
-    public abstract PreparedAdvancementDisplayWrapper getNMSWrapper();
+    public PreparedAdvancementDisplayWrapper getNMSWrapper() throws ReflectiveOperationException {
+        if (wrapper != null) {
+            return wrapper;
+        }
+
+        BaseComponent description = AdvancementUtils.joinBaseComponents(new TextComponent("\n"), getDescription());
+        return wrapper = PreparedAdvancementDisplayWrapper.craft(getIcon(), getTitle(), description, getFrame().getNMSWrapper(), getX(), getY());
+    }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public final boolean dispatchDoesShowToast(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return doesShowToast();
     }
@@ -125,6 +138,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * {@inheritDoc}
      */
+    @Override
     public final boolean dispatchDoesShowToast(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return doesShowToast();
     }
@@ -132,6 +146,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * {@inheritDoc}
      */
+    @Override
     public final boolean dispatchDoesAnnounceToChat(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return doesAnnounceToChat();
     }
@@ -139,6 +154,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * {@inheritDoc}
      */
+    @Override
     public final boolean dispatchDoesAnnounceToChat(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return doesAnnounceToChat();
     }
@@ -146,6 +162,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * {@inheritDoc}
      */
+    @Override
     public final ItemStack dispatchGetIcon(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getIcon();
     }
@@ -153,6 +170,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * {@inheritDoc}
      */
+    @Override
     public final ItemStack dispatchGetIcon(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getIcon();
     }
@@ -160,62 +178,71 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * {@inheritDoc}
      */
-    public final String dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    @Override
+    public final String dispatchGetLegacyTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getLegacyTitle();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final String dispatchGetLegacyTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getLegacyTitle();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final BaseComponent dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getTitle();
     }
 
     /**
      * {@inheritDoc}
      */
-    public final String dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    @Override
+    public final BaseComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getTitle();
     }
 
     /**
      * {@inheritDoc}
      */
-    public final BaseComponent[] dispatchGetTitleBaseComponent(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getTitleBaseComponent();
+    @Override
+    public final List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getLegacyDescription();
     }
 
     /**
      * {@inheritDoc}
      */
-    public final BaseComponent[] dispatchGetTitleBaseComponent(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getTitleBaseComponent();
+    @Override
+    public final List<String> dispatchGetLegacyDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getLegacyDescription();
     }
 
     /**
      * {@inheritDoc}
      */
-    public final List<String> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    @Override
+    public final List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getDescription();
     }
 
     /**
      * {@inheritDoc}
      */
-    public final List<String> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    @Override
+    public final List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getDescription();
     }
 
     /**
      * {@inheritDoc}
      */
-    public final List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getDescriptionBaseComponent();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public final List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getDescriptionBaseComponent();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public final AdvancementFrameType dispatchGetFrame(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getFrame();
     }
@@ -223,6 +250,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * {@inheritDoc}
      */
+    @Override
     public final AdvancementFrameType dispatchGetFrame(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getFrame();
     }
@@ -230,6 +258,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * {@inheritDoc}
      */
+    @Override
     public final float dispatchGetX(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getX();
     }
@@ -237,6 +266,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * {@inheritDoc}
      */
+    @Override
     public final float dispatchGetX(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getX();
     }
@@ -244,6 +274,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * {@inheritDoc}
      */
+    @Override
     public final float dispatchGetY(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getY();
     }
@@ -251,6 +282,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * {@inheritDoc}
      */
+    @Override
     public final float dispatchGetY(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getY();
     }
@@ -258,7 +290,8 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * {@inheritDoc}
      */
-    public final PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    @Override
+    public final PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) throws ReflectiveOperationException {
         return getNMSWrapper();
     }
 }

@@ -8,6 +8,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvanceme
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
+import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisablerWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
@@ -33,10 +34,10 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -46,21 +47,31 @@ import java.util.logging.Level;
 public final class AdvancementUtils {
 
     public static final MinecraftKeyWrapper ROOT_KEY, NOTIFICATION_KEY;
-    private static final String ADV_DESCRIPTION = "\n§7A notification.";
+    private static final BaseComponent ADV_DESCRIPTION = new TextComponent("\nA notification.");
     private static final PreparedAdvancementWrapper PREPARED_ROOT;
     private static final AdvancementWrapper ROOT;
 
     static {
+        ADV_DESCRIPTION.setColor(ChatColor.GRAY);
+
         try {
             ROOT_KEY = MinecraftKeyWrapper.craft("com.fren_gor", "root");
             NOTIFICATION_KEY = MinecraftKeyWrapper.craft("com.fren_gor", "notification");
-            AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), "§f§lNotifications§1§2§3§4§5§6§7§8§9§0", "§7Notification page.\n§7Close and reopen advancements to hide.", AdvancementFrameTypeWrapper.TASK, 0, 0, "textures/block/stone.png");
+            BaseComponent title = new TextComponent("Notifications"); // "§f§lNotifications§1§2§3§4§5§6§7§8§9§0"
+            title.setColor(ChatColor.WHITE);
+            title.setBold(true);
+            BaseComponent description = new TextComponent("Notification page.\nClose and reopen advancements to hide.");
+            description.setColor(ChatColor.GRAY);
+            AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), title, description, AdvancementFrameTypeWrapper.TASK, 0, 0, "textures/block/stone.png");
             PREPARED_ROOT = PreparedAdvancementWrapper.craft(ROOT_KEY, 1);
             ROOT = PREPARED_ROOT.toAdvancementWrapper(display);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
     }
+
+    private static final boolean COMPONENT_BUILDER_HAS_BUILD = ReflectionUtil.hasMethod(ComponentBuilder.class, "build");
+    private static final boolean TEXT_COMPONENT_HAS_FROM_LEGACY = ReflectionUtil.hasMethod(TextComponent.class, "fromLegacy");
 
     /**
      * Displays a custom toast to a player.
@@ -72,6 +83,19 @@ public final class AdvancementUtils {
      * @see UltimateAdvancementAPI#displayCustomToast(Player, ItemStack, String, AdvancementFrameType)
      */
     public static void displayToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame) {
+        displayToast(player, icon, fromLegacy(title), frame);
+    }
+
+    /**
+     * Displays a custom toast to a player.
+     *
+     * @param player A player to show the toast.
+     * @param icon The displayed item of the toast.
+     * @param title The displayed title of the toast.
+     * @param frame The {@link AdvancementFrameType} of the toast.
+     * @see UltimateAdvancementAPI#displayCustomToast(Player, ItemStack, String, AdvancementFrameType)
+     */
+    public static void displayToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull AdvancementFrameType frame) {
         Preconditions.checkNotNull(player, "Player is null.");
         Preconditions.checkNotNull(icon, "Icon is null.");
         Preconditions.checkNotNull(title, "Title is null.");
@@ -154,46 +178,6 @@ public final class AdvancementUtils {
      */
     public static void disableVanillaAdvancements() throws Exception {
         VanillaAdvancementDisablerWrapper.disableVanillaAdvancements();
-    }
-
-    @NotNull
-    public static BaseComponent[] fromStringList(@NotNull List<String> list) {
-        return fromStringList(null, list);
-    }
-
-    @NotNull
-    public static BaseComponent[] fromStringList(@Nullable String title, @NotNull List<String> list) {
-        Preconditions.checkNotNull(list);
-        ComponentBuilder builder = new ComponentBuilder();
-        if (title != null) {
-            builder.append(TextComponent.fromLegacyText(title), FormatRetention.NONE);
-            if (list.isEmpty()) {
-                return builder.create();
-            }
-            builder.append("\n", FormatRetention.NONE);
-        } else if (list.isEmpty()) {
-            return builder.create();
-        }
-        int i = 0;
-        for (String s : list) {
-            builder.append(TextComponent.fromLegacyText(s), FormatRetention.NONE);
-            if (++i < list.size()) // Don't append \n at the end
-                builder.append("\n", FormatRetention.NONE);
-        }
-        return builder.create();
-    }
-
-    public static boolean startsWithEmptyLine(@NotNull String text) {
-        Preconditions.checkNotNull(text);
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            if (c == '§') {
-                i++; // Skip next character since it is a color code
-            } else {
-                return c == '\n';
-            }
-        }
-        return false;
     }
 
     @Contract("_ -> param1")
@@ -349,15 +333,15 @@ public final class AdvancementUtils {
     }
 
     @NotNull
-    public static BaseComponent[] getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+    public static BaseComponent getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkNotNull(advancementCompleter, "Player is null.");
 
         AbstractAdvancementDisplay display = advancement.getDisplay();
         TeamProgression progression = advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(advancementCompleter);
         AdvancementFrameType frame = display.dispatchGetFrame(advancementCompleter, progression);
-        String title = display.dispatchGetTitle(advancementCompleter, progression);
-        String description = String.join("\n" + ChatColor.RESET, display.dispatchGetDescription(advancementCompleter, progression));
+        BaseComponent title = display.dispatchGetTitle(advancementCompleter, progression);
+        BaseComponent description = joinBaseComponents(new TextComponent("\n"), display.dispatchGetDescription(advancementCompleter, progression));
         ChatColor color = frame.getColor();
         String chatText = frame.getChatText();
 
@@ -367,7 +351,7 @@ public final class AdvancementUtils {
         Preconditions.checkNotNull(color, "Frame returned a null color.");
         Preconditions.checkNotNull(chatText, "Frame returned a null chatText.");
 
-        return new ComponentBuilder(advancementCompleter.getName() + ' ' + frame.getChatText() + ' ')
+        var cb = new ComponentBuilder(advancementCompleter.getName() + ' ' + frame.getChatText() + ' ')
                 .color(ChatColor.WHITE)
                 .append(new ComponentBuilder("[")
                                 .color(frame.getColor())
@@ -382,8 +366,88 @@ public final class AdvancementUtils {
                 .append(new ComponentBuilder("]")
                                 .color(frame.getColor())
                                 .create()
-                        , FormatRetention.EVENTS)
-                .create();
+                        , FormatRetention.EVENTS);
+        return build(cb);
+    }
+
+    /**
+     * Equivalent of {@link ComponentBuilder#build()}. Present for compatibility with old versions.
+     * <p>Use this method rather than {@link ComponentBuilder#build()} in UltimateAdvancementAPI code!
+     *
+     * @param builder The builder to build.
+     * @return The resulting {@link BaseComponent}.
+     * @see ComponentBuilder#build()
+     * @see ComponentBuilder#create()
+     */
+    @NotNull
+    public static BaseComponent build(@NotNull ComponentBuilder builder) {
+        if (COMPONENT_BUILDER_HAS_BUILD) {
+            return builder.build();
+        }
+        BaseComponent[] created = builder.create();
+        // In old versions there isn't TextComponent.fromArray(...)
+        return created.length == 1 ? created[0] : new TextComponent(created);
+    }
+
+    /**
+     * Equivalent of {@link TextComponent#fromLegacy(String)}. Present for compatibility with old versions.
+     * <p>Use this method rather than {@link TextComponent#fromLegacy(String)} in UltimateAdvancementAPI code!
+     *
+     * @param legacy The legacy string to convert.
+     * @return The resulting {@link BaseComponent}.
+     * @see TextComponent#fromLegacy(String)
+     * @see TextComponent#fromLegacyText(String)
+     */
+    @NotNull
+    public static BaseComponent fromLegacy(@NotNull String legacy) {
+        Preconditions.checkNotNull(legacy, "Legacy string is null.");
+        if (TEXT_COMPONENT_HAS_FROM_LEGACY) {
+            return TextComponent.fromLegacy(legacy);
+        }
+        return new TextComponent(TextComponent.fromLegacyText(legacy));
+    }
+
+    /**
+     * Joins the provided {@link BaseComponent}s into a single one, separating them with the specified delimiter.
+     *
+     * @param delimiter The delimiter to put in between the {@link BaseComponent}s.
+     * @param toJoin The {@link BaseComponent}s to join.
+     * @return A {@link BaseComponent} containing the joined components.
+     */
+    @NotNull
+    public static BaseComponent joinBaseComponents(@NotNull BaseComponent delimiter, @NotNull Iterable<? extends BaseComponent> toJoin) {
+        Preconditions.checkNotNull(delimiter, "Delimiter is null.");
+        Preconditions.checkNotNull(toJoin, "BaseComponents to join are null.");
+        var iter = toJoin.iterator();
+        if (!iter.hasNext()) {
+            return new TextComponent();
+        }
+        ComponentBuilder joiner = new ComponentBuilder(Objects.requireNonNull(iter.next(), "A BaseComponent to join is null."));
+        while (iter.hasNext()) {
+            BaseComponent line = Objects.requireNonNull(iter.next(), "A BaseComponent to join is null.");
+            joiner.append(delimiter, FormatRetention.NONE).append(line, FormatRetention.NONE);
+        }
+        return build(joiner);
+    }
+
+    /**
+     * Applies the specified default color to the provided {@link BaseComponent}.
+     * <p>No color will be applied if one is already present.
+     *
+     * @param text The {@link BaseComponent} to which the default color will be applied.
+     * @param defaultColor The default color to apply.
+     * @return The provided {@link BaseComponent} with the default color applied.
+     */
+    @NotNull
+    @Contract("_, _ -> param1")
+    public static BaseComponent applyDefaultColor(@NotNull BaseComponent text, @NotNull ChatColor defaultColor) {
+        Preconditions.checkNotNull(text, "BaseComponent is null.");
+        Preconditions.checkNotNull(defaultColor, "Default color is null.");
+        var color = text.getColorRaw();
+        if (color == null) {
+            text.setColor(defaultColor);
+        }
+        return text;
     }
 
     private AdvancementUtils() {

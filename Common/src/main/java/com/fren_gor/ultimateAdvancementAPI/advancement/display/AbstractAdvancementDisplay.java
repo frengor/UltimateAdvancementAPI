@@ -180,14 +180,58 @@ public abstract class AbstractAdvancementDisplay {
     public abstract ItemStack dispatchGetIcon(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
-     * Dispatches the call to getTitle(...).
+     * Dispatches the call to getLegacyTitle(...).
      *
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The title of the advancement as a legacy string.
      * @see AbstractAdvancementDisplay
      */
-    public final String dispatchGetTitle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final String dispatchGetLegacyTitle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetLegacyTitle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getLegacyTitle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The title of the advancement as a legacy string.
+     * @see AbstractAdvancementDisplay
+     */
+    public abstract String dispatchGetLegacyTitle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getLegacyTitle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The title of the advancement as a legacy string.
+     * @see AbstractAdvancementDisplay
+     */
+    public final String dispatchGetLegacyTitle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetLegacyTitle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getLegacyTitle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The title of the advancement as a legacy string.
+     * @see AbstractAdvancementDisplay
+     */
+    public abstract String dispatchGetLegacyTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getTitle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The title of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
+    public final BaseComponent dispatchGetTitle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetTitle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -196,20 +240,20 @@ public abstract class AbstractAdvancementDisplay {
      *
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
-     * @return The title of the advancement as a legacy string.
+     * @return The title of the advancement.
      * @see AbstractAdvancementDisplay
      */
-    public abstract String dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    public abstract BaseComponent dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getTitle(...).
      *
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
-     * @return The title of the advancement as a legacy string.
+     * @return The title of the advancement.
      * @see AbstractAdvancementDisplay
      */
-    public final String dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final BaseComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetTitle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -218,64 +262,64 @@ public abstract class AbstractAdvancementDisplay {
      *
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
-     * @return The title of the advancement as a legacy string.
-     * @see AbstractAdvancementDisplay
-     */
-    public abstract String dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
-
-    /**
-     * Dispatches the call to getTitleBaseComponent(...).
-     *
-     * @param player The player used to dispatch the call.
-     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The title of the advancement.
      * @see AbstractAdvancementDisplay
      */
-    public final BaseComponent[] dispatchGetTitleBaseComponent(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
-        return dispatchGetTitleBaseComponent(player, advancementTab.getDatabaseManager().getTeamProgression(player));
-    }
+    public abstract BaseComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
-     * Dispatches the call to getTitleBaseComponent(...).
-     *
-     * @param player The player used to dispatch the call.
-     * @param teamProgression The team used to dispatch the call.
-     * @return The title of the advancement.
-     * @see AbstractAdvancementDisplay
-     */
-    public abstract BaseComponent[] dispatchGetTitleBaseComponent(@NotNull Player player, @NotNull TeamProgression teamProgression);
-
-    /**
-     * Dispatches the call to getTitleBaseComponent(...).
-     *
-     * @param player The player used to dispatch the call.
-     * @param advancementTab The advancement tab used to dispatch the call.
-     * @return The title of the advancement.
-     * @see AbstractAdvancementDisplay
-     */
-    public final BaseComponent[] dispatchGetTitleBaseComponent(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
-        return dispatchGetTitleBaseComponent(player, advancementTab.getDatabaseManager().getTeamProgression(player));
-    }
-
-    /**
-     * Dispatches the call to getTitleBaseComponent(...).
-     *
-     * @param player The player used to dispatch the call.
-     * @param teamProgression The team used to dispatch the call.
-     * @return The title of the advancement.
-     * @see AbstractAdvancementDisplay
-     */
-    public abstract BaseComponent[] dispatchGetTitleBaseComponent(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
-
-    /**
-     * Dispatches the call to getDescription(...).
+     * Dispatches the call to getLegacyDescription(...).
      *
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The description of the advancement as a list of legacy strings.
      * @see AbstractAdvancementDisplay
      */
-    public final List<String> dispatchGetDescription(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetLegacyDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getLegacyDescription(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The description of the advancement as a list of legacy strings.
+     * @see AbstractAdvancementDisplay
+     */
+    public abstract List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getLegacyDescription(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The description of the advancement as a list of legacy strings.
+     * @see AbstractAdvancementDisplay
+     */
+    public final List<String> dispatchGetLegacyDescription(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetLegacyDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getLegacyDescription(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The description of the advancement as a list of legacy strings.
+     * @see AbstractAdvancementDisplay
+     */
+    public abstract List<String> dispatchGetLegacyDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getDescription(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The description of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
+    public final List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -284,20 +328,20 @@ public abstract class AbstractAdvancementDisplay {
      *
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
-     * @return The description of the advancement as a list of legacy strings.
+     * @return The description of the advancement.
      * @see AbstractAdvancementDisplay
      */
-    public abstract List<String> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    public abstract List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getDescription(...).
      *
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
-     * @return The description of the advancement as a list of legacy strings.
+     * @return The description of the advancement.
      * @see AbstractAdvancementDisplay
      */
-    public final List<String> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -306,54 +350,10 @@ public abstract class AbstractAdvancementDisplay {
      *
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
-     * @return The description of the advancement as a list of legacy strings.
-     * @see AbstractAdvancementDisplay
-     */
-    public abstract List<String> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
-
-    /**
-     * Dispatches the call to getDescriptionBaseComponent(...).
-     *
-     * @param player The player used to dispatch the call.
-     * @param advancementTab The advancement tab used to dispatch the call.
      * @return The description of the advancement.
      * @see AbstractAdvancementDisplay
      */
-    public final List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
-        return dispatchGetDescriptionBaseComponent(player, advancementTab.getDatabaseManager().getTeamProgression(player));
-    }
-
-    /**
-     * Dispatches the call to getDescriptionBaseComponent(...).
-     *
-     * @param player The player used to dispatch the call.
-     * @param teamProgression The team used to dispatch the call.
-     * @return The description of the advancement.
-     * @see AbstractAdvancementDisplay
-     */
-    public abstract List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull Player player, @NotNull TeamProgression teamProgression);
-
-    /**
-     * Dispatches the call to getDescriptionBaseComponent(...).
-     *
-     * @param player The player used to dispatch the call.
-     * @param advancementTab The advancement tab used to dispatch the call.
-     * @return The description of the advancement.
-     * @see AbstractAdvancementDisplay
-     */
-    public final List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
-        return dispatchGetDescriptionBaseComponent(player, advancementTab.getDatabaseManager().getTeamProgression(player));
-    }
-
-    /**
-     * Dispatches the call to getDescriptionBaseComponent(...).
-     *
-     * @param player The player used to dispatch the call.
-     * @param teamProgression The team used to dispatch the call.
-     * @return The description of the advancement.
-     * @see AbstractAdvancementDisplay
-     */
-    public abstract List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    public abstract List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getFrame(...).
@@ -495,5 +495,5 @@ public abstract class AbstractAdvancementDisplay {
      * @return The NMS wrapper of the display.
      * @see AbstractAdvancementDisplay
      */
-    public abstract PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    public abstract PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) throws ReflectiveOperationException;
 }

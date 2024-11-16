@@ -2,6 +2,10 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v1_20_R3;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonParseException;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.advancements.AdvancementRequirements;
@@ -72,6 +76,30 @@ public final class Util {
             return CommonComponents.EMPTY;
         }
         return CraftChatMessage.fromStringOrNull(string, true);
+    }
+
+    @NotNull
+    public static Component fromComponent(@NotNull BaseComponent component) {
+        if (component == null) {
+            return CommonComponents.EMPTY;
+        }
+        return fromJSON(ComponentSerializer.toString(component)); // Should never throw JsonParseException
+    }
+
+    @NotNull
+    public static Component fromJSON(@NotNull String json) throws JsonParseException {
+        if (json == null) {
+            return CommonComponents.EMPTY;
+        }
+        return CraftChatMessage.fromJSON(json);
+    }
+
+    @NotNull
+    public static BaseComponent toComponent(@NotNull Component component) {
+        if (component == null) {
+            return new TextComponent("");
+        }
+        return ComponentSerializer.deserialize(CraftChatMessage.toJSON(component));
     }
 
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {

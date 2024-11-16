@@ -5,7 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplayBuilder;
 import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
 import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter.Coord;
@@ -143,9 +143,9 @@ public class CoordAdapterTest {
                 .build();
 
         // Create the AdvancementDisplays
-        var advDisplay1 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title1").coords(adapter, advKey1).build();
-        var advDisplay2 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title2").coords(adapter, advKey2).build();
-        var advDisplay3 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title3").coords(adapter, advKey3).build();
+        var advDisplay1 = new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "Title1").coords(adapter, advKey1).build();
+        var advDisplay2 = new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "Title2").coords(adapter, advKey2).build();
+        var advDisplay3 = new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "Title3").coords(adapter, advKey3).build();
 
         // Create the advancements
         var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1);

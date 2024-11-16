@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.OfflinePlayer;
@@ -44,14 +45,14 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
     /**
      * Returns the title of the advancement as a legacy string.
      *
-     * @implNote The default implementation returns the title returned by {@link #getTitleBaseComponent(TeamProgression)} converted into a legacy string.
+     * @implNote The default implementation returns the title returned by {@link #getTitle(TeamProgression)} converted into a legacy string.
      *
      * @param progression The {@link TeamProgression} of the team.
      * @return The title of the advancement as a legacy string.
      */
     @NotNull
-    public String getTitle(@NotNull TeamProgression progression) {
-        return TextComponent.toLegacyText(getTitleBaseComponent(progression));
+    public String getLegacyTitle(@NotNull TeamProgression progression) {
+        return TextComponent.toLegacyText(getTitle(progression));
     }
 
     /**
@@ -61,19 +62,19 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      * @return The title of the advancement.
      */
     @NotNull
-    public abstract BaseComponent[] getTitleBaseComponent(@NotNull TeamProgression progression);
+    public abstract BaseComponent getTitle(@NotNull TeamProgression progression);
 
     /**
      * Returns the description of the advancement as a list of legacy strings.
      *
-     * @implNote The default implementation returns the description returned by {@link #getDescriptionBaseComponent(TeamProgression)} converted into a list of legacy strings.
+     * @implNote The default implementation returns the description returned by {@link #getDescription(TeamProgression)} converted into a list of legacy strings.
      *
      * @param progression The {@link TeamProgression} of the team.
      * @return The description of the advancement as a list of legacy strings.
      */
     @NotNull
-    public List<String> getDescription(@NotNull TeamProgression progression) {
-        return getDescriptionBaseComponent(progression).stream().map(TextComponent::toLegacyText).toList();
+    public List<String> getLegacyDescription(@NotNull TeamProgression progression) {
+        return getDescription(progression).stream().map(TextComponent::toLegacyText).toList();
     }
 
     /**
@@ -83,7 +84,7 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      * @return The description of the advancement.
      */
     @NotNull
-    public abstract List<BaseComponent[]> getDescriptionBaseComponent(@NotNull TeamProgression progression);
+    public abstract List<BaseComponent> getDescription(@NotNull TeamProgression progression);
 
     /**
      * Returns the shape of the advancement frame in the advancement GUI.
@@ -117,7 +118,10 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      * @return The NMS wrapper of the display.
      */
     @NotNull
-    public abstract PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull TeamProgression progression);
+    public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull TeamProgression progression) throws ReflectiveOperationException {
+        BaseComponent description = AdvancementUtils.joinBaseComponents(new TextComponent("\n"), getDescription(progression));
+        return PreparedAdvancementDisplayWrapper.craft(getIcon(progression), getTitle(progression), description, getFrame(progression).getNMSWrapper(), getX(progression), getY(progression));
+    }
 
     /**
      * {@inheritDoc}
@@ -171,7 +175,23 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      * {@inheritDoc}
      */
     @Override
-    public final String dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public final String dispatchGetLegacyTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getLegacyTitle(teamProgression);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final String dispatchGetLegacyTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getLegacyTitle(teamProgression);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final BaseComponent dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getTitle(teamProgression);
     }
 
@@ -179,7 +199,7 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      * {@inheritDoc}
      */
     @Override
-    public final String dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    public final BaseComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getTitle(teamProgression);
     }
 
@@ -187,23 +207,23 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      * {@inheritDoc}
      */
     @Override
-    public final BaseComponent[] dispatchGetTitleBaseComponent(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getTitleBaseComponent(teamProgression);
+    public final List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getLegacyDescription(teamProgression);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public final BaseComponent[] dispatchGetTitleBaseComponent(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getTitleBaseComponent(teamProgression);
+    public final List<String> dispatchGetLegacyDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getLegacyDescription(teamProgression);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public final List<String> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public final List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getDescription(teamProgression);
     }
 
@@ -211,24 +231,8 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      * {@inheritDoc}
      */
     @Override
-    public final List<String> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    public final List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getDescription(teamProgression);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getDescriptionBaseComponent(teamProgression);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getDescriptionBaseComponent(teamProgression);
     }
 
     /**
@@ -283,7 +287,7 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      * {@inheritDoc}
      */
     @Override
-    public final PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public final PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) throws ReflectiveOperationException {
         return getNMSWrapper(teamProgression);
     }
 }

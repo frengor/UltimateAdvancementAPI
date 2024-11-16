@@ -2,12 +2,17 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v1_16_R1;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonParseException;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.server.v1_16_R1.AdvancementProgress;
 import net.minecraft.server.v1_16_R1.ChatComponentText;
 import net.minecraft.server.v1_16_R1.Criterion;
 import net.minecraft.server.v1_16_R1.CriterionProgress;
 import net.minecraft.server.v1_16_R1.CriterionTriggerImpossible;
 import net.minecraft.server.v1_16_R1.IChatBaseComponent;
+import net.minecraft.server.v1_16_R1.IChatBaseComponent.ChatSerializer;
 import net.minecraft.server.v1_16_R1.Packet;
 import org.bukkit.craftbukkit.v1_16_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R1.util.CraftChatMessage;
@@ -68,6 +73,32 @@ public final class Util {
             return ChatComponentText.d;
         }
         return CraftChatMessage.fromStringOrNull(string, true);
+    }
+
+    @NotNull
+    public static IChatBaseComponent fromComponent(@NotNull BaseComponent component) {
+        if (component == null) {
+            return ChatComponentText.d;
+        }
+        return fromJSON(ComponentSerializer.toString(component)); // Should never throw JsonParseException
+    }
+
+    @NotNull
+    public static IChatBaseComponent fromJSON(@NotNull String json) throws JsonParseException {
+        if (json == null) {
+            return ChatComponentText.d;
+        }
+        IChatBaseComponent parsed = ChatSerializer.a(json);
+        return parsed == null ? ChatComponentText.d : parsed;
+    }
+
+    @NotNull
+    public static BaseComponent toComponent(@NotNull IChatBaseComponent component) {
+        if (component == null) {
+            return new TextComponent("");
+        }
+        BaseComponent[] parsed = ComponentSerializer.parse(ChatSerializer.a(component));
+        return parsed.length == 1 ? parsed[0] : new TextComponent(parsed);
     }
 
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {

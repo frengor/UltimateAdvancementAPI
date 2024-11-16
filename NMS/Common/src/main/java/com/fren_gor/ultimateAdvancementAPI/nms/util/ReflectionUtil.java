@@ -61,6 +61,25 @@ public final class ReflectionUtil {
     }
 
     /**
+     * Returns whether the specified method exists in the provided class.
+     *
+     * @param clazz The class.
+     * @param methodName The name of the method.
+     * @param params The parameters of the method.
+     * @return Whether the specified method exists in the provided class.
+     */
+    public static boolean hasMethod(@NotNull Class<?> clazz, @NotNull String methodName, Class<?>... params) {
+        Objects.requireNonNull(clazz, "Class cannot be null.");
+        Objects.requireNonNull(methodName, "The method name cannot be null.");
+        try {
+            clazz.getMethod(methodName, params);
+            return true;
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
+    }
+
+    /**
      * Gets an NMS class using reflections.
      * <p>For example, to get the NMS {@code Advancement} class this method should be called like:
      * {@code getNMSClass("Advancement", "advancements")}.

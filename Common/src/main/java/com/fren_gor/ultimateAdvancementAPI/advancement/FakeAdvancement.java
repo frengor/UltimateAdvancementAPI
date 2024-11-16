@@ -4,7 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvanceme
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractImmutableAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayerAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAdvancementDisplay;
-import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplayBuilder;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
@@ -16,6 +16,7 @@ import com.fren_gor.ultimateAdvancementAPI.util.display.PerPlayerAdvancementDisp
 import com.fren_gor.ultimateAdvancementAPI.util.display.PerTeamAdvancementDisplayWrapper;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -24,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
-import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,7 +48,7 @@ public final class FakeAdvancement extends BaseAdvancement {
      * @param y The y coordinate of the advancement.
      */
     public FakeAdvancement(@NotNull Advancement parent, float x, float y) {
-        super("fakeadvancement._-.-_." + FAKE_NUMBER.getAndIncrement(), new FakeAdvancementDisplay(Material.GRASS_BLOCK, "FakeAdvancement", AdvancementFrameType.TASK, x, y), parent);
+        this(parent, new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "FakeAdvancement").x(x).y(y).build());
     }
 
     /**
@@ -139,7 +139,7 @@ public final class FakeAdvancement extends BaseAdvancement {
     @Override
     @Nullable
     @Contract("_ -> null")
-    public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
+    public BaseComponent getAnnounceMessage(@NotNull Player player) {
         return null;
     }
 
@@ -161,7 +161,7 @@ public final class FakeAdvancement extends BaseAdvancement {
 
                     try {
                         // Only x and y matters here, since FakeAdvancements are invisible
-                        return wrapper = PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), "FakeAdvancement", "", AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(), wrapped.getY(), false, false, true);
+                        return wrapper = PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), new TextComponent("FakeAdvancement"), new TextComponent(""), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(), wrapped.getY(), false, false, true);
                     } catch (ReflectiveOperationException e) {
                         throw new RuntimeException(e);
                     }
@@ -174,7 +174,7 @@ public final class FakeAdvancement extends BaseAdvancement {
                 public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull TeamProgression progression) {
                     try {
                         // Only x and y matters here, since FakeAdvancements are invisible
-                        return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), "FakeAdvancement", "", AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(progression), wrapped.getY(progression), false, false, true);
+                        return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), new TextComponent("FakeAdvancement"), new TextComponent(""), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(progression), wrapped.getY(progression), false, false, true);
                     } catch (ReflectiveOperationException e) {
                         throw new RuntimeException(e);
                     }
@@ -186,7 +186,7 @@ public final class FakeAdvancement extends BaseAdvancement {
                 public @NotNull PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player) {
                     try {
                         // Only x and y matters here, since FakeAdvancements are invisible
-                        return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), "FakeAdvancement", "", AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(player), wrapped.getY(player), false, false, true);
+                        return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), new TextComponent("FakeAdvancement"), new TextComponent(""), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(player), wrapped.getY(player), false, false, true);
                     } catch (ReflectiveOperationException e) {
                         throw new RuntimeException(e);
                     }
@@ -195,60 +195,6 @@ public final class FakeAdvancement extends BaseAdvancement {
         } else {
             // Should never happen
             throw new ClassCastException(display.getClass().getName() + " is not an immutable, per-team or per-player display.");
-        }
-    }
-
-    /**
-     * The {@link AdvancementDisplay} used by {@link FakeAdvancement#FakeAdvancement(Advancement, float, float)}.
-     *
-     * @see FakeAdvancement
-     */
-    public static final class FakeAdvancementDisplay extends AdvancementDisplay {
-
-        @LazyValue
-        private PreparedAdvancementDisplayWrapper wrapper;
-
-        /**
-         * Creates a new {@code FakeAdvancementDisplay}.
-         *
-         * @param icon The material of the item that will be shown in the GUI.
-         * @param title The title of the advancement.
-         * @param frame The shape of the advancement.
-         * @param x The x coordinate of the advancement.
-         * @param y The y coordinate of the advancement.
-         */
-        public FakeAdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, float x, float y) {
-            super(icon, title, frame, false, false, x, y, Collections.emptyList());
-        }
-
-        /**
-         * Creates a new {@code FakeAdvancementDisplay}.
-         *
-         * @param icon The item that will be shown in the GUI.
-         * @param title The title of the advancement.
-         * @param frame The shape of the advancement.
-         * @param x The x coordinate of the advancement.
-         * @param y The y coordinate of the advancement.
-         */
-        public FakeAdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, float x, float y) {
-            super(icon, title, frame, false, false, x, y, Collections.emptyList());
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @NotNull
-        @Override
-        public PreparedAdvancementDisplayWrapper getNMSWrapper() {
-            if (wrapper != null) {
-                return wrapper;
-            }
-
-            try {
-                return wrapper = PreparedAdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y, false, false, true);
-            } catch (ReflectiveOperationException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 

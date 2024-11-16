@@ -88,7 +88,25 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public String getTitle(@NotNull Player player) {
+    public String getLegacyTitle(@NotNull Player player) {
+        return wrapped.getLegacyTitle(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public String getLegacyTitle(@NotNull OfflinePlayer player) {
+        return wrapped.getLegacyTitle(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public BaseComponent getTitle(@NotNull Player player) {
         return wrapped.getTitle(player);
     }
 
@@ -97,7 +115,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public String getTitle(@NotNull OfflinePlayer player) {
+    public BaseComponent getTitle(@NotNull OfflinePlayer player) {
         return wrapped.getTitle(player);
     }
 
@@ -106,8 +124,8 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public BaseComponent[] getTitleBaseComponent(@NotNull Player player) {
-        return wrapped.getTitleBaseComponent(player);
+    public List<String> getLegacyDescription(@NotNull Player player) {
+        return wrapped.getLegacyDescription(player);
     }
 
     /**
@@ -115,8 +133,8 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public BaseComponent[] getTitleBaseComponent(@NotNull OfflinePlayer player) {
-        return wrapped.getTitleBaseComponent(player);
+    public List<String> getLegacyDescription(@NotNull OfflinePlayer player) {
+        return wrapped.getLegacyDescription(player);
     }
 
     /**
@@ -124,7 +142,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public List<String> getDescription(@NotNull Player player) {
+    public List<BaseComponent> getDescription(@NotNull Player player) {
         return wrapped.getDescription(player);
     }
 
@@ -133,26 +151,8 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public List<String> getDescription(@NotNull OfflinePlayer player) {
+    public List<BaseComponent> getDescription(@NotNull OfflinePlayer player) {
         return wrapped.getDescription(player);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @NotNull
-    public List<BaseComponent[]> getDescriptionBaseComponent(@NotNull Player player) {
-        return wrapped.getDescriptionBaseComponent(player);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @NotNull
-    public List<BaseComponent[]> getDescriptionBaseComponent(@NotNull OfflinePlayer player) {
-        return wrapped.getDescriptionBaseComponent(player);
     }
 
     /**
@@ -210,7 +210,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player) {
+    public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player) throws ReflectiveOperationException {
         return wrapped.getNMSWrapper(player);
     }
 

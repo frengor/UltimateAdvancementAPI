@@ -603,13 +603,13 @@ public abstract class Advancement {
      * @see IAnnounceMessage
      */
     @Nullable
-    public BaseComponent[] getAnnounceMessage(@NotNull Player player) {
+    public BaseComponent getAnnounceMessage(@NotNull Player player) {
         Preconditions.checkNotNull(player, "Player is null.");
 
         // Advancement announce message system
         if (iAnnounceMessageMethod != null) {
             try {
-                return (BaseComponent[]) iAnnounceMessageMethod.invokeWithArguments(this, player);
+                return (BaseComponent) iAnnounceMessageMethod.invokeWithArguments(this, player);
             } catch (Throwable e) {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred evaluating the announce message of " + key, e);
             }
@@ -633,7 +633,7 @@ public abstract class Advancement {
         Boolean gameRule = player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
 
         if (display.dispatchDoesAnnounceToChat(player, progression) && (gameRule == null || gameRule)) {
-            BaseComponent[] msg = getAnnounceMessage(player);
+            BaseComponent msg = getAnnounceMessage(player);
             if (msg != null)
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     p.spigot().sendMessage(msg);
@@ -908,7 +908,7 @@ public abstract class Advancement {
     @Deprecated
     @Internal
     @Contract("_, _ -> fail")
-    public final BaseComponent[] getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+    public final BaseComponent getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
         throw new IllegalOperationException("This method cannot be called. Use Advancement#getAnnounceMessage(Player).");
     }
 }

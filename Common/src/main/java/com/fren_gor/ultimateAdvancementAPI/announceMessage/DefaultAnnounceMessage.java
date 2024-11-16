@@ -21,7 +21,7 @@ public interface DefaultAnnounceMessage extends IAnnounceMessage {
      */
     @Override
     @NotNull
-    default BaseComponent[] getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+    default BaseComponent getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
         return AdvancementUtils.getAnnounceMessage(advancement, advancementCompleter);
     }
 }
