@@ -43,7 +43,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
-public class AdvancementUtils {
+public final class AdvancementUtils {
 
     public static final MinecraftKeyWrapper ROOT_KEY, NOTIFICATION_KEY;
     private static final String ADV_DESCRIPTION = "\n§7A notification.";

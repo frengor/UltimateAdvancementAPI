@@ -11,7 +11,7 @@ import java.util.Optional;
 /**
  * Reflection utility class.
  */
-public class ReflectionUtil {
+public final class ReflectionUtil {
 
     /**
      * The Minecraft version.

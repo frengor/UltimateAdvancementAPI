@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Map;
 
-public class Util {
+public final class Util {
 
     private static final IChatBaseComponent EMPTY = new ChatComponentText("");
 

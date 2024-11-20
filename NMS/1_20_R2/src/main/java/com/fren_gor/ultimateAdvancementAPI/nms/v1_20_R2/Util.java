@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Range;
 
 import java.util.Map;
 
-public class Util {
+public final class Util {
 
     @NotNull
     public static Map<String, Criterion<?>> getAdvancementCriteria(@Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {

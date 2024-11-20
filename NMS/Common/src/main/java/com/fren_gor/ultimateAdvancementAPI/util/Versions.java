@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * Utility class for handling UltimateAdvancementAPI versions.
  */
-public class Versions {
+public final class Versions {
 
     private static final String API_VERSION = "2.4.2";
 
