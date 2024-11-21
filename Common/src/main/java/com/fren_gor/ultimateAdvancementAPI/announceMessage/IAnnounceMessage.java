@@ -13,9 +13,9 @@ import org.jetbrains.annotations.Nullable;
  * A suitable sub-interface can be implemented by any {@link Advancement} sub-class to change the announce message of
  * that advancement.
  * <p>When {@link Advancement#getAnnounceMessage(Player)} is called, it calls the default method of the first
- * suitable interface found or returns the default announce message if no suitable interface can be found.
+ * suitable interface found or returns the default announce message (see {@link DefaultAnnounceMessage}) if no suitable interface can be found.
  * <p>See {@link Advancement#getAnnounceMessage(Player)} for a more complete explanation of the search algorithm.
- * <p>Note that classes that overrides that method and does not call the {@link Advancement} one disables the
+ * <p>Note that classes that override that method and does not call the {@link Advancement} one disables the
  * Advancement Announce Message System. Thus, {@link #getAnnounceMessage(Advancement, Player)} will not be called in that case.
  */
 public interface IAnnounceMessage {

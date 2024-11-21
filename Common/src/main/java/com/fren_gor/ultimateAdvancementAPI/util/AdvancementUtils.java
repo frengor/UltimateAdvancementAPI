@@ -334,6 +334,11 @@ public final class AdvancementUtils {
 
     @NotNull
     public static BaseComponent getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+        return getAnnounceMessage(advancement, advancementCompleter, false);
+    }
+
+    @NotNull
+    public static BaseComponent getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter, boolean emptyLineBetweenTitleAndDesc) {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkNotNull(advancementCompleter, "Player is null.");
 
@@ -341,7 +346,7 @@ public final class AdvancementUtils {
         TeamProgression progression = advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(advancementCompleter);
         AdvancementFrameType frame = display.dispatchGetFrame(advancementCompleter, progression);
         BaseComponent title = display.dispatchGetTitle(advancementCompleter, progression);
-        BaseComponent description = joinBaseComponents(new TextComponent("\n"), display.dispatchGetDescription(advancementCompleter, progression));
+        List<BaseComponent> description = display.dispatchGetDescription(advancementCompleter, progression);
         ChatColor color = frame.getColor();
         String chatText = frame.getChatText();
 
@@ -351,15 +356,23 @@ public final class AdvancementUtils {
         Preconditions.checkNotNull(color, "Frame returned a null color.");
         Preconditions.checkNotNull(chatText, "Frame returned a null chatText.");
 
+        ComponentBuilder hoverText = new ComponentBuilder("").append(title, FormatRetention.NONE);
+
+        if (!description.isEmpty()) {
+            if (emptyLineBetweenTitleAndDesc && startsWithNewLine(description.get(0)) == NO_NEW_LINE) {
+                hoverText.append("\n\n", FormatRetention.NONE);
+            } else {
+                hoverText.append("\n", FormatRetention.NONE);
+            }
+
+            hoverText.append(joinBaseComponents(new TextComponent("\n"), description), FormatRetention.NONE);
+        }
+
         var cb = new ComponentBuilder(advancementCompleter.getName() + ' ' + frame.getChatText() + ' ')
                 .color(ChatColor.WHITE)
                 .append(new ComponentBuilder("[")
                                 .color(frame.getColor())
-                                .event(new HoverEvent(Action.SHOW_TEXT, new ComponentBuilder("")
-                                        .append(title, FormatRetention.NONE)
-                                        .append("\n")
-                                        .append(description, FormatRetention.NONE)
-                                        .create()))
+                                .event(new HoverEvent(Action.SHOW_TEXT, hoverText.create()))
                                 .create()
                         , FormatRetention.NONE)
                 .append(title, FormatRetention.EVENTS)
@@ -368,6 +381,62 @@ public final class AdvancementUtils {
                                 .create()
                         , FormatRetention.EVENTS);
         return build(cb);
+    }
+
+    // Package-private for tests
+    static final int EMPTY = 0;
+    static final int NEW_LINE = 1;
+    static final int NO_NEW_LINE = -1;
+
+    // Returns:
+    // * NO_NEW_LINE if component doesn't start with newLine
+    // * NEW_LINE if component starts with newLine
+    // * EMPTY if the component is empty (null or "")
+    static int startsWithNewLine(BaseComponent component) { // Package-private for tests
+        int r;
+        if (component == null) {
+            return EMPTY;
+        } else if (component instanceof TextComponent textComponent) {
+            r = startsWithNewLine(textComponent.getText());
+            if (r != EMPTY) {
+                return r;
+            }
+        } else {
+            // Every non-text component is assumed not to start with \n
+            return NO_NEW_LINE;
+        }
+
+        var extra = component.getExtra();
+        if (extra == null) {
+            return EMPTY;
+        }
+        for (var e : extra) {
+            if (e != null && (r = startsWithNewLine(e)) != EMPTY) {
+                return r;
+            }
+        }
+        return EMPTY;
+    }
+
+    // Returns:
+    // * NO_NEW_LINE if component doesn't start with newLine
+    // * NEW_LINE if component starts with newLine
+    // * EMPTY if the component is empty (null or "")
+    static int startsWithNewLine(String text) { // Package-private for tests
+        if (text == null) {
+            return EMPTY;
+        }
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '\n') {
+                return NEW_LINE;
+            } else if (c == ChatColor.COLOR_CHAR) {
+                i++; // Skip next character since it is a color code
+            } else if (!Character.isWhitespace(c)) { // Continue if c is a white space
+                return NO_NEW_LINE;
+            }
+        }
+        return EMPTY;
     }
 
     /**
