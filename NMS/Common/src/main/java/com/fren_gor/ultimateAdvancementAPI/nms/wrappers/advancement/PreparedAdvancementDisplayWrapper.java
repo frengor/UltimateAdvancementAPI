@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement;
 
+import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonParseException;
@@ -21,7 +22,7 @@ public abstract class PreparedAdvancementDisplayWrapper {
         var clazz = ReflectionUtil.getWrapperClass(PreparedAdvancementDisplayWrapper.class);
         Preconditions.checkNotNull(clazz, "PreparedAdvancementDisplayWrapper implementation not found.");
         try {
-            constructorJSONs = clazz.getDeclaredConstructor(ItemStack.class, String.class, String.class, AdvancementFrameTypeWrapper.class, float.class, float.class, boolean.class, boolean.class, boolean.class);
+            constructorJSONs = clazz.getDeclaredConstructor(ItemStack.class, JsonString.class, JsonString.class, AdvancementFrameTypeWrapper.class, float.class, float.class, boolean.class, boolean.class, boolean.class);
             constructorBaseComponents = clazz.getDeclaredConstructor(ItemStack.class, BaseComponent.class, BaseComponent.class, AdvancementFrameTypeWrapper.class, float.class, float.class, boolean.class, boolean.class, boolean.class);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Couldn't initialize PreparedAdvancementDisplayWrapper.", e);
@@ -87,7 +88,7 @@ public abstract class PreparedAdvancementDisplayWrapper {
      * @throws JsonParseException If an invalid JSON string is provided.
      */
     @NotNull
-    public static PreparedAdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull String jsonTitle, @NotNull String jsonDescription, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y) throws ReflectiveOperationException, JsonParseException {
+    public static PreparedAdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull JsonString jsonTitle, @NotNull JsonString jsonDescription, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y) throws ReflectiveOperationException, JsonParseException {
         return craft(icon, jsonTitle, jsonDescription, frameType, x, y, false, false, false);
     }
 
@@ -108,7 +109,7 @@ public abstract class PreparedAdvancementDisplayWrapper {
      * @throws JsonParseException If an invalid JSON string is provided.
      */
     @NotNull
-    public static PreparedAdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull String jsonTitle, @NotNull String jsonDescription, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) throws ReflectiveOperationException, JsonParseException {
+    public static PreparedAdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull JsonString jsonTitle, @NotNull JsonString jsonDescription, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) throws ReflectiveOperationException, JsonParseException {
         Preconditions.checkNotNull(icon, "Icon is null.");
         Preconditions.checkNotNull(jsonTitle, "Title is null.");
         Preconditions.checkNotNull(jsonDescription, "Description is null.");

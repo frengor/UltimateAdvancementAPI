@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_20_R4.advancement;
 
+import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
 import com.fren_gor.ultimateAdvancementAPI.nms.v1_20_R4.Util;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
@@ -33,10 +34,10 @@ public class PreparedAdvancementDisplayWrapper_v1_20_R4 extends PreparedAdvancem
         this.hidden = hidden;
     }
 
-    public PreparedAdvancementDisplayWrapper_v1_20_R4(@NotNull ItemStack icon, @NotNull String jsonTitle, @NotNull String jsonDescription, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) throws JsonParseException {
+    public PreparedAdvancementDisplayWrapper_v1_20_R4(@NotNull ItemStack icon, @NotNull JsonString jsonTitle, @NotNull JsonString jsonDescription, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) throws JsonParseException {
         this.icon = CraftItemStack.asNMSCopy(icon);
-        this.title = Util.fromJSON(jsonTitle);
-        this.description = Util.fromJSON(jsonDescription);
+        this.title = Util.fromJSON(jsonTitle.jsonString());
+        this.description = Util.fromJSON(jsonDescription.jsonString());
         this.frameType = frameType;
         this.x = x;
         this.y = y;

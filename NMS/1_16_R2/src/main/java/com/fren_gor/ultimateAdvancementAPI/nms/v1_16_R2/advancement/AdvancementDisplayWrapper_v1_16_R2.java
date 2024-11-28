@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_16_R2.advancement;
 
+import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
 import com.fren_gor.ultimateAdvancementAPI.nms.v1_16_R2.Util;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
@@ -60,8 +61,8 @@ public class AdvancementDisplayWrapper_v1_16_R2 extends AdvancementDisplayWrappe
         this(CraftItemStack.asNMSCopy(icon), Util.fromComponent(title), Util.fromComponent(description), frameType, x, y, showToast, announceChat, hidden, backgroundTexture);
     }
 
-    public AdvancementDisplayWrapper_v1_16_R2(@NotNull ItemStack icon, @NotNull String jsonTitle, @NotNull String jsonDescription, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) throws JsonParseException {
-        this(CraftItemStack.asNMSCopy(icon), Util.fromJSON(jsonTitle), Util.fromJSON(jsonDescription), frameType, x, y, showToast, announceChat, hidden, backgroundTexture);
+    public AdvancementDisplayWrapper_v1_16_R2(@NotNull ItemStack icon, @NotNull JsonString jsonTitle, @NotNull JsonString jsonDescription, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) throws JsonParseException {
+        this(CraftItemStack.asNMSCopy(icon), Util.fromJSON(jsonTitle.jsonString()), Util.fromJSON(jsonDescription.jsonString()), frameType, x, y, showToast, announceChat, hidden, backgroundTexture);
     }
 
     protected AdvancementDisplayWrapper_v1_16_R2(@NotNull net.minecraft.server.v1_16_R2.ItemStack icon, @NotNull IChatBaseComponent title, @NotNull IChatBaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
