@@ -127,35 +127,35 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
     }
 
     /**
-     * Returns whether the toast notification should be sent on advancement grant.
-     *
-     * @return Whether the toast notification should be sent on advancement grant.
+     * {@inheritDoc}
      */
+    @Override
     public boolean doesShowToast() {
         return showToast;
     }
 
     /**
-     * Returns whether the advancement completion message should be sent on advancement grant.
-     *
-     * @return Whether the advancement completion message should be sent on advancement grant.
+     * {@inheritDoc}
      */
+    @Override
     public boolean doesAnnounceToChat() {
         return announceChat;
     }
 
     /**
-     * Gets a clone of the icon.
-     *
-     * @return A clone of the icon.
+     * {@inheritDoc}
      */
+    @Override
     @NotNull
     public ItemStack getIcon() {
         return icon.clone();
     }
 
-    @NotNull
+    /**
+     * {@inheritDoc}
+     */
     @Override
+    @NotNull
     public BaseComponent getTitle() {
         return title.duplicate();
     }
@@ -178,6 +178,9 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
         return announcementMessageDefaultTitleColor;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     @Unmodifiable
@@ -204,29 +207,26 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
     }
 
     /**
-     * Returns the shape of the advancement frame in the advancement GUI.
-     *
-     * @return The shape of the advancement frame in the advancement GUI.
+     * {@inheritDoc}
      */
+    @Override
     @NotNull
     public AdvancementFrameType getFrame() {
         return frame;
     }
 
     /**
-     * Returns the advancement position relative to the x-axis.
-     *
-     * @return The x coordinate.
+     * {@inheritDoc}
      */
+    @Override
     public float getX() {
         return x;
     }
 
     /**
-     * Returns the advancement position relative to the y-axis.
-     *
-     * @return The y coordinate.
+     * {@inheritDoc}
      */
+    @Override
     public float getY() {
         return y;
     }

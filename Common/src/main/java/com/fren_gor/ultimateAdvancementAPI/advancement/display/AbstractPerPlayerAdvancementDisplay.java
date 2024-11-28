@@ -13,13 +13,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
 /**
- * A display which provides customized values based on the provided player.
+ * A display which provides customized values based on the specified player.
  *
- * @implNote The default implementation of the methods which takes a {@link Player} calls the {@link OfflinePlayer} methods.
+ * @implSpec The default implementation of the methods which take a {@link Player} calls the respective method that takes an {@link OfflinePlayer}.
  */
 public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvancementDisplay {
 
@@ -82,10 +83,9 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the title of the advancement as a legacy string.
      *
-     * @implNote The default implementation returns the title returned by {@link #getTitle(Player)} converted into a legacy string.
-     *
      * @param player The player.
      * @return The title of the advancement as a legacy string.
+     * @implSpec The default implementation returns the title returned by {@link #getTitle(Player)} converted into a legacy string.
      */
     @NotNull
     public String getLegacyTitle(@NotNull Player player) {
@@ -95,10 +95,9 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the title of the advancement as a legacy string.
      *
-     * @implNote The default implementation returns the title returned by {@link #getTitle(OfflinePlayer)} converted into a legacy string.
-     *
      * @param player The player.
      * @return The title of the advancement as a legacy string.
+     * @implSpec The default implementation returns the title returned by {@link #getTitle(OfflinePlayer)} converted into a legacy string.
      */
     @NotNull
     public String getLegacyTitle(@NotNull OfflinePlayer player) {
@@ -186,12 +185,12 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the description of the advancement as a list of legacy strings.
      *
-     * @implNote The default implementation returns the description returned by {@link #getDescription(Player)} converted into a list of legacy strings.
-     *
      * @param player The player.
      * @return The description of the advancement as a list of legacy strings.
+     * @implSpec The default implementation returns the description returned by {@link #getDescription(Player)} converted into a list of legacy strings.
      */
     @NotNull
+    @Unmodifiable
     public List<String> getLegacyDescription(@NotNull Player player) {
         return getDescription(player).stream().map(TextComponent::toLegacyText).toList();
     }
@@ -199,12 +198,12 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the description of the advancement as a list of legacy strings.
      *
-     * @implNote The default implementation returns the description returned by {@link #getDescription(OfflinePlayer)} converted into a list of legacy strings.
-     *
      * @param player The player.
      * @return The description of the advancement as a list of legacy strings.
+     * @implSpec The default implementation returns the description returned by {@link #getDescription(OfflinePlayer)} converted into a list of legacy strings.
      */
     @NotNull
+    @Unmodifiable
     public List<String> getLegacyDescription(@NotNull OfflinePlayer player) {
         return getDescription(player).stream().map(TextComponent::toLegacyText).toList();
     }
@@ -216,6 +215,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * @return The description of the advancement.
      */
     @NotNull
+    @Unmodifiable
     public List<BaseComponent> getDescription(@NotNull Player player) {
         return getDescription((OfflinePlayer) player);
     }
@@ -227,6 +227,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * @return The description of the advancement.
      */
     @NotNull
+    @Unmodifiable
     public abstract List<BaseComponent> getDescription(@NotNull OfflinePlayer player);
 
     /**
@@ -476,6 +477,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @Unmodifiable
     public final List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getLegacyDescription(player);
     }
@@ -484,6 +486,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @Unmodifiable
     public final List<String> dispatchGetLegacyDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getLegacyDescription(player);
     }
@@ -492,6 +495,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @Unmodifiable
     public final List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getDescription(player);
     }
@@ -500,6 +504,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @Unmodifiable
     public final List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getDescription(player);
     }

@@ -644,7 +644,7 @@ public abstract class Advancement {
         if (display.dispatchDoesShowToast(player, progression)) {
             // TODO Find a better solution
             if (advancementTab.doesShowToastToTeam()) {
-                advancementTab.getDatabaseManager().getTeamProgression(player).forEachMember(u -> {
+                progression.forEachMember(u -> {
                     Player p = Bukkit.getPlayer(u);
                     if (p != null) {
                         runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(p, this));
@@ -907,6 +907,7 @@ public abstract class Advancement {
      */
     @Deprecated
     @Internal
+    @Nullable
     @Contract("_, _ -> fail")
     public final BaseComponent getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
         throw new IllegalOperationException("This method cannot be called. Use Advancement#getAnnounceMessage(Player).");

@@ -13,11 +13,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
 /**
- * A display which provides customized values based on the provided team.
+ * A display which provides customized values based on the specified team.
  */
 public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancementDisplay {
 
@@ -49,10 +50,9 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
     /**
      * Returns the title of the advancement as a legacy string.
      *
-     * @implNote The default implementation returns the title returned by {@link #getTitle(TeamProgression)} converted into a legacy string.
-     *
      * @param progression The {@link TeamProgression} of the team.
      * @return The title of the advancement as a legacy string.
+     * @implSpec The default implementation returns the title returned by {@link #getTitle(TeamProgression)} converted into a legacy string.
      */
     @NotNull
     public String getLegacyTitle(@NotNull TeamProgression progression) {
@@ -100,12 +100,12 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
     /**
      * Returns the description of the advancement as a list of legacy strings.
      *
-     * @implNote The default implementation returns the description returned by {@link #getDescription(TeamProgression)} converted into a list of legacy strings.
-     *
      * @param progression The {@link TeamProgression} of the team.
      * @return The description of the advancement as a list of legacy strings.
+     * @implSpec The default implementation returns the description returned by {@link #getDescription(TeamProgression)} converted into a list of legacy strings.
      */
     @NotNull
+    @Unmodifiable
     public List<String> getLegacyDescription(@NotNull TeamProgression progression) {
         return getDescription(progression).stream().map(TextComponent::toLegacyText).toList();
     }
@@ -117,6 +117,7 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      * @return The description of the advancement.
      */
     @NotNull
+    @Unmodifiable
     public abstract List<BaseComponent> getDescription(@NotNull TeamProgression progression);
 
     /**
@@ -306,6 +307,7 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      * {@inheritDoc}
      */
     @Override
+    @Unmodifiable
     public final List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getLegacyDescription(teamProgression);
     }
@@ -314,6 +316,7 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      * {@inheritDoc}
      */
     @Override
+    @Unmodifiable
     public final List<String> dispatchGetLegacyDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getLegacyDescription(teamProgression);
     }
@@ -322,6 +325,7 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      * {@inheritDoc}
      */
     @Override
+    @Unmodifiable
     public final List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getDescription(teamProgression);
     }
@@ -330,6 +334,7 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      * {@inheritDoc}
      */
     @Override
+    @Unmodifiable
     public final List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getDescription(teamProgression);
     }

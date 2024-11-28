@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -381,6 +382,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The description of the advancement as a list of legacy strings.
      * @see AbstractAdvancementDisplay
      */
+    @Unmodifiable
     public final List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetLegacyDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
@@ -393,6 +395,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The description of the advancement as a list of legacy strings.
      * @see AbstractAdvancementDisplay
      */
+    @Unmodifiable
     public abstract List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
@@ -403,6 +406,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The description of the advancement as a list of legacy strings.
      * @see AbstractAdvancementDisplay
      */
+    @Unmodifiable
     public final List<String> dispatchGetLegacyDescription(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetLegacyDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
@@ -415,6 +419,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The description of the advancement as a list of legacy strings.
      * @see AbstractAdvancementDisplay
      */
+    @Unmodifiable
     public abstract List<String> dispatchGetLegacyDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
@@ -425,6 +430,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The description of the advancement.
      * @see AbstractAdvancementDisplay
      */
+    @Unmodifiable
     public final List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
@@ -437,6 +443,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The description of the advancement.
      * @see AbstractAdvancementDisplay
      */
+    @Unmodifiable
     public abstract List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
@@ -447,6 +454,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The description of the advancement.
      * @see AbstractAdvancementDisplay
      */
+    @Unmodifiable
     public final List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
@@ -459,6 +467,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The description of the advancement.
      * @see AbstractAdvancementDisplay
      */
+    @Unmodifiable
     public abstract List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**

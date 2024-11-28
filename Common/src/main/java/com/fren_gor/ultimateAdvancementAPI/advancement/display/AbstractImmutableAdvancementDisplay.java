@@ -14,12 +14,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
 /**
  * A display which is immutable, that is every method call should always return the same value.
- * <p>A default implementation of an immutable display is {@link AdvancementDisplay}.
+ * <p>An implementation of an immutable display is {@link AdvancementDisplay}.
  * <br>
  * <h2>Optimizing immutable displays</h2>
  * <p>It's suggested to create and store the values to be returned by the various methods once and simply return them afterward
@@ -57,9 +58,8 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the title of the advancement as a legacy string.
      *
-     * @implNote The default implementation returns the title returned by {@link #getTitle()} converted into a legacy string.
-     *
      * @return The title of the advancement as a legacy string.
+     * @implSpec The default implementation returns the title returned by {@link #getTitle()} converted into a legacy string.
      */
     @NotNull
     public String getLegacyTitle() {
@@ -104,11 +104,11 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the description of the advancement as a list of legacy strings.
      *
-     * @implNote The default implementation returns the description returned by {@link #getDescription()} converted into a list of legacy strings.
-     *
      * @return The description of the advancement as a list of legacy strings.
+     * @implSpec The default implementation returns the description returned by {@link #getDescription()} converted into a list of legacy strings.
      */
     @NotNull
+    @Unmodifiable
     public List<String> getLegacyDescription() {
         return getDescription().stream().map(TextComponent::toLegacyText).toList();
     }
@@ -119,6 +119,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * @return The description of the advancement.
      */
     @NotNull
+    @Unmodifiable
     public abstract List<BaseComponent> getDescription();
 
     /**
@@ -306,6 +307,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @Unmodifiable
     public final List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getLegacyDescription();
     }
@@ -314,6 +316,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @Unmodifiable
     public final List<String> dispatchGetLegacyDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getLegacyDescription();
     }
@@ -322,6 +325,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @Unmodifiable
     public final List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getDescription();
     }
@@ -330,6 +334,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @Unmodifiable
     public final List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getDescription();
     }
