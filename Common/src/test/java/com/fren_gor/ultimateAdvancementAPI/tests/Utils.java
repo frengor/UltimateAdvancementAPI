@@ -20,6 +20,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.withSettings;
 
 public final class Utils {
@@ -100,14 +101,14 @@ public final class Utils {
         assertNotNull(Bukkit.getServer(), "newAdvancementMain(...) must be called inside Utils.mockServer(...)");
         assertNotNull(plugin);
         assertNotNull(databaseManagerSupplier);
-        try (var libraryManagerMock = Mockito.mockConstruction(BukkitLibraryManager.class, withSettings()
-                .defaultAnswer(i -> {
-                    if ("addMavenCentral".equals(i.getMethod().getName())) {
-                        return null;
-                    } else {
-                        throw new UnsupportedOperationException("Mocked method.");
-                    }
-                }))) {
+        try (var libraryManagerMock = Mockito.mockConstruction(BukkitLibraryManager.class,
+                withSettings().defaultAnswer(i -> {
+                    throw new UnsupportedOperationException("Mocked method.");
+                }),
+                (mock, context) -> {
+                    doNothing().when(mock).addMavenCentral();
+                })
+        ) {
             AdvancementMain main = new AdvancementMain(plugin);
             main.load();
             mainEnableForTests.invoke(main, (Callable<DatabaseManager>) () -> databaseManagerSupplier.apply(main));
