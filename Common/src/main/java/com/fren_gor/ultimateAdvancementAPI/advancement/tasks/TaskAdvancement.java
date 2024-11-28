@@ -195,7 +195,7 @@ public class TaskAdvancement extends BaseAdvancement {
     @Override
     @Nullable
     @Contract("_ -> null")
-    public final BaseComponent getAnnounceMessage(@NotNull Player player) {
+    public final BaseComponent getAnnouncementMessage(@NotNull Player player) {
         return null;
     }
 

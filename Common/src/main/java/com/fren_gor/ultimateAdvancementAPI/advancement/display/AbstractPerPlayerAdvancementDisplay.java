@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.announceMessage.IAnnounceMessage;
+import com.fren_gor.ultimateAdvancementAPI.announcementMessage.IAnnouncementMessage;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
@@ -158,8 +158,8 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      *         or {@code null} to use the frame's color (i.e. the color returned by calling
      *         {@link AdvancementFrameType#getColor() getColor()} on the frame returned by {@link #getFrame(Player) getFrame}).
      * @implSpec The default implementation returns {@code null}.
-     * @see IAnnounceMessage
-     * @see Advancement#getAnnounceMessage(Player)
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
      */
     @Nullable
     public ChatColor getAnnouncementMessageDefaultTitleColor(@NotNull Player player) {
@@ -174,8 +174,8 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      *         or {@code null} to use the frame's color (i.e. the color returned by calling
      *         {@link AdvancementFrameType#getColor() getColor()} on the frame returned by {@link #getFrame(OfflinePlayer) getFrame}).
      * @implSpec The default implementation returns {@code null}.
-     * @see IAnnounceMessage
-     * @see Advancement#getAnnounceMessage(Player)
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
      */
     @Nullable
     public ChatColor getAnnouncementMessageDefaultTitleColor(@NotNull OfflinePlayer player) {
@@ -264,8 +264,8 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      *         or {@code null} to use the frame's color (i.e. the color returned by calling
      *         {@link AdvancementFrameType#getColor() getColor()} on the frame returned by {@link #getFrame(Player) getFrame}).
      * @implSpec The default implementation returns {@code null}.
-     * @see IAnnounceMessage
-     * @see Advancement#getAnnounceMessage(Player)
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
      */
     @Nullable
     public ChatColor getAnnouncementMessageDefaultDescriptionColor(@NotNull Player player) {
@@ -280,8 +280,8 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      *         or {@code null} to use the frame's color (i.e. the color returned by calling
      *         {@link AdvancementFrameType#getColor() getColor()} on the frame returned by {@link #getFrame(OfflinePlayer) getFrame}).
      * @implSpec The default implementation returns {@code null}.
-     * @see IAnnounceMessage
-     * @see Advancement#getAnnounceMessage(Player)
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
      */
     @Nullable
     public ChatColor getAnnouncementMessageDefaultDescriptionColor(@NotNull OfflinePlayer player) {

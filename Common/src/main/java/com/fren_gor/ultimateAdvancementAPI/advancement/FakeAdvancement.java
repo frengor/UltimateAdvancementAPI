@@ -139,7 +139,7 @@ public final class FakeAdvancement extends BaseAdvancement {
     @Override
     @Nullable
     @Contract("_ -> null")
-    public BaseComponent getAnnounceMessage(@NotNull Player player) {
+    public BaseComponent getAnnouncementMessage(@NotNull Player player) {
         return null;
     }
 

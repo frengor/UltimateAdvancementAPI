@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.announceMessage.IAnnounceMessage;
+import com.fren_gor.ultimateAdvancementAPI.announcementMessage.IAnnouncementMessage;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
@@ -89,8 +89,8 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      *         or {@code null} to use the frame's color (i.e. the color returned by calling
      *         {@link AdvancementFrameType#getColor() getColor()} on the frame returned by {@link #getFrame(TeamProgression) getFrame}).
      * @implSpec The default implementation returns {@code null}.
-     * @see IAnnounceMessage
-     * @see Advancement#getAnnounceMessage(Player)
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
      */
     @Nullable
     public ChatColor getAnnouncementMessageDefaultTitleColor(@NotNull TeamProgression progression) {
@@ -141,8 +141,8 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      *         or {@code null} to use the frame's color (i.e. the color returned by calling
      *         {@link AdvancementFrameType#getColor() getColor()} on the frame returned by {@link #getFrame(TeamProgression) getFrame}).
      * @implSpec The default implementation returns {@code null}.
-     * @see IAnnounceMessage
-     * @see Advancement#getAnnounceMessage(Player)
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
      */
     @Nullable
     public ChatColor getAnnouncementMessageDefaultDescriptionColor(@NotNull TeamProgression progression) {

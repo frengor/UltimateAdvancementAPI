@@ -334,12 +334,12 @@ public final class AdvancementUtils {
     }
 
     @NotNull
-    public static BaseComponent getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
-        return getAnnounceMessage(advancement, advancementCompleter, false);
+    public static BaseComponent getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+        return getAnnouncementMessage(advancement, advancementCompleter, false);
     }
 
     @NotNull
-    public static BaseComponent getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter, boolean fancy) {
+    public static BaseComponent getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter, boolean fancy) {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkNotNull(advancementCompleter, "Player is null.");
 

@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.announceMessage.IAnnounceMessage;
+import com.fren_gor.ultimateAdvancementAPI.announcementMessage.IAnnouncementMessage;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter;
@@ -406,8 +406,8 @@ public class AdvancementDisplayBuilder {
      *         or {@code null} to use the frame's color (i.e. the color returned by calling
      *         {@link AdvancementFrameType#getColor() getColor()} on the {@link #frame frame}).
      * @return This builder.
-     * @see IAnnounceMessage
-     * @see Advancement#getAnnounceMessage(Player)
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
     public AdvancementDisplayBuilder announcementMessageDefaultTitleColor(@Nullable ChatColor defaultColor) {
@@ -435,8 +435,8 @@ public class AdvancementDisplayBuilder {
      *         or {@code null} to use the frame's color (i.e. the color returned by calling
      *         {@link AdvancementFrameType#getColor() getColor()} on the {@link #frame frame}).
      * @return This builder.
-     * @see IAnnounceMessage
-     * @see Advancement#getAnnounceMessage(Player)
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
     public AdvancementDisplayBuilder announcementMessageDefaultDescriptionColor(@Nullable ChatColor defaultColor) {
@@ -569,8 +569,8 @@ public class AdvancementDisplayBuilder {
      * @return The default color of the title in the advancement's announcement message
      *         or {@code null} if the frame's color (i.e. the color returned by calling
      *         {@link AdvancementFrameType#getColor() getColor()} on the {@link #frame frame}) should be used.
-     * @see IAnnounceMessage
-     * @see Advancement#getAnnounceMessage(Player)
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
      */
     @Nullable
     public ChatColor getAnnouncementMessageDefaultTitleColor() {
@@ -594,8 +594,8 @@ public class AdvancementDisplayBuilder {
      * @return The default color of the description in the advancement's announcement message
      *         or {@code null} if the frame's color (i.e. the color returned by calling
      *         {@link AdvancementFrameType#getColor() getColor()} on the {@link #frame frame}) should be used.
-     * @see IAnnounceMessage
-     * @see Advancement#getAnnounceMessage(Player)
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
      */
     @Nullable
     public ChatColor getAnnouncementMessageDefaultDescriptionColor() {

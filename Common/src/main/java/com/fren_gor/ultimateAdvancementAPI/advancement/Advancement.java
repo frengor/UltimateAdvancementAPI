@@ -4,7 +4,7 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementUpdater;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
-import com.fren_gor.ultimateAdvancementAPI.announceMessage.IAnnounceMessage;
+import com.fren_gor.ultimateAdvancementAPI.announcementMessage.IAnnouncementMessage;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
@@ -81,7 +81,7 @@ public abstract class Advancement {
     protected final int maxProgression;
 
     @Nullable
-    private final MethodHandle iVisibilityMethod, iAnnounceMessageMethod;
+    private final MethodHandle iVisibilityMethod, iAnnouncementMessageMethod;
 
     private Advancement() {
         throw new UnsupportedOperationException("Private constructor.");
@@ -121,7 +121,7 @@ public abstract class Advancement {
         this.display = Objects.requireNonNull(display, "Display is null.");
         this.maxProgression = maxProgression;
         this.iVisibilityMethod = this instanceof IVisibility ? getIVisibilityMethod() : null;
-        this.iAnnounceMessageMethod = this instanceof IAnnounceMessage ? getIAnnounceMessageMethod() : null;
+        this.iAnnouncementMessageMethod = this instanceof IAnnouncementMessage ? getIAnnouncementMessageMethod() : null;
     }
 
     /**
@@ -591,32 +591,32 @@ public abstract class Advancement {
     /**
      * Gets the chat message to be sent when an advancement is completed.
      * <p>The message is sent to everybody online on the server.
-     * <p>The default announce message can be changed by overriding this method or implementing a suitable interface for
-     * the Advancement Announce Message System.
+     * <p>The default announcement message can be changed by overriding this method or implementing a suitable interface for
+     * the Advancement Announcement Message System.
      *
      * @param player The player who has completed the advancement.
      * @return The message to be displayed, or {@code null} if no message should be displayed.
-     * @implSpec This method is the core method of the Advancement Announce Message System (AAMS).
-     *         The default announce message is returned if no suitable interfaces for the AAMS are implemented, or
-     *         the result of {@link IAnnounceMessage#getAnnounceMessage(Advancement, Player)} otherwise.
+     * @implSpec This method is the core method of the Advancement Announcement Message System (AAMS).
+     *         The default announcement message is returned if no suitable interfaces for the AAMS are implemented, or
+     *         the result of {@link IAnnouncementMessage#getAnnouncementMessage(Advancement, Player)} otherwise.
      *         When overridden, this method (called via {@code super}) enables the AAMS features for that method.
-     * @see IAnnounceMessage
+     * @see IAnnouncementMessage
      */
     @Nullable
-    public BaseComponent getAnnounceMessage(@NotNull Player player) {
+    public BaseComponent getAnnouncementMessage(@NotNull Player player) {
         Preconditions.checkNotNull(player, "Player is null.");
 
-        // Advancement announce message system
-        if (iAnnounceMessageMethod != null) {
+        // Advancement announcement message system
+        if (iAnnouncementMessageMethod != null) {
             try {
-                return (BaseComponent) iAnnounceMessageMethod.invokeWithArguments(this, player);
+                return (BaseComponent) iAnnouncementMessageMethod.invokeWithArguments(this, player);
             } catch (Throwable e) {
-                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred evaluating the announce message of " + key, e);
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred evaluating the announcement message of " + key, e);
             }
         }
 
         // Default message
-        return AdvancementUtils.getAnnounceMessage(this, player);
+        return AdvancementUtils.getAnnouncementMessage(this, player);
     }
 
     /**
@@ -633,7 +633,7 @@ public abstract class Advancement {
         Boolean gameRule = player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
 
         if (display.dispatchDoesAnnounceToChat(player, progression) && (gameRule == null || gameRule)) {
-            BaseComponent msg = getAnnounceMessage(player);
+            BaseComponent msg = getAnnouncementMessage(player);
             if (msg != null)
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     p.spigot().sendMessage(msg);
@@ -831,13 +831,13 @@ public abstract class Advancement {
     }
 
     /**
-     * Gets the right {@link IAnnounceMessage} sub-interface method that will be used by the advancement announce message system.
+     * Gets the right {@link IAnnouncementMessage} sub-interface method that will be used by the advancement announcement message system.
      *
-     * @return The right {@link IAnnounceMessage#getAnnounceMessage(Advancement, Player)} {@link MethodHandle} or {@code null}.
+     * @return The right {@link IAnnouncementMessage#getAnnouncementMessage(Advancement, Player)} {@link MethodHandle} or {@code null}.
      */
     @Nullable
-    private MethodHandle getIAnnounceMessageMethod() {
-        return getMethod(getClass(), IAnnounceMessage.class, "getAnnounceMessage", Advancement.class, Player.class);
+    private MethodHandle getIAnnouncementMessageMethod() {
+        return getMethod(getClass(), IAnnouncementMessage.class, "getAnnouncementMessage", Advancement.class, Player.class);
     }
 
     /**
@@ -897,19 +897,19 @@ public abstract class Advancement {
 
     /**
      * <strong>This method should not be called at any time!</strong>
-     * <p>It is present <i>only</i> to avoid compilation errors when implementing more than one interface of the Advancement Announce Message System,
-     * since every one of those interfaces implement the {@link IAnnounceMessage#getAnnounceMessage(Advancement, Player)} method
+     * <p>It is present <i>only</i> to avoid compilation errors when implementing more than one interface of the Advancement Announcement Message System,
+     * since every one of those interfaces implement the {@link IAnnouncementMessage#getAnnouncementMessage(Advancement, Player)} method
      * and the compiler cannot automatically choose the method to call between the ones of the different interfaces.
      *
      * @throws IllegalOperationException Every time it's called.
      * @hidden
-     * @deprecated Use {@link Advancement#getAnnounceMessage(Player)}.
+     * @deprecated Use {@link Advancement#getAnnouncementMessage(Player)}.
      */
     @Deprecated
     @Internal
     @Nullable
     @Contract("_, _ -> fail")
-    public final BaseComponent getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
-        throw new IllegalOperationException("This method cannot be called. Use Advancement#getAnnounceMessage(Player).");
+    public final BaseComponent getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+        throw new IllegalOperationException("This method cannot be called. Use Advancement#getAnnouncementMessage(Player).");
     }
 }
