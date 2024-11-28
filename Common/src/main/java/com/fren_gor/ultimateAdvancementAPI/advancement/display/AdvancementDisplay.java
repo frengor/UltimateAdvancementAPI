@@ -1,11 +1,11 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
@@ -29,10 +29,34 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
     protected final BaseComponent title;
 
     /**
+     * The default color of the title when displayed in the advancement GUI.
+     */
+    @Nullable
+    protected final ChatColor defaultTitleColor;
+
+    /**
+     * The default color of the title in the advancement's announcement message.
+     */
+    @Nullable
+    protected final ChatColor announcementMessageDefaultTitleColor;
+
+    /**
      * The description of the advancement.
      */
     @Unmodifiable
     protected final List<BaseComponent> description;
+
+    /**
+     * The default color of the description when displayed in the advancement GUI.
+     */
+    @Nullable
+    protected final ChatColor defaultDescriptionColor;
+
+    /**
+     * The default color of the description in the advancement's announcement message.
+     */
+    @Nullable
+    protected final ChatColor announcementMessageDefaultDescriptionColor;
 
     /**
      * The shape of the advancement frame in the advancement GUI.
@@ -72,16 +96,16 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      * @param announceChat Whether the advancement completion message should be sent on advancement grant.
      * @param x The advancement x coordinate. Must be not negative.
      * @param y The advancement y coordinate. Must be not negative.
-     * @param defaultTitleColor The default color of the title.
-     * @param defaultDescColor The default color of the description.
+     * @param defaultTitleColor The default color of the title when displayed in the advancement GUI.
+     * @param amDefaultTitleColor The default color of the title in the advancement's announcement message.
+     * @param defaultDescColor The default color of the description when displayed in the advancement GUI.
+     * @param amDefaultDescColor The default color of the description in the advancement's announcement message.
      * @param description The description of the advancement.
      */
-    protected AdvancementDisplay(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull List<BaseComponent> description, @NotNull ChatColor defaultTitleColor, @NotNull ChatColor defaultDescColor, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y) {
+    protected AdvancementDisplay(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull List<BaseComponent> description, @Nullable ChatColor defaultTitleColor, @Nullable ChatColor amDefaultTitleColor, @Nullable ChatColor defaultDescColor, @Nullable ChatColor amDefaultDescColor, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y) {
         Preconditions.checkNotNull(icon, "Icon is null.");
         Preconditions.checkNotNull(title, "Title is null.");
         Preconditions.checkNotNull(frame, "Frame is null.");
-        Preconditions.checkNotNull(defaultTitleColor, "Default title color is null.");
-        Preconditions.checkNotNull(defaultDescColor, "Default description color is null.");
         Preconditions.checkNotNull(description, "Description is null.");
         Preconditions.checkArgument(Float.isFinite(x), "x is NaN or infinite.");
         Preconditions.checkArgument(Float.isFinite(y), "y is NaN or infinite.");
@@ -89,11 +113,12 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
         Preconditions.checkArgument(y >= 0, "y is not zero or positive.");
 
         this.icon = icon.clone();
-        this.title = AdvancementUtils.applyDefaultColor(title.duplicate(), defaultTitleColor);
-        this.description = description.stream().map(bc -> {
-            Preconditions.checkNotNull(bc, "A line of the description is null.");
-            return AdvancementUtils.applyDefaultColor(bc.duplicate(), defaultDescColor);
-        }).toList();
+        this.title = title.duplicate();
+        this.defaultTitleColor = defaultTitleColor;
+        this.announcementMessageDefaultTitleColor = amDefaultTitleColor;
+        this.description = description.stream().map(BaseComponent::duplicate).toList();
+        this.defaultDescriptionColor = defaultDescColor;
+        this.announcementMessageDefaultDescriptionColor = amDefaultDescColor;
         this.frame = frame;
         this.showToast = showToast;
         this.announceChat = announceChat;
@@ -135,11 +160,47 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
         return title.duplicate();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getDefaultTitleColor() {
+        return defaultTitleColor;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultTitleColor() {
+        return announcementMessageDefaultTitleColor;
+    }
+
     @Override
     @NotNull
     @Unmodifiable
     public List<BaseComponent> getDescription() {
         return description.stream().map(BaseComponent::duplicate).toList();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getDefaultDescriptionColor() {
+        return defaultDescriptionColor;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultDescriptionColor() {
+        return announcementMessageDefaultDescriptionColor;
     }
 
     /**

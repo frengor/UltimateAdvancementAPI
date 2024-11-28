@@ -3,9 +3,11 @@ package com.fren_gor.ultimateAdvancementAPI.util.display;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractImmutableAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -78,6 +80,24 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      * {@inheritDoc}
      */
     @Override
+    @Nullable
+    public ChatColor getDefaultTitleColor() {
+        return wrapped.getDefaultTitleColor();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultTitleColor() {
+        return wrapped.getAnnouncementMessageDefaultTitleColor();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @NotNull
     public List<String> getLegacyDescription() {
         return wrapped.getLegacyDescription();
@@ -90,6 +110,24 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
     @NotNull
     public List<BaseComponent> getDescription() {
         return wrapped.getDescription();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getDefaultDescriptionColor() {
+        return wrapped.getDefaultDescriptionColor();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultDescriptionColor() {
+        return wrapped.getAnnouncementMessageDefaultDescriptionColor();
     }
 
     /**

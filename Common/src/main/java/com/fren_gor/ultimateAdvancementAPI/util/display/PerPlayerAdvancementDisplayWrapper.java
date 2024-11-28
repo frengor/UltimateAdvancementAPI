@@ -3,11 +3,13 @@ package com.fren_gor.ultimateAdvancementAPI.util.display;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayerAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -123,6 +125,42 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      * {@inheritDoc}
      */
     @Override
+    @Nullable
+    public ChatColor getDefaultTitleColor(@NotNull Player player) {
+        return wrapped.getDefaultTitleColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getDefaultTitleColor(@NotNull OfflinePlayer player) {
+        return wrapped.getDefaultTitleColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultTitleColor(@NotNull Player player) {
+        return wrapped.getAnnouncementMessageDefaultTitleColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultTitleColor(@NotNull OfflinePlayer player) {
+        return wrapped.getAnnouncementMessageDefaultTitleColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @NotNull
     public List<String> getLegacyDescription(@NotNull Player player) {
         return wrapped.getLegacyDescription(player);
@@ -153,6 +191,42 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
     @NotNull
     public List<BaseComponent> getDescription(@NotNull OfflinePlayer player) {
         return wrapped.getDescription(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getDefaultDescriptionColor(@NotNull Player player) {
+        return wrapped.getDefaultDescriptionColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getDefaultDescriptionColor(@NotNull OfflinePlayer player) {
+        return wrapped.getDefaultDescriptionColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultDescriptionColor(@NotNull Player player) {
+        return wrapped.getAnnouncementMessageDefaultDescriptionColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultDescriptionColor(@NotNull OfflinePlayer player) {
+        return wrapped.getAnnouncementMessageDefaultDescriptionColor(player);
     }
 
     /**

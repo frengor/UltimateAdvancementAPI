@@ -1,5 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
+import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.announceMessage.IAnnounceMessage;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter;
@@ -9,8 +11,10 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Arrays;
@@ -35,27 +39,45 @@ public class AdvancementDisplayBuilder {
     protected BaseComponent title;
 
     /**
+     * The default color of the title when displayed in the advancement GUI.
+     * <p>{@code null} to use Minecraft's default color.
+     */
+    @Nullable
+    protected ChatColor defaultTitleColor = null;
+
+    /**
+     * The default color of the title in the advancement's announcement message.
+     * <p>{@code null} to use the frame's color (i.e. the color returned by calling
+     * {@link AdvancementFrameType#getColor() getColor()} on the {@code frame}).
+     */
+    @Nullable
+    protected ChatColor announcementMessageDefaultTitleColor = null;
+
+    /**
      * The description of the advancement.
      */
     @Unmodifiable
     protected List<BaseComponent> description = List.of();
 
     /**
+     * The default color of the description.
+     * <p>{@code null} to use Minecraft's default color.
+     */
+    @Nullable
+    protected ChatColor defaultDescriptionColor = null;
+
+    /**
+     * The default color of the description in the advancement's announcement message.
+     * <p>{@code null} to use the frame's color (i.e. the color returned by calling
+     * {@link AdvancementFrameType#getColor() getColor()} on the {@code frame}).
+     */
+    @Nullable
+    protected ChatColor announcementMessageDefaultDescriptionColor = null;
+
+    /**
      * The shape of the advancement frame in the advancement GUI.
      */
     protected AdvancementFrameType frame = AdvancementFrameType.TASK;
-
-    /**
-     * The default color of the title.
-     */
-    protected ChatColor defaultTitleColor = frame.getColor();
-    private boolean manuallySetDefaultTitleColor = false; // Set to true when defaultTitleColor(ChatColor) is called
-
-    /**
-     * The default color of the description.
-     */
-    protected ChatColor defaultDescriptionColor = frame.getColor();
-    private boolean manuallySetDefaultDescColor = false; // Set to true when defaultDescriptionColor(ChatColor) is called
 
     /**
      * Whether the toast notification should be sent on advancement grant.
@@ -288,12 +310,6 @@ public class AdvancementDisplayBuilder {
     @NotNull
     public AdvancementDisplayBuilder frame(@NotNull AdvancementFrameType frame) {
         this.frame = Objects.requireNonNull(frame, "Frame is null.");
-        if (!manuallySetDefaultTitleColor) {
-            this.defaultTitleColor = frame.getColor();
-        }
-        if (!manuallySetDefaultDescColor) {
-            this.defaultDescriptionColor = frame.getColor();
-        }
         return this;
     }
 
@@ -371,28 +387,60 @@ public class AdvancementDisplayBuilder {
     }
 
     /**
-     * Sets the default color of the title.
+     * Sets the default color of the title when displayed in the advancement GUI.
      *
-     * @param titleColor The default color of the title.
+     * @param defaultColor The default color of the title when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
      * @return This builder.
      */
     @NotNull
-    public AdvancementDisplayBuilder defaultTitleColor(@NotNull ChatColor titleColor) {
-        this.defaultTitleColor = Objects.requireNonNull(titleColor, "Default title color is null.");
-        this.manuallySetDefaultTitleColor = true;
+    public AdvancementDisplayBuilder defaultTitleColor(@Nullable ChatColor defaultColor) {
+        this.defaultTitleColor = defaultColor;
         return this;
     }
 
     /**
-     * Sets the default color of the description.
+     * Sets the default color of the title in the advancement's announcement message.
      *
-     * @param descriptionColor The default color of the description.
+     * @param defaultColor The default color of the title in the advancement's announcement message
+     *         or {@code null} to use the frame's color (i.e. the color returned by calling
+     *         {@link AdvancementFrameType#getColor() getColor()} on the {@link #frame frame}).
+     * @return This builder.
+     * @see IAnnounceMessage
+     * @see Advancement#getAnnounceMessage(Player)
+     */
+    @NotNull
+    public AdvancementDisplayBuilder announcementMessageDefaultTitleColor(@Nullable ChatColor defaultColor) {
+        this.announcementMessageDefaultTitleColor = defaultColor;
+        return this;
+    }
+
+    /**
+     * Sets the default color of the description when displayed in the advancement GUI.
+     *
+     * @param defaultColor The default color of the description when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
      * @return This builder.
      */
     @NotNull
-    public AdvancementDisplayBuilder defaultDescriptionColor(@NotNull ChatColor descriptionColor) {
-        this.defaultDescriptionColor = Objects.requireNonNull(descriptionColor, "Default description color is null.");
-        this.manuallySetDefaultDescColor = true;
+    public AdvancementDisplayBuilder defaultDescriptionColor(@Nullable ChatColor defaultColor) {
+        this.defaultDescriptionColor = defaultColor;
+        return this;
+    }
+
+    /**
+     * Sets the default color of the description in the advancement's announcement message.
+     *
+     * @param defaultColor The default color of the description in the advancement's announcement message
+     *         or {@code null} to use the frame's color (i.e. the color returned by calling
+     *         {@link AdvancementFrameType#getColor() getColor()} on the {@link #frame frame}).
+     * @return This builder.
+     * @see IAnnounceMessage
+     * @see Advancement#getAnnounceMessage(Player)
+     */
+    @NotNull
+    public AdvancementDisplayBuilder announcementMessageDefaultDescriptionColor(@Nullable ChatColor defaultColor) {
+        this.announcementMessageDefaultDescriptionColor = defaultColor;
         return this;
     }
 
@@ -403,7 +451,7 @@ public class AdvancementDisplayBuilder {
      */
     @NotNull
     public AdvancementDisplay build() {
-        return new AdvancementDisplay(icon, title, description, defaultTitleColor, defaultDescriptionColor, frame, showToast, announceChat, x, y);
+        return new AdvancementDisplay(icon, title, description, defaultTitleColor, announcementMessageDefaultTitleColor, defaultDescriptionColor, announcementMessageDefaultDescriptionColor, frame, showToast, announceChat, x, y);
     }
 
     /**
@@ -505,22 +553,52 @@ public class AdvancementDisplayBuilder {
     }
 
     /**
-     * Gets the default color of the title.
+     * Gets the default color of the title when displayed in the advancement GUI.
      *
-     * @return The default color of the title.
+     * @return The default color of the title when displayed in the advancement GUI
+     *         or {@code null} if Minecraft's default color should be used.
      */
-    @NotNull
+    @Nullable
     public ChatColor getDefaultTitleColor() {
         return defaultTitleColor;
     }
 
     /**
-     * Gets the default color of the description.
+     * Returns the default color of the title in the advancement's announcement message.
      *
-     * @return The default color of the description.
+     * @return The default color of the title in the advancement's announcement message
+     *         or {@code null} if the frame's color (i.e. the color returned by calling
+     *         {@link AdvancementFrameType#getColor() getColor()} on the {@link #frame frame}) should be used.
+     * @see IAnnounceMessage
+     * @see Advancement#getAnnounceMessage(Player)
      */
-    @NotNull
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultTitleColor() {
+        return announcementMessageDefaultTitleColor;
+    }
+
+    /**
+     * Returns the default color of the description when displayed in the advancement GUI.
+     *
+     * @return The default color of the description when displayed in the advancement GUI
+     *         or {@code null} if Minecraft's default color should be used.
+     */
+    @Nullable
     public ChatColor getDefaultDescriptionColor() {
         return defaultDescriptionColor;
+    }
+
+    /**
+     * Returns the default color of the description in the advancement's announcement message.
+     *
+     * @return The default color of the description in the advancement's announcement message
+     *         or {@code null} if the frame's color (i.e. the color returned by calling
+     *         {@link AdvancementFrameType#getColor() getColor()} on the {@link #frame frame}) should be used.
+     * @see IAnnounceMessage
+     * @see Advancement#getAnnounceMessage(Player)
+     */
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultDescriptionColor() {
+        return announcementMessageDefaultDescriptionColor;
     }
 }

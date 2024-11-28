@@ -29,7 +29,7 @@ public enum AdvancementFrameType {
     private final AdvancementFrameTypeWrapper wrapper;
 
     /**
-     * The default title and description colors.
+     * The default title and description colors for announcement messages.
      */
     private final ChatColor color;
 
@@ -74,9 +74,9 @@ public enum AdvancementFrameType {
     }
 
     /**
-     * Gets the default title and description colors.
+     * Gets the default title and description colors for announcement messages.
      *
-     * @return The default title and description colors.
+     * @return The default title and description colors for announcement messages.
      */
     @NotNull
     public ChatColor getColor() {

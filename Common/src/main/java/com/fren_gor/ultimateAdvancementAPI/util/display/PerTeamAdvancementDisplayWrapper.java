@@ -4,9 +4,11 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAd
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -79,6 +81,24 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      * {@inheritDoc}
      */
     @Override
+    @Nullable
+    public ChatColor getDefaultTitleColor(@NotNull TeamProgression progression) {
+        return super.getDefaultTitleColor(progression);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultTitleColor(@NotNull TeamProgression progression) {
+        return super.getAnnouncementMessageDefaultTitleColor(progression);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @NotNull
     public List<String> getLegacyDescription(@NotNull TeamProgression progression) {
         return wrapped.getLegacyDescription(progression);
@@ -91,6 +111,24 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
     @NotNull
     public List<BaseComponent> getDescription(@NotNull TeamProgression progression) {
         return wrapped.getDescription(progression);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getDefaultDescriptionColor(@NotNull TeamProgression progression) {
+        return super.getDefaultDescriptionColor(progression);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultDescriptionColor(@NotNull TeamProgression progression) {
+        return super.getAnnouncementMessageDefaultDescriptionColor(progression);
     }
 
     /**

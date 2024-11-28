@@ -34,6 +34,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -338,7 +339,7 @@ public final class AdvancementUtils {
     }
 
     @NotNull
-    public static BaseComponent getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter, boolean emptyLineBetweenTitleAndDesc) {
+    public static BaseComponent getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter, boolean fancy) {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkNotNull(advancementCompleter, "Player is null.");
 
@@ -347,39 +348,44 @@ public final class AdvancementUtils {
         AdvancementFrameType frame = display.dispatchGetFrame(advancementCompleter, progression);
         BaseComponent title = display.dispatchGetTitle(advancementCompleter, progression);
         List<BaseComponent> description = display.dispatchGetDescription(advancementCompleter, progression);
-        ChatColor color = frame.getColor();
+        ChatColor defaultAMTitleColor = display.dispatchGetAnnouncementMessageDefaultTitleColor(advancementCompleter, progression);
+        ChatColor defaultAMDescriptionColor = display.dispatchGetAnnouncementMessageDefaultDescriptionColor(advancementCompleter, progression);
         String chatText = frame.getChatText();
 
         Preconditions.checkNotNull(frame, "Display returned a null frame.");
         Preconditions.checkNotNull(title, "Display returned a null title.");
         Preconditions.checkNotNull(description, "Display returned a null description.");
-        Preconditions.checkNotNull(color, "Frame returned a null color.");
         Preconditions.checkNotNull(chatText, "Frame returned a null chatText.");
 
-        ComponentBuilder hoverText = new ComponentBuilder("").append(title, FormatRetention.NONE);
+        ChatColor frameColor = Objects.requireNonNull(frame.getColor(), "Frame returned a null color.");
+        ChatColor parenthesisColor = fancy && defaultAMTitleColor != null ? defaultAMTitleColor : frameColor;
+
+        title = applyDefaultColor(title, defaultAMTitleColor != null ? defaultAMTitleColor : frameColor);
+
+        ComponentBuilder hoverText = new ComponentBuilder().append(title, FormatRetention.NONE);
 
         if (!description.isEmpty()) {
-            if (emptyLineBetweenTitleAndDesc && startsWithNewLine(description.get(0)) == NO_NEW_LINE) {
+            if (fancy && startsWithNewLine(description.get(0)) == NO_NEW_LINE) {
                 hoverText.append("\n\n", FormatRetention.NONE);
             } else {
                 hoverText.append("\n", FormatRetention.NONE);
             }
 
-            hoverText.append(joinBaseComponents(new TextComponent("\n"), description), FormatRetention.NONE);
+            ChatColor defaultDescColor = defaultAMDescriptionColor != null ? defaultAMDescriptionColor : frameColor;
+            hoverText.append(joinBaseComponents(new TextComponent("\n"), defaultDescColor, description), FormatRetention.NONE);
         }
+
+        TextComponent withHover = new TextComponent(new ComponentBuilder("[")
+                .color(parenthesisColor)
+                .append(title, FormatRetention.NONE)
+                .append("]", FormatRetention.NONE)
+                .color(parenthesisColor)
+                .create());
+        withHover.setHoverEvent(new HoverEvent(Action.SHOW_TEXT, hoverText.create()));
 
         var cb = new ComponentBuilder(advancementCompleter.getName() + ' ' + frame.getChatText() + ' ')
                 .color(ChatColor.WHITE)
-                .append(new ComponentBuilder("[")
-                                .color(frame.getColor())
-                                .event(new HoverEvent(Action.SHOW_TEXT, hoverText.create()))
-                                .create()
-                        , FormatRetention.NONE)
-                .append(title, FormatRetention.EVENTS)
-                .append(new ComponentBuilder("]")
-                                .color(frame.getColor())
-                                .create()
-                        , FormatRetention.EVENTS);
+                .append(withHover, FormatRetention.NONE);
         return build(cb);
     }
 
@@ -480,23 +486,25 @@ public final class AdvancementUtils {
      * Joins the provided {@link BaseComponent}s into a single one, separating them with the specified delimiter.
      *
      * @param delimiter The delimiter to put in between the {@link BaseComponent}s.
+     * @param defaultColor The default color of the {@link BaseComponent}s to join. May be {@code null} if no default color should be applied.
      * @param toJoin The {@link BaseComponent}s to join.
      * @return A {@link BaseComponent} containing the joined components.
      */
     @NotNull
-    public static BaseComponent joinBaseComponents(@NotNull BaseComponent delimiter, @NotNull Iterable<? extends BaseComponent> toJoin) {
+    public static BaseComponent joinBaseComponents(@NotNull BaseComponent delimiter, @Nullable ChatColor defaultColor, @NotNull Iterable<? extends BaseComponent> toJoin) {
         Preconditions.checkNotNull(delimiter, "Delimiter is null.");
         Preconditions.checkNotNull(toJoin, "BaseComponents to join are null.");
         var iter = toJoin.iterator();
         if (!iter.hasNext()) {
             return new TextComponent();
         }
-        ComponentBuilder joiner = new ComponentBuilder(Objects.requireNonNull(iter.next(), "A BaseComponent to join is null."));
+        var first = Objects.requireNonNull(iter.next(), "A BaseComponent to join is null.");
+        ComponentBuilder joiner = new ComponentBuilder(first);
         while (iter.hasNext()) {
-            BaseComponent line = Objects.requireNonNull(iter.next(), "A BaseComponent to join is null.");
-            joiner.append(delimiter, FormatRetention.NONE).append(line, FormatRetention.NONE);
+            BaseComponent component = Objects.requireNonNull(iter.next(), "A BaseComponent to join is null.");
+            joiner.append(delimiter, FormatRetention.NONE).append(component, FormatRetention.NONE);
         }
-        return build(joiner);
+        return applyDefaultColor(build(joiner), defaultColor);
     }
 
     /**
@@ -504,18 +512,20 @@ public final class AdvancementUtils {
      * <p>No color will be applied if one is already present.
      *
      * @param text The {@link BaseComponent} to which the default color will be applied.
-     * @param defaultColor The default color to apply.
+     * @param defaultColor The default color to apply. May be {@code null} if no default color should be applied.
      * @return The provided {@link BaseComponent} with the default color applied.
      */
     @NotNull
-    @Contract("_, _ -> param1")
-    public static BaseComponent applyDefaultColor(@NotNull BaseComponent text, @NotNull ChatColor defaultColor) {
-        Preconditions.checkNotNull(text, "BaseComponent is null.");
-        Preconditions.checkNotNull(defaultColor, "Default color is null.");
-        var color = text.getColorRaw();
-        if (color == null) {
-            text.setColor(defaultColor);
+    public static BaseComponent applyDefaultColor(@NotNull BaseComponent text, @Nullable ChatColor defaultColor) {
+        if (defaultColor == null) {
+            return text;
         }
+        var color = Objects.requireNonNull(text, "BaseComponent is null.").getColorRaw();
+        if (color != null) {
+            return text;
+        }
+        text = text.duplicate();
+        text.setColor(defaultColor);
         return text;
     }
 

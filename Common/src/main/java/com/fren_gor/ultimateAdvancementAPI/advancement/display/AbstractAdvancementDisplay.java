@@ -5,11 +5,13 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -268,6 +270,110 @@ public abstract class AbstractAdvancementDisplay {
     public abstract BaseComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
+     * Dispatches the call to getDefaultTitleColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The default color of the title when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public final ChatColor dispatchGetDefaultTitleColor(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetDefaultTitleColor(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getDefaultTitleColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The default color of the title when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public abstract ChatColor dispatchGetDefaultTitleColor(@NotNull Player player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getDefaultTitleColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The default color of the title when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public final ChatColor dispatchGetDefaultTitleColor(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetDefaultTitleColor(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getDefaultTitleColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The default color of the title when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public abstract ChatColor dispatchGetDefaultTitleColor(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultTitleColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The default color of the title in the advancement's announcement message
+     *         or {@code null} to use the frame's color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public final ChatColor dispatchGetAnnouncementMessageDefaultTitleColor(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetAnnouncementMessageDefaultTitleColor(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultTitleColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The default color of the title in the advancement's announcement message
+     *         or {@code null} to use the frame's color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public abstract ChatColor dispatchGetAnnouncementMessageDefaultTitleColor(@NotNull Player player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultTitleColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The default color of the title in the advancement's announcement message
+     *         or {@code null} to use the frame's color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public final ChatColor dispatchGetAnnouncementMessageDefaultTitleColor(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetAnnouncementMessageDefaultTitleColor(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultTitleColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The default color of the title in the advancement's announcement message
+     *         or {@code null} to use the frame's color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public abstract ChatColor dispatchGetAnnouncementMessageDefaultTitleColor(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+
+    /**
      * Dispatches the call to getLegacyDescription(...).
      *
      * @param player The player used to dispatch the call.
@@ -354,6 +460,110 @@ public abstract class AbstractAdvancementDisplay {
      * @see AbstractAdvancementDisplay
      */
     public abstract List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getDefaultDescriptionColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The default color of the description when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public final ChatColor dispatchGetDefaultDescriptionColor(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetDefaultDescriptionColor(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getDefaultDescriptionColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The default color of the description when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public abstract ChatColor dispatchGetDefaultDescriptionColor(@NotNull Player player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getDefaultDescriptionColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The default color of the description when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public final ChatColor dispatchGetDefaultDescriptionColor(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetDefaultDescriptionColor(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getDefaultDescriptionColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The default color of the description when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public abstract ChatColor dispatchGetDefaultDescriptionColor(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultDescriptionColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The default color of the description in the advancement's announcement message
+     *         or {@code null} to use the frame's color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public final ChatColor dispatchGetAnnouncementMessageDefaultDescriptionColor(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetAnnouncementMessageDefaultDescriptionColor(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultDescriptionColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The default color of the description in the advancement's announcement message
+     *         or {@code null} to use the frame's color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public abstract ChatColor dispatchGetAnnouncementMessageDefaultDescriptionColor(@NotNull Player player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultDescriptionColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The default color of the description in the advancement's announcement message
+     *         or {@code null} to use the frame's color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public final ChatColor dispatchGetAnnouncementMessageDefaultDescriptionColor(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetAnnouncementMessageDefaultDescriptionColor(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultDescriptionColor(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The default color of the description in the advancement's announcement message
+     *         or {@code null} to use the frame's color.
+     * @see AbstractAdvancementDisplay
+     */
+    @Nullable
+    public abstract ChatColor dispatchGetAnnouncementMessageDefaultDescriptionColor(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getFrame(...).

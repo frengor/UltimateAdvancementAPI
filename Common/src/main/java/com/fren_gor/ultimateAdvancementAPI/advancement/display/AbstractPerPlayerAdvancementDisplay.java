@@ -1,14 +1,18 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
+import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.announceMessage.IAnnounceMessage;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -122,6 +126,64 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     public abstract BaseComponent getTitle(@NotNull OfflinePlayer player);
 
     /**
+     * Returns the default color of the title when displayed in the advancement GUI.
+     *
+     * @param player The player.
+     * @return The default color of the title when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
+     * @implSpec The default implementation returns {@code null}.
+     */
+    @Nullable
+    public ChatColor getDefaultTitleColor(@NotNull Player player) {
+        return getDefaultTitleColor(((OfflinePlayer) player));
+    }
+
+    /**
+     * Returns the default color of the title when displayed in the advancement GUI.
+     *
+     * @param player The player.
+     * @return The default color of the title when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
+     * @implSpec The default implementation returns {@code null}.
+     */
+    @Nullable
+    public ChatColor getDefaultTitleColor(@NotNull OfflinePlayer player) {
+        return null;
+    }
+
+    /**
+     * Returns the default color of the title in the advancement's announcement message.
+     *
+     * @param player The player.
+     * @return The default color of the title in the advancement's announcement message
+     *         or {@code null} to use the frame's color (i.e. the color returned by calling
+     *         {@link AdvancementFrameType#getColor() getColor()} on the frame returned by {@link #getFrame(Player) getFrame}).
+     * @implSpec The default implementation returns {@code null}.
+     * @see IAnnounceMessage
+     * @see Advancement#getAnnounceMessage(Player)
+     */
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultTitleColor(@NotNull Player player) {
+        return getAnnouncementMessageDefaultTitleColor((OfflinePlayer) player);
+    }
+
+    /**
+     * Returns the default color of the title in the advancement's announcement message.
+     *
+     * @param player The player.
+     * @return The default color of the title in the advancement's announcement message
+     *         or {@code null} to use the frame's color (i.e. the color returned by calling
+     *         {@link AdvancementFrameType#getColor() getColor()} on the frame returned by {@link #getFrame(OfflinePlayer) getFrame}).
+     * @implSpec The default implementation returns {@code null}.
+     * @see IAnnounceMessage
+     * @see Advancement#getAnnounceMessage(Player)
+     */
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultTitleColor(@NotNull OfflinePlayer player) {
+        return null;
+    }
+
+    /**
      * Returns the description of the advancement as a list of legacy strings.
      *
      * @implNote The default implementation returns the description returned by {@link #getDescription(Player)} converted into a list of legacy strings.
@@ -166,6 +228,64 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      */
     @NotNull
     public abstract List<BaseComponent> getDescription(@NotNull OfflinePlayer player);
+
+    /**
+     * Returns the default color of the description when displayed in the advancement GUI.
+     *
+     * @param player The player.
+     * @return The default color of the description when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
+     * @implSpec The default implementation returns {@code null}.
+     */
+    @Nullable
+    public ChatColor getDefaultDescriptionColor(@NotNull Player player) {
+        return getDefaultDescriptionColor((OfflinePlayer) player);
+    }
+
+    /**
+     * Returns the default color of the description when displayed in the advancement GUI.
+     *
+     * @param player The player.
+     * @return The default color of the description when displayed in the advancement GUI
+     *         or {@code null} to use Minecraft's default color.
+     * @implSpec The default implementation returns {@code null}.
+     */
+    @Nullable
+    public ChatColor getDefaultDescriptionColor(@NotNull OfflinePlayer player) {
+        return null;
+    }
+
+    /**
+     * Returns the default color of the description in the advancement's announcement message.
+     *
+     * @param player The player.
+     * @return The default color of the description in the advancement's announcement message
+     *         or {@code null} to use the frame's color (i.e. the color returned by calling
+     *         {@link AdvancementFrameType#getColor() getColor()} on the frame returned by {@link #getFrame(Player) getFrame}).
+     * @implSpec The default implementation returns {@code null}.
+     * @see IAnnounceMessage
+     * @see Advancement#getAnnounceMessage(Player)
+     */
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultDescriptionColor(@NotNull Player player) {
+        return getAnnouncementMessageDefaultDescriptionColor((OfflinePlayer) player);
+    }
+
+    /**
+     * Returns the default color of the description in the advancement's announcement message.
+     *
+     * @param player The player.
+     * @return The default color of the description in the advancement's announcement message
+     *         or {@code null} to use the frame's color (i.e. the color returned by calling
+     *         {@link AdvancementFrameType#getColor() getColor()} on the frame returned by {@link #getFrame(OfflinePlayer) getFrame}).
+     * @implSpec The default implementation returns {@code null}.
+     * @see IAnnounceMessage
+     * @see Advancement#getAnnounceMessage(Player)
+     */
+    @Nullable
+    public ChatColor getAnnouncementMessageDefaultDescriptionColor(@NotNull OfflinePlayer player) {
+        return null;
+    }
 
     /**
      * Returns the shape of the advancement frame in the advancement GUI.
@@ -231,8 +351,9 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      */
     @NotNull
     public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player) throws ReflectiveOperationException {
-        BaseComponent description = AdvancementUtils.joinBaseComponents(new TextComponent("\n"), getDescription(player));
-        return PreparedAdvancementDisplayWrapper.craft(getIcon(player), getTitle(player), description, getFrame(player).getNMSWrapper(), getX(player), getY(player));
+        BaseComponent title = AdvancementUtils.applyDefaultColor(getTitle(player), getDefaultTitleColor(player));
+        BaseComponent description = AdvancementUtils.joinBaseComponents(new TextComponent("\n"), getDefaultDescriptionColor(player), getDescription(player));
+        return PreparedAdvancementDisplayWrapper.craft(getIcon(player), title, description, getFrame(player).getNMSWrapper(), getX(player), getY(player));
     }
 
     /**
@@ -319,6 +440,42 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @Nullable
+    public final ChatColor dispatchGetDefaultTitleColor(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getDefaultTitleColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public final ChatColor dispatchGetDefaultTitleColor(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getDefaultTitleColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public final ChatColor dispatchGetAnnouncementMessageDefaultTitleColor(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getAnnouncementMessageDefaultTitleColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public final ChatColor dispatchGetAnnouncementMessageDefaultTitleColor(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getAnnouncementMessageDefaultTitleColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public final List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getLegacyDescription(player);
     }
@@ -345,6 +502,42 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     @Override
     public final List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getDescription(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public final ChatColor dispatchGetDefaultDescriptionColor(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getDefaultDescriptionColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public final ChatColor dispatchGetDefaultDescriptionColor(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getDefaultDescriptionColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public final ChatColor dispatchGetAnnouncementMessageDefaultDescriptionColor(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getAnnouncementMessageDefaultDescriptionColor(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public final ChatColor dispatchGetAnnouncementMessageDefaultDescriptionColor(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getAnnouncementMessageDefaultDescriptionColor(player);
     }
 
     /**
