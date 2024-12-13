@@ -6,7 +6,7 @@
 
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi-parent</artifactId>
-    <version>2.4.2</version>
+    <version>2.4.3</version>
     <packaging>pom</packaging>
 
     <name>UltimateAdvancementAPI-Parent</name>
@@ -96,7 +96,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.21.3-R0.1-SNAPSHOT</version>
+            <version>1.21.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
             <optional>true</optional> <!-- Don't use latest api into per-version code -->
         </dependency>

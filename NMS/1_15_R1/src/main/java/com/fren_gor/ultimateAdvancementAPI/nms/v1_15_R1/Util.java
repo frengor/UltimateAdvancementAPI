@@ -2,12 +2,15 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v1_15_R1;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.server.v1_15_R1.AdvancementProgress;
 import net.minecraft.server.v1_15_R1.ChatComponentText;
 import net.minecraft.server.v1_15_R1.Criterion;
 import net.minecraft.server.v1_15_R1.CriterionProgress;
 import net.minecraft.server.v1_15_R1.CriterionTriggerImpossible;
 import net.minecraft.server.v1_15_R1.IChatBaseComponent;
+import net.minecraft.server.v1_15_R1.IChatBaseComponent.ChatSerializer;
 import net.minecraft.server.v1_15_R1.Packet;
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_15_R1.util.CraftChatMessage;
@@ -76,6 +79,19 @@ public class Util {
             return EMPTY;
         }
         return CraftChatMessage.fromStringOrNull(string, true);
+    }
+
+    @NotNull
+    public static IChatBaseComponent fromComponent(@NotNull BaseComponent component) {
+        if (component == null) {
+            return EMPTY;
+        }
+        try {
+            IChatBaseComponent base = ChatSerializer.a(ComponentSerializer.toString(component));
+            return base == null ? EMPTY : base;
+        } catch (Exception e) {
+            return EMPTY;
+        }
     }
 
     private Util() {

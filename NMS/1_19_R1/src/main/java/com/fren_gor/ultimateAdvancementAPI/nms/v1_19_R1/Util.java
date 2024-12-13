@@ -2,6 +2,8 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v1_19_R1;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.advancements.Criterion;
@@ -69,6 +71,15 @@ public class Util {
             return CommonComponents.EMPTY;
         }
         return CraftChatMessage.fromStringOrNull(string, true);
+    }
+
+    @NotNull
+    public static Component fromComponent(@NotNull BaseComponent component) {
+        if (component == null) {
+            return CommonComponents.EMPTY;
+        }
+        Component base = CraftChatMessage.fromJSONOrNull(ComponentSerializer.toString(component));
+        return base == null ? CommonComponents.EMPTY : base;
     }
 
 
