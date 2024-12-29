@@ -45,8 +45,7 @@ public final class TeamProgression {
      *
      * @param teamId The team id.
      * @param member The member of the team.
-     * @throws IllegalOperationException If this constructor is called by a class not in the
-     *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
+     * @throws IllegalOperationException If this constructor is called by a class which is not a {@link IDatabase}.
      */
     public TeamProgression(int teamId, @NotNull UUID member) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
@@ -65,8 +64,7 @@ public final class TeamProgression {
      * @param advancements All the advancement keys with their progression.
      * @param teamId The team id.
      * @param members A collection of team members.
-     * @throws IllegalOperationException If this constructor is called by a class not in the
-     *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
+     * @throws IllegalOperationException If this constructor is called by a class which is not a {@link IDatabase}.
      */
     public TeamProgression(@NotNull Map<AdvancementKey, Integer> advancements, int teamId, @NotNull Collection<UUID> members) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
@@ -79,8 +77,8 @@ public final class TeamProgression {
     }
 
     private void validateCaller(@NotNull Class<?> caller) throws IllegalOperationException {
-        if (!caller.getPackage().getName().startsWith("com.fren_gor.ultimateAdvancementAPI.database")) {
-            throw new IllegalOperationException("TeamProgression can be instantiated only by classes inside the com.fren_gor.ultimateAdvancementAPI.database package or its sub-packages.");
+        if (!IDatabase.class.isAssignableFrom(caller)) {
+            throw new IllegalOperationException("TeamProgression can be instantiated only by classes inside database.");
         }
     }
 
