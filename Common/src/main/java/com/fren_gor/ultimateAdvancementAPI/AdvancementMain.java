@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
+import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
@@ -179,6 +180,30 @@ public final class AdvancementMain {
         try {
             // Run it sync to avoid using a not initialized database
             databaseManager = new DatabaseManager(this);
+        } catch (Exception e) {
+            failEnable(e);
+        }
+
+        commonEnablePostDatabase();
+    }
+
+    /**
+     * Enables the API using the provided database instance.
+     * <p><strong>Must be called after {@link #load()} and cannot be called twice</strong> until {@link #disable()} is called.
+     * Also, only one <i>enable</i> method can be called per loading.
+     *
+     * @param database The Database instance to use
+     *
+     * @throws RuntimeException If the enabling fails. It is a wrapper for the real exception.
+     * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
+     * @throws IllegalStateException If it is called at an invalid moment.
+     */
+    public void enableCustom(@NotNull IDatabase database) {
+        commonEnablePreDatabase();
+
+        try {
+
+            databaseManager = new DatabaseManager(this, database);
         } catch (Exception e) {
             failEnable(e);
         }
