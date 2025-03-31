@@ -259,9 +259,9 @@ public final class UltimateAdvancementAPI {
      *
      * @throws RuntimeException If the operation fails. It is a wrapper for the real exception.
      */
-    public void disableVanillaAdvancements() throws RuntimeException {
+    public void disableVanillaAdvancements(boolean disableVanillaAdvancementsRecipes) throws RuntimeException {
         try {
-            AdvancementUtils.disableVanillaAdvancements();
+            AdvancementUtils.disableVanillaAdvancements(disableVanillaAdvancementsRecipes);
         } catch (Exception e) {
             throw new RuntimeException("Couldn't disable minecraft advancements.", e);
         }

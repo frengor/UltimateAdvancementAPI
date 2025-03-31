@@ -139,10 +139,10 @@ public class AdvancementUtils {
      * Disable vanilla advancement.
      *
      * @throws Exception If disabling goes wrong.
-     * @see UltimateAdvancementAPI#disableVanillaAdvancements()
+     * @see UltimateAdvancementAPI#disableVanillaAdvancements(boolean)
      */
     public static void disableVanillaAdvancements(boolean disableVanillaAdvancementsRecipes) throws Exception {
-        VanillaAdvancementDisablerWrapper.disableVanillaAdvancements();
+        VanillaAdvancementDisablerWrapper.disableVanillaAdvancements(disableVanillaAdvancementsRecipes);
     }
 
     @NotNull
