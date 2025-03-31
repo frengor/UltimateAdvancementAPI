@@ -103,7 +103,7 @@ public class AdvancementPlugin extends JavaPlugin {
                 @Override
                 public void run() {
                     try {
-                        AdvancementUtils.disableVanillaAdvancements();
+                        AdvancementUtils.disableVanillaAdvancements(configManager.getDisableVanillaAdvancementsRecipes());
                     } catch (Exception e) {
                         Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] Couldn't disable vanilla advancements:");
                         e.printStackTrace();

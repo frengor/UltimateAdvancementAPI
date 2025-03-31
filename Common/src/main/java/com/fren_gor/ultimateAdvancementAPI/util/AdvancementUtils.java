@@ -141,7 +141,7 @@ public class AdvancementUtils {
      * @throws Exception If disabling goes wrong.
      * @see UltimateAdvancementAPI#disableVanillaAdvancements()
      */
-    public static void disableVanillaAdvancements() throws Exception {
+    public static void disableVanillaAdvancements(boolean disableVanillaAdvancementsRecipes) throws Exception {
         VanillaAdvancementDisablerWrapper.disableVanillaAdvancements();
     }
 
