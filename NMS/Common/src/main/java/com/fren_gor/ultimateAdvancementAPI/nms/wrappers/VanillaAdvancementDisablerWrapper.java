@@ -17,8 +17,7 @@ public class VanillaAdvancementDisablerWrapper {
         var clazz = ReflectionUtil.getWrapperClass(VanillaAdvancementDisablerWrapper.class);
         assert clazz != null : "Wrapper class is null.";
         try {
-            Class params[] = { boolean.class };
-            method = clazz.getDeclaredMethod("disableVanillaAdvancements", params);
+            method = clazz.getDeclaredMethod("disableVanillaAdvancements", boolean.class);
             Preconditions.checkArgument(Modifier.isPublic(method.getModifiers()), "Method disableVanillaAdvancements(boolean) is not public.");
             Preconditions.checkArgument(Modifier.isStatic(method.getModifiers()), "Method disableVanillaAdvancements(boolean) is not static.");
         } catch (ReflectiveOperationException e) {
