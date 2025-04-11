@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
+import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
@@ -33,8 +34,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -179,6 +182,31 @@ public final class AdvancementMain {
         try {
             // Run it sync to avoid using a not initialized database
             databaseManager = new DatabaseManager(this);
+        } catch (Exception e) {
+            failEnable(e);
+        }
+
+        commonEnablePostDatabase();
+    }
+
+    /**
+     * Enables the API using the provided database instance.
+     * <p><strong>Must be called after {@link #load()} and cannot be called twice</strong> until {@link #disable()} is called.
+     * Also, only one <i>enable</i> method can be called per loading.
+     *
+     * @param databaseImplProvider Provides the Database instance to use
+     *
+     * @throws RuntimeException If the enabling fails. It is a wrapper for the real exception.
+     * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
+     * @throws IllegalStateException If it is called at an invalid moment.
+     */
+    public void enable(@NotNull Callable<@NotNull IDatabase> databaseImplProvider) {
+        Preconditions.checkNotNull(databaseImplProvider, "Database impl provider is null");
+        commonEnablePreDatabase();
+
+        try {
+            IDatabase dbImpl = Objects.requireNonNull(databaseImplProvider.call(), "Database impl is null");
+            databaseManager = new DatabaseManager(this, dbImpl);
         } catch (Exception e) {
             failEnable(e);
         }

@@ -168,6 +168,22 @@ public final class DatabaseManager {
         commonSetUp();
     }
 
+    /**
+     * Creates a new {@code DatabaseManager} which a custom database
+     *
+     * @param main The {@link AdvancementMain}.
+     * @param database The Database instance
+     * @throws Exception If anything goes wrong.
+     */
+    public DatabaseManager(@NotNull AdvancementMain main, @NotNull IDatabase database) throws Exception {
+        Preconditions.checkNotNull(main, "AdvancementMain is null.");
+        Preconditions.checkNotNull(database, "Database is null.");
+        this.main = main;
+        this.eventManager = main.getEventManager();
+        this.database = database;
+        commonSetUp();
+    }
+
     private void commonSetUp() throws SQLException {
         // Run it sync to avoid using uninitialized database
         database.setUp();
