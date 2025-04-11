@@ -28,7 +28,7 @@ public class VanillaAdvancementDisablerWrapper {
     /**
      * Disable vanilla advancement.
      *
-     * @param disableVanillaAdvancementsRecipes Disable vanilla advancement recipes.
+     * @param disableVanillaAdvancementsRecipes Disable vanilla recipes advancements.
      * @throws Exception If disabling goes wrong.
      */
     public static void disableVanillaAdvancements(boolean disableVanillaAdvancementsRecipes) throws Exception {
@@ -37,10 +37,11 @@ public class VanillaAdvancementDisablerWrapper {
 
     /**
      * Disable vanilla advancement.
-     * It disable the recipes advancements too.
+     * Disable vanilla recipes advancements too.
+     * 
      * @throws Exception If disabling goes wrong.
      */
     public static void disableVanillaAdvancements() throws Exception {
-        disableVanillaAdvancements(disableVanillaAdvancementsRecipes, true);
+        disableVanillaAdvancements(true);
     }
 }
