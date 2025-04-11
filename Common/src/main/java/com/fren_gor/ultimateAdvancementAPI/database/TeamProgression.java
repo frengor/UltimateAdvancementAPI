@@ -45,7 +45,7 @@ public final class TeamProgression {
      *
      * @param teamId The team id.
      * @param member The member of the team.
-     * @throws IllegalOperationException If this constructor is called by a class which is not a {@link IDatabase}.
+     * @throws IllegalOperationException If this constructor is called by a class which is not an instance of {@link IDatabase}.
      */
     public TeamProgression(int teamId, @NotNull UUID member) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
@@ -64,7 +64,7 @@ public final class TeamProgression {
      * @param advancements All the advancement keys with their progression.
      * @param teamId The team id.
      * @param members A collection of team members.
-     * @throws IllegalOperationException If this constructor is called by a class which is not a {@link IDatabase}.
+     * @throws IllegalOperationException If this constructor is called by a class which is not an instance of {@link IDatabase}.
      */
     public TeamProgression(@NotNull Map<AdvancementKey, Integer> advancements, int teamId, @NotNull Collection<UUID> members) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
@@ -78,7 +78,7 @@ public final class TeamProgression {
 
     private void validateCaller(@NotNull Class<?> caller) throws IllegalOperationException {
         if (!IDatabase.class.isAssignableFrom(caller)) {
-            throw new IllegalOperationException("TeamProgression can be instantiated only by classes inside database.");
+            throw new IllegalOperationException("TeamProgression can be instantiated only by database implementations (IDatabase).");
         }
     }
 
