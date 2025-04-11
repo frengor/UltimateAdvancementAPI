@@ -52,7 +52,7 @@ public class ConfigManager {
         }
 
         disableVanillaAdvancements = config.getBoolean("disable-vanilla-advancements");
-        disableVanillaAdvancementsRecipes = config.getBoolean("disable-vanilla-advancements-recipes");
+        disableVanillaAdvancementsRecipes = config.getBoolean("disable-vanilla-recipe-advancements");
 
         String type = config.getString("storage-type");
         if (type == null) {
