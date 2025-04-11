@@ -6,7 +6,7 @@
 #     Also, a bunch of lines will print on the console every time a player joins. Just ignore them.
 disable-vanilla-advancements: false
 # If vanilla advancements are disabled, whether to also disable advancements that unlock recipes. Works from version 1.20.2 to latest.
-disable-vanilla-advancements-recipes: false
+disable-vanilla-recipe-advancements: false
 
 # Database settings
 #
