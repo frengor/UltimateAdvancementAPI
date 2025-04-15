@@ -256,6 +256,16 @@ public final class UltimateAdvancementAPI {
 
     /**
      * Disables the vanilla advancements until next server restart or reload.
+     * Disable vanilla recipes advancements too.
+     * 
+     * @throws RuntimeException If the operation fails. It is a wrapper for the real exception.
+     */
+    public void disableVanillaAdvancements() throws RuntimeException {
+        disableVanillaAdvancements(true);
+    }
+
+    /**
+     * Disables the vanilla advancements until next server restart or reload.
      *
      * @param disableVanillaRecipeAdvancements Disable vanilla recipes advancements.
      * @throws RuntimeException If the operation fails. It is a wrapper for the real exception.
@@ -266,15 +276,6 @@ public final class UltimateAdvancementAPI {
         } catch (Exception e) {
             throw new RuntimeException("Couldn't disable minecraft advancements.", e);
         }
-    }
-    /**
-     * Disables the vanilla advancements until next server restart or reload.
-     * Disable vanilla recipes advancements too.
-     * 
-     * @throws RuntimeException If the operation fails. It is a wrapper for the real exception.
-     */
-    public void disableVanillaAdvancements() throws RuntimeException {
-        disableVanillaAdvancements(true);
     }
 
     /**
