@@ -36,4 +36,4 @@ mysql:
     connectionTimeout: 6000
 
 # Do not touch!!!
-config-version: 1
+config-version: 2
