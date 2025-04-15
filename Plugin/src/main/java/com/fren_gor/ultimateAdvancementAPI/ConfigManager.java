@@ -20,7 +20,7 @@ public class ConfigManager {
     private final YamlConfiguration config = new YamlConfiguration();
 
     private boolean disableVanillaAdvancements;
-    private boolean disableVanillaAdvancementsRecipes;
+    private boolean disableVanillaRecipeAdvancements;
     // db parameters
     private DB_TYPE storageType;
     private String sqlLiteDbName;
@@ -52,7 +52,7 @@ public class ConfigManager {
         }
 
         disableVanillaAdvancements = config.getBoolean("disable-vanilla-advancements");
-        disableVanillaAdvancementsRecipes = config.getBoolean("disable-vanilla-recipe-advancements");
+        disableVanillaRecipeAdvancements = config.getBoolean("disable-vanilla-recipe-advancements");
 
         String type = config.getString("storage-type");
         if (type == null) {
@@ -115,7 +115,7 @@ public class ConfigManager {
     }
 
     public boolean getDisableVanillaAdvancementsRecipes() {
-        return disableVanillaAdvancementsRecipes;
+        return disableVanillaRecipeAdvancements;
     }
 
     public DB_TYPE getStorageType() {

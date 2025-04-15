@@ -28,11 +28,11 @@ public class VanillaAdvancementDisablerWrapper {
     /**
      * Disable vanilla advancement.
      *
-     * @param disableVanillaAdvancementsRecipes Disable vanilla recipes advancements.
+     * @param disableVanillaRecipeAdvancements Disable vanilla recipes advancements.
      * @throws Exception If disabling goes wrong.
      */
-    public static void disableVanillaAdvancements(boolean disableVanillaAdvancementsRecipes) throws Exception {
-        method.invoke(null, disableVanillaAdvancementsRecipes);
+    public static void disableVanillaAdvancements(boolean disableVanillaRecipeAdvancements) throws Exception {
+        method.invoke(null, disableVanillaRecipeAdvancements);
     }
 
     /**
