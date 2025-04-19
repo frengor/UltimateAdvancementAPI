@@ -33,6 +33,13 @@
 
         <dependency>
             <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-commands-commandapi-10.0.0</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-commands-common</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>

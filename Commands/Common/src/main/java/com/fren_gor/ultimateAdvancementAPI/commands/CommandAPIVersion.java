@@ -21,7 +21,7 @@ public enum CommandAPIVersion {
                     "v1_16_R3"
             )
     ),
-    LATEST("9.7.0", "q1XHz7oYfdoeous1MOQoP7zopfjdnxMh9Za1ToN0x2s=", "TFSpIzREfb8ChAkZ/sl1Nmk/ACUpuNk5c4PARCFlj80=", "9_7_0",
+    v9_7_0("9.7.0", "q1XHz7oYfdoeous1MOQoP7zopfjdnxMh9Za1ToN0x2s=", "TFSpIzREfb8ChAkZ/sl1Nmk/ACUpuNk5c4PARCFlj80=", "9_7_0",
             List.of(
                     "v1_17_R1",
                     "v1_18_R1",
@@ -36,6 +36,12 @@ public enum CommandAPIVersion {
                     "v1_21_R1",
                     "v1_21_R2",
                     "v1_21_R3"
+            )
+    ),
+    LATEST("10.0.0", "v7dXMGjtISSSSu90/6HeEZSzDn0mc8glpJpGb8NoMtY=", "tvdQnCoarig1I35JnCr2lp2TR/z2mvdd2p9YjtPIx70=", "10_0_0",
+            List.of(
+
+                    "v1_21_R4"
             )
     );
 
