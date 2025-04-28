@@ -11,20 +11,26 @@ import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.CriterionProgress;
 import net.minecraft.advancements.critereon.ImpossibleTrigger;
 import net.minecraft.advancements.critereon.ImpossibleTrigger.TriggerInstance;
+import net.minecraft.core.ClientAsset;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.resources.ResourceLocation;
 import org.bukkit.craftbukkit.v1_21_R4.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_21_R4.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class Util {
+
+    public static final Logger ERROR = Logger.getLogger("UltimateAdvancementAPI-NMS");
 
     @NotNull
     public static Map<String, Criterion<?>> getAdvancementCriteria(@Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
@@ -83,6 +89,24 @@ public class Util {
         }
         Component base = CraftChatMessage.fromJSONOrNull(ComponentSerializer.toString(component));
         return base == null ? CommonComponents.EMPTY : base;
+    }
+
+    @Nullable
+    public static ClientAsset parseBackgroundTexture(@Nullable String backgroundTexture) {
+        if (backgroundTexture == null) {
+            return null;
+        }
+
+        ResourceLocation texturePath = ResourceLocation.parse(backgroundTexture);
+        if (!texturePath.getPath().startsWith("textures/") || !texturePath.getPath().endsWith(".png")) {
+            ERROR.severe("Invalid background texture \"" + backgroundTexture + "\" (the path should be in the form \"textures/**.png\")");
+            return null;
+        }
+
+        ResourceLocation id = texturePath.withPath(path -> {
+            return path.substring("textures/".length(), path.length() - ".png".length());
+        });
+        return new ClientAsset(id, texturePath);
     }
 
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {

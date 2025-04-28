@@ -7,14 +7,12 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.core.ClientAsset;
-import net.minecraft.resources.ResourceLocation;
 import org.bukkit.craftbukkit.v1_21_R4.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_21_R4.util.CraftChatMessage;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 public class AdvancementDisplayWrapper_v1_21_R4 extends AdvancementDisplayWrapper {
@@ -23,24 +21,14 @@ public class AdvancementDisplayWrapper_v1_21_R4 extends AdvancementDisplayWrappe
     private final AdvancementFrameTypeWrapper frameType;
 
     public AdvancementDisplayWrapper_v1_21_R4(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
-        ResourceLocation backgroundPath = backgroundTexture == null ? null : ResourceLocation.parse(backgroundTexture);
-        ResourceLocation id = backgroundPath != null ? backgroundPath.withPath((e) -> {
-            var el = e.replace("textures/", "").split("\\.");
-            return String.join("", Arrays.copyOf(el, el.length - 1));
-        }) : null;
-        ClientAsset clientAsset = backgroundPath != null ? new ClientAsset(id, backgroundPath) : null;
+        ClientAsset clientAsset = Util.parseBackgroundTexture(backgroundTexture);
         this.display = new DisplayInfo(CraftItemStack.asNMSCopy(icon), Util.fromString(title), Util.fromString(description), Optional.ofNullable(clientAsset), (AdvancementType) frameType.toNMS(), showToast, announceChat, hidden);
         this.display.setLocation(x, y);
         this.frameType = frameType;
     }
 
     public AdvancementDisplayWrapper_v1_21_R4(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull BaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
-        ResourceLocation backgroundPath = backgroundTexture == null ? null : ResourceLocation.parse(backgroundTexture);
-        ResourceLocation id = backgroundPath != null ? backgroundPath.withPath((e) -> {
-            var el = e.replace("textures/", "").split("\\.");
-            return String.join("", Arrays.copyOf(el, el.length - 1));
-        }) : null;
-        ClientAsset clientAsset = backgroundPath != null ? new ClientAsset(id, backgroundPath) : null;
+        ClientAsset clientAsset = Util.parseBackgroundTexture(backgroundTexture);
         this.display = new DisplayInfo(CraftItemStack.asNMSCopy(icon), Util.fromComponent(title), Util.fromComponent(description), Optional.ofNullable(clientAsset), (AdvancementType) frameType.toNMS(), showToast, announceChat, hidden);
         this.display.setLocation(x, y);
         this.frameType = frameType;
