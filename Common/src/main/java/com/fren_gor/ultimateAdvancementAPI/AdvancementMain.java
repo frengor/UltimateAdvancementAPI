@@ -4,6 +4,9 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
+import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
+import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
+import com.fren_gor.ultimateAdvancementAPI.database.impl.SQLite;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
@@ -19,6 +22,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.ApiStatus.Obsolete;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -118,6 +122,7 @@ public final class AdvancementMain {
 
     /**
      * Enables the API using a SQLite database.
+     * This method is obsolete, it is suggested to use {@link #enable(Callable)} instead.
      * <p><strong>Must be called after {@link #load()} and cannot be called twice</strong> until {@link #disable()} is called.
      * Also, only one <i>enable</i> method can be called per loading.
      *
@@ -126,21 +131,14 @@ public final class AdvancementMain {
      * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
      * @throws IllegalStateException If it is called at an invalid moment.
      */
+    @Obsolete(since = "2.5.0")
     public void enableSQLite(File SQLiteDatabase) {
-        commonEnablePreDatabase();
-
-        try {
-            // Run it sync to avoid using a not initialized database
-            databaseManager = new DatabaseManager(this, SQLiteDatabase);
-        } catch (Exception e) {
-            failEnable(e);
-        }
-
-        commonEnablePostDatabase();
+        enable(() -> new SQLite(AdvancementMain.this, SQLiteDatabase));
     }
 
     /**
      * Enables the API using a MySQL database.
+     * This method is obsolete, it is suggested to use {@link #enable(Callable)} instead.
      * <p><strong>Must be called after {@link #load()} and cannot be called twice</strong> until {@link #disable()} is called.
      * Also, only one <i>enable</i> method can be called per loading.
      *
@@ -154,21 +152,14 @@ public final class AdvancementMain {
      * @throws RuntimeException If the enabling fails. It is a wrapper for the real exception.
      * @throws IllegalStateException If it is called at an invalid moment.
      */
+    @Obsolete(since = "2.5.0")
     public void enableMySQL(String username, String password, String databaseName, String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout) {
-        commonEnablePreDatabase();
-
-        try {
-            // Run it sync to avoid using a not initialized database
-            databaseManager = new DatabaseManager(this, username, password, databaseName, host, port, poolSize, connectionTimeout);
-        } catch (Exception e) {
-            failEnable(e);
-        }
-
-        commonEnablePostDatabase();
+        enable(() -> new MySQL(AdvancementMain.this, username, password, databaseName, host, port, poolSize, connectionTimeout));
     }
 
     /**
      * Enables the API using an in-memory database.
+     * This method is obsolete, it is suggested to use {@link #enable(Callable)} instead.
      * <p><strong>Must be called after {@link #load()} and cannot be called twice</strong> until {@link #disable()} is called.
      * Also, only one <i>enable</i> method can be called per loading.
      *
@@ -176,26 +167,20 @@ public final class AdvancementMain {
      * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
      * @throws IllegalStateException If it is called at an invalid moment.
      */
+    @Obsolete(since = "2.5.0")
     public void enableInMemory() {
-        commonEnablePreDatabase();
-
-        try {
-            // Run it sync to avoid using a not initialized database
-            databaseManager = new DatabaseManager(this);
-        } catch (Exception e) {
-            failEnable(e);
-        }
-
-        commonEnablePostDatabase();
+        enable(() -> new InMemory(AdvancementMain.this));
     }
 
     /**
      * Enables the API using the provided database instance.
      * <p><strong>Must be called after {@link #load()} and cannot be called twice</strong> until {@link #disable()} is called.
      * Also, only one <i>enable</i> method can be called per loading.
+     * <p>Example usage:
+     * <blockquote><pre>
+     * enable(() -> new SQLite(advMain, dbFile));</pre></blockquote>
      *
-     * @param databaseImplProvider Provides the Database instance to use
-     *
+     * @param databaseImplProvider The database instance.
      * @throws RuntimeException If the enabling fails. It is a wrapper for the real exception.
      * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
      * @throws IllegalStateException If it is called at an invalid moment.

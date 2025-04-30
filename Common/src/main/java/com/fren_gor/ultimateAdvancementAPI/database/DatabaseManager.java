@@ -33,6 +33,7 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -119,14 +121,11 @@ public final class DatabaseManager {
      *
      * @param main The {@link AdvancementMain}.
      * @throws Exception If anything goes wrong.
+     * @deprecated Use {@link AdvancementMain#enable(Callable)} instead.
      */
+    @Deprecated(forRemoval = true, since = "2.5.0")
     public DatabaseManager(@NotNull AdvancementMain main) throws Exception {
-        Preconditions.checkNotNull(main, "AdvancementMain is null.");
-        this.main = main;
-        this.eventManager = main.getEventManager();
-
-        database = new InMemory(main.getLogger());
-        commonSetUp();
+        this(main, new InMemory(main));
     }
 
     /**
@@ -135,15 +134,11 @@ public final class DatabaseManager {
      * @param main The {@link AdvancementMain}.
      * @param dbFile The SQLite database file.
      * @throws Exception If anything goes wrong.
+     * @deprecated Use {@link AdvancementMain#enable(Callable)} instead.
      */
+    @Deprecated(forRemoval = true, since = "2.5.0")
     public DatabaseManager(@NotNull AdvancementMain main, @NotNull File dbFile) throws Exception {
-        Preconditions.checkNotNull(main, "AdvancementMain is null.");
-        Preconditions.checkNotNull(dbFile, "Database file is null.");
-        this.main = main;
-        this.eventManager = main.getEventManager();
-
-        database = new SQLite(dbFile, main.getLogger());
-        commonSetUp();
+        this(main, new SQLite(main, dbFile));
     }
 
     /**
@@ -158,23 +153,22 @@ public final class DatabaseManager {
      * @param poolSize The pool size. Must be greater than zero.
      * @param connectionTimeout The connection timeout. Must be greater or equal to 250.
      * @throws Exception If anything goes wrong.
+     * @deprecated Use {@link AdvancementMain#enable(Callable)} instead.
      */
+    @Deprecated(forRemoval = true, since = "2.5.0")
     public DatabaseManager(@NotNull AdvancementMain main, @NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout) throws Exception {
-        Preconditions.checkNotNull(main, "AdvancementMain is null.");
-        this.main = main;
-        this.eventManager = main.getEventManager();
-
-        database = new MySQL(username, password, databaseName, host, port, poolSize, connectionTimeout, main.getLogger(), main.getLibbyManager());
-        commonSetUp();
+        this(main, new MySQL(main, username, password, databaseName, host, port, poolSize, connectionTimeout));
     }
 
     /**
-     * Creates a new {@code DatabaseManager} which a custom database
+     * Internal use only, use {@link AdvancementMain#enable(Callable)} instead.
+     * <p>Creates a new {@code DatabaseManager} with the provided database instance.
      *
      * @param main The {@link AdvancementMain}.
      * @param database The Database instance
      * @throws Exception If anything goes wrong.
      */
+    @Internal
     public DatabaseManager(@NotNull AdvancementMain main, @NotNull IDatabase database) throws Exception {
         Preconditions.checkNotNull(main, "AdvancementMain is null.");
         Preconditions.checkNotNull(database, "Database is null.");
