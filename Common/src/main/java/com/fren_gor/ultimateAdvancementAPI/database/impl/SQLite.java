@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.database.impl;
 
+import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalKeyException;
@@ -26,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -40,10 +42,23 @@ public class SQLite implements IDatabase {
     /**
      * Creates the SQLite connection.
      *
+     * @param main The instance of the main class of the API.
+     * @param dbFile The SQLite database file. If it doesn't exist, it is created.
+     * @throws Exception If anything goes wrong.
+     */
+    public SQLite(@NotNull AdvancementMain main, @NotNull File dbFile) throws Exception {
+        this(dbFile, Objects.requireNonNull(main, "AdvancementMain is null.").getLogger());
+    }
+
+    /**
+     * Creates the SQLite connection.
+     *
      * @param dbFile The SQLite database file. If it doesn't exist, it is created.
      * @param logger The plugin {@link Logger}.
      * @throws Exception If anything goes wrong.
+     * @deprecated Use {@link #SQLite(AdvancementMain, File)} instead.
      */
+    @Deprecated(forRemoval = true, since = "2.5.0")
     public SQLite(@NotNull File dbFile, @NotNull Logger logger) throws Exception {
         Preconditions.checkNotNull(dbFile, "Database file is null.");
         Preconditions.checkNotNull(logger, "Logger is null.");
@@ -64,7 +79,9 @@ public class SQLite implements IDatabase {
      *
      * @param logger The plugin {@link Logger}.
      * @throws Exception If anything goes wrong.
+     * @deprecated Use {@link InMemory} instead.
      */
+    @Deprecated(forRemoval = true, since = "2.5.0")
     protected SQLite(@NotNull Logger logger) throws Exception {
         Preconditions.checkNotNull(logger, "Logger is null.");
         Class.forName("org.sqlite.JDBC");

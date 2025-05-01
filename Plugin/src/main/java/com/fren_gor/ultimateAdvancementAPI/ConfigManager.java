@@ -1,5 +1,8 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
+import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
+import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
+import com.fren_gor.ultimateAdvancementAPI.database.impl.SQLite;
 import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -89,11 +92,11 @@ public class ConfigManager {
     public void enable(@NotNull AdvancementMain main) {
         Preconditions.checkNotNull(storageType, "Config has not been loaded.");
 
-        switch (storageType) {
-            case SQLITE -> main.enableSQLite(new File(plugin.getDataFolder(), sqlLiteDbName));
-            case MYSQL -> main.enableMySQL(username, password, databaseName, host, port, poolSize, connectionTimeout);
-            case IN_MEMORY -> main.enableInMemory();
-        }
+        main.enable(() -> switch (storageType) {
+            case SQLITE -> new SQLite(main, new File(plugin.getDataFolder(), sqlLiteDbName));
+            case MYSQL -> new MySQL(main, username, password, databaseName, host, port, poolSize, connectionTimeout);
+            case IN_MEMORY -> new InMemory(main);
+        });
     }
 
     private String getOrDefault(@NotNull String path, @NotNull String def) {

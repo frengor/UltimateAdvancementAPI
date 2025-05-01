@@ -34,7 +34,7 @@ A powerful API to create custom advancements for your minecraft server.
 <dependency>
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi</artifactId>
-    <version>2.4.3</version>
+    <version>2.5.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -53,7 +53,7 @@ The plugin used for tests can be found [here](https://github.com/frengor/Ultimat
 
 Feel free to open issues or pull requests. Feature requests can be done opening an issue, the `enhancement` tag will be applied by maintainers.
 
-For pull requests, open them towards the `dev` branch, as the `main` branch is only for releases.
+For pull requests, open them towards the `dev` branch, as the `main` branch is only for releases. Make sure to allow edits by maintainers.
 Also, please use the formatting style settings present under `.idea/codeStyles` folder.
 
 ## Required Java version
