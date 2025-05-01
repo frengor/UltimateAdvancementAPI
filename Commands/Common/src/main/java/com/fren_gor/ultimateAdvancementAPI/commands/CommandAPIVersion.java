@@ -15,6 +15,7 @@ import java.util.Objects;
 public enum CommandAPIVersion {
     v9_3_0("9.3.0", "K9cYHoWiGLP8z+cyYb5NIarVE9fzMeJRqHu1UJ+Li/U=", null, "9_3_0",
             List.of(
+                    // Versions without a mojang-mapped jar
                     "v1_15_R1",
                     "v1_16_R1",
                     "v1_16_R2",
@@ -28,19 +29,18 @@ public enum CommandAPIVersion {
                     "v1_18_R2",
                     "v1_19_R1",
                     "v1_19_R2",
-                    "v1_19_R3",
+                    "v1_19_R3"
+            )
+    ),
+    LATEST("10.0.0", "v7dXMGjtISSSSu90/6HeEZSzDn0mc8glpJpGb8NoMtY=", "tvdQnCoarig1I35JnCr2lp2TR/z2mvdd2p9YjtPIx70=", "10_0_0",
+            List.of(
                     "v1_20_R1",
                     "v1_20_R2",
                     "v1_20_R3",
                     "v1_20_R4",
                     "v1_21_R1",
                     "v1_21_R2",
-                    "v1_21_R3"
-            )
-    ),
-    LATEST("10.0.0", "v7dXMGjtISSSSu90/6HeEZSzDn0mc8glpJpGb8NoMtY=", "tvdQnCoarig1I35JnCr2lp2TR/z2mvdd2p9YjtPIx70=", "10_0_0",
-            List.of(
-
+                    "v1_21_R3",
                     "v1_21_R4"
             )
     );
