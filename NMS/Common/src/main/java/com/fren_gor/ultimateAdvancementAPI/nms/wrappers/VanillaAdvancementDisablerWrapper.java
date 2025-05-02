@@ -17,9 +17,9 @@ public class VanillaAdvancementDisablerWrapper {
         var clazz = ReflectionUtil.getWrapperClass(VanillaAdvancementDisablerWrapper.class);
         assert clazz != null : "Wrapper class is null.";
         try {
-            method = clazz.getDeclaredMethod("disableVanillaAdvancements");
-            Preconditions.checkArgument(Modifier.isPublic(method.getModifiers()), "Method disableVanillaAdvancements() is not public.");
-            Preconditions.checkArgument(Modifier.isStatic(method.getModifiers()), "Method disableVanillaAdvancements() is not static.");
+            method = clazz.getDeclaredMethod("disableVanillaAdvancements", boolean.class);
+            Preconditions.checkArgument(Modifier.isPublic(method.getModifiers()), "Method disableVanillaAdvancements(boolean) is not public.");
+            Preconditions.checkArgument(Modifier.isStatic(method.getModifiers()), "Method disableVanillaAdvancements(boolean) is not static.");
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
@@ -28,9 +28,20 @@ public class VanillaAdvancementDisablerWrapper {
     /**
      * Disable vanilla advancement.
      *
+     * @param disableVanillaRecipeAdvancements Disable vanilla recipes advancements.
+     * @throws Exception If disabling goes wrong.
+     */
+    public static void disableVanillaAdvancements(boolean disableVanillaRecipeAdvancements) throws Exception {
+        method.invoke(null, disableVanillaRecipeAdvancements);
+    }
+
+    /**
+     * Disable vanilla advancement.
+     * Disable vanilla recipes advancements too.
+     * 
      * @throws Exception If disabling goes wrong.
      */
     public static void disableVanillaAdvancements() throws Exception {
-        method.invoke(null);
+        disableVanillaAdvancements(true);
     }
 }

@@ -5,6 +5,8 @@
 # NB: This will make players lose their vanilla advancement progresses (since they are disabled).
 #     In addition, some lines may be printed on the console every time a player joins. You can ignore them.
 disable-vanilla-advancements: false
+# If vanilla advancements are disabled, whether to also disable advancements that unlock recipes. Works from version 1.20.2 to latest.
+disable-vanilla-recipe-advancements: false
 
 # Database settings
 #
@@ -34,4 +36,4 @@ mysql:
     connectionTimeout: 6000
 
 # Do not touch!!!
-config-version: 1
+config-version: 2
