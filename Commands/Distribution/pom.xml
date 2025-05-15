@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-commands-parent</artifactId>
-        <version>2.5.0</version>
+        <version>2.5.1</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-commands-distribution</artifactId>
@@ -33,7 +33,7 @@
 
         <dependency>
             <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-commandapi-10.0.0</artifactId>
+            <artifactId>ultimateadvancementapi-commands-commandapi-10.0.1</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
