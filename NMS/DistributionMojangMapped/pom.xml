@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>ultimateadvancementapi-nms-distribution-mojang-mapped</artifactId>
-    <name>UltimateAdvancementAPI-NMS-Distribution-mojang-mapped</name>
+    <name>UltimateAdvancementAPI-NMS-Distribution-Mojang-Mapped</name>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
