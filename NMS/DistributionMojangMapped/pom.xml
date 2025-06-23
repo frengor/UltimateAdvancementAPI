@@ -137,6 +137,13 @@
             <version>${project.version}</version>
             <classifier>mojang-mapped</classifier>
         </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_21_R5</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+        </dependency>
     </dependencies>
 
     <build>
@@ -165,6 +172,10 @@
                         </relocation>
                         <relocation>
                             <pattern>org.bukkit.craftbukkit.v1_21_R4</pattern>
+                            <shadedPattern>org.bukkit.craftbukkit</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.bukkit.craftbukkit.v1_21_R5</pattern>
                             <shadedPattern>org.bukkit.craftbukkit</shadedPattern>
                         </relocation>
                     </relocations>
