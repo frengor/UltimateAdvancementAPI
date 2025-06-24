@@ -18,7 +18,7 @@ public class CommandAPIManager implements ILoadable {
                 new CommandAPIBukkitConfig(plugin)
                         .verboseOutput(false)
                         .silentLogs(true)
-                        .setNamespace("UltimateAdvancementAPI")
+                        .setNamespace("ultimateadvancementapi")
         );
 
         new UltimateAdvancementAPICommand(main).register();
