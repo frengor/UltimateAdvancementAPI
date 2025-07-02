@@ -59,7 +59,7 @@ public class Versions {
             Map.entry("v1_21_R2", List.of("1.21.2", "1.21.3")),
             Map.entry("v1_21_R3", List.of("1.21.4")),
             Map.entry("v1_21_R4", List.of("1.21.5")),
-            Map.entry("v1_21_R5", List.of("1.21.6"))
+            Map.entry("v1_21_R5", List.of("1.21.6", "1.21.7"))
     );
 
     private static final Map<String, String> NMS_TO_FANCY = Map.ofEntries(
@@ -81,7 +81,7 @@ public class Versions {
             Map.entry("v1_21_R2", "1.21.2-1.21.3"),
             Map.entry("v1_21_R3", "1.21.4"),
             Map.entry("v1_21_R4", "1.21.5"),
-            Map.entry("v1_21_R5", "1.21.6")
+            Map.entry("v1_21_R5", "1.21.6-1.21.7")
     );
 
     private static final List<String> SUPPORTED_VERSIONS = SUPPORTED_NMS_VERSIONS.stream()
