@@ -16,9 +16,9 @@ public class CommandAPIManager implements ILoadable {
     public void onLoad(@NotNull AdvancementMain main, @NotNull JavaPlugin plugin) {
         CommandAPI.onLoad(
                 new CommandAPIBukkitConfig(plugin)
-                .verboseOutput(false)
-                .silentLogs(true)
-                .usePluginNamespace()
+                        .verboseOutput(false)
+                        .silentLogs(true)
+                        .setNamespace("ultimateadvancementapi")
         );
 
         new UltimateAdvancementAPICommand(main).register();
