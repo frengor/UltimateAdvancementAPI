@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v10_0_1;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v10_1_1;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.*;
@@ -6,6 +6,8 @@ import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Locale;
 
 public class CommandAPIManager implements ILoadable {
 
@@ -16,9 +18,9 @@ public class CommandAPIManager implements ILoadable {
     public void onLoad(@NotNull AdvancementMain main, @NotNull JavaPlugin plugin) {
         CommandAPI.onLoad(
                 new CommandAPIBukkitConfig(plugin)
-                .verboseOutput(false)
-                .silentLogs(true)
-                .usePluginNamespace()
+                        .verboseOutput(false)
+                        .silentLogs(true)
+                        .setNamespace(plugin.getName().toLowerCase(Locale.ENGLISH)) // Plugin names contain only latin characters present in english
         );
 
         new UltimateAdvancementAPICommand(main).register();
