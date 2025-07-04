@@ -7,7 +7,7 @@
     <parent>
         <artifactId>ultimateadvancementapi-parent</artifactId>
         <groupId>com.frengor</groupId>
-        <version>2.5.1</version>
+        <version>2.5.2</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-commands-parent</artifactId>
