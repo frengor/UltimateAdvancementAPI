@@ -7,6 +7,8 @@ import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
+
 public class CommandAPIManager implements ILoadable {
 
     public CommandAPIManager() {
@@ -18,7 +20,7 @@ public class CommandAPIManager implements ILoadable {
                 new CommandAPIBukkitConfig(plugin)
                         .verboseOutput(false)
                         .silentLogs(true)
-                        .setNamespace("ultimateadvancementapi")
+                        .setNamespace(plugin.getName().toLowerCase(Locale.ENGLISH)) // Plugin names contain only latin characters present in english
         );
 
         new UltimateAdvancementAPICommand(main).register();
