@@ -32,7 +32,7 @@ public enum CommandAPIVersion {
                     "v1_19_R3"
             )
     ),
-    LATEST("10.1.1", "BeFQY1Jw1+Aq3BxFiz0xvslMywg2XjKqz3AWJHDDMgE=", "HMlaifyWxyprrEyr/KiWLxBsuuelqEL7POaZMkzDTOY=", "10_1_1",
+    LATEST("10.1.2", "vwfO0UPX+wKoOgbv0SLS6YmzBjf0Inkuh6e00LKcekg=", "K1BBUo+b2ZReI2qsuSlWAGmpG0WAyEfDcZOnZS7u6z4=", "10_1_2",
             List.of(
                     "v1_20_R1",
                     "v1_20_R2",
