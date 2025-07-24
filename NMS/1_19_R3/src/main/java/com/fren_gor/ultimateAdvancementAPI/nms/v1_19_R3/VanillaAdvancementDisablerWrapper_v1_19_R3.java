@@ -112,8 +112,10 @@ public class VanillaAdvancementDisablerWrapper_v1_19_R3 extends VanillaAdvanceme
 
             Set<ResourceLocation> locations = new HashSet<>();
             for (Advancement root : registry.getRoots()) {
-                if (root.getId().getNamespace().equals("minecraft")) {
-                    locations.add(root.getId());
+                ResourceLocation key = root.getId();
+                boolean isRecipe = key.getPath().startsWith("recipes/");
+                if (key.getNamespace().equals("minecraft") && ((vanillaAdvancements && !isRecipe) || (vanillaRecipeAdvancements && isRecipe))) {
+                    locations.add(key);
                 }
             }
 

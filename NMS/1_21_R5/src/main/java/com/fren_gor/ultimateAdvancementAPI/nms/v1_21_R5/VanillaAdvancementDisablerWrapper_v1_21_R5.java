@@ -116,7 +116,8 @@ public class VanillaAdvancementDisablerWrapper_v1_21_R5 extends VanillaAdvanceme
             ImmutableMap.Builder<ResourceLocation, AdvancementHolder> builder = ImmutableMap.builder();
             for (var entry : serverAdvancements.advancements.entrySet()) {
                 ResourceLocation key = entry.getKey();
-                if (key.getNamespace().equals("minecraft")) {
+                boolean isRecipe = key.getPath().startsWith("recipes/");
+                if (key.getNamespace().equals("minecraft") && ((vanillaAdvancements && !isRecipe) || (vanillaRecipeAdvancements && isRecipe))) {
                     locations.add(key);
                 } else {
                     builder.put(key, entry.getValue());
