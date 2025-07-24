@@ -65,7 +65,7 @@ public class VanillaAdvancementDisablerWrapper_v1_21_R4 extends VanillaAdvanceme
         }
     }
 
-    public static void disableVanillaAdvancements() throws Exception {
+    public static void disableVanillaAdvancements(boolean vanillaAdvancements, boolean vanillaRecipeAdvancements) throws Exception {
         ServerAdvancementManager serverAdvancements = ((CraftServer) Bukkit.getServer()).getServer().getAdvancements();
         AdvancementTree tree = serverAdvancements.tree();
 

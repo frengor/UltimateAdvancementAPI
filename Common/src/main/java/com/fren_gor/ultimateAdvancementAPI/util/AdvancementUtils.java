@@ -136,25 +136,23 @@ public class AdvancementUtils {
     }
 
     /**
-     * Disable vanilla advancement.
-     * Disable vanilla recipes advancements too.
+     * Disables vanilla advancements.
      * 
-     * @throws Exception If disabling goes wrong.
-     * @see UltimateAdvancementAPI#disableVanillaAdvancements(boolean)
+     * @throws Exception If disabling fails.
+     * @see UltimateAdvancementAPI#disableVanillaAdvancements()
      */
     public static void disableVanillaAdvancements() throws Exception {
-        VanillaAdvancementDisablerWrapper.disableVanillaAdvancements(true);
+        VanillaAdvancementDisablerWrapper.disableVanillaAdvancements(true, false);
     }
 
     /**
-     * Disable vanilla advancement.
+     * Disables vanilla recipe advancements (i.e. the advancements which unlock recipes).
      *
-     * @param disableVanillaRecipeAdvancements Disable vanilla recipes advancements.
-     * @throws Exception If disabling goes wrong.
-     * @see UltimateAdvancementAPI#disableVanillaAdvancements(boolean)
+     * @throws Exception If disabling fails.
+     * @see UltimateAdvancementAPI#disableVanillaRecipeAdvancements()
      */
-    public static void disableVanillaAdvancements(boolean disableVanillaRecipeAdvancements) throws Exception {
-        VanillaAdvancementDisablerWrapper.disableVanillaAdvancements(disableVanillaRecipeAdvancements);
+    public static void disableVanillaRecipeAdvancements() throws Exception {
+        VanillaAdvancementDisablerWrapper.disableVanillaAdvancements(false, true);
     }
 
     @NotNull

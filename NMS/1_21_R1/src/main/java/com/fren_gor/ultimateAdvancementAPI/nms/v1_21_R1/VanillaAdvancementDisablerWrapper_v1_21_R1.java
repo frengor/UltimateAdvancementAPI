@@ -65,7 +65,7 @@ public class VanillaAdvancementDisablerWrapper_v1_21_R1 extends VanillaAdvanceme
         }
     }
 
-    public static void disableVanillaAdvancements(boolean disableVanillaRecipeAdvancements) throws Exception {
+    public static void disableVanillaAdvancements(boolean vanillaAdvancements, boolean vanillaRecipeAdvancements) throws Exception {
         ServerAdvancementManager serverAdvancements = ((CraftServer) Bukkit.getServer()).getServer().getAdvancements();
         AdvancementTree tree = serverAdvancements.tree();
 
@@ -116,7 +116,7 @@ public class VanillaAdvancementDisablerWrapper_v1_21_R1 extends VanillaAdvanceme
             ImmutableMap.Builder<ResourceLocation, AdvancementHolder> builder = ImmutableMap.builder();
             for (var entry : serverAdvancements.advancements.entrySet()) {
                 ResourceLocation key = entry.getKey();
-                if (key.getNamespace().equals("minecraft") && (disableVanillaRecipeAdvancements || !key.getPath().startsWith("recipes/"))) {
+                if (key.getNamespace().equals("minecraft") && (vanillaRecipeAdvancements || !key.getPath().startsWith("recipes/"))) {
                     locations.add(key);
                 } else {
                     builder.put(key, entry.getValue());

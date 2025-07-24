@@ -45,7 +45,7 @@ public class VanillaAdvancementDisablerWrapper_v1_16_R1 extends VanillaAdvanceme
     }
 
     @SuppressWarnings("unchecked")
-    public static void disableVanillaAdvancements(boolean disableVanillaRecipeAdvancements) throws Exception {
+    public static void disableVanillaAdvancements(boolean vanillaAdvancements, boolean vanillaRecipeAdvancements) throws Exception {
         AdvancementDataWorld serverAdvancements = ((CraftServer) Bukkit.getServer()).getServer().getAdvancementData();
         Advancements registry = serverAdvancements.REGISTRY;
 
