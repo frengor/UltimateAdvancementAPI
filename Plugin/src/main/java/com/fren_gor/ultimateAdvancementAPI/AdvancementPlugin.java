@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager;
 import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.ILoadable;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.metrics.BStats;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisablerWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -98,12 +99,12 @@ public class AdvancementPlugin extends JavaPlugin {
             }
         }
 
-        if (configManager.getDisableVanillaAdvancements()) {
+        if (configManager.getDisableVanillaAdvancements() || configManager.getDisableVanillaRecipeAdvancements()) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     try {
-                        AdvancementUtils.disableVanillaAdvancements();
+                        VanillaAdvancementDisablerWrapper.disableVanillaAdvancements(configManager.getDisableVanillaAdvancements(), configManager.getDisableVanillaRecipeAdvancements());
                     } catch (Exception e) {
                         Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] Couldn't disable vanilla advancements:");
                         e.printStackTrace();

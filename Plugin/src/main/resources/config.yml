@@ -1,10 +1,12 @@
 # UltimateAdvancementAPI config
 # For help see the official wiki https://github.com/frengor/UltimateAdvancementAPI/wiki
-#
+
 # Whether to disable every vanilla advancement.
 # NB: This will make players lose their vanilla advancement progresses (since they are disabled).
 #     In addition, some lines may be printed on the console every time a player joins. You can ignore them.
 disable-vanilla-advancements: false
+# Whether to disable every vanilla recipe advancement (i.e. the advancements which unlock recipes).
+disable-vanilla-recipe-advancements: false
 
 # Database settings
 #
@@ -34,4 +36,4 @@ mysql:
     connectionTimeout: 6000
 
 # Do not touch!!!
-config-version: 1
+config-version: 2
