@@ -45,7 +45,7 @@ public class VanillaAdvancementDisablerWrapper_v1_16_R1 extends VanillaAdvanceme
     }
 
     @SuppressWarnings("unchecked")
-    public static void disableVanillaAdvancements() throws Exception {
+    public static void disableVanillaAdvancements(boolean vanillaAdvancements, boolean vanillaRecipeAdvancements) throws Exception {
         AdvancementDataWorld serverAdvancements = ((CraftServer) Bukkit.getServer()).getServer().getAdvancementData();
         Advancements registry = serverAdvancements.REGISTRY;
 
@@ -62,7 +62,9 @@ public class VanillaAdvancementDisablerWrapper_v1_16_R1 extends VanillaAdvanceme
         while (it.hasNext()) {
             Entry<MinecraftKey, Advancement> e = it.next();
 
-            if (e.getKey().getNamespace().equals("minecraft")) {
+            MinecraftKey key = e.getKey();
+            boolean isRecipe = key.getKey().startsWith("recipes/");
+            if (key.getNamespace().equals("minecraft") && ((vanillaAdvancements && !isRecipe) || (vanillaRecipeAdvancements && isRecipe))) {
                 // Unregister it
                 Advancement adv = e.getValue();
                 if (adv.b() == null) {

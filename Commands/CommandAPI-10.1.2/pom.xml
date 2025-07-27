@@ -7,11 +7,11 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-commands-parent</artifactId>
-        <version>2.5.2</version>
+        <version>2.6.0</version>
     </parent>
 
-    <artifactId>ultimateadvancementapi-commands-commandapi-10.1.1</artifactId>
-    <name>UltimateAdvancementAPI-Commands-CommandAPI-10.1.1</name>
+    <artifactId>ultimateadvancementapi-commands-commandapi-10.1.2</artifactId>
+    <name>UltimateAdvancementAPI-Commands-CommandAPI-10.1.2</name>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>dev.jorel</groupId>
             <artifactId>commandapi-bukkit-shade</artifactId>
-            <version>10.1.1</version>
+            <version>10.1.2</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

@@ -50,7 +50,7 @@ public class VanillaAdvancementDisablerWrapper_v1_18_R1 extends VanillaAdvanceme
         }
     }
 
-    public static void disableVanillaAdvancements() throws Exception {
+    public static void disableVanillaAdvancements(boolean vanillaAdvancements, boolean vanillaRecipeAdvancements) throws Exception {
         ServerAdvancementManager serverAdvancements = ((CraftServer) Bukkit.getServer()).getServer().getAdvancements();
         AdvancementList registry = serverAdvancements.advancements;
 
@@ -99,8 +99,10 @@ public class VanillaAdvancementDisablerWrapper_v1_18_R1 extends VanillaAdvanceme
 
             Set<ResourceLocation> locations = new HashSet<>();
             for (Advancement root : registry.getRoots()) {
-                if (root.getId().getNamespace().equals("minecraft")) {
-                    locations.add(root.getId());
+                ResourceLocation key = root.getId();
+                boolean isRecipe = key.getPath().startsWith("recipes/");
+                if (key.getNamespace().equals("minecraft") && ((vanillaAdvancements && !isRecipe) || (vanillaRecipeAdvancements && isRecipe))) {
+                    locations.add(key);
                 }
             }
 
