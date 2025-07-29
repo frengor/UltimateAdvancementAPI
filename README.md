@@ -76,4 +76,5 @@ The API uses the following libraries:
   * [Libby](https://github.com/AlessioDP/libby) (released under MIT license) to handle dependencies at runtime
   * [CommandAPI](https://github.com/JorelAli/CommandAPI) (released under MIT license) to add commands to the plugin version of the API
   * [HikariCP](https://github.com/brettwooldridge/HikariCP) (released under Apache-2.0 license) to connect to MySQL databases
+  * [Config-Updater](https://github.com/tchristofferson/Config-Updater) (released under MIT license) to update the configuration in the plugin version of the API
   * [bStats](https://bstats.org/) (the Java library is released under MIT license) to collect usage data (which can be found [here](https://bstats.org/plugin/bukkit/UltimateAdvancementAPI/12593)) about the plugin version of the API
