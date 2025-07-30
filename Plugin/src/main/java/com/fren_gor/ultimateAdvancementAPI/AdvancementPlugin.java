@@ -141,7 +141,7 @@ public class AdvancementPlugin extends JavaPlugin {
                 if (scanner.hasNextLine()) {
                     if (!this.getDescription().getVersion().equalsIgnoreCase(scanner.next())) {
                         AdvancementUtils.runSync(this, () -> {
-                            getLogger().info("A new version of " + this.getDescription().getName() + " is out! Download it at https://www.spigotmc.org/resources/" + RESOURCE_ID);
+                            getLogger().info("A new version of " + this.getDescription().getName() + " is out! Download it at https://modrinth.com/plugin/ultimateadvancementapi");
                         });
                     }
                 }
