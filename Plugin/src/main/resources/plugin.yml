@@ -4,5 +4,6 @@ version: ${project.version}
 description: ${project.description}
 authors: [fren_gor, EscanorTargaryen]
 website: ${project.url}
+folia-supported: true
 load: STARTUP
 api-version: 1.15
