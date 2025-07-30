@@ -15,6 +15,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementD
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdvancementsWrapper;
+import com.github.Anon8281.universalScheduler.scheduling.schedulers.TaskScheduler;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -241,21 +242,21 @@ public class AdvancementUtils {
     }
 
     public static void runSync(@NotNull AdvancementMain main, @NotNull Runnable runnable) {
-        runSync(main.getOwningPlugin(), runnable);
+        runSync(main.getOwningPlugin(), main.getScheduler(), runnable);
     }
 
-    public static void runSync(@NotNull Plugin plugin, @NotNull Runnable runnable) {
-        runSync(plugin, 1, runnable);
+    public static void runSync(@NotNull Plugin plugin, @NotNull TaskScheduler scheduler, @NotNull Runnable runnable) {
+        runSync(plugin, scheduler, 1, runnable);
     }
 
     public static void runSync(@NotNull AdvancementMain main, long delay, @NotNull Runnable runnable) {
-        runSync(main.getOwningPlugin(), delay, runnable);
+        runSync(main.getOwningPlugin(), main.getScheduler(), delay, runnable);
     }
 
-    public static void runSync(@NotNull Plugin plugin, long delay, @NotNull Runnable runnable) {
+    public static void runSync(@NotNull Plugin plugin, @NotNull TaskScheduler scheduler, long delay, @NotNull Runnable runnable) {
         Preconditions.checkNotNull(plugin, "Plugin is null.");
         Preconditions.checkNotNull(runnable, "Runnable is null.");
-        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, runnable, delay);
+        scheduler.runTaskLater(runnable, delay);
     }
 
     @NotNull
