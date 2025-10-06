@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.commands;
 
+import com.google.common.base.Preconditions;
 import net.byteflux.libby.Library;
 import net.byteflux.libby.LibraryManager;
 import net.byteflux.libby.logging.adapters.JDKLogAdapter;
@@ -43,7 +44,7 @@ public class CommandAPIVersionTest {
 
         Library commandAPI = Library.builder()
                 .groupId("dev{}jorel")
-                .artifactId("commandapi-bukkit-shade")
+                .artifactId(version.artifactId)
                 .version(version.getVersion())
                 .checksum(version.checksum)
                 .build();
@@ -56,10 +57,12 @@ public class CommandAPIVersionTest {
             // e.printStackTrace();
         }
 
-        if (version.mojangMappedChecksum != null) {
+        if (version.mojangMappedArtifactId != null) {
+            Preconditions.checkNotNull(version.mojangMappedChecksum, "mojangMappedChecksum is null");
+
             Library commandAPIMojangMapped = Library.builder()
                     .groupId("dev{}jorel")
-                    .artifactId("commandapi-bukkit-shade-mojang-mapped")
+                    .artifactId(version.mojangMappedArtifactId)
                     .version(version.getVersion())
                     .checksum(version.mojangMappedChecksum)
                     .build();
