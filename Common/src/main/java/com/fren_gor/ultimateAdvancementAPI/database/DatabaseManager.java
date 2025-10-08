@@ -189,7 +189,7 @@ public final class DatabaseManager {
             } catch (Exception ex) {
                 System.err.println("Cannot load player " + e.getPlayer().getName() + ':');
                 ex.printStackTrace();
-                registerForJoinEvent(e.getPlayer(), () -> Bukkit.getPluginManager().callEvent(new PlayerLoadingFailedEvent(e.getPlayer(), ex)));
+                registerForJoinEvent(e.getPlayer(), () -> callEventCatchingExceptions(new PlayerLoadingFailedEvent(e.getPlayer(), ex)));
             }
         }));
         eventManager.register(this, PlayerJoinEvent.class, EventPriority.MONITOR, e -> {
@@ -219,7 +219,7 @@ public final class DatabaseManager {
                     if (t != null && t.noMemberMatch(progressionCache::containsKey)) {
                         t.inCache.set(false); // Invalidate TeamProgression
                         callEventCatchingExceptions(new AsyncTeamUnloadEvent(t));
-                        Bukkit.getPluginManager().callEvent(new TeamUnloadEvent(t));
+                        callEventCatchingExceptions(new TeamUnloadEvent(t));
                     }
                 }
             }
@@ -279,7 +279,7 @@ public final class DatabaseManager {
         Entry<TeamProgression, Boolean> entry = loadOrRegisterPlayer(player);
         final TeamProgression pro = entry.getKey();
         registerForJoinEvent(player, () -> {
-            Bukkit.getPluginManager().callEvent(new PlayerLoadingCompletedEvent(player, pro));
+            callEventCatchingExceptions(new PlayerLoadingCompletedEvent(player, pro));
             if (entry.getValue()) {
                 callEventCatchingExceptions(new AsyncTeamUpdateEvent(pro, player.getUniqueId(), Action.JOIN));
                 callEventCatchingExceptions(new TeamUpdateEvent(pro, player.getUniqueId(), TeamUpdateEvent.Action.JOIN));
@@ -324,7 +324,7 @@ public final class DatabaseManager {
         e.getKey().inCache.set(true); // Set TeamProgression valid
         progressionCache.put(uuid, e.getKey());
         callEventCatchingExceptions(new AsyncTeamLoadEvent(e.getKey()));
-        runSync(main, () -> Bukkit.getPluginManager().callEvent(new TeamLoadEvent(e.getKey())));
+        runSync(main, () -> callEventCatchingExceptions(new TeamLoadEvent(e.getKey())));
         return e;
     }
 
@@ -511,10 +511,10 @@ public final class DatabaseManager {
 
             runSync(main, () -> {
                 if (pro != null)
-                    Bukkit.getPluginManager().callEvent(new TeamUpdateEvent(pro, playerToMove, TeamUpdateEvent.Action.LEAVE));
+                    callEventCatchingExceptions(new TeamUpdateEvent(pro, playerToMove, TeamUpdateEvent.Action.LEAVE));
                 if (teamUnloaded)
-                    Bukkit.getPluginManager().callEvent(new TeamUnloadEvent(pro));
-                Bukkit.getPluginManager().callEvent(new TeamUpdateEvent(otherTeamProgression, playerToMove, TeamUpdateEvent.Action.JOIN));
+                    callEventCatchingExceptions(new TeamUnloadEvent(pro));
+                callEventCatchingExceptions(new TeamUpdateEvent(otherTeamProgression, playerToMove, TeamUpdateEvent.Action.JOIN));
                 if (ptm != null)
                     main.updatePlayer(ptm);
             });
@@ -596,11 +596,11 @@ public final class DatabaseManager {
 
             runSync(main, () -> {
                 if (pro != null)
-                    Bukkit.getPluginManager().callEvent(new TeamUpdateEvent(pro, uuid, TeamUpdateEvent.Action.LEAVE));
+                    callEventCatchingExceptions(new TeamUpdateEvent(pro, uuid, TeamUpdateEvent.Action.LEAVE));
                 if (teamUnloaded)
-                    Bukkit.getPluginManager().callEvent(new TeamUnloadEvent(pro));
-                Bukkit.getPluginManager().callEvent(new TeamLoadEvent(newPro));
-                Bukkit.getPluginManager().callEvent(new TeamUpdateEvent(newPro, uuid, TeamUpdateEvent.Action.JOIN));
+                    callEventCatchingExceptions(new TeamUnloadEvent(pro));
+                callEventCatchingExceptions(new TeamLoadEvent(newPro));
+                callEventCatchingExceptions(new TeamUpdateEvent(newPro, uuid, TeamUpdateEvent.Action.JOIN));
                 if (ptr != null)
                     main.updatePlayer(ptr);
             });
@@ -1064,7 +1064,7 @@ public final class DatabaseManager {
             if (option.option != Option.DONT_CACHE) {
                 t.inCache.set(true); // Set TeamProgression valid
                 callEventCatchingExceptions(new AsyncTeamLoadEvent(t));
-                runSync(main, () -> Bukkit.getPluginManager().callEvent(new TeamLoadEvent(t)));
+                runSync(main, () -> callEventCatchingExceptions(new TeamLoadEvent(t)));
             }
             return new ObjectResult<>(t);
         });
