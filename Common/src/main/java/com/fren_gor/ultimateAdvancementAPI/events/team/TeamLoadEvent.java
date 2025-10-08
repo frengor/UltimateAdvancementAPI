@@ -8,11 +8,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
-
 /**
  * Called when a new {@link TeamProgression} instance is created and stored in the caching system.
- * <p>The {@link TeamProgression} instance provided by this event is always valid.
  *
  * @see DatabaseManager
  * @deprecated Use {@link AsyncTeamLoadEvent} instead.
@@ -25,10 +22,10 @@ public class TeamLoadEvent extends Event {
     /**
      * Creates a new {@code TeamLoadEvent}.
      *
-     * @param team The loaded {@link TeamProgression}. It must be valid (see {@link TeamProgression#isValid()}).
+     * @param team The loaded {@link TeamProgression}.
      */
     public TeamLoadEvent(@NotNull TeamProgression team) {
-        this.team = validateTeamProgression(team);
+        this.team = Objects.requireNonNull(team, "TeamProgression is null."); // Cannot validate TeamProgression! This is the reason this class is deprecated
     }
 
     /**
