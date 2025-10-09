@@ -130,6 +130,12 @@
             <artifactId>ultimateadvancementapi-nms-1_21_R5</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_21_R6</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
