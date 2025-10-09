@@ -36,6 +36,7 @@ public class ConfigManagerTest {
     public void configUpdaterDownloadTest() throws Exception {
         Logger logger = Logger.getLogger("ConfigManagerTest");
         MockLibraryManager manager = new MockLibraryManager(logger);
+        manager.addMavenCentral();
 
         try {
             assertTrue(Files.exists(manager.downloadLibrary(ConfigManager.CONFIG_UPDATER)));

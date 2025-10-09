@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.SQLite;
 import com.google.common.base.Preconditions;
 import net.byteflux.libby.Library;
+import net.byteflux.libby.Repositories;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -24,9 +25,8 @@ public class ConfigManager {
     public static final Library CONFIG_UPDATER = Library.builder()
             .groupId("com.tchristofferson")
             .artifactId("ConfigUpdater")
-            .version("2.2-SNAPSHOT")
-            .checksum("yLsLD+/9u9yNYcRGtfNqADQ6G8qDnRLjeIam5BZpHUo=")
-            .repository("https://central.sonatype.com/repository/maven-snapshots/")
+            .version("2.2")
+            .checksum("3LHINAggl0kkNC3nROgEWBXVu0aiFlofmFjq5aNAi3A=")
             .build();
 
     private final File configFile;

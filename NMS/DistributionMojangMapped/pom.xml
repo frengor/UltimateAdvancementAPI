@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-nms-parent</artifactId>
-        <version>2.6.0</version>
+        <version>2.7.0</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-nms-distribution-mojang-mapped</artifactId>
@@ -144,6 +144,15 @@
             <version>${project.version}</version>
             <classifier>mojang-mapped</classifier>
         </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-1_21_R6</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+        </dependency>
+
+        <!-- When adding a version remember to add the CraftBukkit relocation below -->
     </dependencies>
 
     <build>
@@ -176,6 +185,10 @@
                         </relocation>
                         <relocation>
                             <pattern>org.bukkit.craftbukkit.v1_21_R5</pattern>
+                            <shadedPattern>org.bukkit.craftbukkit</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.bukkit.craftbukkit.v1_21_R6</pattern>
                             <shadedPattern>org.bukkit.craftbukkit</shadedPattern>
                         </relocation>
                     </relocations>

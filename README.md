@@ -34,7 +34,7 @@ A powerful API to create custom advancements for your minecraft server.
 <dependency>
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi</artifactId>
-    <version>2.6.0</version>
+    <version>2.7.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -74,7 +74,7 @@ UltimateAdvancementAPI has been made by [fren_gor](https://github.com/frengor) a
 The API uses the following libraries:
   * [EventManagerAPI](https://github.com/frengor/EventManagerAPI) (released under Apache-2.0 license) to handle events
   * [Libby](https://github.com/AlessioDP/libby) (released under MIT license) to handle dependencies at runtime
-  * [CommandAPI](https://github.com/JorelAli/CommandAPI) (released under MIT license) to add commands to the plugin version of the API
+  * [CommandAPI](https://github.com/CommandAPI/CommandAPI) (released under MIT license) to add commands to the plugin version of the API
   * [HikariCP](https://github.com/brettwooldridge/HikariCP) (released under Apache-2.0 license) to connect to MySQL databases
   * [Config-Updater](https://github.com/tchristofferson/Config-Updater) (released under MIT license) to update the configuration in the plugin version of the API
   * [bStats](https://bstats.org/) (the Java library is released under MIT license) to collect usage data (which can be found [here](https://bstats.org/plugin/bukkit/UltimateAdvancementAPI/12593)) about the plugin version of the API
