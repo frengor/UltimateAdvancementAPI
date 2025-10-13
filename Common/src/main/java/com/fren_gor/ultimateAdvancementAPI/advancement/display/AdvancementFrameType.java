@@ -1,27 +1,30 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.display.DefaultStyle;
 import net.md_5.bungee.api.ChatColor;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 /**
  * Describes which shape of an advancement frame in the advancement GUI.
- * <p>The frame also contains the default title and description colors and the message that should be sent when the advancement is granted.
+ * <p>The frame also contains the default title and description styles and the message that should be sent when the advancement is granted.
  */
 public enum AdvancementFrameType {
 
     /**
-     * A frame with squared shape. The default color is {@link ChatColor#GREEN}.
+     * A frame with squared shape. The default style has color {@link ChatColor#GREEN}.
      */
-    TASK(AdvancementFrameTypeWrapper.TASK, ChatColor.GREEN, "has made the advancement"),
+    TASK(AdvancementFrameTypeWrapper.TASK, new DefaultStyle(ChatColor.GREEN), "has made the advancement"),
     /**
-     * A frame with rounded top and bottom. The default color is {@link ChatColor#GREEN}.
+     * A frame with rounded top and bottom. The default style has color {@link ChatColor#GREEN}.
      */
-    GOAL(AdvancementFrameTypeWrapper.GOAL, ChatColor.GREEN, "has reached the goal"),
+    GOAL(AdvancementFrameTypeWrapper.GOAL, new DefaultStyle(ChatColor.GREEN), "has reached the goal"),
     /**
-     * A frame with thorns at the corners. The default color is {@link ChatColor#DARK_PURPLE}.
+     * A frame with thorns at the corners. The default style has color {@link ChatColor#DARK_PURPLE}.
      */
-    CHALLENGE(AdvancementFrameTypeWrapper.CHALLENGE, ChatColor.DARK_PURPLE, "has completed the challenge");
+    CHALLENGE(AdvancementFrameTypeWrapper.CHALLENGE, new DefaultStyle(ChatColor.DARK_PURPLE), "has completed the challenge");
 
     /**
      * The {@code AdvancementFrameType} NMS wrapper.
@@ -29,9 +32,9 @@ public enum AdvancementFrameType {
     private final AdvancementFrameTypeWrapper wrapper;
 
     /**
-     * The default title and description colors for announcement messages.
+     * The default title and description styles for announcement messages.
      */
-    private final ChatColor color;
+    private final DefaultStyle style;
 
     /**
      * The message that should be sent when the advancement is granted.
@@ -39,10 +42,10 @@ public enum AdvancementFrameType {
      */
     private final String chatText;
 
-    AdvancementFrameType(@NotNull AdvancementFrameTypeWrapper wrapper, @NotNull ChatColor color, @NotNull String chatText) {
-        this.wrapper = wrapper;
-        this.color = color;
-        this.chatText = chatText;
+    AdvancementFrameType(@NotNull AdvancementFrameTypeWrapper wrapper, @NotNull DefaultStyle style, @NotNull String chatText) {
+        this.wrapper = Objects.requireNonNull(wrapper);
+        this.style = Objects.requireNonNull(style);
+        this.chatText = Objects.requireNonNull(chatText);
     }
 
     /**
@@ -74,13 +77,13 @@ public enum AdvancementFrameType {
     }
 
     /**
-     * Gets the default title and description colors for announcement messages.
+     * Gets the default title and description styles for announcement messages.
      *
-     * @return The default title and description colors for announcement messages.
+     * @return The default title and description styles for announcement messages.
      */
     @NotNull
-    public ChatColor getColor() {
-        return color;
+    public DefaultStyle getStyle() {
+        return style;
     }
 
     /**

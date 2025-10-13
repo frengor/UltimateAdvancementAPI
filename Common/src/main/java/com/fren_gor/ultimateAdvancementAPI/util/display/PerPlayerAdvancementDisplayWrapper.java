@@ -3,13 +3,11 @@ package com.fren_gor.ultimateAdvancementAPI.util.display;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayerAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -125,36 +123,36 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getDefaultTitleColor(@NotNull Player player) {
-        return wrapped.getDefaultTitleColor(player);
+    @NotNull
+    public DefaultStyle getDefaultTitleStyle(@NotNull Player player) {
+        return wrapped.getDefaultTitleStyle(player);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getDefaultTitleColor(@NotNull OfflinePlayer player) {
-        return wrapped.getDefaultTitleColor(player);
+    @NotNull
+    public DefaultStyle getDefaultTitleStyle(@NotNull OfflinePlayer player) {
+        return wrapped.getDefaultTitleStyle(player);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getAnnouncementMessageDefaultTitleColor(@NotNull Player player) {
-        return wrapped.getAnnouncementMessageDefaultTitleColor(player);
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull Player player) {
+        return wrapped.getAnnouncementMessageDefaultTitleStyle(player);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getAnnouncementMessageDefaultTitleColor(@NotNull OfflinePlayer player) {
-        return wrapped.getAnnouncementMessageDefaultTitleColor(player);
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player) {
+        return wrapped.getAnnouncementMessageDefaultTitleStyle(player);
     }
 
     /**
@@ -197,36 +195,36 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getDefaultDescriptionColor(@NotNull Player player) {
-        return wrapped.getDefaultDescriptionColor(player);
+    @NotNull
+    public DefaultStyle getDefaultDescriptionStyle(@NotNull Player player) {
+        return wrapped.getDefaultDescriptionStyle(player);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getDefaultDescriptionColor(@NotNull OfflinePlayer player) {
-        return wrapped.getDefaultDescriptionColor(player);
+    @NotNull
+    public DefaultStyle getDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
+        return wrapped.getDefaultDescriptionStyle(player);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getAnnouncementMessageDefaultDescriptionColor(@NotNull Player player) {
-        return wrapped.getAnnouncementMessageDefaultDescriptionColor(player);
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player) {
+        return wrapped.getAnnouncementMessageDefaultDescriptionStyle(player);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getAnnouncementMessageDefaultDescriptionColor(@NotNull OfflinePlayer player) {
-        return wrapped.getAnnouncementMessageDefaultDescriptionColor(player);
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
+        return wrapped.getAnnouncementMessageDefaultDescriptionStyle(player);
     }
 
     /**

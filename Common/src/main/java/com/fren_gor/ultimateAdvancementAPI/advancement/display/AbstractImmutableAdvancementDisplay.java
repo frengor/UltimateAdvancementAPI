@@ -6,14 +6,13 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
-import net.md_5.bungee.api.ChatColor;
+import com.fren_gor.ultimateAdvancementAPI.util.display.DefaultStyle;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
@@ -75,30 +74,29 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     public abstract BaseComponent getTitle();
 
     /**
-     * Returns the default color of the title when displayed in the advancement GUI.
+     * Returns the default style of the title when displayed in the advancement GUI.
      *
-     * @return The default color of the title when displayed in the advancement GUI
-     *         or {@code null} to use Minecraft's default color.
-     * @implSpec The default implementation returns {@code null}.
+     * @return The default style of the title when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
      */
-    @Nullable
-    public ChatColor getDefaultTitleColor() {
-        return null;
+    @NotNull
+    public DefaultStyle getDefaultTitleStyle() {
+        return DefaultStyle.MINECRAFT_DEFAULTS;
     }
 
     /**
-     * Returns the default color of the title in the advancement's announcement message.
+     * Returns the default style of the title in the advancement's announcement message.
      *
-     * @return The default color of the title in the advancement's announcement message
-     *         or {@code null} to use the frame's color (i.e. the color returned by calling
-     *         {@link AdvancementFrameType#getColor() getColor()} on the frame returned by {@link #getFrame() getFrame}).
-     * @implSpec The default implementation returns {@code null}.
+     * @return The default style of the title in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
      */
-    @Nullable
-    public ChatColor getAnnouncementMessageDefaultTitleColor() {
-        return null;
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultTitleStyle() {
+        return DefaultStyle.MINECRAFT_DEFAULTS;
     }
 
     /**
@@ -123,30 +121,29 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
     public abstract List<BaseComponent> getDescription();
 
     /**
-     * Returns the default color of the description when displayed in the advancement GUI.
+     * Returns the default style of the description when displayed in the advancement GUI.
      *
-     * @return The default color of the description when displayed in the advancement GUI
-     *         or {@code null} to use Minecraft's default color.
-     * @implSpec The default implementation returns {@code null}.
+     * @return The default style of the description when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
      */
-    @Nullable
-    public ChatColor getDefaultDescriptionColor() {
-        return null;
+    @NotNull
+    public DefaultStyle getDefaultDescriptionStyle() {
+        return DefaultStyle.MINECRAFT_DEFAULTS;
     }
 
     /**
-     * Returns the default color of the description in the advancement's announcement message.
+     * Returns the default style of the description in the advancement's announcement message.
      *
-     * @return The default color of the description in the advancement's announcement message
-     *         or {@code null} to use the frame's color (i.e. the color returned by calling
-     *         {@link AdvancementFrameType#getColor() getColor()} on the frame returned by {@link #getFrame() getFrame}).
-     * @implSpec The default implementation returns {@code null}.
+     * @return The default style of the description in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
      */
-    @Nullable
-    public ChatColor getAnnouncementMessageDefaultDescriptionColor() {
-        return null;
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle() {
+        return DefaultStyle.MINECRAFT_DEFAULTS;
     }
 
     /**
@@ -182,8 +179,8 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
             return wrapper;
         }
 
-        BaseComponent title = AdvancementUtils.applyDefaultColor(getTitle(), getDefaultTitleColor());
-        BaseComponent description = AdvancementUtils.joinBaseComponents(new TextComponent("\n"), getDefaultDescriptionColor(), getDescription());
+        BaseComponent title = AdvancementUtils.applyDefaultStyle(getTitle(), getDefaultTitleStyle());
+        BaseComponent description = AdvancementUtils.joinBaseComponents(new TextComponent("\n"), getDefaultDescriptionStyle(), getDescription());
         return wrapper = PreparedAdvancementDisplayWrapper.craft(getIcon(), title, description, getFrame().getNMSWrapper(), getX(), getY());
     }
 
@@ -223,6 +220,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public final ItemStack dispatchGetIcon(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getIcon();
     }
@@ -231,6 +229,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public final ItemStack dispatchGetIcon(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getIcon();
     }
@@ -239,6 +238,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public final String dispatchGetLegacyTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getLegacyTitle();
     }
@@ -247,6 +247,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public final String dispatchGetLegacyTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getLegacyTitle();
     }
@@ -255,6 +256,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public final BaseComponent dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getTitle();
     }
@@ -263,6 +265,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public final BaseComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getTitle();
     }
@@ -271,42 +274,43 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public final ChatColor dispatchGetDefaultTitleColor(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getDefaultTitleColor();
+    @NotNull
+    public final DefaultStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getDefaultTitleStyle();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public final ChatColor dispatchGetDefaultTitleColor(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getDefaultTitleColor();
+    @NotNull
+    public final DefaultStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getDefaultTitleStyle();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public final ChatColor dispatchGetAnnouncementMessageDefaultTitleColor(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getAnnouncementMessageDefaultTitleColor();
+    @NotNull
+    public final DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getAnnouncementMessageDefaultTitleStyle();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public final ChatColor dispatchGetAnnouncementMessageDefaultTitleColor(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getAnnouncementMessageDefaultTitleColor();
+    @NotNull
+    public final DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getAnnouncementMessageDefaultTitleStyle();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     @Unmodifiable
     public final List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getLegacyDescription();
@@ -316,6 +320,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     @Unmodifiable
     public final List<String> dispatchGetLegacyDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getLegacyDescription();
@@ -325,6 +330,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     @Unmodifiable
     public final List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getDescription();
@@ -334,6 +340,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     @Unmodifiable
     public final List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getDescription();
@@ -343,42 +350,43 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public final ChatColor dispatchGetDefaultDescriptionColor(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getDefaultDescriptionColor();
+    @NotNull
+    public final DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getDefaultDescriptionStyle();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public final ChatColor dispatchGetDefaultDescriptionColor(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getDefaultDescriptionColor();
+    @NotNull
+    public final DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getDefaultDescriptionStyle();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public final ChatColor dispatchGetAnnouncementMessageDefaultDescriptionColor(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getAnnouncementMessageDefaultDescriptionColor();
+    @NotNull
+    public final DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getAnnouncementMessageDefaultDescriptionStyle();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public final ChatColor dispatchGetAnnouncementMessageDefaultDescriptionColor(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getAnnouncementMessageDefaultDescriptionColor();
+    @NotNull
+    public final DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getAnnouncementMessageDefaultDescriptionStyle();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public final AdvancementFrameType dispatchGetFrame(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getFrame();
     }
@@ -387,6 +395,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public final AdvancementFrameType dispatchGetFrame(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getFrame();
     }
@@ -427,6 +436,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public final PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) throws ReflectiveOperationException {
         return getNMSWrapper();
     }

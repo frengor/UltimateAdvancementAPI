@@ -16,6 +16,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementF
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdvancementsWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.display.DefaultStyle;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -348,19 +349,21 @@ public final class AdvancementUtils {
         AdvancementFrameType frame = display.dispatchGetFrame(advancementCompleter, progression);
         BaseComponent title = display.dispatchGetTitle(advancementCompleter, progression);
         List<BaseComponent> description = display.dispatchGetDescription(advancementCompleter, progression);
-        ChatColor defaultAMTitleColor = display.dispatchGetAnnouncementMessageDefaultTitleColor(advancementCompleter, progression);
-        ChatColor defaultAMDescriptionColor = display.dispatchGetAnnouncementMessageDefaultDescriptionColor(advancementCompleter, progression);
+        DefaultStyle defaultAMTitleStyle = display.dispatchGetAnnouncementMessageDefaultTitleStyle(advancementCompleter, progression);
+        DefaultStyle defaultAMDescriptionStyle = display.dispatchGetAnnouncementMessageDefaultDescriptionStyle(advancementCompleter, progression);
         String chatText = frame.getChatText();
+        DefaultStyle frameStyle = frame.getStyle();
 
         Preconditions.checkNotNull(frame, "Display returned a null frame.");
         Preconditions.checkNotNull(title, "Display returned a null title.");
         Preconditions.checkNotNull(description, "Display returned a null description.");
         Preconditions.checkNotNull(chatText, "Frame returned a null chatText.");
+        Preconditions.checkNotNull(frameStyle, "Frame returned a null style.");
 
-        ChatColor frameColor = Objects.requireNonNull(frame.getColor(), "Frame returned a null color.");
-        ChatColor parenthesisColor = fancy && defaultAMTitleColor != null ? defaultAMTitleColor : frameColor;
+        DefaultStyle titleStyle = defaultAMTitleStyle.mergeWith(frameStyle);
+        DefaultStyle parenthesesStyle = fancy ? titleStyle : frameStyle;
 
-        title = applyDefaultColor(title, defaultAMTitleColor != null ? defaultAMTitleColor : frameColor);
+        title = applyDefaultStyle(title, titleStyle);
 
         ComponentBuilder hoverText = new ComponentBuilder().append(title, FormatRetention.NONE);
 
@@ -371,16 +374,17 @@ public final class AdvancementUtils {
                 hoverText.append("\n", FormatRetention.NONE);
             }
 
-            ChatColor defaultDescColor = defaultAMDescriptionColor != null ? defaultAMDescriptionColor : frameColor;
-            hoverText.append(joinBaseComponents(new TextComponent("\n"), defaultDescColor, description), FormatRetention.NONE);
+            DefaultStyle descriptionStyle = defaultAMDescriptionStyle.mergeWith(frameStyle);
+            hoverText.append(joinBaseComponents(new TextComponent("\n"), descriptionStyle, description), FormatRetention.NONE);
         }
 
-        TextComponent withHover = new TextComponent(new ComponentBuilder("[")
-                .color(parenthesisColor)
-                .append(title, FormatRetention.NONE)
-                .append("]", FormatRetention.NONE)
-                .color(parenthesisColor)
-                .create());
+        ComponentBuilder hoverBuilder = new ComponentBuilder("[");
+        parenthesesStyle.applyTo(hoverBuilder);
+        hoverBuilder.append(title, FormatRetention.NONE)
+                .append("]", FormatRetention.NONE);
+        parenthesesStyle.applyTo(hoverBuilder);
+
+        TextComponent withHover = new TextComponent(hoverBuilder.create());
         withHover.setHoverEvent(new HoverEvent(Action.SHOW_TEXT, hoverText.create()));
 
         var cb = new ComponentBuilder(advancementCompleter.getName() + ' ' + frame.getChatText() + ' ')
@@ -486,12 +490,12 @@ public final class AdvancementUtils {
      * Joins the provided {@link BaseComponent}s into a single one, separating them with the specified delimiter.
      *
      * @param delimiter The delimiter to put in between the {@link BaseComponent}s.
-     * @param defaultColor The default color of the {@link BaseComponent}s to join. May be {@code null} if no default color should be applied.
+     * @param defaultStyle The default style of the {@link BaseComponent}s to join. May be {@code null} if no default color should be applied.
      * @param toJoin The {@link BaseComponent}s to join.
      * @return A {@link BaseComponent} containing the joined components.
      */
     @NotNull
-    public static BaseComponent joinBaseComponents(@NotNull BaseComponent delimiter, @Nullable ChatColor defaultColor, @NotNull Iterable<? extends BaseComponent> toJoin) {
+    public static BaseComponent joinBaseComponents(@NotNull BaseComponent delimiter, @Nullable DefaultStyle defaultStyle, @NotNull Iterable<? extends BaseComponent> toJoin) {
         Preconditions.checkNotNull(delimiter, "Delimiter is null.");
         Preconditions.checkNotNull(toJoin, "BaseComponents to join are null.");
         var iter = toJoin.iterator();
@@ -504,28 +508,23 @@ public final class AdvancementUtils {
             BaseComponent component = Objects.requireNonNull(iter.next(), "A BaseComponent to join is null.");
             joiner.append(delimiter, FormatRetention.NONE).append(component, FormatRetention.NONE);
         }
-        return applyDefaultColor(build(joiner), defaultColor);
+        return applyDefaultStyle(build(joiner), defaultStyle);
     }
 
     /**
-     * Applies the specified default color to the provided {@link BaseComponent}.
-     * <p>No color will be applied if one is already present.
+     * Applies the specified default style to the provided {@link BaseComponent}.
      *
-     * @param text The {@link BaseComponent} to which the default color will be applied.
-     * @param defaultColor The default color to apply. May be {@code null} if no default color should be applied.
-     * @return The provided {@link BaseComponent} with the default color applied.
+     * @param text The {@link BaseComponent} to which the default style will be applied.
+     * @param defaultStyle The default style to apply. May be {@code null} if no default style should be applied.
+     * @return The provided {@link BaseComponent} with the default style applied.
      */
     @NotNull
-    public static BaseComponent applyDefaultColor(@NotNull BaseComponent text, @Nullable ChatColor defaultColor) {
-        if (defaultColor == null) {
-            return text;
-        }
-        var color = Objects.requireNonNull(text, "BaseComponent is null.").getColorRaw();
-        if (color != null) {
+    public static BaseComponent applyDefaultStyle(@NotNull BaseComponent text, @Nullable DefaultStyle defaultStyle) {
+        if (defaultStyle == null || defaultStyle == DefaultStyle.MINECRAFT_DEFAULTS) {
             return text;
         }
         text = text.duplicate();
-        text.setColor(defaultColor);
+        defaultStyle.applyTo(text);
         return text;
     }
 

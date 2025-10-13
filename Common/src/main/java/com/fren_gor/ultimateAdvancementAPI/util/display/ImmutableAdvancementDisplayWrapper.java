@@ -3,11 +3,9 @@ package com.fren_gor.ultimateAdvancementAPI.util.display;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractImmutableAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -80,18 +78,18 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getDefaultTitleColor() {
-        return wrapped.getDefaultTitleColor();
+    @NotNull
+    public DefaultStyle getDefaultTitleStyle() {
+        return wrapped.getDefaultTitleStyle();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getAnnouncementMessageDefaultTitleColor() {
-        return wrapped.getAnnouncementMessageDefaultTitleColor();
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultTitleStyle() {
+        return wrapped.getAnnouncementMessageDefaultTitleStyle();
     }
 
     /**
@@ -116,18 +114,18 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getDefaultDescriptionColor() {
-        return wrapped.getDefaultDescriptionColor();
+    @NotNull
+    public DefaultStyle getDefaultDescriptionStyle() {
+        return wrapped.getDefaultDescriptionStyle();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getAnnouncementMessageDefaultDescriptionColor() {
-        return wrapped.getAnnouncementMessageDefaultDescriptionColor();
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle() {
+        return wrapped.getAnnouncementMessageDefaultDescriptionStyle();
     }
 
     /**

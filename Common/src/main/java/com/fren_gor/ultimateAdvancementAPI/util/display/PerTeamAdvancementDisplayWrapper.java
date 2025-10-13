@@ -4,11 +4,9 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAd
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -81,18 +79,18 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getDefaultTitleColor(@NotNull TeamProgression progression) {
-        return super.getDefaultTitleColor(progression);
+    @NotNull
+    public DefaultStyle getDefaultTitleStyle(@NotNull TeamProgression progression) {
+        return super.getDefaultTitleStyle(progression);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getAnnouncementMessageDefaultTitleColor(@NotNull TeamProgression progression) {
-        return super.getAnnouncementMessageDefaultTitleColor(progression);
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull TeamProgression progression) {
+        return super.getAnnouncementMessageDefaultTitleStyle(progression);
     }
 
     /**
@@ -117,18 +115,18 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getDefaultDescriptionColor(@NotNull TeamProgression progression) {
-        return super.getDefaultDescriptionColor(progression);
+    @NotNull
+    public DefaultStyle getDefaultDescriptionStyle(@NotNull TeamProgression progression) {
+        return super.getDefaultDescriptionStyle(progression);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public ChatColor getAnnouncementMessageDefaultDescriptionColor(@NotNull TeamProgression progression) {
-        return super.getAnnouncementMessageDefaultDescriptionColor(progression);
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull TeamProgression progression) {
+        return super.getAnnouncementMessageDefaultDescriptionStyle(progression);
     }
 
     /**
