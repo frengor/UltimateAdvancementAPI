@@ -21,7 +21,6 @@ public interface FancyAnnouncementMessage extends IAnnouncementMessage {
      * @return The fancy announcement message.
      */
     @Override
-    @NotNull
     default BaseComponent getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
         return AdvancementUtils.getAnnouncementMessage(advancement, advancementCompleter, true);
     }
