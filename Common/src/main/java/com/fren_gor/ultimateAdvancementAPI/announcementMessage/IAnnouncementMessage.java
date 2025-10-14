@@ -6,6 +6,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
+
 /**
  * The core interface of the Advancement Announcement Message System.
  * <p>A sub-interface of {@link IAnnouncementMessage} is suitable for the Advancement Announcement Message System if it provides
@@ -21,13 +23,21 @@ import org.jetbrains.annotations.Nullable;
 public interface IAnnouncementMessage {
 
     /**
-     * Gets the chat message to be sent when an advancement is completed.
-     * <p>The message is sent to everybody online on the server.
+     * Returns a function to get the per-player chat message to be displayed when an advancement is completed.
+     * <p>The returned function is called for each online player and should return the announcement message
+     * to send them, or {@code null} if no message should be shown to that player.
+     * <p>If the same message should be displayed to every player, it is suggested to create it once and
+     * return it for all the players, like in the following example:
+     * <pre> {@code default Function<Player, BaseComponent> getAnnouncementMessage(Advancement advancement, Player advancementCompleter) {
+     *   BaseComponent announcementMsg = ...; // Your announcement message
+     *   return player -> announcementMsg; // The same message will be displayed to every player
+     * }}</pre>
      *
      * @param advancement The advancement.
      * @param advancementCompleter The player who has completed the advancement.
-     * @return The message to be displayed, or {@code null} if no message should be displayed.
+     * @return A function which returns, for each player, the announcement message to be displayed to them.
+     *         {@code null} can be returned instead if no message should be displayed to any player.
      */
     @Nullable
-    BaseComponent getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter);
+    Function<@NotNull Player, @Nullable BaseComponent> getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter);
 }

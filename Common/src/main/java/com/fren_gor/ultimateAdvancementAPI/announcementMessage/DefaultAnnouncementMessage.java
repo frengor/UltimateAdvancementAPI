@@ -6,6 +6,8 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Function;
+
 /**
  * If an advancement implements this interface, its announcement message will be vanilla like.
  * <p>This class is part of the Advancement Announcement Message System. See {@link IAnnouncementMessage} for more information.
@@ -13,14 +15,16 @@ import org.jetbrains.annotations.NotNull;
 public interface DefaultAnnouncementMessage extends IAnnouncementMessage {
 
     /**
-     * Returns the default announcement message.
+     * Returns a function to get the default announcement message.
      *
      * @param advancement The advancement.
      * @param advancementCompleter The player who has completed the advancement.
-     * @return The default announcement message.
+     * @return A function which returns the default announcement message.
+     * @see IAnnouncementMessage#getAnnouncementMessage(Advancement, Player)
      */
     @Override
-    default BaseComponent getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
-        return AdvancementUtils.getAnnouncementMessage(advancement, advancementCompleter);
+    default Function<Player, BaseComponent> getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+        BaseComponent announcementMsg = AdvancementUtils.getAnnouncementMessage(advancement, advancementCompleter);
+        return player -> announcementMsg;
     }
 }

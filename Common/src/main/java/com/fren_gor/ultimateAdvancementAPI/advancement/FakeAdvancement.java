@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Range;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 /**
  * The {@code FakeAdvancement} class is a non-saved and non-registrable invisible advancement.
@@ -139,7 +140,7 @@ public final class FakeAdvancement extends BaseAdvancement {
     @Override
     @Nullable
     @Contract("_ -> null")
-    public BaseComponent getAnnouncementMessage(@NotNull Player player) {
+    public Function<@NotNull Player, @Nullable BaseComponent> getAnnouncementMessage(@NotNull Player advancementCompleter) {
         return null;
     }
 

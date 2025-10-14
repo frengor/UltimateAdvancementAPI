@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Range;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
@@ -195,7 +196,7 @@ public class TaskAdvancement extends BaseAdvancement {
     @Override
     @Nullable
     @Contract("_ -> null")
-    public final BaseComponent getAnnouncementMessage(@NotNull Player player) {
+    public final Function<@NotNull Player, @Nullable BaseComponent> getAnnouncementMessage(@NotNull Player advancementCompleter) {
         return null;
     }
 

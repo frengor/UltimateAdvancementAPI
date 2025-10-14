@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromPlayer;
@@ -589,13 +590,15 @@ public abstract class Advancement {
     }
 
     /**
-     * Gets the chat message to be sent when an advancement is completed.
-     * <p>The message is sent to everybody online on the server.
-     * <p>The default announcement message can be changed by overriding this method or implementing a suitable interface for
-     * the Advancement Announcement Message System.
+     * Returns a function to get the per-player chat message to be displayed when the advancement is completed.
+     * <p>The returned function is called for each online player and should return the announcement message
+     * to send them, or {@code null} if no message should be shown to that player.
+     * <p>By default, the announcement message is vanilla like. This behavior can be changed by overriding this method
+     * or implementing a suitable interface for the Advancement Announcement Message System.
      *
-     * @param player The player who has completed the advancement.
-     * @return The message to be displayed, or {@code null} if no message should be displayed.
+     * @param advancementCompleter The player who has completed the advancement.
+     * @return A function which returns, for each player, the announcement message to be displayed to them.
+     *         {@code null} can be returned instead if no message should be displayed to any player.
      * @implSpec This method is the core method of the Advancement Announcement Message System (AAMS).
      *         The default announcement message is returned if no suitable interfaces for the AAMS are implemented, or
      *         the result of {@link IAnnouncementMessage#getAnnouncementMessage(Advancement, Player)} otherwise.
@@ -603,20 +606,20 @@ public abstract class Advancement {
      * @see IAnnouncementMessage
      */
     @Nullable
-    public BaseComponent getAnnouncementMessage(@NotNull Player player) {
-        Preconditions.checkNotNull(player, "Player is null.");
-
+    @SuppressWarnings("unchecked")
+    public Function<@NotNull Player, @Nullable BaseComponent> getAnnouncementMessage(@NotNull Player advancementCompleter) {
+        Preconditions.checkNotNull(advancementCompleter, "Player is null.");
         // Advancement announcement message system
         if (iAnnouncementMessageMethod != null) {
             try {
-                return (BaseComponent) iAnnouncementMessageMethod.invokeWithArguments(this, player);
+                return (Function<Player, BaseComponent>) iAnnouncementMessageMethod.invokeWithArguments(this, advancementCompleter);
             } catch (Throwable e) {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred evaluating the announcement message of " + key, e);
             }
         }
-
-        // Default message
-        return AdvancementUtils.getAnnouncementMessage(this, player);
+        // Default message, same for every player
+        BaseComponent announcementMsg = AdvancementUtils.getAnnouncementMessage(this, advancementCompleter);
+        return player -> announcementMsg;
     }
 
     /**
@@ -633,11 +636,15 @@ public abstract class Advancement {
         Boolean gameRule = player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
 
         if (display.dispatchDoesAnnounceToChat(player, progression) && (gameRule == null || gameRule)) {
-            BaseComponent msg = getAnnouncementMessage(player);
-            if (msg != null)
+            @Nullable Function<Player, @Nullable BaseComponent> perPlayerMsgGetter = getAnnouncementMessage(player);
+            if (perPlayerMsgGetter != null) {
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    p.spigot().sendMessage(msg);
+                    @Nullable BaseComponent msg = perPlayerMsgGetter.apply(p);
+                    if (msg != null) {
+                        p.spigot().sendMessage(msg);
+                    }
                 }
+            }
         }
 
         // Show Toast
@@ -909,7 +916,7 @@ public abstract class Advancement {
     @Internal
     @Nullable
     @Contract("_, _ -> fail")
-    public final BaseComponent getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+    public final Function<@NotNull Player, @Nullable BaseComponent> getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
         throw new IllegalOperationException("This method cannot be called. Use Advancement#getAnnouncementMessage(Player).");
     }
 }

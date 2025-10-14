@@ -6,6 +6,8 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Function;
+
 /**
  * If an advancement implements this interface, its announcement message will be vanilla like with an empty line always
  * present between the title and description (in the hover event).
@@ -14,14 +16,16 @@ import org.jetbrains.annotations.NotNull;
 public interface FancyAnnouncementMessage extends IAnnouncementMessage {
 
     /**
-     * Returns the fancy announcement message.
+     * Returns a function to get the fancy announcement message.
      *
      * @param advancement The advancement.
      * @param advancementCompleter The player who has completed the advancement.
-     * @return The fancy announcement message.
+     * @return A function which returns the fancy announcement message.
+     * @see IAnnouncementMessage#getAnnouncementMessage(Advancement, Player)
      */
     @Override
-    default BaseComponent getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
-        return AdvancementUtils.getAnnouncementMessage(advancement, advancementCompleter, true);
+    default Function<Player, BaseComponent> getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+        BaseComponent announcementMsg = AdvancementUtils.getAnnouncementMessage(advancement, advancementCompleter, true);
+        return player -> announcementMsg;
     }
 }
