@@ -1,14 +1,16 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_21_R2.advancement;
 
+import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
 import com.fren_gor.ultimateAdvancementAPI.nms.v1_21_R2.Util;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
+import com.google.gson.JsonParseException;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.bukkit.craftbukkit.v1_21_R2.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.v1_21_R2.util.CraftChatMessage;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,11 +22,12 @@ public class AdvancementDisplayWrapper_v1_21_R2 extends AdvancementDisplayWrappe
     private final DisplayInfo display;
     private final AdvancementFrameTypeWrapper frameType;
 
-    public AdvancementDisplayWrapper_v1_21_R2(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
-        ResourceLocation background = backgroundTexture == null ? null : ResourceLocation.parse(backgroundTexture);
-        this.display = new DisplayInfo(CraftItemStack.asNMSCopy(icon), Util.fromString(title), Util.fromString(description), Optional.ofNullable(background), (AdvancementType) frameType.toNMS(), showToast, announceChat, hidden);
-        this.display.setLocation(x, y);
-        this.frameType = frameType;
+    public AdvancementDisplayWrapper_v1_21_R2(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull BaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
+        this(CraftItemStack.asNMSCopy(icon), Util.fromComponent(title), Util.fromComponent(description), frameType, x, y, showToast, announceChat, hidden, backgroundTexture);
+    }
+
+    public AdvancementDisplayWrapper_v1_21_R2(@NotNull ItemStack icon, @NotNull JsonString jsonTitle, @NotNull JsonString jsonDescription, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) throws JsonParseException {
+        this(CraftItemStack.asNMSCopy(icon), Util.fromJSON(jsonTitle.jsonString()), Util.fromJSON(jsonDescription.jsonString()), frameType, x, y, showToast, announceChat, hidden, backgroundTexture);
     }
 
     protected AdvancementDisplayWrapper_v1_21_R2(@NotNull net.minecraft.world.item.ItemStack icon, @NotNull Component title, @NotNull Component description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
@@ -42,14 +45,14 @@ public class AdvancementDisplayWrapper_v1_21_R2 extends AdvancementDisplayWrappe
 
     @Override
     @NotNull
-    public String getTitle() {
-        return CraftChatMessage.fromComponent(display.getTitle());
+    public BaseComponent getTitle() {
+        return Util.toComponent(display.getTitle());
     }
 
     @Override
     @NotNull
-    public String getDescription() {
-        return CraftChatMessage.fromComponent(display.getDescription());
+    public BaseComponent getDescription() {
+        return Util.toComponent(display.getDescription());
     }
 
     @Override

@@ -5,11 +5,13 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.display.DefaultStyle;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -143,6 +145,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The icon of the advancement.
      * @see AbstractAdvancementDisplay
      */
+    @NotNull
     public final ItemStack dispatchGetIcon(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetIcon(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
@@ -155,6 +158,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The icon of the advancement.
      * @see AbstractAdvancementDisplay
      */
+    @NotNull
     public abstract ItemStack dispatchGetIcon(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
@@ -165,6 +169,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The icon of the advancement.
      * @see AbstractAdvancementDisplay
      */
+    @NotNull
     public final ItemStack dispatchGetIcon(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetIcon(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
@@ -177,17 +182,67 @@ public abstract class AbstractAdvancementDisplay {
      * @return The icon of the advancement.
      * @see AbstractAdvancementDisplay
      */
+    @NotNull
     public abstract ItemStack dispatchGetIcon(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
-     * Dispatches the call to getTitle(...).
+     * Dispatches the call to getLegacyTitle(...).
      *
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The title of the advancement as a legacy string.
      * @see AbstractAdvancementDisplay
      */
-    public final String dispatchGetTitle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    @NotNull
+    public final String dispatchGetLegacyTitle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetLegacyTitle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getLegacyTitle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The title of the advancement as a legacy string.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    public abstract String dispatchGetLegacyTitle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getLegacyTitle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The title of the advancement as a legacy string.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    public final String dispatchGetLegacyTitle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetLegacyTitle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getLegacyTitle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The title of the advancement as a legacy string.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    public abstract String dispatchGetLegacyTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getTitle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The title of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    public final BaseComponent dispatchGetTitle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetTitle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -196,20 +251,22 @@ public abstract class AbstractAdvancementDisplay {
      *
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
-     * @return The title of the advancement as a legacy string.
+     * @return The title of the advancement.
      * @see AbstractAdvancementDisplay
      */
-    public abstract String dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    @NotNull
+    public abstract BaseComponent dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getTitle(...).
      *
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
-     * @return The title of the advancement as a legacy string.
+     * @return The title of the advancement.
      * @see AbstractAdvancementDisplay
      */
-    public final String dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    @NotNull
+    public final BaseComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetTitle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -218,64 +275,179 @@ public abstract class AbstractAdvancementDisplay {
      *
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
-     * @return The title of the advancement as a legacy string.
+     * @return The title of the advancement.
      * @see AbstractAdvancementDisplay
      */
-    public abstract String dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    @NotNull
+    public abstract BaseComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
-     * Dispatches the call to getTitleBaseComponent(...).
+     * Dispatches the call to getDefaultTitleStyle(...).
      *
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
-     * @return The title of the advancement.
+     * @return The default style of the title when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
-    public final BaseComponent[] dispatchGetTitleBaseComponent(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
-        return dispatchGetTitleBaseComponent(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    @NotNull
+    public final DefaultStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetDefaultTitleStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
-     * Dispatches the call to getTitleBaseComponent(...).
+     * Dispatches the call to getDefaultTitleStyle(...).
      *
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
-     * @return The title of the advancement.
+     * @return The default style of the title when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
-    public abstract BaseComponent[] dispatchGetTitleBaseComponent(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    @NotNull
+    public abstract DefaultStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
-     * Dispatches the call to getTitleBaseComponent(...).
+     * Dispatches the call to getDefaultTitleStyle(...).
      *
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
-     * @return The title of the advancement.
+     * @return The default style of the title when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
-    public final BaseComponent[] dispatchGetTitleBaseComponent(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
-        return dispatchGetTitleBaseComponent(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    @NotNull
+    public final DefaultStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetDefaultTitleStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
-     * Dispatches the call to getTitleBaseComponent(...).
+     * Dispatches the call to getDefaultTitleStyle(...).
      *
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
-     * @return The title of the advancement.
+     * @return The default style of the title when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
-    public abstract BaseComponent[] dispatchGetTitleBaseComponent(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    @NotNull
+    public abstract DefaultStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
-     * Dispatches the call to getDescription(...).
+     * Dispatches the call to getAnnouncementMessageDefaultTitleStyle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The default style of the title in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    public final DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetAnnouncementMessageDefaultTitleStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultTitleStyle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The default style of the title in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    public abstract DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultTitleStyle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The default style of the title in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    public final DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetAnnouncementMessageDefaultTitleStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultTitleStyle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The default style of the title in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    public abstract DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getLegacyDescription(...).
      *
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The description of the advancement as a list of legacy strings.
      * @see AbstractAdvancementDisplay
      */
-    public final List<String> dispatchGetDescription(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    @NotNull
+    @Unmodifiable
+    public final List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetLegacyDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getLegacyDescription(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The description of the advancement as a list of legacy strings.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    @Unmodifiable
+    public abstract List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getLegacyDescription(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The description of the advancement as a list of legacy strings.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    @Unmodifiable
+    public final List<String> dispatchGetLegacyDescription(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetLegacyDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getLegacyDescription(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The description of the advancement as a list of legacy strings.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    @Unmodifiable
+    public abstract List<String> dispatchGetLegacyDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getDescription(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The description of the advancement.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    @Unmodifiable
+    public final List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -284,20 +456,24 @@ public abstract class AbstractAdvancementDisplay {
      *
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
-     * @return The description of the advancement as a list of legacy strings.
+     * @return The description of the advancement.
      * @see AbstractAdvancementDisplay
      */
-    public abstract List<String> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    @NotNull
+    @Unmodifiable
+    public abstract List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getDescription(...).
      *
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
-     * @return The description of the advancement as a list of legacy strings.
+     * @return The description of the advancement.
      * @see AbstractAdvancementDisplay
      */
-    public final List<String> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    @NotNull
+    @Unmodifiable
+    public final List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -306,54 +482,116 @@ public abstract class AbstractAdvancementDisplay {
      *
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
-     * @return The description of the advancement as a list of legacy strings.
+     * @return The description of the advancement.
      * @see AbstractAdvancementDisplay
      */
-    public abstract List<String> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    @NotNull
+    @Unmodifiable
+    public abstract List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
-     * Dispatches the call to getDescriptionBaseComponent(...).
+     * Dispatches the call to getDefaultDescriptionStyle(...).
      *
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
-     * @return The description of the advancement.
+     * @return The default style of the title when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
-    public final List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
-        return dispatchGetDescriptionBaseComponent(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    @NotNull
+    public final DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetDefaultDescriptionStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
-     * Dispatches the call to getDescriptionBaseComponent(...).
+     * Dispatches the call to getDefaultDescriptionStyle(...).
      *
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
-     * @return The description of the advancement.
+     * @return The default style of the title when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
-    public abstract List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    @NotNull
+    public abstract DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
-     * Dispatches the call to getDescriptionBaseComponent(...).
+     * Dispatches the call to getDefaultDescriptionStyle(...).
      *
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
-     * @return The description of the advancement.
+     * @return The default style of the title when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
-    public final List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
-        return dispatchGetDescriptionBaseComponent(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    @NotNull
+    public final DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetDefaultDescriptionStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
     /**
-     * Dispatches the call to getDescriptionBaseComponent(...).
+     * Dispatches the call to getDefaultDescriptionStyle(...).
      *
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
-     * @return The description of the advancement.
+     * @return The default style of the title when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
-    public abstract List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    @NotNull
+    public abstract DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultDescriptionStyle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The default style of the description in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    public final DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetAnnouncementMessageDefaultDescriptionStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultDescriptionStyle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The default style of the description in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    public abstract DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultDescriptionStyle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param advancementTab The advancement tab used to dispatch the call.
+     * @return The default style of the description in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    public final DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+        return dispatchGetAnnouncementMessageDefaultDescriptionStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
+    }
+
+    /**
+     * Dispatches the call to getAnnouncementMessageDefaultDescriptionStyle(...).
+     *
+     * @param player The player used to dispatch the call.
+     * @param teamProgression The team used to dispatch the call.
+     * @return The default style of the description in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @see AbstractAdvancementDisplay
+     */
+    @NotNull
+    public abstract DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getFrame(...).
@@ -363,6 +601,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The shape of the advancement frame in the advancement GUI.
      * @see AbstractAdvancementDisplay
      */
+    @NotNull
     public final AdvancementFrameType dispatchGetFrame(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetFrame(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
@@ -375,6 +614,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The shape of the advancement frame in the advancement GUI.
      * @see AbstractAdvancementDisplay
      */
+    @NotNull
     public abstract AdvancementFrameType dispatchGetFrame(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
@@ -385,6 +625,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The shape of the advancement frame in the advancement GUI.
      * @see AbstractAdvancementDisplay
      */
+    @NotNull
     public final AdvancementFrameType dispatchGetFrame(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetFrame(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
@@ -397,6 +638,7 @@ public abstract class AbstractAdvancementDisplay {
      * @return The shape of the advancement frame in the advancement GUI.
      * @see AbstractAdvancementDisplay
      */
+    @NotNull
     public abstract AdvancementFrameType dispatchGetFrame(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
@@ -495,5 +737,6 @@ public abstract class AbstractAdvancementDisplay {
      * @return The NMS wrapper of the display.
      * @see AbstractAdvancementDisplay
      */
-    public abstract PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    @NotNull
+    public abstract PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) throws ReflectiveOperationException;
 }

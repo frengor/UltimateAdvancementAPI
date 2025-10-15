@@ -1,20 +1,13 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
-import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
+import com.fren_gor.ultimateAdvancementAPI.util.display.DefaultStyle;
 import com.google.common.base.Preconditions;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.StringJoiner;
 
 /**
  * The default implementation of an immutable display.
@@ -27,36 +20,49 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
     /**
      * The icon of the advancement in the advancement GUI.
      */
+    @NotNull
     protected final ItemStack icon;
-
-    protected final BaseComponent[] chatTitle = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
-
-    protected final BaseComponent[] chatDescription = new BaseComponent[1]; // Make sure only 1 element is used, otherwise the chat bugs
 
     /**
      * The title of the advancement.
      */
-    protected final String title;
+    @NotNull
+    protected final BaseComponent title;
 
     /**
-     * The trimmed title of the advancement.
+     * The default style of the title when displayed in the advancement GUI.
      */
-    protected final String rawTitle;
+    @NotNull
+    protected final DefaultStyle defaultTitleStyle;
+
+    /**
+     * The default style of the title in the advancement's announcement message.
+     */
+    @NotNull
+    protected final DefaultStyle announcementMessageDefaultTitleStyle;
 
     /**
      * The description of the advancement.
      */
     @Unmodifiable
-    protected final List<String> description;
+    protected final List<BaseComponent> description;
 
     /**
-     * The description of the advancement compacted as a single {@link String} (with {@code '\n' + defaultColorCode} between lines).
+     * The default style of the description when displayed in the advancement GUI.
      */
-    protected final String compactDescription;
+    @NotNull
+    protected final DefaultStyle defaultDescriptionStyle;
+
+    /**
+     * The default style of the description in the advancement's announcement message.
+     */
+    @NotNull
+    protected final DefaultStyle announcementMessageDefaultDescriptionStyle;
 
     /**
      * The shape of the advancement frame in the advancement GUI.
      */
+    @NotNull
     protected final AdvancementFrameType frame;
 
     /**
@@ -79,89 +85,6 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      */
     protected final float y;
 
-    @LazyValue
-    private PreparedAdvancementDisplayWrapper wrapper;
-
-    /**
-     * Creates a new {@code AdvancementDisplay}.
-     * <p>The default color of the title and description is {@code frame.getColor()}.
-     * <p>The advancement is positioned by the x and y coordinates in the advancement GUI. The origin is placed in the
-     * upper-left corner of the advancement GUI. The x-axis points to the right (as usual), whereas the y-axis points downward.
-     * Thus, the x and y coordinates must be positive.
-     *
-     * @param icon The material of the advancement's icon in the advancement GUI.
-     * @param title The title of the advancement.
-     * @param frame The shape of the advancement frame in the advancement GUI.
-     * @param showToast Whether the toast notification should be sent on advancement grant.
-     * @param announceChat Whether the advancement completion message should be sent on advancement grant.
-     * @param x The advancement x coordinate. Must be not negative.
-     * @param y The advancement y coordinate. Must be not negative.
-     * @param description The description of the advancement.
-     */
-    public AdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
-        this(icon, title, frame, showToast, announceChat, x, y, Arrays.asList(description));
-    }
-
-    /**
-     * Creates a new {@code AdvancementDisplay}.
-     * <p>The default color of the title and description is {@code frame.getColor()}.
-     * <p>The advancement is positioned by the x and y coordinates in the advancement GUI. The origin is placed in the
-     * upper-left corner of the advancement GUI. The x-axis points to the right (as usual), whereas the y-axis points downward.
-     * Thus, the x and y coordinates must be positive.
-     *
-     * @param icon The material of the advancement's icon in the advancement GUI.
-     * @param title The title of the advancement.
-     * @param frame The shape of the advancement frame in the advancement GUI.
-     * @param showToast Whether the toast notification should be sent on advancement grant.
-     * @param announceChat Whether the advancement completion message should be sent on advancement grant.
-     * @param x The advancement x coordinate. Must be not negative.
-     * @param y The advancement y coordinate. Must be not negative.
-     * @param description The description of the advancement.
-     */
-    public AdvancementDisplay(@NotNull Material icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
-        this(new ItemStack(Objects.requireNonNull(icon, "Icon is null.")), title, frame, showToast, announceChat, x, y, description);
-    }
-
-    /**
-     * Creates a new {@code AdvancementDisplay}.
-     * <p>The default color of the title and description is {@code frame.getColor()}.
-     * <p>The advancement is positioned by the x and y coordinates in the advancement GUI. The origin is placed in the
-     * upper-left corner of the advancement GUI. The x-axis points to the right (as usual), whereas the y-axis points downward.
-     * Thus, the x and y coordinates must be positive.
-     *
-     * @param icon The advancement's icon in the advancement GUI.
-     * @param title The title of the advancement.
-     * @param frame The shape of the advancement frame in the advancement GUI.
-     * @param showToast Whether the toast notification should be sent on advancement grant.
-     * @param announceChat Whether the advancement completion message should be sent on advancement grant.
-     * @param x The advancement x coordinate. Must be not negative.
-     * @param y The advancement y coordinate. Must be not negative.
-     * @param description The description of the advancement.
-     */
-    public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull String... description) {
-        this(icon, title, frame, showToast, announceChat, x, y, Arrays.asList(description));
-    }
-
-    /**
-     * Creates a new {@code AdvancementDisplay}.
-     * <p>The default color of the title and description is {@code frame.getColor()}.
-     * <p>The advancement is positioned by the x and y coordinates in the advancement GUI. The origin is placed in the
-     * upper-left corner of the advancement GUI. The x-axis points to the right (as usual), whereas the y-axis points downward.
-     * Thus, the x and y coordinates must be positive.
-     *
-     * @param icon The advancement's icon in the advancement GUI.
-     * @param title The title of the advancement.
-     * @param frame The shape of the advancement frame in the advancement GUI.
-     * @param showToast Whether the toast notification should be sent on advancement grant.
-     * @param announceChat Whether the advancement completion message should be sent on advancement grant.
-     * @param x The advancement x coordinate. Must be not negative.
-     * @param y The advancement y coordinate. Must be not negative.
-     * @param description The description of the advancement.
-     */
-    public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull List<String> description) {
-        this(icon, title, frame, showToast, announceChat, x, y, Objects.requireNonNull(frame, "AdvancementFrameType is null.").getColor(), description);
-    }
-
     /**
      * Creates a new {@code AdvancementDisplay}.
      * <p>The advancement is positioned by the x and y coordinates in the advancement GUI. The origin is placed in the
@@ -175,73 +98,33 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      * @param announceChat Whether the advancement completion message should be sent on advancement grant.
      * @param x The advancement x coordinate. Must be not negative.
      * @param y The advancement y coordinate. Must be not negative.
-     * @param defaultColor The default color of the title and description.
+     * @param defaultTitleStyle The default style of the title when displayed in the advancement GUI.
+     * @param amDefaultTitleStyle The default style of the title in the advancement's announcement message.
+     * @param defaultDescStyle The default style of the description when displayed in the advancement GUI.
+     * @param amDefaultDescStyle The default style of the description in the advancement's announcement message.
      * @param description The description of the advancement.
      */
-    public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull String... description) {
-        this(icon, title, frame, showToast, announceChat, x, y, defaultColor, Arrays.asList(description));
-    }
-
-    /**
-     * Creates a new {@code AdvancementDisplay}.
-     * <p>The advancement is positioned by the x and y coordinates in the advancement GUI. The origin is placed in the
-     * upper-left corner of the advancement GUI. The x-axis points to the right (as usual), whereas the y-axis points downward.
-     * Thus, the x and y coordinates must be positive.
-     *
-     * @param icon The advancement's icon in the advancement GUI.
-     * @param title The title of the advancement.
-     * @param frame The shape of the advancement frame in the advancement GUI.
-     * @param showToast Whether the toast notification should be sent on advancement grant.
-     * @param announceChat Whether the advancement completion message should be sent on advancement grant.
-     * @param x The advancement x coordinate. Must be not negative.
-     * @param y The advancement y coordinate. Must be not negative.
-     * @param defaultColor The default color of the title and description.
-     * @param description The description of the advancement.
-     */
-    public AdvancementDisplay(@NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y, @NotNull ChatColor defaultColor, @NotNull List<String> description) {
+    protected AdvancementDisplay(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull List<BaseComponent> description, @NotNull DefaultStyle defaultTitleStyle, @NotNull DefaultStyle amDefaultTitleStyle, @NotNull DefaultStyle defaultDescStyle, @NotNull DefaultStyle amDefaultDescStyle, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y) {
         Preconditions.checkNotNull(icon, "Icon is null.");
         Preconditions.checkNotNull(title, "Title is null.");
         Preconditions.checkNotNull(frame, "Frame is null.");
-        Preconditions.checkNotNull(defaultColor, "Default color is null.");
         Preconditions.checkNotNull(description, "Description is null.");
-        for (String line : description)
-            Preconditions.checkNotNull(line, "A line of the description is null.");
+        Preconditions.checkNotNull(defaultTitleStyle, "Default title style is null.");
+        Preconditions.checkNotNull(amDefaultTitleStyle, "Default announcement message title style is null.");
+        Preconditions.checkNotNull(defaultDescStyle, "Default description style is null.");
+        Preconditions.checkNotNull(amDefaultDescStyle, "Default announcement message description style is null.");
         Preconditions.checkArgument(Float.isFinite(x), "x is NaN or infinite.");
         Preconditions.checkArgument(Float.isFinite(y), "y is NaN or infinite.");
         Preconditions.checkArgument(x >= 0, "x is not zero or positive.");
         Preconditions.checkArgument(y >= 0, "y is not zero or positive.");
 
         this.icon = icon.clone();
-        this.title = title;
-        this.description = List.copyOf(description);
-
-        // Remove trailing spaces and color codes
-        String titleTrimmed = title.trim();
-        int toSub = titleTrimmed.length();
-        while (toSub > 1 && titleTrimmed.charAt(toSub - 2) == '§') {
-            toSub -= 2;
-        }
-        this.rawTitle = titleTrimmed.substring(0, toSub).trim();
-
-        this.chatTitle[0] = new TextComponent(defaultColor + rawTitle);
-        // Old code, bugged for unknown reasons (found out that BaseComponent[] must have length 1 or it bugs in HoverEvents)
-        // this.chatDescription = AdvancementUtils.fromStringList(title, this.description);
-
-        if (this.description.isEmpty()) {
-            this.compactDescription = "";
-        } else {
-            StringJoiner joiner = new StringJoiner("\n" + defaultColor, defaultColor.toString(), "");
-            for (String s : this.description)
-                joiner.add(s);
-
-            this.compactDescription = joiner.toString();
-        }
-        if (compactDescription.isEmpty()) {
-            this.chatDescription[0] = new TextComponent(defaultColor + rawTitle);
-        } else {
-            this.chatDescription[0] = new TextComponent(defaultColor + rawTitle + '\n' + compactDescription);
-        }
-
+        this.title = title.duplicate();
+        this.defaultTitleStyle = defaultTitleStyle;
+        this.announcementMessageDefaultTitleStyle = amDefaultTitleStyle;
+        this.description = description.stream().map(BaseComponent::duplicate).toList();
+        this.defaultDescriptionStyle = defaultDescStyle;
+        this.announcementMessageDefaultDescriptionStyle = amDefaultDescStyle;
         this.frame = frame;
         this.showToast = showToast;
         this.announceChat = announceChat;
@@ -250,269 +133,107 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
     }
 
     /**
-     * Returns whether the toast notification should be sent on advancement grant.
-     *
-     * @return Whether the toast notification should be sent on advancement grant.
+     * {@inheritDoc}
      */
+    @Override
     public boolean doesShowToast() {
         return showToast;
     }
 
     /**
-     * Returns whether the advancement completion message should be sent on advancement grant.
-     *
-     * @return Whether the advancement completion message should be sent on advancement grant.
+     * {@inheritDoc}
      */
+    @Override
     public boolean doesAnnounceToChat() {
         return announceChat;
     }
 
     /**
-     * Gets a clone of the icon.
-     *
-     * @return A clone of the icon.
+     * {@inheritDoc}
      */
+    @Override
     @NotNull
     public ItemStack getIcon() {
         return icon.clone();
     }
 
     /**
-     * Returns the {@code AdvancementDisplay} NMS wrapper.
-     *
-     * @return The {@code AdvancementDisplay} NMS wrapper.
+     * {@inheritDoc}
      */
-    @NotNull
-    public PreparedAdvancementDisplayWrapper getNMSWrapper() {
-        if (wrapper != null) {
-            return wrapper;
-        }
-
-        try {
-            return wrapper = PreparedAdvancementDisplayWrapper.craft(icon, title, compactDescription, frame.getNMSWrapper(), x, y);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Returns the title of the advancement.
-     *
-     * @return The title of the advancement.
-     */
-    @NotNull
     @Override
-    public String getTitle() {
-        return title;
-    }
-
     @NotNull
-    @Override
-    public BaseComponent[] getTitleBaseComponent() {
-        return TextComponent.fromLegacyText(getTitle());
+    public BaseComponent getTitle() {
+        return title.duplicate();
     }
 
     /**
-     * Returns the trimmed title of the advancement.
-     *
-     * @return The trimmed title of the advancement.
+     * {@inheritDoc}
      */
+    @Override
     @NotNull
-    public String getRawTitle() {
-        return rawTitle;
+    public DefaultStyle getDefaultTitleStyle() {
+        return defaultTitleStyle;
     }
 
     /**
-     * Returns the description of the advancement.
-     *
-     * @return The description of the advancement.
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultTitleStyle() {
+        return announcementMessageDefaultTitleStyle;
+    }
+
+    /**
+     * {@inheritDoc}
      */
     @Override
     @NotNull
     @Unmodifiable
-    public List<String> getDescription() {
-        return description;
+    public List<BaseComponent> getDescription() {
+        return description.stream().map(BaseComponent::duplicate).toList();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
-    @Unmodifiable
-    public List<BaseComponent[]> getDescriptionBaseComponent() {
-        return getDescription().stream().map(TextComponent::fromLegacyText).toList();
+    public DefaultStyle getDefaultDescriptionStyle() {
+        return defaultDescriptionStyle;
     }
 
     /**
-     * Returns the compacted description.
-     *
-     * @return The compacted description.
-     * @see #compactDescription
+     * {@inheritDoc}
      */
+    @Override
     @NotNull
-    public String getCompactDescription() {
-        return compactDescription;
+    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle() {
+        return announcementMessageDefaultDescriptionStyle;
     }
 
     /**
-     * Returns the shape of the advancement frame in the advancement GUI.
-     *
-     * @return The shape of the advancement frame in the advancement GUI.
+     * {@inheritDoc}
      */
+    @Override
     @NotNull
     public AdvancementFrameType getFrame() {
         return frame;
     }
 
     /**
-     * Returns the advancement position relative to the x-axis.
-     *
-     * @return The x coordinate.
+     * {@inheritDoc}
      */
+    @Override
     public float getX() {
         return x;
     }
 
     /**
-     * Returns the advancement position relative to the y-axis.
-     *
-     * @return The y coordinate.
+     * {@inheritDoc}
      */
+    @Override
     public float getY() {
         return y;
-    }
-
-    /**
-     * A builder for {@link AdvancementDisplay}.
-     *
-     * @since 2.1.0
-     */
-    public static class Builder extends AdvancementDisplayBuilder<Builder, AdvancementDisplay> {
-
-        /**
-         * The default color of the title and description.
-         */
-        protected ChatColor defaultColor = frame.getColor();
-        private boolean manuallySetDefaultColor = false; // Set to true when defaultColor(ChatColor) is called
-
-        /**
-         * Creates a new {@code AdvancementDisplay.Builder}.
-         * <p>By default, the advancement display returned by {@link #build()} won't show both the toast message and
-         * the announcement message in the chat upon advancement completion.
-         * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
-         * <p>The default {@code defaultColor} is {@link AdvancementFrameType#getColor() AdvancementFrameType.TASK.getColor()}.
-         *
-         * @param icon The material of the advancement's icon in the advancement GUI.
-         * @param title The title of the advancement.
-         */
-        public Builder(@NotNull Material icon, @NotNull String title) {
-            super(icon, title);
-        }
-
-        /**
-         * Creates a new {@code AdvancementDisplay.Builder}.
-         * <p>By default, the advancement display returned by {@link #build()} won't show both the toast message and
-         * the announcement message in the chat upon advancement completion.
-         * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
-         * <p>The default {@code defaultColor} is {@link AdvancementFrameType#getColor() AdvancementFrameType.TASK.getColor()}.
-         *
-         * @param icon The advancement's icon in the advancement GUI.
-         * @param title The title of the advancement.
-         */
-        public Builder(@NotNull ItemStack icon, @NotNull String title) {
-            super(icon, title);
-        }
-
-        /**
-         * Creates a new {@code AdvancementDisplay.Builder}.
-         * <p>By default, the advancement display returned by {@link #build()} won't show both the toast message and
-         * the announcement message in the chat upon advancement completion.
-         * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
-         * <p>The default {@code defaultColor} is {@link AdvancementFrameType#getColor() AdvancementFrameType.TASK.getColor()}.
-         *
-         * @param icon The advancement's icon in the advancement GUI.
-         * @param title The title of the advancement.
-         */
-        public Builder(@NotNull ItemStack icon, @NotNull BaseComponent[] title) {
-            super(icon, title);
-        }
-
-        /**
-         * {@inheritDoc}
-         * <p>If {@link #defaultColor(ChatColor) builder.defaultColor(...)} hasn't been called yet (or if it will never be called),
-         * also sets the {@link #defaultColor default color} to {@link AdvancementFrameType#getColor() frame.getColor()}.
-         */
-        @Override
-        @NotNull
-        public Builder frame(@NotNull AdvancementFrameType frame) {
-            super.frame(frame); // Also checks frame is not null
-            if (!manuallySetDefaultColor) {
-                this.defaultColor = frame.getColor();
-            }
-            return this;
-        }
-
-        /**
-         * {@inheritDoc}
-         * <p>If {@link #defaultColor(ChatColor) builder.defaultColor(...)} hasn't been called yet (or if it will never be called),
-         * also sets the {@link #defaultColor default color} to {@link AdvancementFrameType#getColor() AdvancementFrameType.TASK.getColor()}.
-         */
-        @Override
-        @NotNull
-        public Builder taskFrame() {
-            return super.taskFrame();
-        }
-
-        /**
-         * {@inheritDoc}
-         * <p>If {@link #defaultColor(ChatColor) builder.defaultColor(...)} hasn't been called yet (or if it will never be called),
-         * also sets the {@link #defaultColor default color} to {@link AdvancementFrameType#getColor() AdvancementFrameType.GOAL.getColor()}.
-         */
-        @Override
-        @NotNull
-        public Builder goalFrame() {
-            return super.goalFrame();
-        }
-
-        /**
-         * {@inheritDoc}
-         * <p>If {@link #defaultColor(ChatColor) builder.defaultColor(...)} hasn't been called yet (or if it will never be called),
-         * also sets the {@link #defaultColor default color} to {@link AdvancementFrameType#getColor() AdvancementFrameType.CHALLENGE.getColor()}.
-         */
-        @Override
-        @NotNull
-        public Builder challengeFrame() {
-            return super.challengeFrame();
-        }
-
-        /**
-         * Sets the default color of the title and description.
-         *
-         * @param defaultColor The default color of the title and description.
-         * @return This builder.
-         */
-        @NotNull
-        public Builder defaultColor(@NotNull ChatColor defaultColor) {
-            this.defaultColor = Objects.requireNonNull(defaultColor, "Default color is null.");
-            manuallySetDefaultColor = true;
-            return this;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        @NotNull
-        public AdvancementDisplay build() {
-            return new AdvancementDisplay(icon, title, frame, showToast, announceChat, x, y, defaultColor, description);
-        }
-
-        /**
-         * Gets the default color of the title and description.
-         *
-         * @return The default color of the title and description.
-         */
-        @NotNull
-        public ChatColor getDefaultColor() {
-            return defaultColor;
-        }
     }
 }

@@ -2,6 +2,10 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v1_16_R3;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonParseException;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.server.v1_16_R3.AdvancementProgress;
 import net.minecraft.server.v1_16_R3.ChatComponentText;
 import net.minecraft.server.v1_16_R3.Criterion;
@@ -68,6 +72,31 @@ public final class Util {
             return ChatComponentText.d;
         }
         return CraftChatMessage.fromStringOrNull(string, true);
+    }
+
+    @NotNull
+    public static IChatBaseComponent fromComponent(@NotNull BaseComponent component) {
+        if (component == null) {
+            return ChatComponentText.d;
+        }
+        return fromJSON(ComponentSerializer.toString(component)); // Should never throw JsonParseException
+    }
+
+    @NotNull
+    public static IChatBaseComponent fromJSON(@NotNull String json) throws JsonParseException {
+        if (json == null) {
+            return ChatComponentText.d;
+        }
+        return CraftChatMessage.fromJSON(json);
+    }
+
+    @NotNull
+    public static BaseComponent toComponent(@NotNull IChatBaseComponent component) {
+        if (component == null) {
+            return new TextComponent("");
+        }
+        BaseComponent[] parsed = ComponentSerializer.parse(CraftChatMessage.toJSON(component));
+        return parsed.length == 1 ? parsed[0] : new TextComponent(parsed);
     }
 
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {

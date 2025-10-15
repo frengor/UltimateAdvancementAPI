@@ -1,20 +1,25 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
+import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.announcementMessage.IAnnouncementMessage;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
+import com.fren_gor.ultimateAdvancementAPI.util.display.DefaultStyle;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
 /**
- * A display which provides customized values based on the provided player.
+ * A display which provides customized values based on the specified player.
  *
- * @implNote The default implementation of the methods which takes a {@link Player} calls the {@link OfflinePlayer} methods.
+ * @implSpec The default implementation of the methods which take a {@link Player} calls the respective method that takes an {@link OfflinePlayer}.
  */
 public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvancementDisplay {
 
@@ -77,27 +82,25 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
     /**
      * Returns the title of the advancement as a legacy string.
      *
-     * @implNote The default implementation returns the title returned by {@link #getTitleBaseComponent(Player)} converted into a legacy string.
-     *
      * @param player The player.
      * @return The title of the advancement as a legacy string.
+     * @implSpec The default implementation returns the title returned by {@link #getTitle(Player)} converted into a legacy string.
      */
     @NotNull
-    public String getTitle(@NotNull Player player) {
-        return TextComponent.toLegacyText(getTitleBaseComponent(player));
+    public String getLegacyTitle(@NotNull Player player) {
+        return TextComponent.toLegacyText(getTitle(player));
     }
 
     /**
      * Returns the title of the advancement as a legacy string.
      *
-     * @implNote The default implementation returns the title returned by {@link #getTitleBaseComponent(OfflinePlayer)} converted into a legacy string.
-     *
      * @param player The player.
      * @return The title of the advancement as a legacy string.
+     * @implSpec The default implementation returns the title returned by {@link #getTitle(OfflinePlayer)} converted into a legacy string.
      */
     @NotNull
-    public String getTitle(@NotNull OfflinePlayer player) {
-        return TextComponent.toLegacyText(getTitleBaseComponent(player));
+    public String getLegacyTitle(@NotNull OfflinePlayer player) {
+        return TextComponent.toLegacyText(getTitle(player));
     }
 
     /**
@@ -107,8 +110,8 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * @return The title of the advancement.
      */
     @NotNull
-    public BaseComponent[] getTitleBaseComponent(@NotNull Player player) {
-        return getTitleBaseComponent((OfflinePlayer) player);
+    public BaseComponent getTitle(@NotNull Player player) {
+        return getTitle((OfflinePlayer) player);
     }
 
     /**
@@ -118,32 +121,87 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * @return The title of the advancement.
      */
     @NotNull
-    public abstract BaseComponent[] getTitleBaseComponent(@NotNull OfflinePlayer player);
+    public abstract BaseComponent getTitle(@NotNull OfflinePlayer player);
 
     /**
-     * Returns the description of the advancement as a list of legacy strings.
+     * Returns the default style of the title when displayed in the advancement GUI.
      *
-     * @implNote The default implementation returns the description returned by {@link #getDescriptionBaseComponent(Player)} converted into a list of legacy strings.
-     *
-     * @param player The player.
-     * @return The description of the advancement as a list of legacy strings.
+     * @return The default style of the title when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation calls {@link #getDefaultTitleStyle(OfflinePlayer)}.
      */
     @NotNull
-    public List<String> getDescription(@NotNull Player player) {
-        return getDescriptionBaseComponent(player).stream().map(TextComponent::toLegacyText).toList();
+    public DefaultStyle getDefaultTitleStyle(@NotNull Player player) {
+        return getDefaultTitleStyle(((OfflinePlayer) player));
+    }
+
+    /**
+     * Returns the default style of the title when displayed in the advancement GUI.
+     *
+     * @param player The player.
+     * @return The default style of the title when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
+     */
+    @NotNull
+    public DefaultStyle getDefaultTitleStyle(@NotNull OfflinePlayer player) {
+        return DefaultStyle.MINECRAFT_DEFAULTS;
+    }
+
+    /**
+     * Returns the default style of the title in the advancement's announcement message.
+     *
+     * @param player The player.
+     * @return The default style of the title in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation calls {@link #getAnnouncementMessageDefaultTitleStyle(OfflinePlayer)}.
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
+     */
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull Player player) {
+        return getAnnouncementMessageDefaultTitleStyle((OfflinePlayer) player);
+    }
+
+    /**
+     * Returns the default style of the title in the advancement's announcement message.
+     *
+     * @param player The player.
+     * @return The default style of the title in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
+     */
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player) {
+        return DefaultStyle.MINECRAFT_DEFAULTS;
     }
 
     /**
      * Returns the description of the advancement as a list of legacy strings.
      *
-     * @implNote The default implementation returns the description returned by {@link #getDescriptionBaseComponent(OfflinePlayer)} converted into a list of legacy strings.
+     * @param player The player.
+     * @return The description of the advancement as a list of legacy strings.
+     * @implSpec The default implementation returns the description returned by {@link #getDescription(Player)} converted into a list of legacy strings.
+     */
+    @NotNull
+    @Unmodifiable
+    public List<String> getLegacyDescription(@NotNull Player player) {
+        return getDescription(player).stream().map(TextComponent::toLegacyText).toList();
+    }
+
+    /**
+     * Returns the description of the advancement as a list of legacy strings.
      *
      * @param player The player.
      * @return The description of the advancement as a list of legacy strings.
+     * @implSpec The default implementation returns the description returned by {@link #getDescription(OfflinePlayer)} converted into a list of legacy strings.
      */
     @NotNull
-    public List<String> getDescription(@NotNull OfflinePlayer player) {
-        return getDescriptionBaseComponent(player).stream().map(TextComponent::toLegacyText).toList();
+    @Unmodifiable
+    public List<String> getLegacyDescription(@NotNull OfflinePlayer player) {
+        return getDescription(player).stream().map(TextComponent::toLegacyText).toList();
     }
 
     /**
@@ -153,8 +211,9 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * @return The description of the advancement.
      */
     @NotNull
-    public List<BaseComponent[]> getDescriptionBaseComponent(@NotNull Player player) {
-        return getDescriptionBaseComponent((OfflinePlayer) player);
+    @Unmodifiable
+    public List<BaseComponent> getDescription(@NotNull Player player) {
+        return getDescription((OfflinePlayer) player);
     }
 
     /**
@@ -164,7 +223,64 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * @return The description of the advancement.
      */
     @NotNull
-    public abstract List<BaseComponent[]> getDescriptionBaseComponent(@NotNull OfflinePlayer player);
+    @Unmodifiable
+    public abstract List<BaseComponent> getDescription(@NotNull OfflinePlayer player);
+
+    /**
+     * Returns the default style of the description when displayed in the advancement GUI.
+     *
+     * @param player The player.
+     * @return The default style of the description when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation calls {@link #getDefaultDescriptionStyle(OfflinePlayer)}.
+     */
+    @NotNull
+    public DefaultStyle getDefaultDescriptionStyle(@NotNull Player player) {
+        return getDefaultDescriptionStyle((OfflinePlayer) player);
+    }
+
+    /**
+     * Returns the default style of the description when displayed in the advancement GUI.
+     *
+     * @param player The player.
+     * @return The default style of the description when displayed in the advancement GUI.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
+     */
+    @NotNull
+    public DefaultStyle getDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
+        return DefaultStyle.MINECRAFT_DEFAULTS;
+    }
+
+    /**
+     * Returns the default style of the description in the advancement's announcement message.
+     *
+     * @param player The player.
+     * @return The default style of the description in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation calls {@link #getAnnouncementMessageDefaultDescriptionStyle(OfflinePlayer)}.
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
+     */
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player) {
+        return getAnnouncementMessageDefaultDescriptionStyle((OfflinePlayer) player);
+    }
+
+    /**
+     * Returns the default style of the description in the advancement's announcement message.
+     *
+     * @param player The player.
+     * @return The default style of the description in the advancement's announcement message.
+     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
+     * @see IAnnouncementMessage
+     * @see Advancement#getAnnouncementMessage(Player)
+     */
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
+        return DefaultStyle.MINECRAFT_DEFAULTS;
+    }
 
     /**
      * Returns the shape of the advancement frame in the advancement GUI.
@@ -229,7 +345,11 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * @return The NMS wrapper of the display.
      */
     @NotNull
-    public abstract PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player);
+    public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player) throws ReflectiveOperationException {
+        BaseComponent title = AdvancementUtils.applyDefaultStyle(getTitle(player), getDefaultTitleStyle(player));
+        BaseComponent description = AdvancementUtils.joinBaseComponents(new TextComponent("\n"), getDefaultDescriptionStyle(player), getDescription(player));
+        return PreparedAdvancementDisplayWrapper.craft(getIcon(player), title, description, getFrame(player).getNMSWrapper(), getX(player), getY(player));
+    }
 
     /**
      * {@inheritDoc}
@@ -267,6 +387,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public final ItemStack dispatchGetIcon(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getIcon(player);
     }
@@ -275,6 +396,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public final ItemStack dispatchGetIcon(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getIcon(player);
     }
@@ -283,7 +405,26 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
-    public final String dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    @NotNull
+    public final String dispatchGetLegacyTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getLegacyTitle(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public final String dispatchGetLegacyTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getLegacyTitle(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public final BaseComponent dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getTitle(player);
     }
 
@@ -291,7 +432,8 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
-    public final String dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    @NotNull
+    public final BaseComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getTitle(player);
     }
 
@@ -299,23 +441,65 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
-    public final BaseComponent[] dispatchGetTitleBaseComponent(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getTitleBaseComponent(player);
+    @NotNull
+    public final DefaultStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getDefaultTitleStyle(player);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public final BaseComponent[] dispatchGetTitleBaseComponent(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getTitleBaseComponent(player);
+    @NotNull
+    public final DefaultStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getDefaultTitleStyle(player);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public final List<String> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    @NotNull
+    public final DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getAnnouncementMessageDefaultTitleStyle(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public final DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getAnnouncementMessageDefaultTitleStyle(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    @Unmodifiable
+    public final List<String> dispatchGetLegacyDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getLegacyDescription(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    @Unmodifiable
+    public final List<String> dispatchGetLegacyDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getLegacyDescription(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    @Unmodifiable
+    public final List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getDescription(player);
     }
 
@@ -323,7 +507,9 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
-    public final List<String> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    @NotNull
+    @Unmodifiable
+    public final List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getDescription(player);
     }
 
@@ -331,22 +517,43 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
-    public final List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull Player player, @NotNull TeamProgression teamProgression) {
-        return getDescriptionBaseComponent(player);
+    @NotNull
+    public final DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getDefaultDescriptionStyle(player);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public final List<BaseComponent[]> dispatchGetDescriptionBaseComponent(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
-        return getDescriptionBaseComponent(player);
+    @NotNull
+    public final DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getDefaultDescriptionStyle(player);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @NotNull
+    public final DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+        return getAnnouncementMessageDefaultDescriptionStyle(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public final DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+        return getAnnouncementMessageDefaultDescriptionStyle(player);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
     public final AdvancementFrameType dispatchGetFrame(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getFrame(player);
     }
@@ -355,6 +562,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public final AdvancementFrameType dispatchGetFrame(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getFrame(player);
     }
@@ -395,7 +603,8 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      * {@inheritDoc}
      */
     @Override
-    public final PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    @NotNull
+    public final PreparedAdvancementDisplayWrapper dispatchGetNMSWrapper(@NotNull Player player, @NotNull TeamProgression teamProgression) throws ReflectiveOperationException {
         return getNMSWrapper(player);
     }
 }

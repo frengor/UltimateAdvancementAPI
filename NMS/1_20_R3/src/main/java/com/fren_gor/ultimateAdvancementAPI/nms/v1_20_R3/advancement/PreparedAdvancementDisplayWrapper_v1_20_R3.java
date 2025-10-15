@@ -1,12 +1,14 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_20_R3.advancement;
 
+import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
 import com.fren_gor.ultimateAdvancementAPI.nms.v1_20_R3.Util;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import com.google.gson.JsonParseException;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.v1_20_R3.util.CraftChatMessage;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,10 +22,22 @@ public class PreparedAdvancementDisplayWrapper_v1_20_R3 extends PreparedAdvancem
     private final float x, y;
     private final boolean showToast, announceChat, hidden;
 
-    public PreparedAdvancementDisplayWrapper_v1_20_R3(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) {
+    public PreparedAdvancementDisplayWrapper_v1_20_R3(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull BaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) {
         this.icon = CraftItemStack.asNMSCopy(icon);
-        this.title = Util.fromString(title);
-        this.description = Util.fromString(description);
+        this.title = Util.fromComponent(title);
+        this.description = Util.fromComponent(description);
+        this.frameType = frameType;
+        this.x = x;
+        this.y = y;
+        this.showToast = showToast;
+        this.announceChat = announceChat;
+        this.hidden = hidden;
+    }
+
+    public PreparedAdvancementDisplayWrapper_v1_20_R3(@NotNull ItemStack icon, @NotNull JsonString jsonTitle, @NotNull JsonString jsonDescription, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) throws JsonParseException {
+        this.icon = CraftItemStack.asNMSCopy(icon);
+        this.title = Util.fromJSON(jsonTitle.jsonString());
+        this.description = Util.fromJSON(jsonDescription.jsonString());
         this.frameType = frameType;
         this.x = x;
         this.y = y;
@@ -40,14 +54,14 @@ public class PreparedAdvancementDisplayWrapper_v1_20_R3 extends PreparedAdvancem
 
     @Override
     @NotNull
-    public String getTitle() {
-        return CraftChatMessage.fromComponent(title);
+    public BaseComponent getTitle() {
+        return Util.toComponent(title);
     }
 
     @Override
     @NotNull
-    public String getDescription() {
-        return CraftChatMessage.fromComponent(description);
+    public BaseComponent getDescription() {
+        return Util.toComponent(description);
     }
 
     @Override

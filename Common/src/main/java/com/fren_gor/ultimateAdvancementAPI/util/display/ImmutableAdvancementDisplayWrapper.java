@@ -61,7 +61,16 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public String getTitle() {
+    public String getLegacyTitle() {
+        return wrapped.getLegacyTitle();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public BaseComponent getTitle() {
         return wrapped.getTitle();
     }
 
@@ -70,8 +79,8 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public BaseComponent[] getTitleBaseComponent() {
-        return wrapped.getTitleBaseComponent();
+    public DefaultStyle getDefaultTitleStyle() {
+        return wrapped.getDefaultTitleStyle();
     }
 
     /**
@@ -79,7 +88,25 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public List<String> getDescription() {
+    public DefaultStyle getAnnouncementMessageDefaultTitleStyle() {
+        return wrapped.getAnnouncementMessageDefaultTitleStyle();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public List<String> getLegacyDescription() {
+        return wrapped.getLegacyDescription();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public List<BaseComponent> getDescription() {
         return wrapped.getDescription();
     }
 
@@ -88,8 +115,17 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public List<BaseComponent[]> getDescriptionBaseComponent() {
-        return wrapped.getDescriptionBaseComponent();
+    public DefaultStyle getDefaultDescriptionStyle() {
+        return wrapped.getDefaultDescriptionStyle();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle() {
+        return wrapped.getAnnouncementMessageDefaultDescriptionStyle();
     }
 
     /**
@@ -122,7 +158,7 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public PreparedAdvancementDisplayWrapper getNMSWrapper() {
+    public PreparedAdvancementDisplayWrapper getNMSWrapper() throws ReflectiveOperationException {
         return wrapped.getNMSWrapper();
     }
 

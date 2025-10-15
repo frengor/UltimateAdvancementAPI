@@ -62,7 +62,16 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public String getTitle(@NotNull TeamProgression progression) {
+    public String getLegacyTitle(@NotNull TeamProgression progression) {
+        return wrapped.getLegacyTitle(progression);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public BaseComponent getTitle(@NotNull TeamProgression progression) {
         return wrapped.getTitle(progression);
     }
 
@@ -71,8 +80,8 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public BaseComponent[] getTitleBaseComponent(@NotNull TeamProgression progression) {
-        return wrapped.getTitleBaseComponent(progression);
+    public DefaultStyle getDefaultTitleStyle(@NotNull TeamProgression progression) {
+        return super.getDefaultTitleStyle(progression);
     }
 
     /**
@@ -80,7 +89,25 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public List<String> getDescription(@NotNull TeamProgression progression) {
+    public DefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull TeamProgression progression) {
+        return super.getAnnouncementMessageDefaultTitleStyle(progression);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public List<String> getLegacyDescription(@NotNull TeamProgression progression) {
+        return wrapped.getLegacyDescription(progression);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public List<BaseComponent> getDescription(@NotNull TeamProgression progression) {
         return wrapped.getDescription(progression);
     }
 
@@ -89,8 +116,17 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public List<BaseComponent[]> getDescriptionBaseComponent(@NotNull TeamProgression progression) {
-        return wrapped.getDescriptionBaseComponent(progression);
+    public DefaultStyle getDefaultDescriptionStyle(@NotNull TeamProgression progression) {
+        return super.getDefaultDescriptionStyle(progression);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull TeamProgression progression) {
+        return super.getAnnouncementMessageDefaultDescriptionStyle(progression);
     }
 
     /**
@@ -123,7 +159,7 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull TeamProgression progression) {
+    public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull TeamProgression progression) throws ReflectiveOperationException {
         return wrapped.getNMSWrapper(progression);
     }
 

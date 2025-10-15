@@ -1,14 +1,16 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_15_R1.advancement;
 
+import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
 import com.fren_gor.ultimateAdvancementAPI.nms.v1_15_R1.Util;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
+import com.google.gson.JsonParseException;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.minecraft.server.v1_15_R1.AdvancementDisplay;
 import net.minecraft.server.v1_15_R1.AdvancementFrameType;
 import net.minecraft.server.v1_15_R1.IChatBaseComponent;
 import net.minecraft.server.v1_15_R1.MinecraftKey;
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.v1_15_R1.util.CraftChatMessage;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,11 +57,12 @@ public class AdvancementDisplayWrapper_v1_15_R1 extends AdvancementDisplayWrappe
     private final AdvancementDisplay display;
     private final AdvancementFrameTypeWrapper frameType;
 
-    public AdvancementDisplayWrapper_v1_15_R1(@NotNull ItemStack icon, @NotNull String title, @NotNull String description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
-        MinecraftKey background = backgroundTexture == null ? null : new MinecraftKey(backgroundTexture);
-        this.display = new AdvancementDisplay(CraftItemStack.asNMSCopy(icon), Util.fromString(title), Util.fromString(description), background, (AdvancementFrameType) frameType.toNMS(), showToast, announceChat, hidden);
-        this.display.a(x, y);
-        this.frameType = frameType;
+    public AdvancementDisplayWrapper_v1_15_R1(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull BaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
+        this(CraftItemStack.asNMSCopy(icon), Util.fromComponent(title), Util.fromComponent(description), frameType, x, y, showToast, announceChat, hidden, backgroundTexture);
+    }
+
+    public AdvancementDisplayWrapper_v1_15_R1(@NotNull ItemStack icon, @NotNull JsonString jsonTitle, @NotNull JsonString jsonDescription, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) throws JsonParseException {
+        this(CraftItemStack.asNMSCopy(icon), Util.fromJSON(jsonTitle.jsonString()), Util.fromJSON(jsonDescription.jsonString()), frameType, x, y, showToast, announceChat, hidden, backgroundTexture);
     }
 
     protected AdvancementDisplayWrapper_v1_15_R1(@NotNull net.minecraft.server.v1_15_R1.ItemStack icon, @NotNull IChatBaseComponent title, @NotNull IChatBaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) {
@@ -82,14 +85,14 @@ public class AdvancementDisplayWrapper_v1_15_R1 extends AdvancementDisplayWrappe
 
     @Override
     @NotNull
-    public String getTitle() {
-        return CraftChatMessage.fromComponent(display.a());
+    public BaseComponent getTitle() {
+        return Util.toComponent(display.a());
     }
 
     @Override
     @NotNull
-    public String getDescription() {
-        return CraftChatMessage.fromComponent(display.b());
+    public BaseComponent getDescription() {
+        return Util.toComponent(display.b());
     }
 
     @Override

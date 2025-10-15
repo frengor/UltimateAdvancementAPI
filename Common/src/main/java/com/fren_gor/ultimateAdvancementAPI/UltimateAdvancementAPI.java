@@ -272,7 +272,7 @@ public final class UltimateAdvancementAPI {
      */
     public void displayCustomToast(@NotNull Player player, @NotNull AbstractAdvancementDisplay display) {
         TeamProgression pro = main.getDatabaseManager().getTeamProgression(player);
-        displayCustomToast(player, display.dispatchGetIcon(player, pro), display.dispatchGetTitle(player, pro), display.dispatchGetFrame(player, pro));
+        displayCustomToast(player, display.dispatchGetIcon(player, pro), display.dispatchGetLegacyTitle(player, pro), display.dispatchGetFrame(player, pro));
     }
 
     /**

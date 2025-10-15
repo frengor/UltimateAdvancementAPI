@@ -8,6 +8,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvanceme
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
+import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisablerWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
@@ -15,6 +16,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementF
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdvancementsWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.display.DefaultStyle;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -37,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -46,21 +49,31 @@ import java.util.logging.Level;
 public final class AdvancementUtils {
 
     public static final MinecraftKeyWrapper ROOT_KEY, NOTIFICATION_KEY;
-    private static final String ADV_DESCRIPTION = "\n§7A notification.";
+    private static final BaseComponent ADV_DESCRIPTION = new TextComponent("\nA notification.");
     private static final PreparedAdvancementWrapper PREPARED_ROOT;
     private static final AdvancementWrapper ROOT;
 
     static {
+        ADV_DESCRIPTION.setColor(ChatColor.GRAY);
+
         try {
             ROOT_KEY = MinecraftKeyWrapper.craft("com.fren_gor", "root");
             NOTIFICATION_KEY = MinecraftKeyWrapper.craft("com.fren_gor", "notification");
-            AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), "§f§lNotifications§1§2§3§4§5§6§7§8§9§0", "§7Notification page.\n§7Close and reopen advancements to hide.", AdvancementFrameTypeWrapper.TASK, 0, 0, "textures/block/stone.png");
+            BaseComponent title = new TextComponent("Notifications"); // "§f§lNotifications§1§2§3§4§5§6§7§8§9§0"
+            title.setColor(ChatColor.WHITE);
+            title.setBold(true);
+            BaseComponent description = new TextComponent("Notification page.\nClose and reopen advancements to hide.");
+            description.setColor(ChatColor.GRAY);
+            AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), title, description, AdvancementFrameTypeWrapper.TASK, 0, 0, "textures/block/stone.png");
             PREPARED_ROOT = PreparedAdvancementWrapper.craft(ROOT_KEY, 1);
             ROOT = PREPARED_ROOT.toAdvancementWrapper(display);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
     }
+
+    private static final boolean COMPONENT_BUILDER_HAS_BUILD = ReflectionUtil.hasMethod(ComponentBuilder.class, "build");
+    private static final boolean TEXT_COMPONENT_HAS_FROM_LEGACY = ReflectionUtil.hasMethod(TextComponent.class, "fromLegacy");
 
     /**
      * Displays a custom toast to a player.
@@ -72,6 +85,19 @@ public final class AdvancementUtils {
      * @see UltimateAdvancementAPI#displayCustomToast(Player, ItemStack, String, AdvancementFrameType)
      */
     public static void displayToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame) {
+        displayToast(player, icon, fromLegacy(title), frame);
+    }
+
+    /**
+     * Displays a custom toast to a player.
+     *
+     * @param player A player to show the toast.
+     * @param icon The displayed item of the toast.
+     * @param title The displayed title of the toast.
+     * @param frame The {@link AdvancementFrameType} of the toast.
+     * @see UltimateAdvancementAPI#displayCustomToast(Player, ItemStack, String, AdvancementFrameType)
+     */
+    public static void displayToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull AdvancementFrameType frame) {
         Preconditions.checkNotNull(player, "Player is null.");
         Preconditions.checkNotNull(icon, "Icon is null.");
         Preconditions.checkNotNull(title, "Title is null.");
@@ -154,46 +180,6 @@ public final class AdvancementUtils {
      */
     public static void disableVanillaAdvancements() throws Exception {
         VanillaAdvancementDisablerWrapper.disableVanillaAdvancements();
-    }
-
-    @NotNull
-    public static BaseComponent[] fromStringList(@NotNull List<String> list) {
-        return fromStringList(null, list);
-    }
-
-    @NotNull
-    public static BaseComponent[] fromStringList(@Nullable String title, @NotNull List<String> list) {
-        Preconditions.checkNotNull(list);
-        ComponentBuilder builder = new ComponentBuilder();
-        if (title != null) {
-            builder.append(TextComponent.fromLegacyText(title), FormatRetention.NONE);
-            if (list.isEmpty()) {
-                return builder.create();
-            }
-            builder.append("\n", FormatRetention.NONE);
-        } else if (list.isEmpty()) {
-            return builder.create();
-        }
-        int i = 0;
-        for (String s : list) {
-            builder.append(TextComponent.fromLegacyText(s), FormatRetention.NONE);
-            if (++i < list.size()) // Don't append \n at the end
-                builder.append("\n", FormatRetention.NONE);
-        }
-        return builder.create();
-    }
-
-    public static boolean startsWithEmptyLine(@NotNull String text) {
-        Preconditions.checkNotNull(text);
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            if (c == '§') {
-                i++; // Skip next character since it is a color code
-            } else {
-                return c == '\n';
-            }
-        }
-        return false;
     }
 
     @Contract("_ -> param1")
@@ -349,41 +335,197 @@ public final class AdvancementUtils {
     }
 
     @NotNull
-    public static BaseComponent[] getAnnounceMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+    public static BaseComponent getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+        return getAnnouncementMessage(advancement, advancementCompleter, false);
+    }
+
+    @NotNull
+    public static BaseComponent getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter, boolean fancy) {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkNotNull(advancementCompleter, "Player is null.");
 
         AbstractAdvancementDisplay display = advancement.getDisplay();
         TeamProgression progression = advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(advancementCompleter);
         AdvancementFrameType frame = display.dispatchGetFrame(advancementCompleter, progression);
-        String title = display.dispatchGetTitle(advancementCompleter, progression);
-        String description = String.join("\n" + ChatColor.RESET, display.dispatchGetDescription(advancementCompleter, progression));
-        ChatColor color = frame.getColor();
+        BaseComponent title = display.dispatchGetTitle(advancementCompleter, progression);
+        List<BaseComponent> description = display.dispatchGetDescription(advancementCompleter, progression);
+        DefaultStyle defaultAMTitleStyle = display.dispatchGetAnnouncementMessageDefaultTitleStyle(advancementCompleter, progression);
+        DefaultStyle defaultAMDescriptionStyle = display.dispatchGetAnnouncementMessageDefaultDescriptionStyle(advancementCompleter, progression);
         String chatText = frame.getChatText();
+        DefaultStyle frameStyle = frame.getStyle();
 
         Preconditions.checkNotNull(frame, "Display returned a null frame.");
         Preconditions.checkNotNull(title, "Display returned a null title.");
         Preconditions.checkNotNull(description, "Display returned a null description.");
-        Preconditions.checkNotNull(color, "Frame returned a null color.");
         Preconditions.checkNotNull(chatText, "Frame returned a null chatText.");
+        Preconditions.checkNotNull(frameStyle, "Frame returned a null style.");
 
-        return new ComponentBuilder(advancementCompleter.getName() + ' ' + frame.getChatText() + ' ')
+        DefaultStyle titleStyle = defaultAMTitleStyle.mergeWith(frameStyle);
+        DefaultStyle parenthesesStyle = fancy ? titleStyle : frameStyle;
+
+        title = applyDefaultStyle(title, titleStyle);
+
+        ComponentBuilder hoverText = new ComponentBuilder().append(title, FormatRetention.NONE);
+
+        if (!description.isEmpty()) {
+            if (fancy && startsWithNewLine(description.get(0)) == NO_NEW_LINE) {
+                hoverText.append("\n\n", FormatRetention.NONE);
+            } else {
+                hoverText.append("\n", FormatRetention.NONE);
+            }
+
+            DefaultStyle descriptionStyle = defaultAMDescriptionStyle.mergeWith(frameStyle);
+            hoverText.append(joinBaseComponents(new TextComponent("\n"), descriptionStyle, description), FormatRetention.NONE);
+        }
+
+        ComponentBuilder hoverBuilder = new ComponentBuilder("[");
+        parenthesesStyle.applyTo(hoverBuilder);
+        hoverBuilder.append(title, FormatRetention.NONE)
+                .append("]", FormatRetention.NONE);
+        parenthesesStyle.applyTo(hoverBuilder);
+
+        TextComponent withHover = new TextComponent(hoverBuilder.create());
+        withHover.setHoverEvent(new HoverEvent(Action.SHOW_TEXT, hoverText.create()));
+
+        var cb = new ComponentBuilder(advancementCompleter.getName() + ' ' + frame.getChatText() + ' ')
                 .color(ChatColor.WHITE)
-                .append(new ComponentBuilder("[")
-                                .color(frame.getColor())
-                                .event(new HoverEvent(Action.SHOW_TEXT, new ComponentBuilder("")
-                                        .append(title, FormatRetention.NONE)
-                                        .append("\n")
-                                        .append(description, FormatRetention.NONE)
-                                        .create()))
-                                .create()
-                        , FormatRetention.NONE)
-                .append(title, FormatRetention.EVENTS)
-                .append(new ComponentBuilder("]")
-                                .color(frame.getColor())
-                                .create()
-                        , FormatRetention.EVENTS)
-                .create();
+                .append(withHover, FormatRetention.NONE);
+        return build(cb);
+    }
+
+    // Package-private for tests
+    static final int EMPTY = 0;
+    static final int NEW_LINE = 1;
+    static final int NO_NEW_LINE = -1;
+
+    // Returns:
+    // * NO_NEW_LINE if component doesn't start with newLine
+    // * NEW_LINE if component starts with newLine
+    // * EMPTY if the component is empty (null or "")
+    static int startsWithNewLine(BaseComponent component) { // Package-private for tests
+        int r;
+        if (component == null) {
+            return EMPTY;
+        } else if (component instanceof TextComponent textComponent) {
+            r = startsWithNewLine(textComponent.getText());
+            if (r != EMPTY) {
+                return r;
+            }
+        } else {
+            // Every non-text component is assumed not to start with \n
+            return NO_NEW_LINE;
+        }
+
+        var extra = component.getExtra();
+        if (extra == null) {
+            return EMPTY;
+        }
+        for (var e : extra) {
+            if (e != null && (r = startsWithNewLine(e)) != EMPTY) {
+                return r;
+            }
+        }
+        return EMPTY;
+    }
+
+    // Returns:
+    // * NO_NEW_LINE if component doesn't start with newLine
+    // * NEW_LINE if component starts with newLine
+    // * EMPTY if the component is empty (null or "")
+    static int startsWithNewLine(String text) { // Package-private for tests
+        if (text == null) {
+            return EMPTY;
+        }
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '\n') {
+                return NEW_LINE;
+            } else if (c == ChatColor.COLOR_CHAR) {
+                i++; // Skip next character since it is a color code
+            } else if (!Character.isWhitespace(c)) { // Continue if c is a white space
+                return NO_NEW_LINE;
+            }
+        }
+        return EMPTY;
+    }
+
+    /**
+     * Equivalent of {@link ComponentBuilder#build()}. Present for compatibility with old versions.
+     * <p>Use this method rather than {@link ComponentBuilder#build()} in UltimateAdvancementAPI code!
+     *
+     * @param builder The builder to build.
+     * @return The resulting {@link BaseComponent}.
+     * @see ComponentBuilder#build()
+     * @see ComponentBuilder#create()
+     */
+    @NotNull
+    public static BaseComponent build(@NotNull ComponentBuilder builder) {
+        if (COMPONENT_BUILDER_HAS_BUILD) {
+            return builder.build();
+        }
+        BaseComponent[] created = builder.create();
+        // In old versions there isn't TextComponent.fromArray(...)
+        return created.length == 1 ? created[0] : new TextComponent(created);
+    }
+
+    /**
+     * Equivalent of {@link TextComponent#fromLegacy(String)}. Present for compatibility with old versions.
+     * <p>Use this method rather than {@link TextComponent#fromLegacy(String)} in UltimateAdvancementAPI code!
+     *
+     * @param legacy The legacy string to convert.
+     * @return The resulting {@link BaseComponent}.
+     * @see TextComponent#fromLegacy(String)
+     * @see TextComponent#fromLegacyText(String)
+     */
+    @NotNull
+    public static BaseComponent fromLegacy(@NotNull String legacy) {
+        Preconditions.checkNotNull(legacy, "Legacy string is null.");
+        if (TEXT_COMPONENT_HAS_FROM_LEGACY) {
+            return TextComponent.fromLegacy(legacy);
+        }
+        return new TextComponent(TextComponent.fromLegacyText(legacy));
+    }
+
+    /**
+     * Joins the provided {@link BaseComponent}s into a single one, separating them with the specified delimiter.
+     *
+     * @param delimiter The delimiter to put in between the {@link BaseComponent}s.
+     * @param defaultStyle The default style of the {@link BaseComponent}s to join. May be {@code null} if no default color should be applied.
+     * @param toJoin The {@link BaseComponent}s to join.
+     * @return A {@link BaseComponent} containing the joined components.
+     */
+    @NotNull
+    public static BaseComponent joinBaseComponents(@NotNull BaseComponent delimiter, @Nullable DefaultStyle defaultStyle, @NotNull Iterable<? extends BaseComponent> toJoin) {
+        Preconditions.checkNotNull(delimiter, "Delimiter is null.");
+        Preconditions.checkNotNull(toJoin, "BaseComponents to join are null.");
+        var iter = toJoin.iterator();
+        if (!iter.hasNext()) {
+            return new TextComponent();
+        }
+        var first = Objects.requireNonNull(iter.next(), "A BaseComponent to join is null.");
+        ComponentBuilder joiner = new ComponentBuilder(first);
+        while (iter.hasNext()) {
+            BaseComponent component = Objects.requireNonNull(iter.next(), "A BaseComponent to join is null.");
+            joiner.append(delimiter, FormatRetention.NONE).append(component, FormatRetention.NONE);
+        }
+        return applyDefaultStyle(build(joiner), defaultStyle);
+    }
+
+    /**
+     * Applies the specified default style to the provided {@link BaseComponent}.
+     *
+     * @param text The {@link BaseComponent} to which the default style will be applied.
+     * @param defaultStyle The default style to apply. May be {@code null} if no default style should be applied.
+     * @return The provided {@link BaseComponent} with the default style applied.
+     */
+    @NotNull
+    public static BaseComponent applyDefaultStyle(@NotNull BaseComponent text, @Nullable DefaultStyle defaultStyle) {
+        if (defaultStyle == null || defaultStyle == DefaultStyle.MINECRAFT_DEFAULTS) {
+            return text;
+        }
+        text = text.duplicate();
+        defaultStyle.applyTo(text);
+        return text;
     }
 
     private AdvancementUtils() {

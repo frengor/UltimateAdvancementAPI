@@ -21,8 +21,18 @@
     </properties>
 
     <dependencies>
+        <!-- BungeeCord Chat -->
+        <!-- shadowColor isn't present in 1.21.3, use bungeecord-chat from 1.21.4 -->
+        <!-- Put before every other dependency in order to have it loaded before Spigot and MockBukkit -->
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-chat</artifactId>
+            <version>1.21-R0.2</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- MockBukkit -->
-        <!-- Put before every other dependency in order to have it loaded before Spigot dependency-->
+        <!-- Put before every other dependency (except bungeecord-chat) in order to have it loaded before Spigot -->
         <!-- See https://github.com/MockBukkit/MockBukkit/issues/462 and https://github.com/MockBukkit/MockBukkit/issues/462#issuecomment-1156574495 -->
         <dependency>
             <groupId>com.github.seeseemelk</groupId>
