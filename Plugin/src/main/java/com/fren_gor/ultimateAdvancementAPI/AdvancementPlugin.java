@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager;
 import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.ILoadable;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.metrics.BStats;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisablerWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -99,12 +100,12 @@ public class AdvancementPlugin extends JavaPlugin {
             }
         }
 
-        if (configManager.getDisableVanillaAdvancements()) {
+        if (configManager.getDisableVanillaAdvancements() || configManager.getDisableVanillaRecipeAdvancements()) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     try {
-                        AdvancementUtils.disableVanillaAdvancements();
+                        VanillaAdvancementDisablerWrapper.disableVanillaAdvancements(configManager.getDisableVanillaAdvancements(), configManager.getDisableVanillaRecipeAdvancements());
                     } catch (Exception e) {
                         Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] Cannot disable vanilla advancements.");
                         getLogger().log(Level.WARNING, "Cannot disable vanilla advancements", e);
@@ -141,7 +142,7 @@ public class AdvancementPlugin extends JavaPlugin {
                 if (scanner.hasNextLine()) {
                     if (!this.getDescription().getVersion().equalsIgnoreCase(scanner.next())) {
                         AdvancementUtils.runSync(this, () -> {
-                            getLogger().info("A new version of " + this.getDescription().getName() + " is out! Download it at https://www.spigotmc.org/resources/" + RESOURCE_ID);
+                            getLogger().info("A new version of " + this.getDescription().getName() + " is out! Download it at https://modrinth.com/plugin/ultimateadvancementapi");
                         });
                     }
                 }

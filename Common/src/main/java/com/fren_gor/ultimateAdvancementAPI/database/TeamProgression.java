@@ -7,7 +7,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,10 +50,8 @@ public final class TeamProgression {
      * Any illegal instantiation will throw an {@link IllegalOperationException}.
      *
      * @param teamId The team id.
-     * @throws IllegalOperationException If this constructor is called by a class not in the
-     *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
+     * @throws IllegalOperationException If this constructor is called by a class which is not an instance of {@link IDatabase}.
      */
-    @Internal
     public TeamProgression(int teamId) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         this.advancements = new ConcurrentHashMap<>();
@@ -70,10 +67,8 @@ public final class TeamProgression {
      * @param advancements All the advancement keys with their progression.
      * @param teamId The team id.
      * @param members A collection of team members.
-     * @throws IllegalOperationException If this constructor is called by a class not in the
-     *         {@code com.fren_gor.ultimateAdvancementAPI.database} package or in one of its sub-packages.
+     * @throws IllegalOperationException If this constructor is called by a class which is not an instance of {@link IDatabase}.
      */
-    @Internal
     public TeamProgression(@NotNull Map<AdvancementKey, Integer> advancements, int teamId, @NotNull Collection<UUID> members) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         Preconditions.checkNotNull(advancements, "Advancements is null.");
@@ -84,8 +79,8 @@ public final class TeamProgression {
     }
 
     private void validateCaller(@NotNull Class<?> caller) throws IllegalOperationException {
-        if (!caller.getPackage().getName().startsWith("com.fren_gor.ultimateAdvancementAPI.database")) {
-            throw new IllegalOperationException("TeamProgression can be instantiated only by classes inside the com.fren_gor.ultimateAdvancementAPI.database package or its sub-packages.");
+        if (!IDatabase.class.isAssignableFrom(caller)) {
+            throw new IllegalOperationException("TeamProgression can be instantiated only by database implementations (IDatabase).");
         }
     }
 

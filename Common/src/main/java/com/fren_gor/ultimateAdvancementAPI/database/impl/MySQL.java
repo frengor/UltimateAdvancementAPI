@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.database.impl;
 
+import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalKeyException;
@@ -27,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -45,6 +47,23 @@ public class MySQL implements IDatabase {
     /**
      * Creates the MySQL connection.
      *
+     * @param main The instance of the main class of the API.
+     * @param username The username.
+     * @param password The password.
+     * @param databaseName The name of the database.
+     * @param host The MySQL host.
+     * @param port The MySQL port. Must be greater than zero.
+     * @param poolSize The pool size. Must be greater than zero.
+     * @param connectionTimeout The connection timeout. Must be greater or equal to 250.
+     * @throws Exception If anything goes wrong.
+     */
+    public MySQL(@NotNull AdvancementMain main, @NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout) throws Exception {
+        this(username, password, databaseName, host, port, poolSize, connectionTimeout, Objects.requireNonNull(main, "AdvancementMain is null.").getLogger(), main.getLibbyManager());
+    }
+
+    /**
+     * Creates the MySQL connection.
+     *
      * @param username The username.
      * @param password The password.
      * @param databaseName The name of the database.
@@ -55,7 +74,9 @@ public class MySQL implements IDatabase {
      * @param logger The plugin {@link Logger}.
      * @param manager The {@link LibraryManager}.
      * @throws Exception If anything goes wrong.
+     * @deprecated Use {@link #MySQL(AdvancementMain, String, String, String, String, int, int, long)} instead.
      */
+    @Deprecated(forRemoval = true, since = "2.5.0")
     public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws Exception {
         Preconditions.checkNotNull(username, "Username is null.");
         Preconditions.checkNotNull(password, "Password is null.");
