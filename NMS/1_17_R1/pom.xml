@@ -20,11 +20,11 @@
     </properties>
 
     <dependencies>
-        <!-- NMS Common Module -->
+        <!-- Spigot API -->
         <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-nms-common</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>${mc-version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -35,6 +35,14 @@
             <version>${mc-version}</version>
             <scope>provided</scope>
             <classifier>remapped-mojang</classifier>
+        </dependency>
+
+        <!-- NMS Common Module -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-common</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
