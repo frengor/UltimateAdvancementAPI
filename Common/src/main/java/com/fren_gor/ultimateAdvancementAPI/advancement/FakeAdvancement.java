@@ -449,7 +449,29 @@ public class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    public void onGrant(@NotNull Player player, boolean giveRewards) {
+    public void onGrant(@NotNull Player advancementCompleter, boolean giveRewards) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
+     *
+     * @throws UnsupportedOperationException Always when it's called.
+     */
+    @Override
+    protected void sendAnnouncementMessageOnGrant(@NotNull Player advancementCompleter, @NotNull TeamProgression progression) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
+     *
+     * @throws UnsupportedOperationException Always when it's called.
+     */
+    @Override
+    protected void displayToastOnGrant(@NotNull Player advancementCompleter, @NotNull TeamProgression progression) {
         throw new UnsupportedOperationException();
     }
 

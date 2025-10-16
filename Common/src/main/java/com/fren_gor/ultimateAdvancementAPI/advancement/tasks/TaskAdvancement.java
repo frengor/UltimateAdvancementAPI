@@ -10,7 +10,6 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
-import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -202,14 +201,18 @@ public class TaskAdvancement extends BaseAdvancement {
 
     /**
      * {@inheritDoc}
-     * <p>Since {@code TaskAdvancement}s are not sent to players, this method doesn't send toast notifications and chat messages.
+     * <p>Since {@code TaskAdvancement}s are not sent to players, this method doesn't send any announcement messages.
      */
     @Override
-    public void onGrant(@NotNull Player player, boolean giveRewards) {
-        Preconditions.checkNotNull(player, "Player is null.");
+    protected void sendAnnouncementMessageOnGrant(@NotNull Player advancementCompleter, @NotNull TeamProgression progression) {
+    }
 
-        if (giveRewards)
-            giveReward(player);
+    /**
+     * {@inheritDoc}
+     * <p>Since {@code TaskAdvancement}s are not sent to players, this method doesn't display any toast notifications.
+     */
+    @Override
+    protected void displayToastOnGrant(@NotNull Player advancementCompleter, @NotNull TeamProgression progression) {
     }
 
     /**

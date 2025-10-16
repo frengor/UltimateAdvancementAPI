@@ -623,20 +623,39 @@ public abstract class Advancement {
     }
 
     /**
-     * Called when the advancement is completed by a player. It handles the chat message, the toast notification, and the advancement rewards (see {@link #giveReward(Player)} for more information).
+     * Called when the advancement is completed by a player. It handles the chat announcement message, the toast notification, and the advancement reward (see {@link #giveReward(Player)} for more information).
      *
-     * @param player The player who completed the advancement.
+     * @param advancementCompleter The player who completed the advancement.
      * @param giveRewards Whether to give rewards.
+     * @see #giveReward(Player)
+     * @see #sendAnnouncementMessageOnGrant(Player, TeamProgression)
+     * @see #displayToastOnGrant(Player, TeamProgression)
      */
-    public void onGrant(@NotNull Player player, boolean giveRewards) {
-        Preconditions.checkNotNull(player, "Player is null.");
-        final TeamProgression progression = advancementTab.getDatabaseManager().getTeamProgression(player);
+    public void onGrant(@NotNull Player advancementCompleter, boolean giveRewards) {
+        Preconditions.checkNotNull(advancementCompleter, "Player is null.");
+        final TeamProgression progression = advancementTab.getDatabaseManager().getTeamProgression(advancementCompleter);
 
-        // Send complete messages
-        Boolean gameRule = player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
+        sendAnnouncementMessageOnGrant(advancementCompleter, progression);
+        displayToastOnGrant(advancementCompleter, progression);
 
-        if (display.dispatchDoesAnnounceToChat(player, progression) && (gameRule == null || gameRule)) {
-            @Nullable Function<Player, @Nullable BaseComponent> perPlayerMsgGetter = getAnnouncementMessage(player);
+        if (giveRewards)
+            giveReward(advancementCompleter);
+    }
+
+    /**
+     * Called during {@link #onGrant(Player, boolean) onGrant} to send the chat announcement message.
+     *
+     * @param advancementCompleter The player who completed the advancement.
+     * @param progression The team of the player who completed the advancement.
+     * @see #onGrant(Player, boolean)
+     */
+    protected void sendAnnouncementMessageOnGrant(@NotNull Player advancementCompleter, @NotNull TeamProgression progression) {
+        Preconditions.checkNotNull(advancementCompleter, "Player is null.");
+        validateTeamProgression(progression);
+
+        Boolean gameRule = advancementCompleter.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
+        if ((gameRule == null || gameRule) && display.dispatchDoesAnnounceToChat(advancementCompleter, progression)) {
+            @Nullable Function<Player, @Nullable BaseComponent> perPlayerMsgGetter = getAnnouncementMessage(advancementCompleter);
             if (perPlayerMsgGetter != null) {
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     @Nullable BaseComponent msg = perPlayerMsgGetter.apply(p);
@@ -646,9 +665,20 @@ public abstract class Advancement {
                 }
             }
         }
+    }
 
-        // Show Toast
-        if (display.dispatchDoesShowToast(player, progression)) {
+    /**
+     * Called during {@link #onGrant(Player, boolean) onGrant} to display the toast notification.
+     *
+     * @param advancementCompleter The player who completed the advancement.
+     * @param progression The team of the player who completed the advancement.
+     * @see #onGrant(Player, boolean)
+     */
+    protected void displayToastOnGrant(@NotNull Player advancementCompleter, @NotNull TeamProgression progression) {
+        Preconditions.checkNotNull(advancementCompleter, "Player is null.");
+        validateTeamProgression(progression);
+
+        if (display.dispatchDoesShowToast(advancementCompleter, progression)) {
             // TODO Find a better solution
             if (advancementTab.doesShowToastToTeam()) {
                 progression.forEachMember(u -> {
@@ -658,12 +688,9 @@ public abstract class Advancement {
                     }
                 });
             } else {
-                runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(player, this));
+                runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(advancementCompleter, this));
             }
         }
-
-        if (giveRewards)
-            giveReward(player);
     }
 
     /**
