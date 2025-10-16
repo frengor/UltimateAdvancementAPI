@@ -96,7 +96,8 @@ public final class Util {
         if (component == null) {
             return new TextComponent("");
         }
-        return ComponentSerializer.deserialize(CraftChatMessage.toJSON(component));
+        BaseComponent[] parsed = ComponentSerializer.parse(CraftChatMessage.toJSON(component));
+        return parsed.length == 1 ? parsed[0] : new TextComponent(parsed);
     }
 
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {

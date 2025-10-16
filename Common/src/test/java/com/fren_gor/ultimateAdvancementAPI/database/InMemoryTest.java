@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
+import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.tests.database.FallibleDBImpl.RuntimePlannedFailureException;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
@@ -17,7 +18,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,11 +26,13 @@ public class InMemoryTest {
 
     private InMemory db;
     @AutoInject
+    private AdvancementMain advancementMain;
+    @AutoInject
     private UUID uuid;
 
     @BeforeEach
     void init() throws Exception {
-        db = new InMemory(Logger.getLogger("InMemoryTest"));
+        db = new InMemory(advancementMain);
         db.setUp();
     }
 

@@ -22,7 +22,7 @@ public class AdvancementMainTest {
         MockPlugin pl = MockBukkit.createMockPlugin();
         AdvancementMain main = new AdvancementMain(pl);
         assertThrows(InvalidVersionException.class, main::load);
-        assertThrows(InvalidVersionException.class, main::enableInMemory);
+        assertThrows(InvalidVersionException.class, () -> main.enable(() -> null));
         assertThrows(InvalidVersionException.class, main::disable);
     }
 }

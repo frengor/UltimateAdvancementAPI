@@ -6,6 +6,7 @@ import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.tests.Utils.AbstractMockedServer;
+import com.fren_gor.ultimateAdvancementAPI.tests.database.DatabaseImpls;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -81,6 +82,7 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
         var store = extensionContext.getStore(UAAPI_NAMESPACE);
         store.remove(AdvancementKey.class, AtomicInteger.class);
         store.remove(DatabaseManager.class, DatabaseManager.class);
+        store.remove(DatabaseImpls.class, DatabaseImpls.class);
         var dbManagerUtils = store.remove(DatabaseManagerUtils.class, DatabaseManagerUtils.class);
         var main = store.remove(AdvancementMain.class, AdvancementMain.class);
         store.remove(ServerMock.class, ServerMock.class);
@@ -126,6 +128,7 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
                 !isNoAdvMain && (
                         type == AdvancementMain.class ||
                         type == DatabaseManagerUtils.class ||
+                        type == DatabaseImpls.class ||
                         type == DatabaseManager.class
                 )
         );
@@ -186,18 +189,25 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
         if (store.get(AdvancementMain.class) != null) {
             throw new IllegalStateException("Duplicated init of AdvancementMain");
         }
-        store.put(AdvancementMain.class, Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), main -> {
-            var dbManagerUtils = new DatabaseManagerUtils(main);
-            if (store.get(DatabaseManagerUtils.class) != null) {
-                throw new IllegalStateException("Duplicated init of DatabaseManagerMock");
+        AdvancementMain advMain = Utils.newAdvancementMain(MockBukkit.createMockPlugin("testPlugin"), main -> {
+            if (store.get(DatabaseImpls.class) != null) {
+                throw new IllegalStateException("Duplicated init of DatabaseImpls");
             }
-            store.put(DatabaseManagerUtils.class, dbManagerUtils);
-            if (store.get(DatabaseManager.class) != null) {
-                throw new IllegalStateException("Duplicated init of DatabaseManager");
-            }
-            store.put(DatabaseManager.class, dbManagerUtils.getDatabaseManager());
-            return dbManagerUtils.getDatabaseManager();
-        }));
+            DatabaseImpls dbImpls = new DatabaseImpls(main);
+            store.put(DatabaseImpls.class, dbImpls);
+            return dbImpls.getIDatabase();
+        });
+        store.put(AdvancementMain.class, advMain);
+        if (store.get(DatabaseManager.class) != null) {
+            throw new IllegalStateException("Duplicated init of DatabaseManager");
+        }
+        DatabaseManager databaseManager = advMain.getDatabaseManager();
+        store.put(DatabaseManager.class, databaseManager);
+        if (store.get(DatabaseManagerUtils.class) != null) {
+            throw new IllegalStateException("Duplicated init of DatabaseManagerMock");
+        }
+        var dbManagerUtils = new DatabaseManagerUtils(databaseManager);
+        store.put(DatabaseManagerUtils.class, dbManagerUtils);
     }
 
     private boolean isNoAdvancementMain(ExtensionContext extensionContext) {

@@ -3,7 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.tests;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
-import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
+import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
@@ -14,9 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,17 +23,9 @@ import static org.mockito.Mockito.withSettings;
 
 public final class Utils {
 
-    private static Method mainEnableForTests;
     private static Field versionsCOMPLETE_VERSION;
 
     static {
-        try {
-            mainEnableForTests = AdvancementMain.class.getDeclaredMethod("enableForTests", Callable.class);
-            mainEnableForTests.setAccessible(true);
-        } catch (ReflectiveOperationException e) {
-            fail("Cannot get AdvancementMain members.", e);
-        }
-
         try {
             versionsCOMPLETE_VERSION = Versions.class.getDeclaredField("COMPLETE_VERSION");
             versionsCOMPLETE_VERSION.setAccessible(true);
@@ -95,12 +85,13 @@ public final class Utils {
      * }}</pre>
      *
      * @param plugin The plugin
-     * @param databaseManagerSupplier The database manager supplier.
+     * @param databaseSupplier The {@link IDatabase} supplier.
      */
-    static AdvancementMain newAdvancementMain(@NotNull Plugin plugin, @NotNull DatabaseManagerSupplier databaseManagerSupplier) {
+    @NotNull
+    static AdvancementMain newAdvancementMain(@NotNull Plugin plugin, @NotNull IDatabaseSupplier databaseSupplier) {
         assertNotNull(Bukkit.getServer(), "newAdvancementMain(...) must be called inside Utils.mockServer(...)");
         assertNotNull(plugin);
-        assertNotNull(databaseManagerSupplier);
+        assertNotNull(databaseSupplier);
         try (var libraryManagerMock = Mockito.mockConstruction(BukkitLibraryManager.class,
                 withSettings().defaultAnswer(i -> {
                     throw new UnsupportedOperationException("Mocked method.");
@@ -111,7 +102,7 @@ public final class Utils {
         ) {
             AdvancementMain main = new AdvancementMain(plugin);
             main.load();
-            mainEnableForTests.invoke(main, (Callable<DatabaseManager>) () -> databaseManagerSupplier.apply(main));
+            main.enable(() -> databaseSupplier.apply(main));
             return main;
         } catch (Throwable t) {
             fail("Cannot instantiate AdvancementMain for tests.", t);
@@ -120,9 +111,9 @@ public final class Utils {
     }
 
     @FunctionalInterface
-    public interface DatabaseManagerSupplier {
+    public interface IDatabaseSupplier {
         @NotNull
-        DatabaseManager apply(AdvancementMain main) throws Exception;
+        IDatabase apply(AdvancementMain main) throws Exception;
     }
 
     public abstract static class AbstractMockedServer extends ServerMock {

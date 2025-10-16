@@ -4,7 +4,6 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.logging.Logger;
 
 /**
  * Class used to establish a connection to a database stored in-memory.
@@ -19,17 +18,5 @@ public class InMemory extends SQLite {
      */
     public InMemory(@NotNull AdvancementMain main) throws Exception {
         super(Objects.requireNonNull(main, "AdvancementMain is null.").getLogger());
-    }
-
-    /**
-     * Creates an in-memory database connection.
-     *
-     * @param logger The plugin {@link Logger}.
-     * @throws Exception If anything goes wrong.
-     * @deprecated Use {@link #InMemory(AdvancementMain)} instead.
-     */
-    @Deprecated(forRemoval = true, since = "2.5.0")
-    public InMemory(@NotNull Logger logger) throws Exception {
-        super(logger);
     }
 }

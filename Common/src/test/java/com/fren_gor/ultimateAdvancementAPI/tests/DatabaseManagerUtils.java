@@ -1,14 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
-import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
-import com.fren_gor.ultimateAdvancementAPI.tests.database.BlockingDBImpl;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
-import com.fren_gor.ultimateAdvancementAPI.tests.database.FallibleDBImpl;
-import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
-import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -17,14 +12,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class DatabaseManagerUtils {
 
-    private static final Constructor<DatabaseManager> dbManagerConstructor;
     private static final Field executorField;
 
     static {
         try {
-            dbManagerConstructor = DatabaseManager.class.getDeclaredConstructor(AdvancementMain.class, IDatabase.class);
-            dbManagerConstructor.setAccessible(true);
-
             executorField = DatabaseManager.class.getDeclaredField("executor");
             executorField.setAccessible(true);
         } catch (ReflectiveOperationException e) {
@@ -33,15 +24,15 @@ public class DatabaseManagerUtils {
     }
 
     private final DatabaseManager databaseManager;
-    private final FallibleDBImpl fallible;
-    private final BlockingDBImpl blocking;
     private final ExecutorService executor;
 
-    DatabaseManagerUtils(AdvancementMain main) throws Exception {
-        this.blocking = new BlockingDBImpl(new InMemory(main.getLogger()));
-        this.fallible = new FallibleDBImpl(this.blocking);
-        this.databaseManager = dbManagerConstructor.newInstance(main, this.fallible);
-        this.executor = (ExecutorService) executorField.get(this.databaseManager);
+    DatabaseManagerUtils(DatabaseManager databaseManager) {
+        this.databaseManager = Objects.requireNonNull(databaseManager);
+        try {
+            this.executor = (ExecutorService) executorField.get(this.databaseManager);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
         assertNotNull(executor);
     }
 
@@ -101,14 +92,6 @@ public class DatabaseManagerUtils {
 
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
-    }
-
-    public FallibleDBImpl getFallible() {
-        return fallible;
-    }
-
-    public BlockingDBImpl getBlocking() {
-        return blocking;
     }
 
     public ExecutorService getExecutor() {

@@ -22,6 +22,7 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseManagerClosedExcep
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.tests.DatabaseManagerUtils.Paused;
+import com.fren_gor.ultimateAdvancementAPI.tests.database.DatabaseImpls;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,8 @@ public class DatabaseManagerTest {
     @AutoInject
     private DatabaseManager dbManager;
     @AutoInject
+    private DatabaseImpls dbImpls;
+    @AutoInject
     private DatabaseManagerUtils dbManagerUtils;
 
     @Test
@@ -83,8 +86,8 @@ public class DatabaseManagerTest {
 
         Paused paused = dbManagerUtils.pauseFutureTasks();
 
-        dbManagerUtils.getFallible().setFallibleOps(DBOperation.UPDATE_ADVANCEMENT);
-        dbManagerUtils.getFallible().addToPlanning(true, false, true);
+        dbImpls.getFallible().setFallibleOps(DBOperation.UPDATE_ADVANCEMENT);
+        dbImpls.getFallible().addToPlanning(true, false, true);
         CompletableFuture<ProgressionUpdateResult> updateResult1 = dbManager.setProgression(key, p, 10);
 
         // This should fail
@@ -127,8 +130,8 @@ public class DatabaseManagerTest {
 
         Paused paused = dbManagerUtils.pauseFutureTasks();
 
-        dbManagerUtils.getFallible().setFallibleOps(DBOperation.UPDATE_ADVANCEMENT);
-        dbManagerUtils.getFallible().addToPlanning(true, false, true);
+        dbImpls.getFallible().setFallibleOps(DBOperation.UPDATE_ADVANCEMENT);
+        dbImpls.getFallible().addToPlanning(true, false, true);
         CompletableFuture<ProgressionUpdateResult> updateResult1 = dbManager.incrementProgression(key, p, 10);
 
         // This should fail
@@ -215,8 +218,8 @@ public class DatabaseManagerTest {
 
         Paused paused = dbManagerUtils.pauseFutureTasks();
 
-        dbManagerUtils.getFallible().setFallibleOps(DBOperation.MOVE_PLAYER);
-        dbManagerUtils.getFallible().addToPlanning(true, false);
+        dbImpls.getFallible().setFallibleOps(DBOperation.MOVE_PLAYER);
+        dbImpls.getFallible().addToPlanning(true, false);
         CompletableFuture<Void> cf1 = dbManager.updatePlayerTeam(pl1, pl2);
 
         // This should fail
@@ -279,8 +282,8 @@ public class DatabaseManagerTest {
 
         Paused paused = dbManagerUtils.pauseFutureTasks();
 
-        dbManagerUtils.getFallible().setFallibleOps(DBOperation.MOVE_PLAYER_IN_NEW_TEAM);
-        dbManagerUtils.getFallible().addToPlanning(false, false);
+        dbImpls.getFallible().setFallibleOps(DBOperation.MOVE_PLAYER_IN_NEW_TEAM);
+        dbImpls.getFallible().addToPlanning(false, false);
         CompletableFuture<TeamProgression> cf = dbManager.movePlayerInNewTeam(p);
 
         paused.resume();
@@ -318,8 +321,8 @@ public class DatabaseManagerTest {
         PlayerMock p = loadPlayer();
         disconnectPlayer(p);
         MockPlugin plugin = MockBukkit.createMockPlugin();
-        dbManagerUtils.getFallible().setFallibleOps(DBOperation.LOAD_UUID);
-        dbManagerUtils.getFallible().addToPlanning(false);
+        dbImpls.getFallible().setFallibleOps(DBOperation.LOAD_UUID);
+        dbImpls.getFallible().addToPlanning(false);
         assertTrue(waitCompletion(dbManager.loadAndAddLoadingRequestToPlayer(p.getUniqueId(), plugin)).isCompletedExceptionally());
         assertEquals(0, dbManager.getLoadingRequestsAmount(p.getUniqueId(), plugin));
         assertThrows(UserNotLoadedException.class, () -> dbManager.getTeamProgression(p.getUniqueId()));
@@ -517,10 +520,10 @@ public class DatabaseManagerTest {
 
     @Test
     void joinAndQuitTest() {
-        dbManagerUtils.getBlocking().setBlockingOps(DBOperation.LOAD_OR_REGISTER_PLAYER);
-        dbManagerUtils.getBlocking().setPlanning(false);
+        dbImpls.getBlocking().setBlockingOps(DBOperation.LOAD_OR_REGISTER_PLAYER);
+        dbImpls.getBlocking().setPlanning(false);
         PlayerMock p = server.addPlayer();
-        disconnectPlayer(p, false, dbManagerUtils.getBlocking().getBlockedDB(DBOperation.LOAD_OR_REGISTER_PLAYER));
+        disconnectPlayer(p, false, dbImpls.getBlocking().getBlockedDB(DBOperation.LOAD_OR_REGISTER_PLAYER));
         server.getPluginManager().assertEventFired(PlayerRegisteredEvent.class, e -> e.getPlayerUUID().equals(p.getUniqueId()));
     }
 

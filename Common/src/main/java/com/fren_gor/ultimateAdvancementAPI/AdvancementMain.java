@@ -6,9 +6,6 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementTab.PerTeamBackgroundTextu
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
-import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
-import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
-import com.fren_gor.ultimateAdvancementAPI.database.impl.SQLite;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
@@ -24,11 +21,9 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.ApiStatus.Obsolete;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.Unmodifiable;
 import org.jetbrains.annotations.UnmodifiableView;
 
@@ -41,7 +36,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -125,64 +119,10 @@ public final class AdvancementMain {
     }
 
     /**
-     * Enables the API using a SQLite database.
-     * This method is obsolete, it is suggested to use {@link #enable(Callable)} instead.
-     * <p><strong>Must be called after {@link #load()} and cannot be called twice</strong> until {@link #disable()} is called.
-     * Also, only one <i>enable</i> method can be called per loading.
-     *
-     * @param SQLiteDatabase The SQLite database file.
-     * @throws RuntimeException If the enabling fails. It is a wrapper for the real exception.
-     * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
-     * @throws IllegalStateException If it is called at an invalid moment.
-     */
-    @Obsolete(since = "2.5.0")
-    public void enableSQLite(File SQLiteDatabase) {
-        enable(() -> new SQLite(AdvancementMain.this, SQLiteDatabase));
-    }
-
-    /**
-     * Enables the API using a MySQL database.
-     * This method is obsolete, it is suggested to use {@link #enable(Callable)} instead.
-     * <p><strong>Must be called after {@link #load()} and cannot be called twice</strong> until {@link #disable()} is called.
-     * Also, only one <i>enable</i> method can be called per loading.
-     *
-     * @param username The username.
-     * @param password The password.
-     * @param databaseName The name of the database.
-     * @param host The MySQL host.
-     * @param port The MySQL port. Must be greater than zero.
-     * @param poolSize The pool size. Must be greater than zero.
-     * @param connectionTimeout The connection timeout. Must be greater or equal to 250.
-     * @throws RuntimeException If the enabling fails. It is a wrapper for the real exception.
-     * @throws IllegalStateException If it is called at an invalid moment.
-     */
-    @Obsolete(since = "2.5.0")
-    public void enableMySQL(String username, String password, String databaseName, String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout) {
-        enable(() -> new MySQL(AdvancementMain.this, username, password, databaseName, host, port, poolSize, connectionTimeout));
-    }
-
-    /**
-     * Enables the API using an in-memory database.
-     * This method is obsolete, it is suggested to use {@link #enable(Callable)} instead.
-     * <p><strong>Must be called after {@link #load()} and cannot be called twice</strong> until {@link #disable()} is called.
-     * Also, only one <i>enable</i> method can be called per loading.
-     *
-     * @throws RuntimeException If the enabling fails. It is a wrapper for the real exception.
-     * @throws InvalidVersionException If the minecraft version in use is not supported by this API version.
-     * @throws IllegalStateException If it is called at an invalid moment.
-     */
-    @Obsolete(since = "2.5.0")
-    public void enableInMemory() {
-        enable(() -> new InMemory(AdvancementMain.this));
-    }
-
-    /**
      * Enables the API using the provided database instance.
      * <p><strong>Must be called after {@link #load()} and cannot be called twice</strong> until {@link #disable()} is called.
-     * Also, only one <i>enable</i> method can be called per loading.
      * <p>Example usage:
-     * <blockquote><pre>
-     * enable(() -> new SQLite(advMain, dbFile));</pre></blockquote>
+     * <pre> {@code enable(() -> new SQLite(advMain, dbFile));}</pre>
      *
      * @param databaseImplProvider The database instance.
      * @throws RuntimeException If the enabling fails. It is a wrapper for the real exception.
@@ -194,24 +134,11 @@ public final class AdvancementMain {
         commonEnablePreDatabase();
 
         try {
-            IDatabase dbImpl = Objects.requireNonNull(databaseImplProvider.call(), "Database impl is null");
-            databaseManager = new DatabaseManager(this, dbImpl);
+            databaseManager = new DatabaseManager(this, databaseImplProvider.call());
         } catch (Exception e) {
             failEnable(e);
         }
 
-        commonEnablePostDatabase();
-    }
-
-    private void enableForTests(@NotNull Callable<DatabaseManager> databaseManager) {
-        Preconditions.checkNotNull(databaseManager, "DatabaseManager is null");
-
-        commonEnablePreDatabase();
-        try {
-            this.databaseManager = databaseManager.call();
-        } catch (Exception e) {
-            failEnable(e);
-        }
         commonEnablePostDatabase();
     }
 
@@ -229,9 +156,6 @@ public final class AdvancementMain {
         if (!ENABLED.compareAndSet(false, true)) {
             throw new IllegalStateException("UltimateAdvancementAPI is getting enabled twice.");
         }
-
-        //libbyManager = new BukkitLibraryManager(owningPlugin, libFolder);
-        //libbyManager.addMavenCentral();
 
         eventManager = new EventManager(owningPlugin);
 

@@ -4,9 +4,6 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.UltimateAdvancementAPI;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
-import com.fren_gor.ultimateAdvancementAPI.database.impl.MySQL;
-import com.fren_gor.ultimateAdvancementAPI.database.impl.SQLite;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
@@ -34,13 +31,13 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.io.Closeable;
-import java.io.File;
 import java.sql.SQLException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -53,6 +50,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -97,6 +95,7 @@ public final class DatabaseManager implements Closeable {
     // A single-thread executor is used to maintain executed queries sequential
     private final ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("DatabaseManager Thread - %d").build());
 
+    private final AdvancementMain main;
     private final Logger logger;
     private final EventManager eventManager;
     private final IDatabase database; // Calls to the database must be done using the `executor` thread
@@ -108,7 +107,6 @@ public final class DatabaseManager implements Closeable {
     private final AtomicInteger keysOfUncompletedCFs = new AtomicInteger(0); // Used to generate the keys of uncompletedCompletableFutures map
 
     // All these fields must be accessed inside a `synchronized (DatabaseManager.this) {...}` block
-    private final AdvancementMain main;
     private final Map<Integer, LoadedTeam> teamsLoaded = new HashMap<>();
     private final Map<UUID, LoadedPlayer> playersLoaded = new HashMap<>();
 
@@ -124,45 +122,17 @@ public final class DatabaseManager implements Closeable {
     private final PendingUpdatesManager pendingUpdatesManager = new PendingUpdatesManager();
 
     /**
-     * Creates a new {@code DatabaseManager} which uses an in-memory database.
+     * Internal use only, use {@link AdvancementMain#enable(Callable)} instead.
+     * <p>Creates a new {@code DatabaseManager} with the provided database instance.
      *
      * @param main The {@link AdvancementMain}.
+     * @param database The Database instance
      * @throws Exception If anything goes wrong.
      */
-    public DatabaseManager(@NotNull AdvancementMain main) throws Exception {
-        this(main, new InMemory(main.getLogger()));
-    }
-
-    /**
-     * Creates a new {@code DatabaseManager} which uses a SQLite database.
-     *
-     * @param main The {@link AdvancementMain}.
-     * @param dbFile The SQLite database file.
-     * @throws Exception If anything goes wrong.
-     */
-    public DatabaseManager(@NotNull AdvancementMain main, @NotNull File dbFile) throws Exception {
-        this(main, new SQLite(Objects.requireNonNull(dbFile, "Database file is null."), main.getLogger()));
-    }
-
-    /**
-     * Creates a new {@code DatabaseManager} which uses a MySQL database.
-     *
-     * @param main The {@link AdvancementMain}.
-     * @param username The username.
-     * @param password The password.
-     * @param databaseName The name of the database.
-     * @param host The MySQL host.
-     * @param port The MySQL port. Must be greater than zero.
-     * @param poolSize The pool size. Must be greater than zero.
-     * @param connectionTimeout The connection timeout. Must be greater or equal to 250.
-     * @throws Exception If anything goes wrong.
-     */
-    public DatabaseManager(@NotNull AdvancementMain main, @NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout) throws Exception {
-        this(main, new MySQL(username, password, databaseName, host, port, poolSize, connectionTimeout, main.getLogger(), main.getLibbyManager()));
-    }
-
-    private DatabaseManager(@NotNull AdvancementMain main, @NotNull IDatabase database) throws Exception {
+    @Internal
+    public DatabaseManager(@NotNull AdvancementMain main, @NotNull IDatabase database) throws Exception {
         Preconditions.checkNotNull(main, "AdvancementMain is null.");
+        Preconditions.checkNotNull(database, "Database impl is null.");
         this.main = main;
         this.logger = main.getLogger();
         this.eventManager = main.getEventManager();

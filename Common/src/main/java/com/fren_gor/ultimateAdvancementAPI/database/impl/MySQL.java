@@ -10,7 +10,6 @@ import com.google.common.base.Preconditions;
 import net.byteflux.libby.Library;
 import net.byteflux.libby.LibraryManager;
 import net.byteflux.libby.classloader.IsolatedClassLoader;
-import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -28,7 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -36,7 +34,6 @@ import java.util.logging.Logger;
 /**
  * Class used to establish a connection to a MySQL database.
  */
-@Internal
 public class MySQL implements IDatabase {
 
     private final Logger logger;
@@ -58,26 +55,7 @@ public class MySQL implements IDatabase {
      * @throws Exception If anything goes wrong.
      */
     public MySQL(@NotNull AdvancementMain main, @NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout) throws Exception {
-        this(username, password, databaseName, host, port, poolSize, connectionTimeout, Objects.requireNonNull(main, "AdvancementMain is null.").getLogger(), main.getLibbyManager());
-    }
-
-    /**
-     * Creates the MySQL connection.
-     *
-     * @param username The username.
-     * @param password The password.
-     * @param databaseName The name of the database.
-     * @param host The MySQL host.
-     * @param port The MySQL port. Must be greater than zero.
-     * @param poolSize The pool size. Must be greater than zero.
-     * @param connectionTimeout The connection timeout. Must be greater or equal to 250.
-     * @param logger The plugin {@link Logger}.
-     * @param manager The {@link LibraryManager}.
-     * @throws Exception If anything goes wrong.
-     * @deprecated Use {@link #MySQL(AdvancementMain, String, String, String, String, int, int, long)} instead.
-     */
-    @Deprecated(forRemoval = true, since = "2.5.0")
-    public MySQL(@NotNull String username, @NotNull String password, @NotNull String databaseName, @NotNull String host, @Range(from = 1, to = Integer.MAX_VALUE) int port, @Range(from = 1, to = Integer.MAX_VALUE) int poolSize, @Range(from = 250, to = Long.MAX_VALUE) long connectionTimeout, @NotNull Logger logger, @NotNull LibraryManager manager) throws Exception {
+        Preconditions.checkNotNull(main, "AdvancementMain is null.");
         Preconditions.checkNotNull(username, "Username is null.");
         Preconditions.checkNotNull(password, "Password is null.");
         Preconditions.checkNotNull(databaseName, "Database name is null.");
@@ -85,10 +63,11 @@ public class MySQL implements IDatabase {
         Preconditions.checkArgument(port > 0, "Port must be greater than zero.");
         Preconditions.checkArgument(poolSize > 0, "Pool size must be greater than zero.");
         Preconditions.checkArgument(connectionTimeout >= 250, "Connection timeout must be greater or equals to 250.");
-        Preconditions.checkNotNull(logger, "Logger is null.");
-        Preconditions.checkNotNull(manager, "LibraryManager is null.");
+
+        this.logger = main.getLogger();
 
         classLoader = new IsolatedClassLoader();
+        LibraryManager manager = main.getLibbyManager();
         classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.36").checksum("0+9XXj5JeWeNwBvx3M5RAhSTtNEft/G+itmCh3wWocA=").build()));
         classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("org.slf4j").artifactId("slf4j-nop").version("1.7.36").checksum("whSViweBbLRBKzDHvb1DCP/ca6KoN2e486kinL2SdNY=").build()));
         classLoader.addPath(manager.downloadLibrary(Library.builder().groupId("com.zaxxer").artifactId("HikariCP").version("5.1.0").checksum("pHpu5iN5aU7lLDADbwkxty+a7iqAHVkDQe2CvYOeITQ=").build()));
@@ -126,7 +105,6 @@ public class MySQL implements IDatabase {
         } catch (SQLException e) {
             throw new SQLException("An exception occurred while testing the established connection.", e);
         }
-        this.logger = logger;
     }
 
     /**

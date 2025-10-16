@@ -95,7 +95,8 @@ public final class Util {
         if (component == null) {
             return new net.md_5.bungee.api.chat.TextComponent("");
         }
-        return ComponentSerializer.deserialize(CraftChatMessage.toJSON(component));
+        BaseComponent[] parsed = ComponentSerializer.parse(CraftChatMessage.toJSON(component));
+        return parsed.length == 1 ? parsed[0] : new net.md_5.bungee.api.chat.TextComponent(parsed);
     }
 
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {

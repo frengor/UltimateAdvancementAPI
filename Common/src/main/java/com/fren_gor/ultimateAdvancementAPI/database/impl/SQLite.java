@@ -7,7 +7,6 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalKeyException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.base.Preconditions;
-import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 import org.sqlite.SQLiteConfig;
@@ -28,14 +27,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
  * Class used to establish a connection to a SQLite database.
  */
-@Internal
 public class SQLite implements IDatabase {
 
     private final Logger logger;
@@ -49,21 +46,9 @@ public class SQLite implements IDatabase {
      * @throws Exception If anything goes wrong.
      */
     public SQLite(@NotNull AdvancementMain main, @NotNull File dbFile) throws Exception {
-        this(dbFile, Objects.requireNonNull(main, "AdvancementMain is null.").getLogger());
-    }
-
-    /**
-     * Creates the SQLite connection.
-     *
-     * @param dbFile The SQLite database file. If it doesn't exist, it is created.
-     * @param logger The plugin {@link Logger}.
-     * @throws Exception If anything goes wrong.
-     * @deprecated Use {@link #SQLite(AdvancementMain, File)} instead.
-     */
-    @Deprecated(forRemoval = true, since = "2.5.0")
-    public SQLite(@NotNull File dbFile, @NotNull Logger logger) throws Exception {
+        Preconditions.checkNotNull(main, "AdvancementMain is null.");
         Preconditions.checkNotNull(dbFile, "Database file is null.");
-        Preconditions.checkNotNull(logger, "Logger is null.");
+        this.logger = main.getLogger();
         if (!dbFile.exists() && !dbFile.createNewFile()) {
             throw new IOException("Cannot create the database file.");
         }
@@ -73,7 +58,6 @@ public class SQLite implements IDatabase {
         config.setEncoding(Encoding.UTF8);
         config.setSynchronous(SynchronousMode.FULL);
         this.connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile, config.toProperties());
-        this.logger = logger;
     }
 
     /**
@@ -81,18 +65,16 @@ public class SQLite implements IDatabase {
      *
      * @param logger The plugin {@link Logger}.
      * @throws Exception If anything goes wrong.
-     * @deprecated Use {@link InMemory} instead.
      */
-    @Deprecated(forRemoval = true, since = "2.5.0")
-    protected SQLite(@NotNull Logger logger) throws Exception {
+    SQLite(@NotNull Logger logger) throws Exception {
         Preconditions.checkNotNull(logger, "Logger is null.");
+        this.logger = logger;
         Class.forName("org.sqlite.JDBC");
         SQLiteConfig config = new SQLiteConfig();
         config.enforceForeignKeys(true);
         config.setEncoding(Encoding.UTF8);
         config.setSynchronous(SynchronousMode.FULL);
         this.connection = DriverManager.getConnection("jdbc:sqlite::memory:", config.toProperties());
-        this.logger = logger;
     }
 
     /**

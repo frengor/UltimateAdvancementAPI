@@ -4,9 +4,8 @@ import com.google.common.base.Preconditions;
 import net.byteflux.libby.LibraryManager;
 import net.byteflux.libby.logging.adapters.JDKLogAdapter;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,12 +13,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConfigManagerTest {
 
-    @Rule
-    public TemporaryFolder tmpFolder = TemporaryFolder.builder().assureDeletion().build();
+    @TempDir
+    private Path tmpFolder;
 
     @Test
     public void configVersionTest() throws Exception {
@@ -29,7 +28,7 @@ public class ConfigManagerTest {
         config.load(new File(configURL.toURI()));
 
         String failMessage = "CONFIG_VERSION in ConfigManager class is not the same as 'config-version' in config.yml. Please update the ConfigManager.CONFIG_VERSION constant.";
-        assertEquals(failMessage, ConfigManager.CONFIG_VERSION, config.getInt("config-version", -1));
+        assertEquals(ConfigManager.CONFIG_VERSION, config.getInt("config-version", -1), failMessage);
     }
 
     @Test
@@ -47,7 +46,7 @@ public class ConfigManagerTest {
 
     private final class MockLibraryManager extends LibraryManager {
         public MockLibraryManager(Logger logger) throws IOException {
-            super(new JDKLogAdapter(logger), tmpFolder.newFolder().toPath(), ".libs");
+            super(new JDKLogAdapter(logger), tmpFolder, ".libs");
         }
 
         @Override
