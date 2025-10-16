@@ -41,25 +41,57 @@ public class FakeAdvancement extends BaseAdvancement {
 
     private static final AtomicInteger FAKE_NUMBER = new AtomicInteger(1);
 
+    @NotNull
+    private static String generateKey() {
+        return "fakeadvancement._-.-_." + FAKE_NUMBER.getAndIncrement();
+    }
+
     /**
      * Creates a new {@code FakeAdvancement}.
+     * <p>The tab of this advancement will be the parent one.
      *
      * @param parent The parent of the advancement.
      * @param x The x coordinate of the advancement.
      * @param y The y coordinate of the advancement.
      */
     public FakeAdvancement(@NotNull Advancement parent, float x, float y) {
-        this(parent, new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "FakeAdvancement").x(x).y(y).build());
+        this(generateKey(), parent, x, y);
     }
 
     /**
      * Creates a new {@code FakeAdvancement}.
+     * <p>The tab of this advancement will be the parent one.
+     *
+     * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     * @param parent The parent of the advancement.
+     * @param x The x coordinate of the advancement.
+     * @param y The y coordinate of the advancement.
+     */
+    public FakeAdvancement(@NotNull String key, @NotNull Advancement parent, float x, float y) {
+        this(key, parent, new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "FakeAdvancement").x(x).y(y).build());
+    }
+
+    /**
+     * Creates a new {@code FakeAdvancement}.
+     * <p>The tab of this advancement will be the parent one.
      *
      * @param parent The parent of the advancement.
      * @param display The display information of this advancement.
      */
     public FakeAdvancement(@NotNull Advancement parent, @NotNull AbstractAdvancementDisplay display) {
-        super("fakeadvancement._-.-_." + FAKE_NUMBER.getAndIncrement(), wrapDisplay(display), parent);
+        this(generateKey(), parent, display);
+    }
+
+    /**
+     * Creates a new {@code FakeAdvancement}.
+     * <p>The tab of this advancement will be the parent one.
+     *
+     * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     * @param parent The parent of the advancement.
+     * @param display The display information of this advancement.
+     */
+    public FakeAdvancement(@NotNull String key, @NotNull Advancement parent, @NotNull AbstractAdvancementDisplay display) {
+        super(key, wrapDisplay(display), parent);
     }
 
     /**
