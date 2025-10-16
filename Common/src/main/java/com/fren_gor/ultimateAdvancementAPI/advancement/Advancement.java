@@ -41,6 +41,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.stream.Stream;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromPlayer;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.progressionFromUUID;
@@ -657,12 +658,18 @@ public abstract class Advancement {
         if ((gameRule == null || gameRule) && display.dispatchDoesAnnounceToChat(advancementCompleter, progression)) {
             @Nullable Function<Player, @Nullable BaseComponent> perPlayerMsgGetter = getAnnouncementMessage(advancementCompleter);
             if (perPlayerMsgGetter != null) {
-                for (Player p : Bukkit.getOnlinePlayers()) {
+                Stream<? extends Player> players;
+                if (advancementTab.doesSendAnnouncementMessageOnlyToTeam()) {
+                    players = progression.getMembers().stream().map(Bukkit::getPlayer).filter(Objects::nonNull);
+                } else {
+                    players = Bukkit.getOnlinePlayers().stream();
+                }
+                players.forEach(p -> {
                     @Nullable BaseComponent msg = perPlayerMsgGetter.apply(p);
                     if (msg != null) {
                         p.spigot().sendMessage(msg);
                     }
-                }
+                });
             }
         }
     }
@@ -679,17 +686,16 @@ public abstract class Advancement {
         validateTeamProgression(progression);
 
         if (display.dispatchDoesShowToast(advancementCompleter, progression)) {
-            // TODO Find a better solution
+            Stream<Player> players;
             if (advancementTab.doesShowToastToTeam()) {
-                progression.forEachMember(u -> {
-                    Player p = Bukkit.getPlayer(u);
-                    if (p != null) {
-                        runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(p, this));
-                    }
-                });
+                players = progression.getMembers().stream().map(Bukkit::getPlayer).filter(Objects::nonNull);
             } else {
-                runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(advancementCompleter, this));
+                players = Stream.of(advancementCompleter);
             }
+            players.forEach(p -> {
+                // TODO Find a better solution
+                runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(p, this));
+            });
         }
     }
 

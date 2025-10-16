@@ -84,7 +84,7 @@ public final class AdvancementTab {
 
     private RootAdvancement rootAdvancement;
     private volatile boolean initialised = false, disposed = false;
-    private boolean automaticallyShown = false, automaticallyGrant = false, showToastToTeam = true;
+    private boolean automaticallyShown = false, automaticallyGrant = false, showToastToTeam = true, sendAnnouncementMessageOnlyToTeam = false;
     @LazyValue
     private Collection<String> advNamespacedKeys;
     @LazyValue
@@ -829,6 +829,26 @@ public final class AdvancementTab {
      */
     public void setShowToastToTeam(boolean showToastToTeam) {
         this.showToastToTeam = showToastToTeam;
+    }
+
+    /**
+     * Returns whether the announcement message should be sent <i>only</i> to the team members on advancement grant.
+     * <p>Defaults to {@code false} if not changed using {@link #setSendAnnouncementMessageOnlyToTeam(boolean)}.
+     *
+     * @return Whether the announcement message should be sent <i>only</i> to the team members on advancement grant.
+     */
+    public boolean doesSendAnnouncementMessageOnlyToTeam() {
+        return sendAnnouncementMessageOnlyToTeam;
+    }
+
+    /**
+     * Sets whether the announcement message should be sent <i>only</i> to the team members on advancement grant.
+     *
+     * @param sendAnnouncementMessageOnlyToTeam Whether the announcement message should be sent <i>only</i> to the
+     *         team members on advancement grant.
+     */
+    public void setSendAnnouncementMessageOnlyToTeam(boolean sendAnnouncementMessageOnlyToTeam) {
+        this.sendAnnouncementMessageOnlyToTeam = sendAnnouncementMessageOnlyToTeam;
     }
 
     /**
