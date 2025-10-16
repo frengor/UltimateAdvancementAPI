@@ -37,7 +37,7 @@ import java.util.function.Function;
  * Thus, they can be sent in packets to display a connection.
  * <p>Since {@code FakeAdvancement}s are not saved, many methods are not supported.
  */
-public final class FakeAdvancement extends BaseAdvancement {
+public class FakeAdvancement extends BaseAdvancement {
 
     private static final AtomicInteger FAKE_NUMBER = new AtomicInteger(1);
 
