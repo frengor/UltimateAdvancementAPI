@@ -668,7 +668,7 @@ public final class AdvancementTab {
 
     /**
      * Utility method which automatically shows this tab to every player just after they have been loaded.
-     * <p>More formally, this is equivalent to calling:
+     * <p>This is more or less equivalent to calling:
      * <pre> {@code tab.registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOWEST, e -> tab.showTab(e.getPlayer()));}</pre>
      *
      * @return This {@code AdvancementTab}.
@@ -684,13 +684,20 @@ public final class AdvancementTab {
             automaticallyShown = true;
             // Use LOWEST priority in order to show the tab as soon as possible
             registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOWEST, e -> showTab(e.getPlayer()));
+
+            // Show tab to already online players
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (databaseManager.isLoadedAndOnline(p)) {
+                    showTab(p);
+                }
+            }
         }
         return this;
     }
 
     /**
      * Utility method which automatically grants the root advancement of this tab to every player after they have been loaded.
-     * <p>More formally, this is equivalent to calling:
+     * <p>This is more or less equivalent to calling:
      * <pre> {@code tab.registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOW, e -> tab.grantRootAdvancement(e.getPlayer()));}</pre>
      *
      * @return This {@code AdvancementTab}.
@@ -706,6 +713,13 @@ public final class AdvancementTab {
             automaticallyGrant = true;
             // Use LOW priority since automaticallyShowToPlayers() uses LOWEST priority
             registerEvent(PlayerLoadingCompletedEvent.class, EventPriority.LOW, e -> grantRootAdvancement(e.getPlayer()));
+
+            // Grant root to already online players
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (databaseManager.isLoadedAndOnline(p)) {
+                    grantRootAdvancement(p);
+                }
+            }
         }
         return this;
     }
