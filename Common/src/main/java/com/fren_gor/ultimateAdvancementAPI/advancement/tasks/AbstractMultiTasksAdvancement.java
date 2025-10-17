@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +30,7 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      * Creates an {@code AbstractMultiTasksAdvancement} with maximum progression of {@code 1}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param parent The parent of this advancement.
      */
@@ -40,6 +42,7 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      * Creates an {@code AbstractMultiTasksAdvancement}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param parent The parent of this advancement.
      * @param maxProgression The maximum progression of the task.

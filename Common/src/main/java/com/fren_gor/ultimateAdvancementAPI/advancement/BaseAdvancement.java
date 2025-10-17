@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvanceme
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -31,6 +32,7 @@ public class BaseAdvancement extends Advancement {
      * <p>The tab of this advancement will be the parent one.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param parent The parent of this advancement.
      */
@@ -43,6 +45,7 @@ public class BaseAdvancement extends Advancement {
      * <p>The tab of this advancement will be the parent one.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param parent The parent of this advancement.
      * @param maxProgression The maximum advancement progression.

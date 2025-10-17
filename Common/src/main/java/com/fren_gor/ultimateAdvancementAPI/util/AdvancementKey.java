@@ -13,8 +13,10 @@ import java.util.regex.Pattern;
 
 /**
  * The {@code AdvancementKey} class represents a valid advancement namespaced key.
- * <p>The namespaced keys represented by this class match the following pattern:
+ * <p>The namespaced keys represented by this class must match the following pattern:
  * {@code [a-z0-9_.-]{1,127}:[a-z0-9_.-/]{1,127}}.
+ * <p>Also, the namespaces and keys should not start with {@link #RESERVED_NAMESPACE_PREFIX} and
+ * {@link #RESERVED_KEY_PREFIX} respectively, which are reserved for internal use by UltimateAdvancementAPI.
  */
 public final class AdvancementKey implements Comparable<AdvancementKey> {
 
@@ -33,6 +35,16 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
      */
     public static final Pattern VALID_KEY = Pattern.compile("[a-z0-9_./\\-]{1,127}");
 
+    /**
+     * Reserved prefix for namespaces used internally by UltimateAdvancementAPI.
+     */
+    public static final String RESERVED_NAMESPACE_PREFIX = "_-uaapi-internal-_";
+
+    /**
+     * Reserved prefix for keys used internally by UltimateAdvancementAPI.
+     */
+    public static final String RESERVED_KEY_PREFIX = RESERVED_NAMESPACE_PREFIX;
+
     @NotNull
     private final MinecraftKeyWrapper minecraftKey;
 
@@ -40,7 +52,7 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
      * Creates a new {@code AdvancementKey} with the provided plugin's (lowercased) name as namespace and the specified key.
      *
      * @param plugin The plugin.
-     * @param key The key. Must match the following pattern: {@code [[a-z0-9_.-/]{1,127}}.
+     * @param key The key. Must match the following pattern: {@code [[a-z0-9_.-/]{1,127}}. Should not start with {@link #RESERVED_KEY_PREFIX}.
      */
     public AdvancementKey(@NotNull Plugin plugin, @NotNull String key) {
         this(plugin.getName().toLowerCase(Locale.ROOT), key);
@@ -49,8 +61,8 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
     /**
      * Creates a new {@code AdvancementKey} with the provided namespace and key.
      *
-     * @param namespace The namespace. Must match the following pattern: {@code [[a-z0-9_.-]{1,127}}.
-     * @param key The key. Must match the following pattern: {@code [[a-z0-9_.-/]{1,127}}.
+     * @param namespace The namespace. Must match the following pattern: {@code [[a-z0-9_.-]{1,127}}. Should not start with {@link #RESERVED_NAMESPACE_PREFIX}.
+     * @param key The key. Must match the following pattern: {@code [[a-z0-9_.-/]{1,127}}. Should not start with {@link #RESERVED_KEY_PREFIX}.
      * @throws IllegalKeyException If the namespace or the key is not valid.
      */
     public AdvancementKey(@NotNull String namespace, @NotNull String key) throws IllegalKeyException {
@@ -68,7 +80,8 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
     /**
      * Creates a new {@code AdvancementKey} from the specified {@link NamespacedKey}.
      *
-     * @param key The {@link NamespacedKey}.
+     * @param key The {@link NamespacedKey}. The namespace and key should not start with {@link #RESERVED_NAMESPACE_PREFIX}
+     *         and {@link #RESERVED_KEY_PREFIX}, respectively.
      */
     public AdvancementKey(@NotNull NamespacedKey key) {
         this(Objects.requireNonNull(key, "NamespacedKey is null.").getNamespace(), key.getKey());
@@ -77,7 +90,8 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
     /**
      * Creates a new {@code AdvancementKey} from the specified NMS {@code MinecraftKey}.
      *
-     * @param key The {@code MinecraftKey}.
+     * @param key The {@code MinecraftKey}. The namespace and key should not start with {@link #RESERVED_NAMESPACE_PREFIX}
+     *         and {@link #RESERVED_KEY_PREFIX}, respectively.
      * @throws IllegalKeyException If the namespace or the key is not valid. See {@link #AdvancementKey(String, String)}.
      */
     public AdvancementKey(@NotNull MinecraftKeyWrapper key) throws IllegalKeyException {
@@ -127,11 +141,13 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
 
     /**
      * Creates an {@code AdvancementKey} from the provided string.
-     * <p>The provided string must be a valid namespace key, or an {@link IllegalKeyException} is thrown.
+     * <p>The provided string must be a valid namespaced key, or an {@link IllegalKeyException} is thrown.
+     * <p>Also, the namespace and key should not start with {@link #RESERVED_NAMESPACE_PREFIX} and
+     * {@link #RESERVED_KEY_PREFIX}, respectively.
      *
      * @param string The string.
      * @return An {@link AdvancementKey} from the string.
-     * @throws IllegalKeyException If provided string is not a valid namespace key.
+     * @throws IllegalKeyException If the provided string is not a valid namespace key.
      */
     public static AdvancementKey fromString(@NotNull String string) throws IllegalKeyException {
         int colon;

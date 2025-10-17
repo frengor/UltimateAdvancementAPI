@@ -7,6 +7,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvanceme
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -38,6 +39,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * Creates a new {@code MultiParentsAdvancement} with a maximum progression of {@code 1}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param parents The advancement parents. There must be at least one.
      */
@@ -49,6 +51,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * Creates a new {@code MultiParentsAdvancement}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param maxProgression The maximum advancement progression.
      * @param parents The advancement parents. There must be at least one.
@@ -61,6 +64,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * Creates a new {@code MultiParentsAdvancement} with a maximum progression of {@code 1}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param parents The advancement parents. There must be at least one.
      */
@@ -72,6 +76,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * Creates a new {@code MultiParentsAdvancement}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param maxProgression The maximum advancement progression.
      * @param parents The advancement parents. There must be at least one.

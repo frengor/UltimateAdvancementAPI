@@ -9,6 +9,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameT
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.fren_gor.ultimateAdvancementAPI.util.display.ImmutableAdvancementDisplayWrapper;
@@ -39,11 +40,11 @@ import java.util.function.Function;
  */
 public class FakeAdvancement extends BaseAdvancement {
 
-    private static final AtomicInteger FAKE_NUMBER = new AtomicInteger(1);
+    private static final AtomicInteger FAKE_NUMBER = new AtomicInteger(0);
 
     @NotNull
     private static String generateKey() {
-        return "fakeadvancement._-.-_." + FAKE_NUMBER.getAndIncrement();
+        return AdvancementKey.RESERVED_KEY_PREFIX + "fakeadvancement-" + FAKE_NUMBER.getAndIncrement();
     }
 
     /**
@@ -63,6 +64,7 @@ public class FakeAdvancement extends BaseAdvancement {
      * <p>The tab of this advancement will be the parent one.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param parent The parent of the advancement.
      * @param x The x coordinate of the advancement.
      * @param y The y coordinate of the advancement.
@@ -87,6 +89,7 @@ public class FakeAdvancement extends BaseAdvancement {
      * <p>The tab of this advancement will be the parent one.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param parent The parent of the advancement.
      * @param display The display information of this advancement.
      */

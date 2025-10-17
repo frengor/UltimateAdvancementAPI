@@ -72,6 +72,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
      * Creates a new {@code MultiTasksAdvancement}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param parent The parent of this advancement.
      * @param maxProgression The sum of the maximum progressions of all the tasks that will be registered.

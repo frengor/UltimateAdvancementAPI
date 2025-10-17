@@ -94,6 +94,7 @@ public abstract class Advancement {
      *
      * @param advancementTab The advancement tab.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      */
     Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
@@ -105,6 +106,7 @@ public abstract class Advancement {
      *
      * @param advancementTab The advancement tab.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param maxProgression The maximum advancement progression.
      */

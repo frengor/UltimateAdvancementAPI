@@ -57,8 +57,8 @@ public final class AdvancementUtils {
         ADV_DESCRIPTION.setColor(ChatColor.GRAY);
 
         try {
-            ROOT_KEY = MinecraftKeyWrapper.craft("com.fren_gor", "root");
-            NOTIFICATION_KEY = MinecraftKeyWrapper.craft("com.fren_gor", "notification");
+            ROOT_KEY = MinecraftKeyWrapper.craft(AdvancementKey.RESERVED_NAMESPACE_PREFIX + "notification", "root");
+            NOTIFICATION_KEY = MinecraftKeyWrapper.craft(ROOT_KEY.getKey(), "notification");
             BaseComponent title = new TextComponent("Notifications"); // "§f§lNotifications§1§2§3§4§5§6§7§8§9§0"
             title.setColor(ChatColor.WHITE);
             title.setBold(true);
@@ -148,9 +148,9 @@ public final class AdvancementUtils {
 
         final AbstractAdvancementDisplay display = advancement.getDisplay();
         final TeamProgression pro = advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player);
-        final MinecraftKeyWrapper keyWrapper = getUniqueKey(advancement.getAdvancementTab()).getNMSWrapper();
 
         try {
+            MinecraftKeyWrapper keyWrapper = MinecraftKeyWrapper.craft(advancement.getKey().getNamespace(), AdvancementKey.RESERVED_KEY_PREFIX + "notification-" + advancement.getKey().getKey());
             AdvancementDisplayWrapper displayWrapper = AdvancementDisplayWrapper.craft(display.dispatchGetIcon(player, pro), display.dispatchGetTitle(player, pro), ADV_DESCRIPTION, display.dispatchGetFrame(player, pro).getNMSWrapper(), 0, 0, true, false, false);
             AdvancementWrapper advWrapper = AdvancementWrapper.craftBaseAdvancement(keyWrapper, advancement.getNMSWrapper(), displayWrapper, 1);
 
@@ -161,20 +161,9 @@ public final class AdvancementUtils {
         }
     }
 
-    @NotNull
-    private static AdvancementKey getUniqueKey(@NotNull AdvancementTab tab) {
-        final String namespace = tab.getNamespace();
-        StringBuilder builder = new StringBuilder("i");
-        AdvancementKey key;
-        while (tab.getAdvancement(key = new AdvancementKey(namespace, builder.toString())) != null) {
-            builder.append('i');
-        }
-        return key;
-    }
-
     /**
      * Disables vanilla advancements.
-     * 
+     *
      * @throws Exception If disabling fails.
      * @see UltimateAdvancementAPI#disableVanillaAdvancements()
      */

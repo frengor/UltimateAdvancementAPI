@@ -82,7 +82,7 @@ public final class UltimateAdvancementAPI {
     /**
      * Creates a new {@link AdvancementTab} with the provided namespace and background texture. The namespace must be unique.
      *
-     * @param namespace The unique namespace of the tab.
+     * @param namespace The unique namespace of the tab. Should not start with {@link AdvancementKey#RESERVED_NAMESPACE_PREFIX}.
      * @param backgroundTexture The path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png").
      * @return The new {@link AdvancementTab}.
      * @throws DuplicatedException If another tab with the name already exists.
@@ -97,7 +97,7 @@ public final class UltimateAdvancementAPI {
     /**
      * Creates a new {@link AdvancementTab} with the provided namespace and a per-team background texture. The namespace must be unique.
      *
-     * @param namespace The unique namespace of the tab.
+     * @param namespace The unique namespace of the tab. Should not start with {@link AdvancementKey#RESERVED_NAMESPACE_PREFIX}.
      * @param perTeamBackgroundTextureFn A function which, given a team, returns the path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png") for that team.
      * @return The new {@link AdvancementTab}.
      * @throws DuplicatedException If another tab with the name already exists.
@@ -112,7 +112,7 @@ public final class UltimateAdvancementAPI {
     /**
      * Creates a new {@link AdvancementTab} with the provided namespace and a per-player background texture. The namespace must be unique.
      *
-     * @param namespace The unique namespace of the tab.
+     * @param namespace The unique namespace of the tab. Should not start with {@link AdvancementKey#RESERVED_NAMESPACE_PREFIX}.
      * @param perPlayerBackgroundTextureFn A function which, given a player, returns the path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png") for that player.
      * @return The new {@link AdvancementTab}.
      * @throws DuplicatedException If another tab with the name already exists.

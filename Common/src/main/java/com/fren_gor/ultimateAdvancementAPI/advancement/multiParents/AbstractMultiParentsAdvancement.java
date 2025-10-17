@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.multiParents;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.base.Preconditions;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,7 @@ public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
      * Creates a new {@code AbstractMultiParentsAdvancement} with a maximum progression of {@code 1}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param aParent One of the parents of this advancement.
      */
@@ -37,6 +39,7 @@ public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
      * Creates a new {@code AbstractMultiParentsAdvancement}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param aParent One of the parents of this advancement.
      * @param maxProgression The maximum progression of the task.
@@ -168,7 +171,7 @@ public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
     /**
      * Returns the first element of the provided {@link Set} of {@link BaseAdvancement}s. This method is intended to
      * be used to safely get an advancement from the {@link Set} of parent advancements passed as parameter in the subclass constructor.
-     * The obtained parent advancement should be passed to {@link #AbstractMultiParentsAdvancement(String, AdvancementDisplay, BaseAdvancement, int)}.
+     * The obtained parent advancement should be passed to {@link #AbstractMultiParentsAdvancement(String, AbstractAdvancementDisplay, BaseAdvancement, int)}.
      * <p>If the returned element is {@code null} or it doesn't exist (the {@link Set} is empty), an {@link IllegalArgumentException} is thrown.
      *
      * @param advancements The advancements of the {@link Set}.

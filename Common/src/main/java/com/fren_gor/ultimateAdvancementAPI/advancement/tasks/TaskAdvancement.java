@@ -10,6 +10,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
+import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -43,6 +44,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * Creates a new {@code TaskAdvancement} with a maximum progression of {@code 1}.
      *
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      */
     public TaskAdvancement(@NotNull String key, @NotNull AbstractMultiTasksAdvancement multitask) {
@@ -53,6 +55,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * Creates a new {@code TaskAdvancement}.
      *
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param maxProgression The maximum progression of the task.
      */
@@ -64,6 +67,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * Creates a new {@code TaskAdvancement} with a maximum progression of {@code 1}.
      *
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this task.
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      */
@@ -75,6 +79,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * Creates a new {@code TaskAdvancement}.
      *
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this task.
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param maxProgression The maximum progression of the task.
