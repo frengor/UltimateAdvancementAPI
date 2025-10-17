@@ -43,29 +43,29 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
 public final class AdvancementUtils {
 
-    public static final MinecraftKeyWrapper ROOT_KEY, NOTIFICATION_KEY;
-    private static final BaseComponent ADV_DESCRIPTION = new TextComponent("\nA notification.");
+    private static final String NOTIFICATION_NAMESPACE;
+    private static final AtomicInteger NOTIFICATION_KEY_NUMBER = new AtomicInteger(0);
+    private static final MinecraftKeyWrapper NOTIFICATION_ROOT_KEY;
+    private static final BaseComponent ADV_DESCRIPTION;
     private static final PreparedAdvancementWrapper PREPARED_ROOT;
     private static final AdvancementWrapper ROOT;
 
     static {
+        NOTIFICATION_NAMESPACE = AdvancementKey.RESERVED_NAMESPACE_PREFIX + "notification-" + UUID.randomUUID();
+
+        ADV_DESCRIPTION = new TextComponent("A toast notification.\n\nClose and reopen advancements to hide.");
         ADV_DESCRIPTION.setColor(ChatColor.GRAY);
 
         try {
-            ROOT_KEY = MinecraftKeyWrapper.craft(AdvancementKey.RESERVED_NAMESPACE_PREFIX + "notification", "root");
-            NOTIFICATION_KEY = MinecraftKeyWrapper.craft(ROOT_KEY.getKey(), "notification");
-            BaseComponent title = new TextComponent("Notifications"); // "§f§lNotifications§1§2§3§4§5§6§7§8§9§0"
-            title.setColor(ChatColor.WHITE);
-            title.setBold(true);
-            BaseComponent description = new TextComponent("Notification page.\nClose and reopen advancements to hide.");
-            description.setColor(ChatColor.GRAY);
-            AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), title, description, AdvancementFrameTypeWrapper.TASK, 0, 0, "textures/block/stone.png");
-            PREPARED_ROOT = PreparedAdvancementWrapper.craft(ROOT_KEY, 1);
+            NOTIFICATION_ROOT_KEY = MinecraftKeyWrapper.craft(NOTIFICATION_NAMESPACE, "root");
+            AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(new ItemStack(Material.BARRIER), new TextComponent("Notification"), new TextComponent(""), AdvancementFrameTypeWrapper.TASK, 0, 0, false, false, true, "textures/block/stone.png");
+            PREPARED_ROOT = PreparedAdvancementWrapper.craft(NOTIFICATION_ROOT_KEY, 1);
             ROOT = PREPARED_ROOT.toAdvancementWrapper(display);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
@@ -105,41 +105,18 @@ public final class AdvancementUtils {
         Preconditions.checkArgument(icon.getType() != Material.AIR, "ItemStack is air.");
 
         try {
-            AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(icon, title, ADV_DESCRIPTION, frame.getNMSWrapper(), 1, 0, true, false, false);
-            AdvancementWrapper notification = AdvancementWrapper.craftBaseAdvancement(NOTIFICATION_KEY, PREPARED_ROOT, display, 1);
+            MinecraftKeyWrapper notification_key = MinecraftKeyWrapper.craft(NOTIFICATION_NAMESPACE, AdvancementKey.RESERVED_KEY_PREFIX + "notification-" + NOTIFICATION_KEY_NUMBER.getAndIncrement());
+            AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(icon, title, ADV_DESCRIPTION, frame.getNMSWrapper(), 0.2f, 0, true, false, false);
+            AdvancementWrapper notification = AdvancementWrapper.craftBaseAdvancement(notification_key, PREPARED_ROOT, display, 1);
             PacketPlayOutAdvancementsWrapper.craftSendPacket(Map.of(
-                    ROOT, 1,
+                    ROOT, 0,
                     notification, 1
             )).sendTo(player);
-            PacketPlayOutAdvancementsWrapper.craftRemovePacket(Set.of(ROOT_KEY, NOTIFICATION_KEY)).sendTo(player);
+            PacketPlayOutAdvancementsWrapper.craftRemovePacket(Set.of(NOTIFICATION_ROOT_KEY, notification_key)).sendTo(player);
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
     }
-
-    /*public static void displayToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame, @NotNull Advancement base) {
-        Preconditions.checkNotNull(player, "Player is null.");
-        Preconditions.checkNotNull(icon, "Icon is null.");
-        Preconditions.checkNotNull(title, "Title is null.");
-        Preconditions.checkNotNull(frame, "AdvancementFrameType is null.");
-        Preconditions.checkNotNull(base, "Advancement is null.");
-        Preconditions.checkArgument(base.isValid(), "Advancement isn't valid.");
-        Preconditions.checkArgument(icon.getType() != Material.AIR, "ItemStack is air.");
-
-        final MinecraftKeyWrapper key = getUniqueKey(base.getAdvancementTab()).getNMSWrapper();
-
-        try {
-            AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(icon, title, ADV_DESCRIPTION, frame.getNMSWrapper(), base.getDisplay().getX() + 1, base.getDisplay().getY(), true, false, false);
-            AdvancementWrapper adv = AdvancementWrapper.craftBaseAdvancement(key, base.getNMSWrapper(), display, 1);
-
-            PacketPlayOutSelectAdvancementTabWrapper.craftSelectNone().sendTo(player);
-            PacketPlayOutAdvancementsWrapper.craftSendPacket(Map.of(adv, 1)).sendTo(player);
-            PacketPlayOutAdvancementsWrapper.craftRemovePacket(Set.of(key)).sendTo(player);
-            PacketPlayOutSelectAdvancementTabWrapper.craftSelect(key).sendTo(player);
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-        }
-    }*/
 
     public static void displayToastDuringUpdate(@NotNull Player player, @NotNull Advancement advancement) {
         Preconditions.checkNotNull(player, "Player is null.");
@@ -150,7 +127,14 @@ public final class AdvancementUtils {
         final TeamProgression pro = advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player);
 
         try {
-            MinecraftKeyWrapper keyWrapper = MinecraftKeyWrapper.craft(advancement.getKey().getNamespace(), AdvancementKey.RESERVED_KEY_PREFIX + "notification-" + advancement.getKey().getKey());
+            MinecraftKeyWrapper keyWrapper;
+            try {
+                keyWrapper = MinecraftKeyWrapper.craft(advancement.getKey().getNamespace(), AdvancementKey.RESERVED_KEY_PREFIX + "notification-" + advancement.getKey().getKey());
+            } catch (IllegalArgumentException e) {
+                // Fallback in case the key cannot be constructed
+                keyWrapper = MinecraftKeyWrapper.craft(advancement.getKey().getNamespace(), AdvancementKey.RESERVED_KEY_PREFIX + "notification-" + NOTIFICATION_KEY_NUMBER.getAndIncrement());
+            }
+
             AdvancementDisplayWrapper displayWrapper = AdvancementDisplayWrapper.craft(display.dispatchGetIcon(player, pro), display.dispatchGetTitle(player, pro), ADV_DESCRIPTION, display.dispatchGetFrame(player, pro).getNMSWrapper(), 0, 0, true, false, false);
             AdvancementWrapper advWrapper = AdvancementWrapper.craftBaseAdvancement(keyWrapper, advancement.getNMSWrapper(), displayWrapper, 1);
 
