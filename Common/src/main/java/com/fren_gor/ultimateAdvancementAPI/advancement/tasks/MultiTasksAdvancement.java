@@ -11,7 +11,6 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
-import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.bukkit.entity.Player;
@@ -475,7 +474,8 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
                 PendingUpdate update = iterator.next();
                 if (update.oldProgression == result.oldProgression() && update.newProgression == result.newProgression()) {
                     iterator.remove();
-                    handlePlayer(progression, player, update.globalNewProgression, update.globalOldProgression, giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+                    handleAdvancementGranting(progression, player, update.globalNewProgression, update.globalOldProgression, giveRewards);
+                    handleAdvancementUpdatingToTeam(progression, update.globalNewProgression, update.globalOldProgression);
                 }
             }
         }

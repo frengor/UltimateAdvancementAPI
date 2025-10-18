@@ -10,7 +10,6 @@ import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
-import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.fren_gor.ultimateAdvancementAPI.util.display.ImmutableAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.display.PerPlayerAdvancementDisplayWrapper;
@@ -430,7 +429,18 @@ public class FakeAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Always when it's called.
      */
     @Override
-    protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int newProgression, int oldProgression, boolean giveRewards, @Nullable AfterHandle afterHandle) {
+    protected void handleAdvancementGranting(@NotNull TeamProgression pro, @Nullable Player player, int newProgression, int oldProgression, boolean giveRewards) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * {@inheritDoc}
+     * Since {@code FakeAdvancement}s are not saved, this method always throws an {@link UnsupportedOperationException}.
+     *
+     * @throws UnsupportedOperationException Always when it's called.
+     */
+    @Override
+    protected void handleAdvancementUpdatingToTeam(@NotNull TeamProgression pro, int newProgression, int oldProgression) {
         throw new UnsupportedOperationException();
     }
 

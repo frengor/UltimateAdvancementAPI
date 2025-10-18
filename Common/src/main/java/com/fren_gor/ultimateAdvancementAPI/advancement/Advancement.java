@@ -16,7 +16,6 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementExceptio
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
-import com.fren_gor.ultimateAdvancementAPI.util.AfterHandle;
 import com.fren_gor.ultimateAdvancementAPI.visibilities.IVisibility;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -381,7 +380,8 @@ public abstract class Advancement {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
 
-            handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+            handleAdvancementGranting(pro, player, result.newProgression(), result.oldProgression(), giveRewards);
+            handleAdvancementUpdatingToTeam(pro, result.newProgression(), result.oldProgression());
         });
 
         return completableFuture;
@@ -483,29 +483,29 @@ public abstract class Advancement {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
 
-            handlePlayer(pro, player, result.newProgression(), result.oldProgression(), giveRewards, AfterHandle.UPDATE_ADVANCEMENTS_TO_TEAM);
+            handleAdvancementGranting(pro, player, result.newProgression(), result.oldProgression(), giveRewards);
+            handleAdvancementUpdatingToTeam(pro, result.newProgression(), result.oldProgression());
         });
 
         return completableFuture;
     }
 
     /**
-     * Handles the reward process of the advancement.
+     * Called after a progression update to handle the granting process of the advancement.
      * <p>When the new progression is greater or equal than {@link #maxProgression} and the old progression is less than {@link #maxProgression} then
      * the advancement is being completed by the provided player. If the provided player is non-null, they will receive the rewards.
-     * Otherwise, if there are online members in the team one of them will receive the advancement rewards.
+     * Otherwise, if there are online members in the team, one of them will receive the advancement rewards.
      * If no member of the team are online, the advancement will be set unredeemed for that team.
      *
      * @param pro The {@link TeamProgression} of the team.
      * @param player The team member responsible for the update. May be {@code null}.
-     * @param newProgression The new non-negative progression that has been set.
+     * @param newProgression The new progression of the team.
      * @param oldProgression The previous progression of the team.
      * @param giveRewards Whether to give rewards if the advancement gets completed.
-     * @param afterHandle The action to perform after the reward process, or {@code null} to don't do any action.
-     *         The default action updates the tab's advancement to the team (see {@link AfterHandle#UPDATE_ADVANCEMENTS_TO_TEAM}).
      * @throws AsyncExecutionException If this method is called outside the main thread.
+     * @see #onGrant(Player, boolean)
      */
-    protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int newProgression, int oldProgression, boolean giveRewards, @Nullable AfterHandle afterHandle) {
+    protected void handleAdvancementGranting(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, boolean giveRewards) {
         AdvancementUtils.checkSync();
         validateTeamProgression(pro);
         if (newProgression >= this.maxProgression && oldProgression < this.maxProgression) {
@@ -518,12 +518,26 @@ public abstract class Advancement {
                     onGrant(player, giveRewards);
                 } else {
                     ds.setUnredeemed(key, giveRewards, pro);
-                    return; // Skip advancement update, no player is online
                 }
             }
         }
-        if (afterHandle != null)
-            afterHandle.apply(pro, player, this);
+    }
+
+    /**
+     * Called after a progression update to handle sending the updated advancement to the team members.
+     *
+     * @param pro The {@link TeamProgression} of the team.
+     * @param newProgression The new progression of the team.
+     * @param oldProgression The previous progression of the team.
+     * @throws AsyncExecutionException If this method is called outside the main thread.
+     * @see AdvancementTab#updateAdvancementsToTeam(TeamProgression)
+     */
+    protected void handleAdvancementUpdatingToTeam(@NotNull TeamProgression pro, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression) {
+        AdvancementUtils.checkSync();
+        validateTeamProgression(pro);
+        if (newProgression != oldProgression) {
+            advancementTab.updateAdvancementsToTeam(pro);
+        }
     }
 
     /**
