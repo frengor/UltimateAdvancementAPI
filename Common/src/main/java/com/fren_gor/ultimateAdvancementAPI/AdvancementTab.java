@@ -929,7 +929,7 @@ public final class AdvancementTab {
                 for (UUID u : pro.getMembers()) {
                     try {
                         Player player = Bukkit.getPlayer(u);
-                        if (player != null && databaseManager.isLoadedAndOnline(player)) {
+                        if (player != null && AdvancementTab.this.players.containsKey(player) && databaseManager.isLoadedAndOnline(player)) {
                             if (update == null) {
                                 try {
                                     // Create immutable and per-team update data only if a player of the team is online and loaded
