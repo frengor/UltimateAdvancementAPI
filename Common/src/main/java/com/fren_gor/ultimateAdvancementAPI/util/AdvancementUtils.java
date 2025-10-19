@@ -78,7 +78,7 @@ public final class AdvancementUtils {
     /**
      * Displays a custom toast to a player.
      *
-     * @param player A player to show the toast.
+     * @param player The player the toast will be shown to.
      * @param icon The displayed item of the toast.
      * @param title The displayed title of the toast.
      * @param frame The {@link AdvancementFrameType} of the toast.
@@ -91,7 +91,7 @@ public final class AdvancementUtils {
     /**
      * Displays a custom toast to a player.
      *
-     * @param player A player to show the toast.
+     * @param player The player the toast will be shown to.
      * @param icon The displayed item of the toast.
      * @param title The displayed title of the toast.
      * @param frame The {@link AdvancementFrameType} of the toast.

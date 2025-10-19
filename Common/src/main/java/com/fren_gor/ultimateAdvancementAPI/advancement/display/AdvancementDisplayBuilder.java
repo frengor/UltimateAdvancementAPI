@@ -102,7 +102,7 @@ public class AdvancementDisplayBuilder {
 
     /**
      * Creates a new {@code AdvancementDisplayBuilder}.
-     * <p>By default, the advancement display returned by {@link #build()} won't show both the toast message and
+     * <p>By default, the advancement display returned by {@link #build()} won't show the toast message and
      * the announcement message in the chat upon advancement completion.
      * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
      *
@@ -115,7 +115,7 @@ public class AdvancementDisplayBuilder {
 
     /**
      * Creates a new {@code AdvancementDisplayBuilder}.
-     * <p>By default, the advancement display returned by {@link #build()} won't show both the toast message and
+     * <p>By default, the advancement display returned by {@link #build()} won't show the toast message and
      * the announcement message in the chat upon advancement completion.
      * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
      *
@@ -128,7 +128,7 @@ public class AdvancementDisplayBuilder {
 
     /**
      * Creates a new {@code AdvancementDisplayBuilder}.
-     * <p>By default, the advancement display returned by {@link #build()} won't show both the toast message and
+     * <p>By default, the advancement display returned by {@link #build()} won't show the toast message and
      * the announcement message in the chat upon advancement completion.
      * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
      *
@@ -142,7 +142,7 @@ public class AdvancementDisplayBuilder {
 
     /**
      * Creates a new {@code AdvancementDisplayBuilder}.
-     * <p>By default, the advancement display returned by {@link #build()} won't show both the toast message and
+     * <p>By default, the advancement display returned by {@link #build()} won't show the toast message and
      * the announcement message in the chat upon advancement completion.
      * <p>The default {@code frame} is {@link AdvancementFrameType#TASK}.
      *
