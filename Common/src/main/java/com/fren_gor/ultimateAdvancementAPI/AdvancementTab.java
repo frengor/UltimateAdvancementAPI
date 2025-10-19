@@ -925,10 +925,26 @@ public final class AdvancementTab {
                     continue;
                 }
 
-                try {
-                    updateTeam(pro, sizeApprox);
-                } catch (Exception e) {
-                    owningPlugin.getLogger().log(Level.SEVERE, "Error sending advancements to team with id " + pro.getTeamId(), e);
+                ImmutableAndPerTeamUpdateData update = null;
+                for (UUID u : pro.getMembers()) {
+                    try {
+                        Player player = Bukkit.getPlayer(u);
+                        if (player != null && databaseManager.isLoadedAndOnline(player)) {
+                            if (update == null) {
+                                try {
+                                    // Create immutable and per-team update data only if a player of the team is online and loaded
+                                    update = updateTeam(pro, sizeApprox);
+                                } catch (Exception e) {
+                                    owningPlugin.getLogger().log(Level.SEVERE, "Error sending advancements to team with id " + pro.getTeamId(), e);
+                                    break;
+                                }
+                            }
+
+                            updatePlayer(player, update, sizeApprox);
+                        }
+                    } catch (Exception e) {
+                        owningPlugin.getLogger().log(Level.SEVERE, "Error sending advancements to player " + u, e);
+                    }
                 }
             }
             task = null;
@@ -936,7 +952,7 @@ public final class AdvancementTab {
             scheduled = false;
         }
 
-        private void updateTeam(TeamProgression pro, int sizeApprox) throws ReflectiveOperationException {
+        private ImmutableAndPerTeamUpdateData updateTeam(TeamProgression pro, int sizeApprox) throws ReflectiveOperationException {
             final AdvancementUpdater updater = new AdvancementUpdater(rootAdvancement.getKey(), sizeApprox);
 
             for (Advancement advancement : advancements.values()) {
@@ -984,62 +1000,63 @@ public final class AdvancementTab {
                 perTeamToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
             }
 
-            for (UUID u : pro.getMembers()) {
-                try {
-                    Player player = Bukkit.getPlayer(u);
-                    if (player != null) {
-                        updatePlayer(player, updater, perTeamToSend, perTeamBackground, rootDisplay, noTab, thisTab, sizeApprox);
-                    }
-                } catch (Exception e) {
-                    owningPlugin.getLogger().log(Level.SEVERE, "Error sending advancements to player " + u, e);
-                }
-            }
+            return new ImmutableAndPerTeamUpdateData(updater, perTeamToSend, perTeamBackground, rootDisplay, noTab, thisTab);
         }
 
-        private void updatePlayer(Player player, AdvancementUpdater updater, Map<AdvancementWrapper, Integer> perTeamToSend, String perTeamBackground, PreparedAdvancementDisplayWrapper rootDisplay, ISendable noTab, ISendable thisTab, int sizeApprox) throws ReflectiveOperationException {
+        private void updatePlayer(Player player, ImmutableAndPerTeamUpdateData update, int sizeApprox) throws ReflectiveOperationException {
             final Map<AdvancementWrapper, Integer> perPlayerToSend = Maps.newHashMapWithExpectedSize(sizeApprox);
 
             // Handle root advancement
-            if (updater.getRootDisplay() instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-                String background = perTeamBackground != null ? perTeamBackground : perPlayerBackgroundTextureFn.apply(player);
+            if (update.updater.getRootDisplay() instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
+                String background = update.perTeamBackground != null ? update.perTeamBackground : perPlayerBackgroundTextureFn.apply(player);
                 AdvancementDisplayWrapper display = perPlayer.getNMSWrapper(player).toRootAdvancementDisplay(background);
-                perPlayerToSend.put(updater.getRootWrapper().toAdvancementWrapper(display), updater.getRootProgression());
-            } else if (rootDisplay != null && perTeamBackground == null) {
-                AdvancementDisplayWrapper display = rootDisplay.toRootAdvancementDisplay(perPlayerBackgroundTextureFn.apply(player));
-                perPlayerToSend.put(updater.getRootWrapper().toAdvancementWrapper(display), updater.getRootProgression());
+                perPlayerToSend.put(update.updater.getRootWrapper().toAdvancementWrapper(display), update.updater.getRootProgression());
+            } else if (update.rootDisplay != null && update.perTeamBackground == null) {
+                AdvancementDisplayWrapper display = update.rootDisplay.toRootAdvancementDisplay(perPlayerBackgroundTextureFn.apply(player));
+                perPlayerToSend.put(update.updater.getRootWrapper().toAdvancementWrapper(display), update.updater.getRootProgression());
             }
 
             // Handle base advancements
-            for (var entry : updater.getPerPlayerAdvancements()) {
+            for (var entry : update.updater.getPerPlayerAdvancements()) {
                 AdvancementDisplayWrapper display = entry.display().getNMSWrapper(player).toBaseAdvancementDisplay();
                 perPlayerToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
             }
 
             Map<AdvancementWrapper, Integer> toSendMap;
             if (perPlayerToSend.isEmpty()) {
-                toSendMap = perTeamToSend;
-            } else if (perTeamToSend.isEmpty()) {
+                toSendMap = update.perTeamToSend;
+            } else if (update.perTeamToSend.isEmpty()) {
                 toSendMap = perPlayerToSend;
             } else {
-                toSendMap = CompositeMap.of(perTeamToSend, perPlayerToSend);
+                toSendMap = CompositeMap.of(update.perTeamToSend, perPlayerToSend);
             }
 
             ISendable sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(toSendMap);
 
-            noTab.sendTo(player);
+            update.noTab.sendTo(player);
 
-            @Nullable Set<MinecraftKeyWrapper> set = players.put(player, updater.getKeys());
-            if (set != null && !set.isEmpty()) {
+            @Nullable Set<MinecraftKeyWrapper> oldKeys = players.put(player, update.updater.getKeys());
+            if (oldKeys != null && !oldKeys.isEmpty()) {
                 try {
-                    PacketPlayOutAdvancementsWrapper.craftRemovePacket(updater.getKeys()).sendTo(player);
+                    PacketPlayOutAdvancementsWrapper.craftRemovePacket(oldKeys).sendTo(player);
                 } catch (ReflectiveOperationException e) {
-                    thisTab.sendTo(player); // Show again if sending the remove packet fails
+                    players.put(player, oldKeys);
+                    update.thisTab.sendTo(player); // Show again if sending the remove packet fails
                     throw e;
                 }
             }
 
             sendPacket.sendTo(player);
-            thisTab.sendTo(player);
+            update.thisTab.sendTo(player);
+        }
+
+        private record ImmutableAndPerTeamUpdateData(
+                @NotNull AdvancementUpdater updater,
+                @NotNull Map<AdvancementWrapper, Integer> perTeamToSend,
+                @Nullable String perTeamBackground,
+                @Nullable PreparedAdvancementDisplayWrapper rootDisplay,
+                @NotNull ISendable noTab,
+                @NotNull ISendable thisTab) {
         }
     }
 
