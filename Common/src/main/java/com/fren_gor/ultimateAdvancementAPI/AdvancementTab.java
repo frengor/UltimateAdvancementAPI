@@ -846,11 +846,13 @@ public final class AdvancementTab {
             final Map<AdvancementWrapper, Integer> advs = Maps.newHashMapWithExpectedSize(best);
 
             for (TeamProgression pro : advsToUpdate) {
-                final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(best);
-
                 for (Advancement advancement : advancements.values()) {
                     advancement.onUpdate(pro, advs);
-                    keys.add(advancement.getKey().getNMSWrapper());
+                }
+
+                final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(advs.size());
+                for (AdvancementWrapper wrapper : advs.keySet()) {
+                    keys.add(wrapper.getKey());
                 }
 
                 ISendable sendPacket, noTab, thisTab;
@@ -871,9 +873,10 @@ public final class AdvancementTab {
                         @Nullable Set<MinecraftKeyWrapper> set = players.put(player, keys);
                         if (set != null && !set.isEmpty()) {
                             try {
-                                PacketPlayOutAdvancementsWrapper.craftRemovePacket(keys).sendTo(player);
+                                PacketPlayOutAdvancementsWrapper.craftRemovePacket(set).sendTo(player);
                             } catch (ReflectiveOperationException e) {
                                 e.printStackTrace();
+                                players.put(player, set);
                                 thisTab.sendTo(player);
                                 return; // TODO Check
                             }
