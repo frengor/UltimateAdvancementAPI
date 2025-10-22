@@ -20,6 +20,7 @@ import com.fren_gor.ultimateAdvancementAPI.events.team.TeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
+import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.google.common.base.Preconditions;
@@ -40,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collections;
@@ -53,6 +55,7 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
@@ -86,6 +89,7 @@ public final class DatabaseManager {
      */
     public static final int MAX_SIMULTANEOUS_LOADING_REQUESTS = Character.MAX_VALUE;
     private static final int LOAD_EVENTS_DELAY = 3;
+    private static final boolean IS_PAPER = ReflectionUtil.classExists("io.papermc.paper.advancement.AdvancementDisplay");
 
     private final AdvancementMain main;
     private final Map<UUID, TeamProgression> progressionCache = new HashMap<>();
@@ -93,27 +97,75 @@ public final class DatabaseManager {
     private final EventManager eventManager;
     private final IDatabase database;
 
-    private final Map<UUID, Runnable> waitingForJoinEvent = Collections.synchronizedMap(new HashMap<>());
-    private static final Runnable LOGIN_SENTINEL = () -> {}, JOIN_SENTINEL = () -> {};
+    private final Map<UUID, Consumer<Player>> waitingForJoinEvent = Collections.synchronizedMap(new HashMap<>());
+    private static final Consumer<Player> LOGIN_SENTINEL = p -> {}, JOIN_SENTINEL = p -> {};
 
-    private void registerForJoinEvent(Player player, Runnable runnable) {
-        UUID uuid = player.getUniqueId();
+    private void registerForJoinEvent(@NotNull UUID uuid, @NotNull Consumer<Player> action) {
+        Preconditions.checkNotNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(action, "Consumer is null");
 
         synchronized (waitingForJoinEvent) {
-            Runnable run = waitingForJoinEvent.remove(uuid);
+            Consumer<Player> run = waitingForJoinEvent.remove(uuid);
             // If PlayerQuitEvent has been fired the map doesn't contain the uuid
             if (run == null) {
                 return;
             }
             if (run == LOGIN_SENTINEL) {
-                // PlayerJoinEvent hasn't been fired yet, register the runnable to be scheduled by the PlayerJoinEvent
-                waitingForJoinEvent.put(uuid, runnable);
+                // PlayerJoinEvent hasn't been fired yet, register the action to be scheduled by the PlayerJoinEvent
+                waitingForJoinEvent.put(uuid, action);
                 return;
             }
-            // PlayerJoinEvent has already been fired, remove the uuid and schedule the runnable
+            // PlayerJoinEvent has already been fired, remove the uuid and schedule the action
             // (here run == JOIN_SENTINEL)
         }
-        runSync(main, LOAD_EVENTS_DELAY, runnable);
+        runSync(main, LOAD_EVENTS_DELAY, () -> {
+            Player p = Bukkit.getPlayer(uuid);
+            Preconditions.checkNotNull(p, "Player is null");
+            action.accept(p);
+        });
+    }
+
+    // Must be called async
+    private void loadPlayerOnConnect(@NotNull UUID uuid, @NotNull String name) {
+        try {
+            Preconditions.checkNotNull(uuid, "UUID is null.");
+            Preconditions.checkNotNull(name, "Name is null.");
+        } catch (NullPointerException e) {
+            main.getLogger().log(Level.SEVERE, "Couldn't retrieve player information, they will not be loaded from the database", e);
+            return;
+        }
+
+        waitingForJoinEvent.put(uuid, LOGIN_SENTINEL);
+        try {
+            loadPlayerMainFunction(uuid, name);
+        } catch (Exception ex) {
+            main.getLogger().log(Level.SEVERE, "Cannot load player " + name, ex);
+            registerForJoinEvent(uuid, p -> callEventCatchingExceptions(new PlayerLoadingFailedEvent(p, ex)));
+        }
+    }
+
+    private void unloadPlayerOnQuit(@NotNull UUID uuid) {
+        Preconditions.checkNotNull(uuid, "UUID is null");
+
+        waitingForJoinEvent.remove(uuid);
+        synchronized (DatabaseManager.this) {
+            TempUserMetadata meta = tempLoaded.get(uuid);
+            if (meta != null) {
+                meta.isOnline = false;
+                // If meta isn't null then a plugin is using the player's TeamProgression
+            } else {
+                TeamProgression t = progressionCache.remove(uuid);
+                if (t != null && t.noMemberMatch(progressionCache::containsKey)) {
+                    t.inCache.set(false); // Invalidate TeamProgression
+                    callEventCatchingExceptions(new AsyncTeamUnloadEvent(t));
+                    if (Bukkit.isPrimaryThread()) {
+                        callEventCatchingExceptions(new TeamUnloadEvent(t));
+                    } else {
+                        runSync(main.getOwningPlugin(), () -> callEventCatchingExceptions(new TeamUnloadEvent(t)));
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -182,47 +234,80 @@ public final class DatabaseManager {
         // Run it sync to avoid using uninitialized database
         database.setUp();
 
-        eventManager.register(this, PlayerLoginEvent.class, EventPriority.LOWEST, e -> CompletableFuture.runAsync(() -> {
-            waitingForJoinEvent.put(e.getPlayer().getUniqueId(), LOGIN_SENTINEL);
+        // Don't use PlayerLoginEvent on Paper 1.21.7+
+        if (IS_PAPER && (ReflectionUtil.VERSION > 21 || (ReflectionUtil.VERSION == 21 && ReflectionUtil.MINOR_VERSION >= 7))) {
+            // Must use reflections since we're compiling using the Spigot artifact
+            Class<? extends Event> playerConnectionInitialConfigureEventClass, playerConnectionCloseEventClass;
+            Method getConnection, getProfile, getId, getName, getPlayerUniqueId;
             try {
-                loadPlayerMainFunction(e.getPlayer());
-            } catch (Exception ex) {
-                System.err.println("Cannot load player " + e.getPlayer().getName() + ':');
-                ex.printStackTrace();
-                registerForJoinEvent(e.getPlayer(), () -> callEventCatchingExceptions(new PlayerLoadingFailedEvent(e.getPlayer(), ex)));
+                playerConnectionInitialConfigureEventClass = (Class<? extends Event>) Class.forName("io.papermc.paper.event.connection.configuration.PlayerConnectionInitialConfigureEvent");
+                playerConnectionCloseEventClass = (Class<? extends Event>) Class.forName("com.destroystokyo.paper.event.player.PlayerConnectionCloseEvent");
+                Class<?> playerConfigurationConnectionClass = Class.forName("io.papermc.paper.connection.PlayerConfigurationConnection");
+                Class<?> playerProfileClass = Class.forName("com.destroystokyo.paper.profile.PlayerProfile");
+                getConnection = playerConnectionInitialConfigureEventClass.getDeclaredMethod("getConnection");
+                getProfile = playerConfigurationConnectionClass.getDeclaredMethod("getProfile");
+                getId = playerProfileClass.getDeclaredMethod("getId");
+                getName = playerProfileClass.getDeclaredMethod("getName");
+                getPlayerUniqueId = playerConnectionCloseEventClass.getDeclaredMethod("getPlayerUniqueId");
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
             }
-        }));
+            eventManager.register(this, playerConnectionInitialConfigureEventClass, EventPriority.LOWEST, e -> {
+                // This is effectively calling:
+                //
+                // PlayerProfile profile = e.getConnection().getProfile();
+                // UUID uuid = profile.getId();
+                // String name = profile.getName();
+
+                try {
+                    Object connection = getConnection.invoke(e);
+                    Object profile = getProfile.invoke(connection);
+                    UUID uuid = (UUID) getId.invoke(profile);
+                    String name = (String) getName.invoke(profile);
+                    CompletableFuture.runAsync(() -> {
+                        loadPlayerOnConnect(uuid, name);
+                    });
+                } catch (ReflectiveOperationException ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
+            eventManager.register(this, playerConnectionCloseEventClass, e -> {
+                try {
+                    UUID uuid = (UUID) getPlayerUniqueId.invoke(e);
+                    unloadPlayerOnQuit(uuid);
+                } catch (ReflectiveOperationException ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
+        } else {
+            eventManager.register(this, PlayerLoginEvent.class, EventPriority.LOWEST, e -> {
+                UUID uuid = e.getPlayer().getUniqueId();
+                String name = e.getPlayer().getName();
+                CompletableFuture.runAsync(() -> {
+                    loadPlayerOnConnect(uuid, name);
+                });
+            });
+        }
+
         eventManager.register(this, PlayerJoinEvent.class, EventPriority.MONITOR, e -> {
-            Runnable runnable;
+            Consumer<Player> action;
             synchronized (waitingForJoinEvent) {
-                runnable = waitingForJoinEvent.remove(e.getPlayer().getUniqueId());
-                if (runnable == null) {
+                action = waitingForJoinEvent.remove(e.getPlayer().getUniqueId());
+                if (action == null) {
                     return;
                 }
-                if (runnable == LOGIN_SENTINEL || runnable == JOIN_SENTINEL) { // The second case shouldn't happen, just to be sure
+                if (action == LOGIN_SENTINEL || action == JOIN_SENTINEL) { // The second case shouldn't happen, just to be sure
                     // registerForJoinEvent hasn't been called yet, add uuid->JOIN_SENTINEL to the map (see registerForJoinEvent(...))
                     waitingForJoinEvent.put(e.getPlayer().getUniqueId(), JOIN_SENTINEL);
                     return;
                 }
             }
-            runSync(main, LOAD_EVENTS_DELAY, runnable);
+            runSync(main, LOAD_EVENTS_DELAY, () -> {
+                action.accept(e.getPlayer());
+            });
         });
         eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
-            waitingForJoinEvent.remove(e.getPlayer().getUniqueId());
-            synchronized (DatabaseManager.this) {
-                TempUserMetadata meta = tempLoaded.get(e.getPlayer().getUniqueId());
-                if (meta != null) {
-                    meta.isOnline = false;
-                    // If meta isn't null then a plugin is using the player's TeamProgression
-                } else {
-                    TeamProgression t = progressionCache.remove(e.getPlayer().getUniqueId());
-                    if (t != null && t.noMemberMatch(progressionCache::containsKey)) {
-                        t.inCache.set(false); // Invalidate TeamProgression
-                        callEventCatchingExceptions(new AsyncTeamUnloadEvent(t));
-                        callEventCatchingExceptions(new TeamUnloadEvent(t));
-                    }
-                }
-            }
+            unloadPlayerOnQuit(e.getPlayer().getUniqueId());
         });
         eventManager.register(this, PluginDisableEvent.class, EventPriority.HIGHEST, e -> {
             synchronized (DatabaseManager.this) {
@@ -272,17 +357,18 @@ public final class DatabaseManager {
      * Main function to load the provided player from the database.
      * <p><strong>Should be called async.</strong>
      *
-     * @param player The player to load.
+     * @param uuid The {@link UUID} of player to load.
+     * @param name The name of player to load.
      * @throws SQLException If anything goes wrong.
      */
-    private void loadPlayerMainFunction(final @NotNull Player player) throws SQLException {
-        Entry<TeamProgression, Boolean> entry = loadOrRegisterPlayer(player);
+    private void loadPlayerMainFunction(final @NotNull UUID uuid, final @NotNull String name) throws SQLException {
+        Entry<TeamProgression, Boolean> entry = loadOrRegisterPlayer(uuid, name);
         final TeamProgression pro = entry.getKey();
-        registerForJoinEvent(player, () -> {
+        registerForJoinEvent(uuid, player -> {
             callEventCatchingExceptions(new PlayerLoadingCompletedEvent(player, pro));
             if (entry.getValue()) {
-                callEventCatchingExceptions(new AsyncTeamUpdateEvent(pro, player.getUniqueId(), Action.JOIN));
-                callEventCatchingExceptions(new TeamUpdateEvent(pro, player.getUniqueId(), TeamUpdateEvent.Action.JOIN));
+                callEventCatchingExceptions(new AsyncTeamUpdateEvent(pro, uuid, Action.JOIN));
+                callEventCatchingExceptions(new TeamUpdateEvent(pro, uuid, TeamUpdateEvent.Action.JOIN));
             }
             main.updatePlayer(player);
             CompletableFuture.runAsync(() -> processUnredeemed(player, pro));
@@ -293,15 +379,14 @@ public final class DatabaseManager {
      * Load the provided player from the database. If they are not present, this method registers they.
      * <p><strong>Should be called async.</strong>
      *
-     * @param player The player.
+     * @param uuid The {@link UUID} of player to load.
+     * @param name The name of player to load.
      * @return A pair containing the loaded {@link TeamProgression} and a {@code boolean},
      *         which is {@code true} if and only if the player was not found in the database.
      * @throws SQLException If anything goes wrong.
      */
     @NotNull
-    private synchronized Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull Player player) throws SQLException {
-        final UUID uuid = player.getUniqueId();
-
+    private synchronized Entry<TeamProgression, Boolean> loadOrRegisterPlayer(final @NotNull UUID uuid, final @NotNull String name) throws SQLException {
         TeamProgression pro = progressionCache.get(uuid);
         if (pro != null) {
             // Don't let player to be unloaded from cache
@@ -315,12 +400,12 @@ public final class DatabaseManager {
         pro = searchTeamProgressionDeeply(uuid);
         if (pro != null) {
             progressionCache.put(uuid, pro); // Direct caching
-            updatePlayerName(player);
+            updatePlayerName(uuid, name);
             return new SimpleEntry<>(pro, false);
         }
 
-        Entry<TeamProgression, Boolean> e = database.loadOrRegisterPlayer(uuid, player.getName());
-        updatePlayerName(player);
+        Entry<TeamProgression, Boolean> e = database.loadOrRegisterPlayer(uuid, name);
+        updatePlayerName(uuid, name);
         e.getKey().inCache.set(true); // Set TeamProgression valid
         progressionCache.put(uuid, e.getKey());
         callEventCatchingExceptions(new AsyncTeamLoadEvent(e.getKey()));
@@ -403,11 +488,18 @@ public final class DatabaseManager {
     @NotNull
     public CompletableFuture<Result> updatePlayerName(@NotNull Player player) {
         Preconditions.checkNotNull(player, "Player cannot be null.");
+        return updatePlayerName(player.getUniqueId(), player.getName());
+    }
+
+    @NotNull
+    private CompletableFuture<Result> updatePlayerName(@NotNull UUID uuid, @NotNull String name) {
+        Preconditions.checkNotNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(name, "Name is null.");
         return CompletableFuture.supplyAsync(() -> {
             try {
-                database.updatePlayerName(player.getUniqueId(), player.getName());
+                database.updatePlayerName(uuid, name);
             } catch (SQLException e) {
-                System.err.println("Cannot update player " + player.getName() + " name:");
+                System.err.println("Cannot update player " + name + " name:");
                 e.printStackTrace();
                 return new Result(e);
             } catch (Exception e) {
