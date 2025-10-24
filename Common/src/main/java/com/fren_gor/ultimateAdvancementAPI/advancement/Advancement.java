@@ -8,6 +8,7 @@ import com.fren_gor.ultimateAdvancementAPI.announcementMessage.IAnnouncementMess
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementGrantEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
@@ -651,6 +652,12 @@ public abstract class Advancement {
     public void onGrant(@NotNull Player advancementCompleter, boolean giveRewards) {
         Preconditions.checkNotNull(advancementCompleter, "Player is null.");
         final TeamProgression progression = advancementTab.getDatabaseManager().getTeamProgression(advancementCompleter);
+
+        try {
+            Bukkit.getPluginManager().callEvent(new AdvancementGrantEvent(progression, advancementCompleter, this, giveRewards));
+        } catch (Exception e) {
+            advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementGrantEvent for " + key, e);
+        }
 
         sendAnnouncementMessageOnGrant(advancementCompleter, progression);
         displayToastOnGrant(advancementCompleter, progression);
