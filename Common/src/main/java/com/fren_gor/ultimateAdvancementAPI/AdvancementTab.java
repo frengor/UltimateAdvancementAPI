@@ -19,8 +19,10 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementExceptio
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.ISendable;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdvancementsWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutSelectAdvancementTabWrapper;
@@ -31,11 +33,14 @@ import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.scheduler.BukkitTask;
@@ -54,10 +59,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey.checkNamespace;
@@ -73,14 +79,13 @@ public final class AdvancementTab {
 
     private final Plugin owningPlugin;
     private final EventManager eventManager;
-    private final String namespace, backgroundTexture;
-    private final PerTeamBackgroundTextureFn perTeamBackgroundTextureFn;
-    private final PerPlayerBackgroundTextureFn perPlayerBackgroundTextureFn;
+    private final String namespace;
+    private final TabDisplay tabDisplay;
     private final DatabaseManager databaseManager;
     @Unmodifiable
     private volatile Map<AdvancementKey, Advancement> advancements = Collections.emptyMap();
     private final Map<Player, Set<MinecraftKeyWrapper>> players = new HashMap<>();
-    private final AdvsUpdateRunnable updateManager = new AdvsUpdateRunnable();
+    private final AdvsUpdateRunnable updateManager;
 
     private RootAdvancement rootAdvancement;
     private volatile boolean initialised = false, disposed = false;
@@ -90,16 +95,14 @@ public final class AdvancementTab {
     @LazyValue
     private Collection<BaseAdvancement> advsWithoutRoot;
 
-    AdvancementTab(@NotNull Plugin owningPlugin, @NotNull DatabaseManager databaseManager, @NotNull String namespace, String backgroundTexture, PerTeamBackgroundTextureFn perTeamBackgroundTextureFn, PerPlayerBackgroundTextureFn perPlayerBackgroundTextureFn) {
+    AdvancementTab(@NotNull Plugin owningPlugin, @NotNull DatabaseManager databaseManager, @NotNull String namespace, @NotNull TabDisplay tabDisplay) {
         checkNamespace(namespace);
-        Preconditions.checkArgument(backgroundTexture != null || perTeamBackgroundTextureFn != null || perPlayerBackgroundTextureFn != null, "At least a background texture must be provided.");
-        this.namespace = Objects.requireNonNull(namespace);
-        this.backgroundTexture = backgroundTexture;
-        this.perTeamBackgroundTextureFn = perTeamBackgroundTextureFn;
-        this.perPlayerBackgroundTextureFn = perPlayerBackgroundTextureFn;
-        this.owningPlugin = Objects.requireNonNull(owningPlugin);
+        this.namespace = namespace;
+        this.tabDisplay = Objects.requireNonNull(tabDisplay, "Tab display is null.");
+        this.owningPlugin = Objects.requireNonNull(owningPlugin, "Plugin is null.");
         this.eventManager = new EventManager(owningPlugin);
-        this.databaseManager = Objects.requireNonNull(databaseManager);
+        this.databaseManager = Objects.requireNonNull(databaseManager, "DatabaseManager is null.");
+        this.updateManager = new AdvsUpdateRunnable();
         eventManager.register(this, PlayerQuitEvent.class, e -> players.remove(e.getPlayer()));
     }
 
@@ -827,6 +830,16 @@ public final class AdvancementTab {
     }
 
     /**
+     * Gets the display of this tab.
+     *
+     * @return The display of this tab.
+     */
+    @NotNull
+    public TabDisplay getTabDisplay() {
+        return tabDisplay;
+    }
+
+    /**
      * Returns whether the toast notification should be sent to every team member on advancement grant.
      * <p>Defaults to {@code true} if not changed using {@link #setShowToastToTeam(boolean)}.
      *
@@ -899,6 +912,21 @@ public final class AdvancementTab {
         private boolean scheduled = false;
         private BukkitTask task;
 
+        private final PreparedAdvancementWrapper internalRoot;
+
+        @LazyValue
+        private TabDisplayData immutableDisplayData;
+
+        public AdvsUpdateRunnable() {
+            try {
+                MinecraftKeyWrapper internalRootKey = MinecraftKeyWrapper.craft(namespace, AdvancementKey.RESERVED_KEY_PREFIX + "root");
+                internalRoot = PreparedAdvancementWrapper.craft(internalRootKey, 1);
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
         public void schedule(@NotNull TeamProgression progression) {
             if (!scheduled) {
                 scheduled = true;
@@ -920,6 +948,15 @@ public final class AdvancementTab {
             // Keep additional space for advancements that might be added by Advancement#onUpdate
             final int sizeApprox = advancements.size() + 16;
 
+            if (immutableDisplayData == null && tabDisplay instanceof ImmutableTabDisplay display) {
+                try {
+                    immutableDisplayData = new TabDisplayData(display.getBackgroundTexture(), display.getIcon(), display.getTitle());
+                } catch (Exception e) {
+                    owningPlugin.getLogger().log(Level.SEVERE, "Error sending advancements", e);
+                    return;
+                }
+            }
+
             for (TeamProgression pro : advsToUpdate) {
                 if (!pro.isValid()) {
                     continue;
@@ -933,7 +970,7 @@ public final class AdvancementTab {
                             if (update == null) {
                                 try {
                                     // Create immutable and per-team update data only if a player of the team is online and loaded
-                                    update = updateTeam(pro, sizeApprox);
+                                    update = updateTeam(pro, immutableDisplayData, sizeApprox);
                                 } catch (Exception e) {
                                     owningPlugin.getLogger().log(Level.SEVERE, "Error sending advancements to team with id " + pro.getTeamId(), e);
                                     break;
@@ -952,7 +989,11 @@ public final class AdvancementTab {
             scheduled = false;
         }
 
-        private ImmutableAndPerTeamUpdateData updateTeam(TeamProgression pro, int sizeApprox) throws ReflectiveOperationException {
+        private ImmutableAndPerTeamUpdateData updateTeam(TeamProgression pro, TabDisplayData displayData, int sizeApprox) throws ReflectiveOperationException {
+            if (displayData == null && tabDisplay instanceof PerTeamTabDisplay display) {
+                displayData = new TabDisplayData(display.getBackgroundTexture(pro), display.getIcon(pro), display.getTitle(pro));
+            }
+
             final AdvancementUpdater updater = new AdvancementUpdater(rootAdvancement.getKey(), sizeApprox);
 
             for (Advancement advancement : advancements.values()) {
@@ -960,14 +1001,12 @@ public final class AdvancementTab {
             }
 
             final ISendable noTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelectNone();
-            final ISendable thisTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelect(rootAdvancement.getKey().getNMSWrapper());
+            final ISendable thisTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelect(internalRoot.getKey());
 
             final Map<AdvancementWrapper, Integer> perTeamToSend = Maps.newHashMapWithExpectedSize(sizeApprox);
 
             // Handle root advancement
-            final String perTeamBackground; // Null if the background texture is per-player
             final PreparedAdvancementDisplayWrapper rootDisplay; // Null if the root display is per-player
-
             if (updater.getRootDisplay() instanceof AbstractImmutableAdvancementDisplay immutable) {
                 rootDisplay = immutable.getNMSWrapper();
             } else if (updater.getRootDisplay() instanceof AbstractPerTeamAdvancementDisplay perTeam) {
@@ -977,17 +1016,18 @@ public final class AdvancementTab {
                 rootDisplay = null;
             }
 
-            if (backgroundTexture != null) {
-                perTeamBackground = backgroundTexture;
-            } else if (perTeamBackgroundTextureFn != null) {
-                perTeamBackground = perTeamBackgroundTextureFn.apply(pro);
-            } else {
-                // Per-player background texture
-                perTeamBackground = null;
+            if (rootDisplay != null) {
+                perTeamToSend.put(updater.getRootWrapper().withParent(this.internalRoot).toAdvancementWrapper(rootDisplay.toBaseAdvancementDisplay()), updater.getRootProgression());
             }
 
-            if (rootDisplay != null && perTeamBackground != null) {
-                perTeamToSend.put(updater.getRootWrapper().toAdvancementWrapper(rootDisplay.toRootAdvancementDisplay(perTeamBackground)), updater.getRootProgression());
+            // Handle internal root display
+            final AdvancementDisplayWrapper internalRootDisplay; // Null if the root display or displayData is per-player
+            final boolean tabDisplayAndRootAreImmutableOrPerTeam = rootDisplay != null && displayData != null;
+            if (tabDisplayAndRootAreImmutableOrPerTeam) {
+                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, rootDisplay::getTitle);
+                perTeamToSend.put(this.internalRoot.toAdvancementWrapper(internalRootDisplay), 0);
+            } else {
+                internalRootDisplay = null;
             }
 
             // Handle base advancements
@@ -1000,20 +1040,41 @@ public final class AdvancementTab {
                 perTeamToSend.put(entry.advancementWrapper().toAdvancementWrapper(display), entry.progression());
             }
 
-            return new ImmutableAndPerTeamUpdateData(updater, perTeamToSend, perTeamBackground, rootDisplay, noTab, thisTab);
+            return new ImmutableAndPerTeamUpdateData(updater, perTeamToSend, displayData, tabDisplayAndRootAreImmutableOrPerTeam, internalRootDisplay, rootDisplay, noTab, thisTab);
         }
 
         private void updatePlayer(Player player, ImmutableAndPerTeamUpdateData update, int sizeApprox) throws ReflectiveOperationException {
+            TabDisplayData displayData = update.displayData;
+            if (displayData == null) {
+                if (tabDisplay instanceof PerPlayerTabDisplay display) {
+                    displayData = new TabDisplayData(display.getBackgroundTexture(player), display.getIcon(player), display.getTitle(player));
+                } else {
+                    throw new RuntimeException("Invalid tab display " + tabDisplay.getClass().getName());
+                }
+            }
+
             final Map<AdvancementWrapper, Integer> perPlayerToSend = Maps.newHashMapWithExpectedSize(sizeApprox);
 
             // Handle root advancement
-            if (update.updater.getRootDisplay() instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
-                String background = update.perTeamBackground != null ? update.perTeamBackground : perPlayerBackgroundTextureFn.apply(player);
-                AdvancementDisplayWrapper display = perPlayer.getNMSWrapper(player).toRootAdvancementDisplay(background);
-                perPlayerToSend.put(update.updater.getRootWrapper().toAdvancementWrapper(display), update.updater.getRootProgression());
-            } else if (update.rootDisplay != null && update.perTeamBackground == null) {
-                AdvancementDisplayWrapper display = update.rootDisplay.toRootAdvancementDisplay(perPlayerBackgroundTextureFn.apply(player));
-                perPlayerToSend.put(update.updater.getRootWrapper().toAdvancementWrapper(display), update.updater.getRootProgression());
+            PreparedAdvancementDisplayWrapper rootDisplay = update.rootDisplay;
+            if (rootDisplay == null) {
+                if (update.updater.getRootDisplay() instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
+                    rootDisplay = perPlayer.getNMSWrapper(player);
+                } else {
+                    throw new RuntimeException("Invalid root display " + update.updater.getRootDisplay().getClass().getName());
+                }
+
+                perPlayerToSend.put(update.updater.getRootWrapper().withParent(this.internalRoot).toAdvancementWrapper(rootDisplay.toBaseAdvancementDisplay()), update.updater.getRootProgression());
+            }
+
+            // Handle internal root display
+            AdvancementDisplayWrapper internalRootDisplay = update.internalRootDisplay;
+            if (internalRootDisplay == null) {
+                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, rootDisplay::getTitle);
+            }
+
+            if (!update.internalRootAlreadyAddedToMap) {
+                perPlayerToSend.put(this.internalRoot.toAdvancementWrapper(internalRootDisplay), 0);
             }
 
             // Handle base advancements
@@ -1050,10 +1111,32 @@ public final class AdvancementTab {
             update.thisTab.sendTo(player);
         }
 
+        private record TabDisplayData(
+                @NotNull String backgroundTexture,
+                @NotNull Optional<ItemStack> icon,
+                @NotNull Optional<BaseComponent> title
+        ) {
+            @NotNull
+            public AdvancementDisplayWrapper toRootDisplayWrapper(
+                    float rootX,
+                    float rootY,
+                    Supplier<? extends ItemStack> rootIcon,
+                    Supplier<? extends BaseComponent> rootTitle
+            ) throws ReflectiveOperationException {
+                ItemStack icon = this.icon.orElseGet(rootIcon);
+                BaseComponent title = this.title.orElseGet(rootTitle);
+                return AdvancementDisplayWrapper.craft(
+                        icon, title, new TextComponent(""), AdvancementFrameTypeWrapper.TASK, rootX - 0.2f, rootY, false, false, true, this.backgroundTexture
+                );
+            }
+        }
+
         private record ImmutableAndPerTeamUpdateData(
                 @NotNull AdvancementUpdater updater,
                 @NotNull Map<AdvancementWrapper, Integer> perTeamToSend,
-                @Nullable String perTeamBackground,
+                @Nullable TabDisplayData displayData,
+                boolean internalRootAlreadyAddedToMap,
+                @Nullable AdvancementDisplayWrapper internalRootDisplay,
                 @Nullable PreparedAdvancementDisplayWrapper rootDisplay,
                 @NotNull ISendable noTab,
                 @NotNull ISendable thisTab) {
@@ -1061,16 +1144,117 @@ public final class AdvancementTab {
     }
 
     /**
-     * A function which, given a team, returns the path of the background texture image of the tab for that team.
+     * The display of an {@link AdvancementTab}.
      */
-    @FunctionalInterface
-    public interface PerTeamBackgroundTextureFn extends Function<TeamProgression, String> {
+    // TODO Make sealed when switching to Java 17
+    public interface TabDisplay {
     }
 
     /**
-     * A function which, given a player, returns the path of the background texture image of the tab for that player.
+     * The display of an {@link AdvancementTab} which is immutable, that is every method call should always return the same value.
      */
     @FunctionalInterface
-    public interface PerPlayerBackgroundTextureFn extends Function<Player, String> {
+    public interface ImmutableTabDisplay extends TabDisplay {
+        /**
+         * Returns the path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png").
+         *
+         * @return The path of the background texture image of the tab in the advancement GUI.
+         */
+        @NotNull
+        String getBackgroundTexture();
+
+        /**
+         * Returns the icon of the tab in the advancement GUI.
+         *
+         * @return The icon of the tab in the advancement GUI.
+         */
+        @NotNull
+        default Optional<ItemStack> getIcon() {
+            return Optional.empty();
+        }
+
+        /**
+         * Returns the title of the tab in the advancement GUI.
+         *
+         * @return The title of the tab in the advancement GUI.
+         */
+        @NotNull
+        default Optional<BaseComponent> getTitle() {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * The display of an {@link AdvancementTab} which provides customized values based on the specified team.
+     */
+    @FunctionalInterface
+    public interface PerTeamTabDisplay extends TabDisplay {
+        /**
+         * Returns the path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png").
+         *
+         * @param teamProgression The {@link TeamProgression} of the team.
+         * @return The path of the background texture image of the tab in the advancement GUI.
+         */
+        @NotNull
+        String getBackgroundTexture(@NotNull TeamProgression teamProgression);
+
+        /**
+         * Returns the icon of the tab in the advancement GUI.
+         *
+         * @param teamProgression The {@link TeamProgression} of the team.
+         * @return The icon of the tab in the advancement GUI.
+         */
+        @NotNull
+        default Optional<ItemStack> getIcon(@NotNull TeamProgression teamProgression) {
+            return Optional.empty();
+        }
+
+        /**
+         * Returns the title of the tab in the advancement GUI.
+         *
+         * @param teamProgression The {@link TeamProgression} of the team.
+         * @return The title of the tab in the advancement GUI.
+         */
+        @NotNull
+        default Optional<BaseComponent> getTitle(@NotNull TeamProgression teamProgression) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * The display of an {@link AdvancementTab} which provides customized values based on the specified player.
+     */
+    @FunctionalInterface
+    public interface PerPlayerTabDisplay extends TabDisplay {
+        /**
+         * Returns the path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png").
+         *
+         * @param player The player.
+         * @return The path of the background texture image of the tab in the advancement GUI.
+         */
+        @NotNull
+        String getBackgroundTexture(@NotNull Player player);
+
+        /**
+         * Returns the icon of the tab in the advancement GUI.
+         *
+         * @param player The player.
+         * @return The icon of the tab in the advancement GUI.
+         */
+        @NotNull
+        default Optional<ItemStack> getIcon(@NotNull Player player) {
+            return Optional.empty();
+        }
+
+        /**
+         * Returns the title of the tab in the advancement GUI.
+         *
+         * @param player The player.
+         * @return The title of the tab in the advancement GUI.
+         */
+        @NotNull
+        default Optional<BaseComponent> getTitle(@NotNull Player player) {
+            return Optional.empty();
+        }
     }
 }

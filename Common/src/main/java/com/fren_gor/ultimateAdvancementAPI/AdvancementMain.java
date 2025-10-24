@@ -1,8 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
 import com.fren_gor.eventManagerAPI.EventManager;
-import com.fren_gor.ultimateAdvancementAPI.AdvancementTab.PerPlayerBackgroundTextureFn;
-import com.fren_gor.ultimateAdvancementAPI.AdvancementTab.PerTeamBackgroundTextureFn;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
@@ -236,65 +234,81 @@ public final class AdvancementMain {
      * @param namespace The unique namespace of the tab. Should not start with {@link AdvancementKey#RESERVED_NAMESPACE_PREFIX}.
      * @param backgroundTexture The path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png").
      * @return The new {@link AdvancementTab}.
-     * @throws DuplicatedException If another tab with the name already exists.
+     * @throws DuplicatedException If another tab with the same namespace already exists.
      * @throws IllegalStateException If the API is not enabled.
      * @see UltimateAdvancementAPI#createAdvancementTab(String, String)
      */
     @NotNull
     @Contract("_, _, _ -> new")
     public AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace, @NotNull String backgroundTexture) throws DuplicatedException {
-        checkInitialisation();
         Preconditions.checkNotNull(backgroundTexture, "Background texture is null.");
-        return createAdvancementTab(plugin, namespace, backgroundTexture, null, null);
+        return createAdvancementTab(plugin, namespace, (AdvancementTab.ImmutableTabDisplay) () -> backgroundTexture);
     }
 
     /**
-     * Creates a new {@link AdvancementTab} with the provided namespace and a per-team background texture. The namespace must be unique.
+     * Creates a new {@link AdvancementTab} with the provided namespace and immutable tab display. The namespace must be unique.
      *
      * @param plugin The owner of the new tab.
      * @param namespace The unique namespace of the tab. Should not start with {@link AdvancementKey#RESERVED_NAMESPACE_PREFIX}.
-     * @param perTeamBackgroundTextureFn A function which, given a team, returns the path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png") for that team.
+     * @param tabDisplay The immutable tab display.
      * @return The new {@link AdvancementTab}.
-     * @throws DuplicatedException If another tab with the name already exists.
+     * @throws DuplicatedException If another tab with the same namespace already exists.
      * @throws IllegalStateException If the API is not enabled.
-     * @see UltimateAdvancementAPI#createAdvancementTab(String, PerTeamBackgroundTextureFn)
+     * @see UltimateAdvancementAPI#createAdvancementTab(String, AdvancementTab.ImmutableTabDisplay)
      */
     @NotNull
     @Contract("_, _, _ -> new")
-    public AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace, @NotNull PerTeamBackgroundTextureFn perTeamBackgroundTextureFn) throws DuplicatedException {
-        checkInitialisation();
-        Preconditions.checkNotNull(perTeamBackgroundTextureFn, "PerTeamBackgroundTextureFn is null.");
-        return createAdvancementTab(plugin, namespace, null, perTeamBackgroundTextureFn, null);
+    public AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace, @NotNull AdvancementTab.ImmutableTabDisplay tabDisplay) throws DuplicatedException {
+        Preconditions.checkNotNull(tabDisplay, "ImmutableTabDisplay is null.");
+        return createAdvancementTab(plugin, namespace, (AdvancementTab.TabDisplay) tabDisplay);
     }
 
     /**
-     * Creates a new {@link AdvancementTab} with the provided namespace and a per-player background texture. The namespace must be unique.
+     * Creates a new {@link AdvancementTab} with the provided namespace and a per-team tab display. The namespace must be unique.
      *
      * @param plugin The owner of the new tab.
      * @param namespace The unique namespace of the tab. Should not start with {@link AdvancementKey#RESERVED_NAMESPACE_PREFIX}.
-     * @param perPlayerBackgroundTextureFn A function which, given a player, returns the path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png") for that player.
+     * @param tabDisplay The per-team tab display.
      * @return The new {@link AdvancementTab}.
-     * @throws DuplicatedException If another tab with the name already exists.
+     * @throws DuplicatedException If another tab with the same namespace already exists.
      * @throws IllegalStateException If the API is not enabled.
-     * @see UltimateAdvancementAPI#createAdvancementTab(String, PerPlayerBackgroundTextureFn)
+     * @see UltimateAdvancementAPI#createAdvancementTab(String, AdvancementTab.PerTeamTabDisplay)
      */
     @NotNull
     @Contract("_, _, _ -> new")
-    public AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace, @NotNull PerPlayerBackgroundTextureFn perPlayerBackgroundTextureFn) throws DuplicatedException {
-        checkInitialisation();
-        Preconditions.checkNotNull(perPlayerBackgroundTextureFn, "PerPlayerBackgroundTextureFn is null.");
-        return createAdvancementTab(plugin, namespace, null, null, perPlayerBackgroundTextureFn);
+    public AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace, @NotNull AdvancementTab.PerTeamTabDisplay tabDisplay) throws DuplicatedException {
+        Preconditions.checkNotNull(tabDisplay, "PerTeamTabDisplay is null.");
+        return createAdvancementTab(plugin, namespace, (AdvancementTab.TabDisplay) tabDisplay);
+    }
+
+    /**
+     * Creates a new {@link AdvancementTab} with the provided namespace and a per-player tab display. The namespace must be unique.
+     *
+     * @param plugin The owner of the new tab.
+     * @param namespace The unique namespace of the tab. Should not start with {@link AdvancementKey#RESERVED_NAMESPACE_PREFIX}.
+     * @param tabDisplay The per-player tab display.
+     * @return The new {@link AdvancementTab}.
+     * @throws DuplicatedException If another tab with the same namespace already exists.
+     * @throws IllegalStateException If the API is not enabled.
+     * @see UltimateAdvancementAPI#createAdvancementTab(String, AdvancementTab.PerPlayerTabDisplay)
+     */
+    @NotNull
+    @Contract("_, _, _ -> new")
+    public AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace, @NotNull AdvancementTab.PerPlayerTabDisplay tabDisplay) throws DuplicatedException {
+        Preconditions.checkNotNull(tabDisplay, "PerPlayerTabDisplay is null.");
+        return createAdvancementTab(plugin, namespace, (AdvancementTab.TabDisplay) tabDisplay);
     }
 
     @NotNull
-    private AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace, String backgroundTexture, PerTeamBackgroundTextureFn perTeamBackgroundTextureFn, PerPlayerBackgroundTextureFn perPlayerBackgroundTextureFn) {
+    private AdvancementTab createAdvancementTab(@NotNull Plugin plugin, @NotNull String namespace, @NotNull AdvancementTab.TabDisplay tabDisplay) {
+        checkInitialisation();
         Preconditions.checkNotNull(plugin, "Plugin is null.");
         Preconditions.checkNotNull(namespace, "Namespace is null.");
         if (tabs.containsKey(namespace)) {
             throw new DuplicatedException("An AdvancementTab with '" + namespace + "' namespace already exists.");
         }
 
-        AdvancementTab tab = new AdvancementTab(plugin, databaseManager, namespace, backgroundTexture, perTeamBackgroundTextureFn, perPlayerBackgroundTextureFn);
+        AdvancementTab tab = new AdvancementTab(plugin, databaseManager, namespace, tabDisplay);
         tabs.put(namespace, tab);
         pluginMap.computeIfAbsent(plugin, p -> new LinkedList<>()).add(tab);
         return tab;
