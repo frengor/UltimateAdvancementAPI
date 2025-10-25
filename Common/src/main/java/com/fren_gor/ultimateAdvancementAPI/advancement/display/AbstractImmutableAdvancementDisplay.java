@@ -172,6 +172,7 @@ public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvanc
      * Returns the NMS wrapper of the display.
      *
      * @return The NMS wrapper of the display.
+     * @throws ReflectiveOperationException If the creation of the NMS wrapper fails due to a reflection error.
      */
     @NotNull
     public PreparedAdvancementDisplayWrapper getNMSWrapper() throws ReflectiveOperationException {

@@ -260,7 +260,7 @@ public class TaskAdvancement extends BaseAdvancement {
      */
     @Override
     @NotNull
-    public final PreparedAdvancementWrapper getNMSWrapper() {
+    public final PreparedAdvancementWrapper getNMSWrapper() throws ReflectiveOperationException {
         throw new UnsupportedOperationException();
     }
 
@@ -282,7 +282,7 @@ public class TaskAdvancement extends BaseAdvancement {
      * @throws UnsupportedOperationException Every time this method is called.
      */
     @Override
-    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) {
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) throws ReflectiveOperationException {
         throw new UnsupportedOperationException();
     }
 }

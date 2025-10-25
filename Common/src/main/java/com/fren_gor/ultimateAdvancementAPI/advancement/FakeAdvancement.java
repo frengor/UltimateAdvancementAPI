@@ -189,42 +189,30 @@ public class FakeAdvancement extends BaseAdvancement {
 
                 @Override
                 @NotNull
-                public PreparedAdvancementDisplayWrapper getNMSWrapper() {
+                public PreparedAdvancementDisplayWrapper getNMSWrapper() throws ReflectiveOperationException {
                     if (wrapper != null) {
                         return wrapper;
                     }
 
-                    try {
-                        // Only x and y matters here, since FakeAdvancements are invisible
-                        return wrapper = PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), new TextComponent("FakeAdvancement"), new TextComponent(""), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(), wrapped.getY(), false, false, true);
-                    } catch (ReflectiveOperationException e) {
-                        throw new RuntimeException(e);
-                    }
+                    // Only x and y matters here, since FakeAdvancements are invisible
+                    return wrapper = PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), new TextComponent("FakeAdvancement"), new TextComponent(""), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(), wrapped.getY(), false, false, true);
                 }
             };
         } else if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
             return new PerTeamAdvancementDisplayWrapper(perTeam) {
                 @Override
                 @NotNull
-                public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull TeamProgression progression) {
-                    try {
-                        // Only x and y matters here, since FakeAdvancements are invisible
-                        return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), new TextComponent("FakeAdvancement"), new TextComponent(""), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(progression), wrapped.getY(progression), false, false, true);
-                    } catch (ReflectiveOperationException e) {
-                        throw new RuntimeException(e);
-                    }
+                public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull TeamProgression progression) throws ReflectiveOperationException {
+                    // Only x and y matters here, since FakeAdvancements are invisible
+                    return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), new TextComponent("FakeAdvancement"), new TextComponent(""), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(progression), wrapped.getY(progression), false, false, true);
                 }
             };
         } else if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
             return new PerPlayerAdvancementDisplayWrapper(perPlayer) {
                 @Override
-                public @NotNull PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player) {
-                    try {
-                        // Only x and y matters here, since FakeAdvancements are invisible
-                        return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), new TextComponent("FakeAdvancement"), new TextComponent(""), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(player), wrapped.getY(player), false, false, true);
-                    } catch (ReflectiveOperationException e) {
-                        throw new RuntimeException(e);
-                    }
+                public @NotNull PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player) throws ReflectiveOperationException {
+                    // Only x and y matters here, since FakeAdvancements are invisible
+                    return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), new TextComponent("FakeAdvancement"), new TextComponent(""), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(player), wrapped.getY(player), false, false, true);
                 }
             };
         } else {

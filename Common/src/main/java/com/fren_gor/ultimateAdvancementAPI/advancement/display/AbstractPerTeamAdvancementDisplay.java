@@ -176,6 +176,7 @@ public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancem
      *
      * @param progression The {@link TeamProgression} of the team.
      * @return The NMS wrapper of the display.
+     * @throws ReflectiveOperationException If the creation of the NMS wrapper fails due to a reflection error.
      */
     @NotNull
     public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull TeamProgression progression) throws ReflectiveOperationException {

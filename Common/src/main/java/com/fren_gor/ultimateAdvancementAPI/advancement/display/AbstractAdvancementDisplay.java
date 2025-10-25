@@ -735,6 +735,7 @@ public abstract class AbstractAdvancementDisplay {
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The NMS wrapper of the display.
+     * @throws ReflectiveOperationException If the creation of the NMS wrapper fails due to a reflection error.
      * @see AbstractAdvancementDisplay
      */
     @NotNull

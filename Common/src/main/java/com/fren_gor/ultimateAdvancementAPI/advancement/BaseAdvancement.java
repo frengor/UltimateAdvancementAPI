@@ -68,7 +68,7 @@ public class BaseAdvancement extends Advancement {
     /**
      * {@inheritDoc}
      */
-    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) {
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) throws ReflectiveOperationException {
         if (isVisible(teamProgression)) {
             advancementUpdater.addBaseAdvancement(getNMSWrapper(), display, getProgression(teamProgression));
         }
@@ -79,16 +79,12 @@ public class BaseAdvancement extends Advancement {
      */
     @Override
     @NotNull
-    public PreparedAdvancementWrapper getNMSWrapper() {
+    public PreparedAdvancementWrapper getNMSWrapper() throws ReflectiveOperationException {
         if (wrapper != null) {
             return wrapper;
         }
 
-        try {
-            return wrapper = PreparedAdvancementWrapper.craft(key.getNMSWrapper(), parent.getNMSWrapper(), maxProgression);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
+        return wrapper = PreparedAdvancementWrapper.craft(key.getNMSWrapper(), parent.getNMSWrapper(), maxProgression);
     }
 
     /**

@@ -52,7 +52,7 @@ public class RootAdvancement extends Advancement {
      * {@inheritDoc}
      */
     @Override
-    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) {
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) throws ReflectiveOperationException {
         // Root advancements are always visible
         advancementUpdater.addRootAdvancement(getNMSWrapper(), display, getProgression(teamProgression));
     }
@@ -62,16 +62,12 @@ public class RootAdvancement extends Advancement {
      */
     @Override
     @NotNull
-    public PreparedAdvancementWrapper getNMSWrapper() {
+    public PreparedAdvancementWrapper getNMSWrapper() throws ReflectiveOperationException {
         if (wrapper != null) {
             return wrapper;
         }
 
-        try {
-            return wrapper = PreparedAdvancementWrapper.craft(key.getNMSWrapper(), maxProgression);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
+        return wrapper = PreparedAdvancementWrapper.craft(key.getNMSWrapper(), maxProgression);
     }
 
     /**

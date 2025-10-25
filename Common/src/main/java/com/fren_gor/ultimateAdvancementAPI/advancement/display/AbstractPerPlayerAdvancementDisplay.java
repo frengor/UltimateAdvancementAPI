@@ -343,6 +343,7 @@ public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvanc
      *
      * @param player The player.
      * @return The NMS wrapper of the display.
+     * @throws ReflectiveOperationException If the creation of the NMS wrapper fails due to a reflection error.
      */
     @NotNull
     public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player) throws ReflectiveOperationException {

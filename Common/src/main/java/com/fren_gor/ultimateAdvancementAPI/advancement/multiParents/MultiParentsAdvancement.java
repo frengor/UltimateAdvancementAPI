@@ -104,7 +104,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * {@inheritDoc}
      */
     @Override
-    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) {
+    public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) throws ReflectiveOperationException {
         if (isVisible(teamProgression)) {
             BaseAdvancement tmp = null;
             for (Entry<BaseAdvancement, FakeAdvancement> e : parents.entrySet()) {
@@ -277,15 +277,11 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      */
     @Override
     @NotNull
-    public PreparedAdvancementWrapper getNMSWrapper() {
+    public PreparedAdvancementWrapper getNMSWrapper() throws ReflectiveOperationException {
         if (wrapper != null) {
             return wrapper;
         }
 
-        try {
-            return wrapper = PreparedAdvancementWrapper.craft(this.key.getNMSWrapper(), maxProgression);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
+        return wrapper = PreparedAdvancementWrapper.craft(this.key.getNMSWrapper(), maxProgression);
     }
 }

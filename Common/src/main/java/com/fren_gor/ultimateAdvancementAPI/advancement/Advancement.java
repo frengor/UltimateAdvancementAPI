@@ -809,17 +809,19 @@ public abstract class Advancement {
      *
      * @param teamProgression The {@link TeamProgression} of the team of the player.
      * @param advancementUpdater The {@link AdvancementUpdater} in which the advancements to send should be added.
+     * @throws ReflectiveOperationException If a reflection error occurs.
      */
-    public abstract void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater);
+    public abstract void onUpdate(@NotNull TeamProgression teamProgression, @NotNull AdvancementUpdater advancementUpdater) throws ReflectiveOperationException;
 
     /**
      * Returns the NMS wrapper of this advancement.
      * Should craft the NMS wrapper once and returns it henceforth.
      *
      * @return The NMS wrapper of this advancement.
+     * @throws ReflectiveOperationException If the creation of the NMS wrapper fails due to a reflection error.
      */
     @NotNull
-    public abstract PreparedAdvancementWrapper getNMSWrapper();
+    public abstract PreparedAdvancementWrapper getNMSWrapper() throws ReflectiveOperationException;
 
     /**
      * Registers the provided event into the tab {@link EventManager}.
