@@ -583,7 +583,7 @@ public final class DatabaseManager implements Closeable {
      * @param otherTeamMember A player of the destination team.
      * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
-     * @see UltimateAdvancementAPI#updatePlayerTeam(Player, Player, Consumer)
+     * @see UltimateAdvancementAPI#updatePlayerTeam(Player, Player)
      */
     @NotNull
     public CompletableFuture<Void> updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player otherTeamMember) throws UserNotLoadedException {
@@ -598,7 +598,7 @@ public final class DatabaseManager implements Closeable {
      * @param otherTeamMember The {@link UUID} of a player of the destination team.
      * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
-     * @see UltimateAdvancementAPI#updatePlayerTeam(UUID, UUID, Consumer)
+     * @see UltimateAdvancementAPI#updatePlayerTeam(UUID, UUID)
      */
     @NotNull
     public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID otherTeamMember) throws UserNotLoadedException {
@@ -1012,7 +1012,7 @@ public final class DatabaseManager implements Closeable {
      * @return A {@link CompletableFuture} which provides a boolean value that is {@code true} if the
      *         provided advancement is unredeemed for the specified player, false otherwise.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
-     * @see UltimateAdvancementAPI#isUnredeemed(Advancement, UUID, Consumer)
+     * @see UltimateAdvancementAPI#isUnredeemed(Advancement, UUID)
      */
     @NotNull
     public CompletableFuture<Boolean> isUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid) throws UserNotLoadedException {
@@ -1071,7 +1071,7 @@ public final class DatabaseManager implements Closeable {
      * @param uuid The {@link UUID} of the player.
      * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
-     * @see UltimateAdvancementAPI#setUnredeemed(Advancement, UUID, boolean, Consumer)
+     * @see UltimateAdvancementAPI#setUnredeemed(Advancement, UUID, boolean)
      */
     @NotNull
     public CompletableFuture<Void> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull UUID uuid) throws UserNotLoadedException {
@@ -1128,7 +1128,7 @@ public final class DatabaseManager implements Closeable {
      * @param uuid The {@link UUID} of the player.
      * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
-     * @see UltimateAdvancementAPI#unsetUnredeemed(Advancement, UUID, Consumer)
+     * @see UltimateAdvancementAPI#unsetUnredeemed(Advancement, UUID)
      */
     @NotNull
     public CompletableFuture<Void> unsetUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid) throws UserNotLoadedException {
@@ -1182,7 +1182,7 @@ public final class DatabaseManager implements Closeable {
      *
      * @param uuid The {@link UUID} of the player.
      * @return A {@link CompletableFuture} which provides the stored name of the player.
-     * @see UltimateAdvancementAPI#getStoredPlayerName(UUID, Consumer)
+     * @see UltimateAdvancementAPI#getStoredPlayerName(UUID)
      */
     @NotNull
     public CompletableFuture<String> getStoredPlayerName(@NotNull UUID uuid) {
