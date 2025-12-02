@@ -1231,8 +1231,6 @@ public final class DatabaseManager implements Closeable {
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
 
-        CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
-
         final LoadedPlayer loadedPlayer;
         synchronized (DatabaseManager.this) {
             if (!requester.isEnabled()) {
@@ -1242,16 +1240,22 @@ public final class DatabaseManager implements Closeable {
             // addPlayerToCache(...) already adds 1 internal request to the player
             loadedPlayer = addPlayerToCache(uuid, false);
 
+            // Fast path in case the player is already loaded
+            if (loadedPlayer.getPlayerTeam() != null) {
+                loadedPlayer.addPluginRequest(requester);
+                return CompletableFuture.completedFuture(loadedPlayer.getPlayerTeam().getTeamProgression());
+            }
+
             // Don't do this here, it's better to do it before returning below in the runAsync lambda. This avoids
             // counting this plugin request in the return value of #getLoadingRequestsAmount(...) in case of a DB error
             // loadedPlayer.addPluginRequest(requester);
         }
 
+        CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
+
         runAsyncOnExecutor(completableFuture, () -> {
             synchronized (DatabaseManager.this) {
-                // Re-do the "already loaded" check.
-                // This is necessary to avoid running searchPlayerTeam(...) below, since that will call
-                // updateLoadedPlayerTeam(...), which will call a (wrong) AsyncTeamUpdateEvent (with Action.LEAVE)
+                // Re-do the "already loaded" check now that we're on the async executor
                 if (loadedPlayer.getPlayerTeam() != null) {
                     loadedPlayer.addPluginRequest(requester);
                     completableFuture.complete(loadedPlayer.getPlayerTeam().getTeamProgression());
@@ -1278,7 +1282,7 @@ public final class DatabaseManager implements Closeable {
                 }
 
                 // Search the player in already loaded teams to see if it's there
-                // The searching is done here since more players from the same team may join at the same moment
+                // The searching is done here since more players from the same team may be loaded at the same moment
                 // and running the searching on the executor's thread improves the possibility of a cache hit
                 LoadedTeam loadedTeam = searchPlayerTeam(uuid);
                 if (loadedTeam != null) {
