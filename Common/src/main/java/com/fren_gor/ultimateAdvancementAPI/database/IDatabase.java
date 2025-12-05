@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
+import com.fren_gor.ultimateAdvancementAPI.exceptions.TeamNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.bukkit.entity.Player;
@@ -126,6 +127,15 @@ public interface IDatabase {
      * @throws SQLException If an SQL exception occurs.
      */
     TeamProgression createNewTeam() throws SQLException;
+
+    /**
+     * Loads a team from the database.
+     *
+     * @return The team id.
+     * @throws SQLException If an SQL exception occurs.
+     * @throws TeamNotRegisteredException If a team with the provided id could not be found in the database.
+     */
+    TeamProgression loadTeam(int teamId) throws SQLException, TeamNotRegisteredException;
 
     /**
      * Updates the progression for the provided advancement and the specified team.

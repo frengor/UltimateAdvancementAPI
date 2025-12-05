@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalKeyException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.TeamNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.base.Preconditions;
@@ -249,6 +250,24 @@ public class SQLite implements IDatabase {
             int teamId = r.getInt(1);
             return new TeamProgression(teamId);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public TeamProgression loadTeam(int teamId) throws SQLException, TeamNotRegisteredException {
+        try (PreparedStatement ps = openConnection().prepareStatement("SELECT `ID` FROM `Teams` WHERE `ID` = ?;")) {
+            ps.setInt(1, teamId);
+            ResultSet r = ps.executeQuery();
+            if (!r.next()) {
+                throw new TeamNotRegisteredException("No team with id " + teamId + " has been found.");
+            }
+            teamId = r.getInt(1);
+        }
+        List<UUID> list = getTeamMembers(teamId);
+        Map<AdvancementKey, Integer> map = getTeamAdvancements(teamId);
+        return new TeamProgression(map, teamId, list);
     }
 
     /**

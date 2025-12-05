@@ -129,6 +129,12 @@ public class BlockingDBImpl implements IDatabase {
     }
 
     @Override
+    public TeamProgression loadTeam(int teamId) throws SQLException {
+        checkPlanning(DBOperation.LOAD_TEAM);
+        return inner.loadTeam(teamId);
+    }
+
+    @Override
     public void updateAdvancement(@NotNull AdvancementKey key, int teamId, @Range(from = 0, to = Integer.MAX_VALUE) int progression) throws SQLException {
         checkPlanning(DBOperation.UPDATE_ADVANCEMENT);
         inner.updateAdvancement(key, teamId, progression);

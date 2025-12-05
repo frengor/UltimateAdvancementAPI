@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.tests.database;
 
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.TeamNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.jetbrains.annotations.NotNull;
@@ -109,6 +110,12 @@ public class FallibleDBImpl implements IDatabase {
     public TeamProgression createNewTeam() throws SQLException {
         checkPlanning(DBOperation.CREATE_NEW_TEAM);
         return inner.createNewTeam();
+    }
+
+    @Override
+    public TeamProgression loadTeam(int teamId) throws SQLException, TeamNotRegisteredException {
+        checkPlanning(DBOperation.LOAD_TEAM);
+        return inner.loadTeam(teamId);
     }
 
     @Override

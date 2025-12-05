@@ -56,6 +56,12 @@ public class InMemoryTest {
             assertTrue(loaded.contains(uuid));
         }
 
+        {
+            TeamProgression loaded = db.loadTeam(res.getKey().getTeamId());
+            assertEquals(res.getKey().getTeamId(), loaded.getTeamId());
+            assertTrue(loaded.contains(uuid));
+        }
+
         res.getKey().addMember(uuid);
         assertTrue(res.getKey().contains(uuid));
 

@@ -1394,6 +1394,86 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
+     * Loads the team with provided id from the database into the caching system (if it isn't already) and keeps it
+     * loaded until {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} is called.
+     * <p>Each time this method is called, the number of <i>loading requests</i> for the team and requester
+     * plugin is incremented by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)},
+     * decrements by one the number of <i>loading requests</i> for the team and requester plugin every time it's called.
+     * <p>For more information about <i>loading requests</i> see {@link #addLoadingRequestToTeam(TeamProgression, Plugin)},
+     * {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} and {@link #getLoadingRequestsAmount(TeamProgression, Plugin)}.
+     * <p>To create a brand new team see {@link #createNewTeamWithOneLoadingRequest(Plugin)}.
+     * <p>Also, a plugin should only use its own instance as requester to not interfere with other plugins.
+     *
+     * @param teamId The id of the team to load.
+     * @param requester The plugin making the request.
+     * @return A {@link CompletableFuture} which provides the team's {@link TeamProgression}.
+     * @see #addLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #removeLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
+     * @see #createNewTeamWithOneLoadingRequest(Plugin)
+     */
+    public CompletableFuture<TeamProgression> loadAndAddLoadingRequestToTeam(int teamId, @NotNull Plugin requester) {
+        checkClosed();
+        Preconditions.checkNotNull(requester, "Plugin is null.");
+
+        synchronized (DatabaseManager.this) {
+            if (!requester.isEnabled()) {
+                throw new IllegalStateException("Plugin is not enabled.");
+            }
+
+            // Fast path
+            LoadedTeam team = teamsLoaded.get(teamId);
+            if (team != null) {
+                team.addPluginRequest(requester);
+                return CompletableFuture.completedFuture(team.getTeamProgression());
+            }
+        }
+
+        CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
+
+        runAsyncOnExecutor(completableFuture, () -> {
+            synchronized (DatabaseManager.this) {
+                if (!requester.isEnabled()) {
+                    completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
+                    return;
+                }
+
+                // Check in case the team was loaded in the meantime
+                LoadedTeam team = teamsLoaded.get(teamId);
+                if (team != null) {
+                    team.addPluginRequest(requester);
+                    completableFuture.complete(team.getTeamProgression());
+                    return;
+                }
+            }
+
+            TeamProgression team;
+            try {
+                team = database.loadTeam(teamId);
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't load team " + teamId, e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
+            }
+
+            synchronized (DatabaseManager.this) {
+                // Check again if the plugin is enabled
+                if (!requester.isEnabled()) {
+                    completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
+                    return;
+                }
+
+                LoadedTeam loadedTeam = addTeamToCache(team);
+                loadedTeam.addPluginRequest(requester);
+            }
+
+            completableFuture.complete(team);
+        });
+
+        return completableFuture;
+    }
+
+    /**
      * Keeps the provided team loaded until {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} is called.
      * <p>Each time this method is called, the number of <i>loading requests</i> for the provided team and requester
      * plugin is incremented by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)},

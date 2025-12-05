@@ -6,6 +6,7 @@ import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.TeamNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
 import com.fren_gor.ultimateAdvancementAPI.tests.DatabaseManagerUtils;
 import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
@@ -599,6 +600,46 @@ public class DatabaseManagerTest {
         waitCompletion(dbManager.updatePlayerTeam(p, team)).get();
         dbManager.removeLoadingRequestToTeam(team, plugin);
         disconnectPlayer(p);
+    }
+
+    @Test
+    void loadTeamTest() throws Exception {
+        MockPlugin plugin = MockBukkit.createMockPlugin();
+
+        plugin.getLogger().warning("Expecting a " + TeamNotRegisteredException.class.getSimpleName() + " for team -1.");
+        assertTrue(waitCompletion(dbManager.loadAndAddLoadingRequestToTeam(-1, plugin)).isCompletedExceptionally());
+
+        int teamId = dbImpls.getRawDB().createNewTeam().getTeamId();
+
+        TeamProgression team = waitCompletion(dbManager.loadAndAddLoadingRequestToTeam(teamId, plugin)).get();
+        assertTrue(team.isValid());
+        assertEquals(teamId, team.getTeamId());
+        assertEquals(1, dbManager.getLoadingRequestsAmount(team, plugin));
+
+        TeamProgression team1 = waitCompletion(dbManager.loadAndAddLoadingRequestToTeam(teamId, plugin)).get();
+        assertSame(team, team1);
+        assertTrue(team.isValid());
+        assertEquals(teamId,  team.getTeamId());
+        assertEquals(2, dbManager.getLoadingRequestsAmount(team, plugin));
+
+        dbManager.removeLoadingRequestToTeam(team, plugin);
+        assertTrue(team.isValid());
+        assertEquals(1, dbManager.getLoadingRequestsAmount(team, plugin));
+
+        dbManager.removeLoadingRequestToTeam(team, plugin);
+        assertFalse(team.isValid());
+        assertEquals(0, dbManager.getLoadingRequestsAmount(team, plugin));
+    }
+
+    @Test
+    void loadTeamWithFailureTest() throws Exception {
+        MockPlugin plugin = MockBukkit.createMockPlugin();
+        dbImpls.getFallible().setFallibleOps(DBOperation.LOAD_TEAM);
+        dbImpls.getFallible().addToPlanning(false);
+
+        int teamId = dbImpls.getRawDB().createNewTeam().getTeamId();
+
+        assertTrue(waitCompletion(dbManager.loadAndAddLoadingRequestToTeam(teamId, plugin)).isCompletedExceptionally());
     }
 
     private PlayerMock loadPlayer() {

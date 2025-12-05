@@ -1,9 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.exceptions;
 
 /**
- * This exception is thrown when the requested user is not present on the database.
+ * This exception is thrown when the requested user is not present in the database.
  */
-public class UserNotRegisteredException extends RuntimeException {
+public class UserNotRegisteredException extends NotRegisteredException {
 
     public UserNotRegisteredException() {
         super();
