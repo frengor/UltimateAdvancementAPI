@@ -191,6 +191,24 @@ public class FallibleDBImpl implements IDatabase {
     }
 
     @Override
+    public void setTeamPermanent(int teamId, boolean permanent) throws SQLException, TeamNotRegisteredException {
+        checkPlanning(DBOperation.SET_TEAM_PERMANENT);
+        inner.setTeamPermanent(teamId, permanent);
+    }
+
+    @Override
+    public boolean isTeamPermanent(int teamId) throws SQLException, TeamNotRegisteredException {
+        checkPlanning(DBOperation.IS_TEAM_PERMANENT);
+        return inner.isTeamPermanent(teamId);
+    }
+
+    @Override
+    public List<Integer> getPermanentTeams() throws SQLException {
+        checkPlanning(DBOperation.GET_PERMANENT_TEAMS);
+        return inner.getPermanentTeams();
+    }
+
+    @Override
     public void clearUpTeams() throws SQLException {
         checkPlanning(DBOperation.CLEAR_UP_TEAMS);
         inner.clearUpTeams();

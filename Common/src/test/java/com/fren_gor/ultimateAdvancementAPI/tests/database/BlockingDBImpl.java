@@ -2,6 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.tests.database;
 
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.TeamNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.jetbrains.annotations.NotNull;
@@ -204,6 +205,24 @@ public class BlockingDBImpl implements IDatabase {
     public void updatePlayerName(@NotNull UUID uuid, @NotNull String name) throws SQLException {
         checkPlanning(DBOperation.UPDATE_PLAYER_NAME);
         inner.updatePlayerName(uuid, name);
+    }
+
+    @Override
+    public void setTeamPermanent(int teamId, boolean permanent) throws SQLException, TeamNotRegisteredException {
+        checkPlanning(DBOperation.SET_TEAM_PERMANENT);
+        inner.setTeamPermanent(teamId, permanent);
+    }
+
+    @Override
+    public boolean isTeamPermanent(int teamId) throws SQLException, TeamNotRegisteredException {
+        checkPlanning(DBOperation.IS_TEAM_PERMANENT);
+        return inner.isTeamPermanent(teamId);
+    }
+
+    @Override
+    public List<Integer> getPermanentTeams() throws SQLException {
+        checkPlanning(DBOperation.GET_PERMANENT_TEAMS);
+        return inner.getPermanentTeams();
     }
 
     @Override

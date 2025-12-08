@@ -1178,6 +1178,116 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
+     * Sets the provided team as permanent.
+     * <p>Permanent teams are never cleared from the database.
+     *
+     * @param progression The {@link TeamProgression} of the team.
+     * @param permanent Whether to make the team permanent or not permanent.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
+     */
+    @NotNull
+    public CompletableFuture<Void> setTeamPermanent(@NotNull TeamProgression progression, boolean permanent) {
+        validateTeamProgression(progression);
+        return setTeamPermanent(progression.getTeamId(), permanent);
+    }
+
+    /**
+     * Sets the provided team as permanent.
+     * <p>Permanent teams are never cleared from the database.
+     *
+     * @param teamId The id of the team.
+     * @param permanent Whether to make the team permanent or not permanent.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
+     */
+    @NotNull
+    public CompletableFuture<Void> setTeamPermanent(int teamId, boolean permanent) {
+        checkClosed();
+
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+
+        runAsyncOnExecutor(completableFuture, () -> {
+            try {
+                database.setTeamPermanent(teamId, permanent);
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't set team " + teamId + (permanent ? " permanent" : " not permanent"), e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
+            }
+            completableFuture.complete(null);
+        });
+
+        return completableFuture;
+    }
+
+    /**
+     * Returns whether the provided team is permanent.
+     * <p>Permanent teams are never cleared from the database.
+     *
+     * @param progression The {@link TeamProgression} of the team.
+     * @return A {@link CompletableFuture} which provides whether the provided team is permanent.
+     */
+    @NotNull
+    public CompletableFuture<Boolean> isTeamPermanent(@NotNull TeamProgression progression) {
+        validateTeamProgression(progression);
+        return isTeamPermanent(progression.getTeamId());
+    }
+
+    /**
+     * Returns whether the provided team is permanent.
+     * <p>Permanent teams are never cleared from the database.
+     *
+     * @param teamId The id of the team.
+     * @return A {@link CompletableFuture} which provides whether the provided team is permanent.
+     */
+    @NotNull
+    public CompletableFuture<Boolean> isTeamPermanent(int teamId) {
+        checkClosed();
+
+        CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
+
+        runAsyncOnExecutor(completableFuture, () -> {
+            boolean isPermanent;
+            try {
+                isPermanent = database.isTeamPermanent(teamId);
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't fetch whether team " + teamId + " is permanent", e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
+            }
+            completableFuture.complete(isPermanent);
+        });
+
+        return completableFuture;
+    }
+
+    /**
+     * Returns a list of all the permanent teams.
+     * <p>Permanent teams are never cleared from the database.
+     *
+     * @return A {@link CompletableFuture} which provides a list containing all the permanent teams.
+     */
+    @NotNull
+    public CompletableFuture<List<Integer>> getPermanentTeams() {
+        checkClosed();
+
+        CompletableFuture<List<Integer>> completableFuture = new CompletableFuture<>();
+
+        runAsyncOnExecutor(completableFuture, () -> {
+            List<Integer> permanentTeams;
+            try {
+                permanentTeams = database.getPermanentTeams();
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't fetch permanent teams", e);
+                completableFuture.completeExceptionally(new DatabaseException(e));
+                return;
+            }
+            completableFuture.complete(permanentTeams);
+        });
+
+        return completableFuture;
+    }
+
+    /**
      * Gets the in-database stored name of the provided player.
      *
      * @param uuid The {@link UUID} of the player.

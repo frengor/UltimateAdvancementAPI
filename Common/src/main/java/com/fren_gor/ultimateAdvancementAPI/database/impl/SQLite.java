@@ -23,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -85,11 +86,18 @@ public class SQLite implements IDatabase {
     public void setUp() throws SQLException {
         try (Statement statement = openConnection().createStatement()) {
             //statement.addBatch("PRAGMA foreign_keys = ON;");
-            statement.addBatch("CREATE TABLE IF NOT EXISTS `Teams` (`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT);");
+            statement.addBatch("CREATE TABLE IF NOT EXISTS `Teams` (`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `Permanent` INTEGER NOT NULL DEFAULT 0);");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Players` (`UUID` TEXT NOT NULL PRIMARY KEY, `Name` TEXT NOT NULL, `TeamID` INTEGER NOT NULL, FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE);");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Advancements` (`Namespace` TEXT NOT NULL, `Key` TEXT NOT NULL, `TeamID` INTEGER NOT NULL, `Progression` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE);");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Unredeemed` (`Namespace` TEXT NOT NULL, `Key` TEXT NOT NULL, `TeamID` INTEGER NOT NULL, `GiveRewards` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`Namespace`, `Key`,`TeamID`) REFERENCES `Advancements`(`Namespace`, `Key`,`TeamID`) ON DELETE CASCADE ON UPDATE CASCADE);");
             statement.executeBatch();
+            try {
+                // Permanent column was added in 3.0.0, migrate old tables
+                // If the following select errors, we can assume the column doesn't exist
+                statement.executeQuery("SELECT `Permanent` FROM `Teams` LIMIT 1;");
+            } catch (SQLException e) {
+                statement.execute("ALTER TABLE `Teams` ADD COLUMN `Permanent` INTEGER NOT NULL DEFAULT 0");
+            }
         }
     }
 
@@ -463,8 +471,53 @@ public class SQLite implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    public void setTeamPermanent(int teamId, boolean permanent) throws SQLException, TeamNotRegisteredException {
+        try (PreparedStatement ps = openConnection().prepareStatement("UPDATE `Teams` SET `Permanent`=? WHERE `ID`=?;")) {
+            ps.setInt(1, permanent ? 1 : 0);
+            ps.setInt(2, teamId);
+            int modifiedRows = ps.executeUpdate();
+            if (modifiedRows == 0) {
+                throw new TeamNotRegisteredException("No team with id " + teamId + " has been found.");
+            }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isTeamPermanent(int teamId) throws SQLException, TeamNotRegisteredException {
+        try (PreparedStatement ps = openConnection().prepareStatement("SELECT `Permanent` FROM `Teams` WHERE `ID`=?;")) {
+            ps.setInt(1, teamId);
+            ResultSet r = ps.executeQuery();
+            if (!r.next()) {
+                throw new TeamNotRegisteredException("No team with id " + teamId + " has been found.");
+            }
+            return r.getInt(1) != 0;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Integer> getPermanentTeams() throws SQLException {
+        try (PreparedStatement ps = openConnection().prepareStatement("SELECT `ID` FROM `Teams` WHERE `Permanent`!=0;")) {
+            ResultSet r = ps.executeQuery();
+            List<Integer> list = new ArrayList<>();
+            while (r.next()) {
+                list.add(r.getInt(1));
+            }
+            return list;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void clearUpTeams() throws SQLException {
-        try (PreparedStatement ps = openConnection().prepareStatement("DELETE FROM `Teams` WHERE `ID` NOT IN (SELECT `TeamID` FROM `Players` GROUP BY `TeamID`);")) {
+        try (PreparedStatement ps = openConnection().prepareStatement("DELETE FROM `Teams` WHERE `Permanent`=0 AND `ID` NOT IN (SELECT `TeamID` FROM `Players` GROUP BY `TeamID`);")) {
             ps.execute();
         }
     }

@@ -22,8 +22,8 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFrom
  * Interface for database implementations.
  * <p>The database stores the following information:
  * <ul>
- *     <li>The players name and {@link UUID};</li>
- *     <li>The team ids;</li>
+ *     <li>The players;</li>
+ *     <li>The teams;</li>
  *     <li>The current progression of every advancement for every team;</li>
  *     <li>The unredeemed advancements.</li>
  * </ul>
@@ -309,7 +309,37 @@ public interface IDatabase {
     void updatePlayerName(@NotNull UUID uuid, @NotNull String name) throws SQLException;
 
     /**
-     * Clears the unused team ids in the database.
+     * Sets the provided team as permanent.
+     * <p>Permanent teams are not cleared by {@link #clearUpTeams()}.
+     *
+     * @param teamId The id of the team.
+     * @param permanent Whether to make the team permanent or not permanent.
+     * @throws SQLException If an SQL exception occurs.
+     * @throws TeamNotRegisteredException If a team with the provided id could not be found in the database.
+     */
+    void setTeamPermanent(int teamId, boolean permanent) throws SQLException, TeamNotRegisteredException;
+
+    /**
+     * Returns whether the provided team is permanent.
+     *
+     * @param teamId The id of the team.
+     * @return Whether the provided team is permanent.
+     * @throws SQLException If an SQL exception occurs.
+     * @throws TeamNotRegisteredException If a team with the provided id could not be found in the database.
+     */
+    boolean isTeamPermanent(int teamId) throws SQLException, TeamNotRegisteredException;
+
+    /**
+     * Returns a list of all the permanent teams.
+     *
+     * @return A list containing all the permanent teams.
+     * @throws SQLException If an SQL exception occurs.
+     */
+    List<Integer> getPermanentTeams() throws SQLException;
+
+    /**
+     * Clears the unused teams in the database.
+     * <p>Unused teams have no members and must be not permanent.
      *
      * @throws SQLException If an SQL exception occurs.
      */

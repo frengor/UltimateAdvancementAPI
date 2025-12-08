@@ -23,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,6 +37,8 @@ import java.util.logging.Logger;
  * Class used to establish a connection to a MySQL database.
  */
 public class MySQL implements IDatabase {
+
+    private static final int DUPLICATED_COLUMN_ERROR_CODE = 1060;
 
     private final Logger logger;
     private final IsolatedClassLoader classLoader;
@@ -114,11 +117,19 @@ public class MySQL implements IDatabase {
     @Override
     public void setUp() throws SQLException {
         try (Connection conn = openConnection(); Statement statement = conn.createStatement()) {
-            statement.addBatch("CREATE TABLE IF NOT EXISTS `Teams` (`ID` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT) DEFAULT CHARSET = utf8mb4;");
+            statement.addBatch("CREATE TABLE IF NOT EXISTS `Teams` (`ID` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, `Permanent` INTEGER NOT NULL DEFAULT 0) DEFAULT CHARSET = utf8mb4;");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Players` (`UUID` VARCHAR(36) NOT NULL, `Name` VARCHAR(16) NOT NULL, `TeamID` INTEGER NOT NULL, PRIMARY KEY(`UUID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Advancements` (`Namespace` VARCHAR(127) NOT NULL, `Key` VARCHAR(127) NOT NULL, `TeamID` INTEGER NOT NULL, `Progression` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Unredeemed` (`Namespace` VARCHAR(127) NOT NULL, `Key` VARCHAR(127) NOT NULL, `TeamID` INTEGER NOT NULL, `GiveRewards` INTEGER NOT NULL, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`Namespace`, `Key`, `TeamID`) REFERENCES `Advancements`(`Namespace`, `Key`, `TeamID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
             statement.executeBatch();
+            try {
+                // Permanent column was added in 3.0.0, migrate old tables (ignoring error if it already exists)
+                statement.execute("ALTER TABLE `Teams` ADD COLUMN `Permanent` INTEGER NOT NULL DEFAULT 0 AFTER `ID`");
+            } catch (SQLException e) {
+                if (e.getErrorCode() != DUPLICATED_COLUMN_ERROR_CODE) {
+                    throw e;
+                }
+            }
         }
     }
 
@@ -534,8 +545,53 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    public void setTeamPermanent(int teamId, boolean permanent) throws SQLException, TeamNotRegisteredException {
+        try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("UPDATE `Teams` SET `Permanent`=? WHERE `ID`=?;")) {
+            ps.setInt(1, permanent ? 1 : 0);
+            ps.setInt(2, teamId);
+            int modifiedRows = ps.executeUpdate();
+            if (modifiedRows == 0) {
+                throw new TeamNotRegisteredException("No team with id " + teamId + " has been found.");
+            }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isTeamPermanent(int teamId) throws SQLException, TeamNotRegisteredException {
+        try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `Permanent` FROM `Teams` WHERE `ID`=?;")) {
+            ps.setInt(1, teamId);
+            ResultSet r = ps.executeQuery();
+            if (!r.next()) {
+                throw new TeamNotRegisteredException("No team with id " + teamId + " has been found.");
+            }
+            return r.getInt(1) != 0;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Integer> getPermanentTeams() throws SQLException {
+        try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `ID` FROM `Teams` WHERE `Permanent`!=0;")) {
+            ResultSet r = ps.executeQuery();
+            List<Integer> list = new ArrayList<>();
+            while (r.next()) {
+                list.add(r.getInt(1));
+            }
+            return list;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void clearUpTeams() throws SQLException {
-        try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("DELETE FROM `Teams` WHERE `ID` NOT IN (SELECT `TeamID` FROM `Players` GROUP BY `TeamID`);")) {
+        try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("DELETE FROM `Teams` WHERE `Permanent`=0 AND `ID` NOT IN (SELECT `TeamID` FROM `Players` GROUP BY `TeamID`);")) {
             ps.execute();
         }
     }

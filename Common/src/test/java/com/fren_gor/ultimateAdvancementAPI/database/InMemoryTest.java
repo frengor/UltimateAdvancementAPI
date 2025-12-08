@@ -1,6 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.TeamNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.tests.database.FallibleDBImpl.RuntimePlannedFailureException;
 import com.fren_gor.ultimateAdvancementAPI.database.impl.InMemory;
 import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
@@ -108,6 +109,73 @@ public class InMemoryTest {
         assertTrue(db.openConnection().getAutoCommit());
 
         assertTrue(db.getUnredeemed(progression.getTeamId()).isEmpty());
+    }
+
+    @Test
+    void testPermanentTeams() throws Exception {
+        TeamProgression team1 = db.createNewTeam();
+        TeamProgression team2 = db.createNewTeam();
+        TeamProgression team3 = db.createNewTeam();
+
+        var teamId1 = team1.getTeamId();
+        var teamId2 = team2.getTeamId();
+        var teamId3 = team3.getTeamId();
+
+        assertNotEquals(teamId1, teamId2);
+
+        assertFalse(db.isTeamPermanent(teamId1));
+        assertFalse(db.isTeamPermanent(teamId2));
+        assertFalse(db.isTeamPermanent(teamId3));
+
+        assertTrue(db.getPermanentTeams().isEmpty());
+
+        db.setTeamPermanent(teamId1, true);
+
+        assertTrue(db.isTeamPermanent(teamId1));
+        assertFalse(db.isTeamPermanent(teamId2));
+        assertFalse(db.isTeamPermanent(teamId3));
+
+        List<Integer> teams = db.getPermanentTeams();
+        assertEquals(1, teams.size());
+        assertTrue(teams.contains(teamId1));
+
+        db.setTeamPermanent(teamId2, true);
+
+        assertTrue(db.isTeamPermanent(teamId1));
+        assertTrue(db.isTeamPermanent(teamId2));
+        assertFalse(db.isTeamPermanent(teamId3));
+
+        teams = db.getPermanentTeams();
+        assertEquals(2, teams.size());
+        assertTrue(teams.contains(teamId1));
+        assertTrue(teams.contains(teamId2));
+
+        db.setTeamPermanent(teamId2, false);
+
+        assertTrue(db.isTeamPermanent(teamId1));
+        assertFalse(db.isTeamPermanent(teamId2));
+        assertFalse(db.isTeamPermanent(teamId3));
+
+        teams = db.getPermanentTeams();
+        assertEquals(1, teams.size());
+        assertTrue(teams.contains(teamId1));
+    }
+
+    @Test
+    void testClearUpTeams(UUID uuid2) throws Exception {
+        var team1 = db.loadOrRegisterPlayer(uuid, "Dummy").getKey().getTeamId();
+        var team2 = db.loadOrRegisterPlayer(uuid2, "Dummy").getKey().getTeamId();
+        db.setTeamPermanent(team2, true);
+        var team3 = db.createNewTeam().getTeamId();
+        db.setTeamPermanent(team3, true);
+        var team4 = db.createNewTeam().getTeamId();
+
+        db.clearUpTeams();
+
+        assertTrue(db.loadTeam(team1).contains(uuid));
+        assertTrue(db.loadTeam(team2).contains(uuid2));
+        assertEquals(0, db.loadTeam(team3).getSize());
+        assertThrows(TeamNotRegisteredException.class, () -> db.loadTeam(team4));
     }
 
     private static class FallibleList<T> extends LinkedList<T> {
