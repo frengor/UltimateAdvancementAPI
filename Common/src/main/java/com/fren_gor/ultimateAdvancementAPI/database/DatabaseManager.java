@@ -1255,6 +1255,11 @@ public final class DatabaseManager implements Closeable {
 
         runAsyncOnExecutor(completableFuture, () -> {
             synchronized (DatabaseManager.this) {
+                if (!requester.isEnabled()) {
+                    completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
+                    return;
+                }
+
                 // Re-do the "already loaded" check now that we're on the async executor
                 if (loadedPlayer.getPlayerTeam() != null) {
                     loadedPlayer.addPluginRequest(requester);
@@ -1270,6 +1275,8 @@ public final class DatabaseManager implements Closeable {
                         try {
                             if (err != null) {
                                 completableFuture.completeExceptionally(err);
+                            } else if (!requester.isEnabled()) {
+                                completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
                             } else {
                                 loadedPlayer.addPluginRequest(requester);
                                 completableFuture.complete(team);
@@ -1298,6 +1305,11 @@ public final class DatabaseManager implements Closeable {
             try {
                 // Player team isn't loaded yet
                 loadOrRegisterPlayerTeam(uuid, null /*fine since loadOnly is true*/, loadedPlayer, true /*loadOnly*/, pro -> {
+                    if (!requester.isEnabled()) {
+                        completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
+                        return;
+                    }
+
                     loadedPlayer.addPluginRequest(requester);
                     completableFuture.complete(pro);
                 });
