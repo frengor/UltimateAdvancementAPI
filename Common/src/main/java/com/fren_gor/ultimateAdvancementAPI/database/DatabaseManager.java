@@ -776,26 +776,28 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Unregisters the provided player. The player must be offline and not loaded into the cache.
+     * Unregisters the provided player.
+     * <p>The player must be offline and not loaded into the cache.
+     * <p>The player's team must not be loaded into the cache.
      *
      * @param player The player to unregister.
      * @return A {@link CompletableFuture} which provides the result of the operation.
-     * @throws IllegalStateException If the player is online or loaded into the cache.
      * @see UltimateAdvancementAPI#unregisterOfflinePlayer(OfflinePlayer)
      */
-    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull OfflinePlayer player) throws IllegalStateException {
+    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull OfflinePlayer player) {
         return unregisterOfflinePlayer(uuidFromPlayer(player));
     }
 
     /**
-     * Unregisters the provided player. The player must be offline and not loaded into the cache.
+     * Unregisters the provided player.
+     * <p>The player must be offline and not loaded into the cache.
+     * <p>The player's team must not be loaded into the cache.
      *
      * @param uuid The {@link UUID} of the player to unregister.
      * @return A {@link CompletableFuture} which provides the result of the operation.
-     * @throws IllegalStateException If the player is online or loaded into the cache.
      * @see UltimateAdvancementAPI#unregisterOfflinePlayer(UUID)
      */
-    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull UUID uuid) throws IllegalStateException {
+    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull UUID uuid) {
         checkClosed();
         Preconditions.checkNotNull(uuid, "UUID is null.");
 
@@ -812,7 +814,10 @@ public final class DatabaseManager implements Closeable {
                     }
                     return;
                 }
-                // TODO call searchPlayerTeam(uuid) and handle player's team
+                LoadedTeam team = searchPlayerTeam(uuid);
+                if (team != null) {
+                    completableFuture.completeExceptionally(new IllegalStateException("Player " + uuid + "'s team (id " + team.getTeamProgression().getTeamId() + ") is loaded."));
+                }
             }
             try {
                 database.unregisterPlayer(uuid);

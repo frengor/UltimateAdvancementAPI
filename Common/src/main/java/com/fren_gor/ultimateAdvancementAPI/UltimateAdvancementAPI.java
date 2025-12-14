@@ -399,28 +399,26 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Unregisters the provided offline player, removing they from the database.
-     * <p>They must be offline and not loaded into the caching system.
+     * Unregisters the provided offline player, removing them from the database.
+     * <p>They must be offline and not loaded into the caching system. Their team must also be not loaded.
      * For more information about the caching system see {@link DatabaseManager}.
      *
      * @param player The offline player to unregister.
      * @return A {@link CompletableFuture} which will complete when the operation finishes.
-     * @throws IllegalStateException If the player is online or loaded into the caching system.
      */
-    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull OfflinePlayer player) throws IllegalStateException {
+    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull OfflinePlayer player) {
         return getMain().getDatabaseManager().unregisterOfflinePlayer(player);
     }
 
     /**
-     * Unregisters the provided player, removing they from the database.
-     * <p>They must be offline and not loaded into the caching system.
+     * Unregisters the provided player, removing them from the database.
+     * <p>They must be offline and not loaded into the caching system. Their team must also be not loaded.
      * For more information about the caching system see {@link DatabaseManager}.
      *
      * @param uuid The {@link UUID} of the player to unregister.
      * @return A {@link CompletableFuture} which will complete when the operation finishes.
-     * @throws IllegalStateException If the player is online or loaded into the caching system.
      */
-    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull UUID uuid) throws IllegalStateException {
+    public CompletableFuture<Void> unregisterOfflinePlayer(@NotNull UUID uuid) {
         return getMain().getDatabaseManager().unregisterOfflinePlayer(uuid);
     }
 
