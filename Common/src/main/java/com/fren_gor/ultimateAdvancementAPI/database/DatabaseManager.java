@@ -16,6 +16,7 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseManagerClosedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.SyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
+import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.google.common.base.Preconditions;
@@ -91,6 +92,7 @@ public final class DatabaseManager implements Closeable {
     // since the latter can't be used inside lambdas, which are very commonly used in the code
 
     private static final int LOAD_EVENTS_DELAY = 3;
+    private static final boolean IS_PAPER = ReflectionUtil.classExists("io.papermc.paper.advancement.AdvancementDisplay");
 
     // A single-thread executor is used to maintain executed queries sequential
     private final ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("DatabaseManager Thread - %d").build());
@@ -145,89 +147,21 @@ public final class DatabaseManager implements Closeable {
         // Run it sync to avoid using uninitialized database
         database.setUp();
 
-        eventManager.register(this, PlayerLoginEvent.class, EventPriority.LOWEST, e -> {
-            joinEventWaiter.onLogin(e.getPlayer().getUniqueId());
-
-            final LoadedPlayer loadedPlayer;
-
-            synchronized (DatabaseManager.this) {
-                loadedPlayer = addPlayerToCache(e.getPlayer().getUniqueId(), true);
-
-                // Keep in cache waiting for runAsyncOnExecutor(...)
-                loadedPlayer.addInternalRequest();
-            }
-
-            runAsyncOnExecutor(() -> {
-                synchronized (DatabaseManager.this) {
-                    if (!loadedPlayer.isOnline()) {
-                        // Make sure the player is still online. Shouldn't be a problem here, but better be sure
-                        return;
-                    }
-
-                    // Return instantly if the player is already loaded
-                    if (loadedPlayer.getPlayerTeam() != null) {
-                        firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
-                        return;
-                    }
-
-                    CompletableFuture<TeamProgression> registeringCF = loadedPlayer.getRegisteringCF();
-                    if (registeringCF != null) {
-                        // Wait for PlayerRegisteredEvent
-                        loadedPlayer.addInternalRequest(); // Keep in cache while waiting for event
-                        registeringCF.whenComplete((team, err) -> {
-                            if (closed.get()) {
-                                return;
-                            }
-                            try {
-                                if (err != null) {
-                                    firePlayerLoadingFailedEvent(e.getPlayer(), err);
-                                } else {
-                                    firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
-                                }
-                            } finally {
-                                removeInternalRequest(loadedPlayer);
-                            }
-                        });
-                        return;
-                    }
-
-                    // Search the player in already loaded teams to see if they're there.
-                    // The searching is done here since more players from the same team may join at the same moment
-                    // and running the searching on the executor thread increases the possibilities of a cache hit
-                    LoadedTeam loadedTeam = searchPlayerTeam(e.getPlayer().getUniqueId());
-                    if (loadedTeam != null) {
-                        // Player team is already loaded
-                        loadedPlayer.setPlayerTeam(loadedTeam);
-                        loadedTeam.addInternalRequest(); // Add the request for the player
-                        firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
-                        return;
-                    }
-                }
-
-                try {
-                    // Player team isn't loaded yet
-                    loadOrRegisterPlayerTeam(e.getPlayer().getUniqueId(), e.getPlayer(), loadedPlayer, false, pro -> {
-                        firePlayerLoadingCompletedEvent(e.getPlayer(), loadedPlayer);
-                    });
-                } catch (Exception ex) {
-                    logger.log(Level.SEVERE, "Cannot load player " + e.getPlayer().getName(), ex);
-                    firePlayerLoadingFailedEvent(e.getPlayer(), ex);
-                }
-            }).whenComplete((v, k) -> {
-                removeInternalRequest(loadedPlayer);
+        // Don't use PlayerLoginEvent on Paper 1.21.7+
+        if (IS_PAPER && (ReflectionUtil.VERSION > 21 || (ReflectionUtil.VERSION == 21 && ReflectionUtil.MINOR_VERSION >= 7))) {
+            PaperEvents events = new PaperEvents(logger, eventManager);
+            events.registerPlayerConnectionInitialConfigureEvent(this, this::loadPlayerOnConnect);
+            events.registerPlayerConnectionCloseEvent(this, this::unloadPlayerOnDisconnect);
+        } else {
+            eventManager.register(this, PlayerLoginEvent.class, EventPriority.LOWEST, e -> {
+                loadPlayerOnConnect(e.getPlayer().getUniqueId(), e.getPlayer().getName());
             });
-        });
+        }
         eventManager.register(this, PlayerJoinEvent.class, e -> {
-            joinEventWaiter.onJoin(e.getPlayer().getUniqueId());
+            joinEventWaiter.onJoin(e.getPlayer());
         });
         eventManager.register(this, PlayerQuitEvent.class, EventPriority.MONITOR, e -> {
-            joinEventWaiter.onQuit(e.getPlayer().getUniqueId());
-            synchronized (DatabaseManager.this) {
-                // loadedPlayer should be always non-null, but it's better to check it
-                LoadedPlayer loadedPlayer = Objects.requireNonNull(playersLoaded.get(e.getPlayer().getUniqueId()));
-                loadedPlayer.setOnline(false);
-                removeInternalRequest(loadedPlayer);
-            }
+            unloadPlayerOnDisconnect(e.getPlayer().getUniqueId());
         });
         eventManager.register(this, PluginDisableEvent.class, EventPriority.HIGHEST, e -> {
             synchronized (DatabaseManager.this) {
@@ -322,10 +256,100 @@ public final class DatabaseManager implements Closeable {
         }
     }
 
-    private void firePlayerLoadingCompletedEvent(@NotNull Player player, @NotNull LoadedPlayer loadedPlayer) {
+    private void loadPlayerOnConnect(@NotNull UUID uuid, @NotNull String name) {
+        Preconditions.checkNotNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(name, "Name is null.");
+
+        joinEventWaiter.onLogin(uuid);
+
+        final LoadedPlayer loadedPlayer;
+
+        synchronized (DatabaseManager.this) {
+            loadedPlayer = addPlayerToCache(uuid, true);
+
+            // Keep in cache waiting for runAsyncOnExecutor(...)
+            loadedPlayer.addInternalRequest();
+        }
+
+        runAsyncOnExecutor(() -> {
+            synchronized (DatabaseManager.this) {
+                if (!loadedPlayer.isOnline()) {
+                    // Make sure the player is still online. Shouldn't be a problem here, but better be sure
+                    return;
+                }
+
+                // Return instantly if the player is already loaded
+                if (loadedPlayer.getPlayerTeam() != null) {
+                    firePlayerLoadingCompletedEvent(loadedPlayer);
+                    return;
+                }
+
+                CompletableFuture<TeamProgression> registeringCF = loadedPlayer.getRegisteringCF();
+                if (registeringCF != null) {
+                    // Wait for PlayerRegisteredEvent
+                    loadedPlayer.addInternalRequest(); // Keep in cache while waiting for event
+                    registeringCF.whenComplete((team, err) -> {
+                        if (closed.get()) {
+                            return;
+                        }
+                        try {
+                            if (err != null) {
+                                firePlayerLoadingFailedEvent(uuid, err);
+                            } else {
+                                firePlayerLoadingCompletedEvent(loadedPlayer);
+                            }
+                        } finally {
+                            removeInternalRequest(loadedPlayer);
+                        }
+                    });
+                    return;
+                }
+
+                // Search the player in already loaded teams to see if they're there.
+                // The searching is done here since more players from the same team may join at the same moment
+                // and running the searching on the executor thread increases the possibilities of a cache hit
+                LoadedTeam loadedTeam = searchPlayerTeam(uuid);
+                if (loadedTeam != null) {
+                    // Player team is already loaded
+                    loadedPlayer.setPlayerTeam(loadedTeam);
+                    loadedTeam.addInternalRequest(); // Add the request for the player
+                    firePlayerLoadingCompletedEvent(loadedPlayer);
+                    return;
+                }
+            }
+
+            try {
+                // Player team isn't loaded yet
+                loadOrRegisterPlayerTeam(uuid, name, loadedPlayer, false, pro -> {
+                    firePlayerLoadingCompletedEvent(loadedPlayer);
+                });
+            } catch (Exception ex) {
+                logger.log(Level.SEVERE, "Cannot load player " + name, ex);
+                firePlayerLoadingFailedEvent(uuid, ex);
+            }
+        }).whenComplete((v, k) -> {
+            removeInternalRequest(loadedPlayer);
+        });
+    }
+
+    private void unloadPlayerOnDisconnect(@NotNull UUID uuid) {
+        Preconditions.checkNotNull(uuid, "UUID is null.");
+
+        // Impl note: this method is called twice on Paper (PlayerQuitEvent and PlayerConnectionCloseEvent)
+
+        joinEventWaiter.onQuit(uuid);
+        synchronized (DatabaseManager.this) {
+            LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
+            if (loadedPlayer != null) {
+                setOffline(loadedPlayer);
+            }
+        }
+    }
+
+    private void firePlayerLoadingCompletedEvent(@NotNull LoadedPlayer loadedPlayer) {
         loadedPlayer.addInternalRequest(); // Keep in cache while waiting for the BukkitRunnable
 
-        joinEventWaiter.onFinishLoading(player.getUniqueId(), LOAD_EVENTS_DELAY, () -> {
+        joinEventWaiter.onFinishLoading(loadedPlayer.getUuid(), LOAD_EVENTS_DELAY, player -> {
             checkSync(); // To catch bugs
 
             synchronized (DatabaseManager.this) {
@@ -358,8 +382,8 @@ public final class DatabaseManager implements Closeable {
         });
     }
 
-    private void firePlayerLoadingFailedEvent(@NotNull Player player, @NotNull Throwable error) {
-        joinEventWaiter.onFinishLoading(player.getUniqueId(), 0, () -> {
+    private void firePlayerLoadingFailedEvent(@NotNull UUID uuid, @NotNull Throwable error) {
+        joinEventWaiter.onFinishLoading(uuid, 0, player -> {
             checkSync(); // To catch bugs
 
             if (!closed.get() && player.isOnline()) { // Make sure the player is still online
@@ -387,27 +411,26 @@ public final class DatabaseManager implements Closeable {
      * <p><strong>Should be called async.</strong>
      *
      * @param uuid The UUID of the player to be loaded or registered.
-     * @param player The player to be loaded or registered.
+     * @param name The name of the player to be loaded or registered. May be {@code null} when {@code loadOnly} is {@code true}.
      * @param loadedPlayer The {@link LoadedPlayer} object associated with player.
      * @param loadOnly Weather to only load the player and fail if not present in the database.
      * @param callback Callback called when the load/registration process ends. May be called either sync or async.
      * @throws SQLException If anything goes wrong.
      */
-    private void loadOrRegisterPlayerTeam(@NotNull UUID uuid, Player player, @NotNull LoadedPlayer loadedPlayer, boolean loadOnly, @NotNull Consumer<TeamProgression> callback) throws SQLException {
+    private void loadOrRegisterPlayerTeam(@NotNull UUID uuid, @Nullable String name, @NotNull LoadedPlayer loadedPlayer, boolean loadOnly, @NotNull Consumer<TeamProgression> callback) throws SQLException {
         final TeamProgression progression;
         final boolean fireRegisteredEvent;
         if (loadOnly) {
             progression = database.loadUUID(uuid);
             fireRegisteredEvent = false;
         } else {
-            // The player here is always online when called, otherwise it is better to not register the player at all
-            String name = Objects.requireNonNull(player, "Player is null.").getName();
+            // The player here is always online when called
             Entry<TeamProgression, Boolean> e = database.loadOrRegisterPlayer(uuid, Objects.requireNonNull(name, "Player name is null."));
             progression = e.getKey();
             fireRegisteredEvent = e.getValue();
         }
-        if (!fireRegisteredEvent && player != null && player.getName() != null) {
-            updatePlayerName(player);
+        if (!fireRegisteredEvent && name != null) {
+            updatePlayerName(uuid, name);
         }
 
         synchronized (DatabaseManager.this) {
@@ -559,13 +582,22 @@ public final class DatabaseManager implements Closeable {
     public CompletableFuture<Void> updatePlayerName(@NotNull Player player) {
         checkClosed();
         Preconditions.checkNotNull(player, "Player cannot be null.");
+
+        return updatePlayerName(player.getUniqueId(), player.getName());
+    }
+
+    @NotNull
+    private CompletableFuture<Void> updatePlayerName(@NotNull UUID uuid, @NotNull String name) {
+        Preconditions.checkNotNull(uuid, "UUID is null.");
+        Preconditions.checkNotNull(name, "Name is null.");
+
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
         runAsyncOnExecutor(completableFuture, () -> {
             try {
-                database.updatePlayerName(player.getUniqueId(), player.getName());
+                database.updatePlayerName(uuid, name);
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Couldn't update player " + player.getName() + " name", e);
+                logger.log(Level.SEVERE, "Couldn't update player " + name + " name", e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
@@ -1808,7 +1840,7 @@ public final class DatabaseManager implements Closeable {
     private synchronized LoadedPlayer addPlayerToCache(@NotNull UUID uuid, boolean setOnline) {
         LoadedPlayer loadedPlayer = playersLoaded.computeIfAbsent(uuid, LoadedPlayer::new);
         if (setOnline) {
-            loadedPlayer.setOnline(true);
+            loadedPlayer.__setOnline(true);
         }
         loadedPlayer.addInternalRequest(); // Make sure the player will not be removed from cache
         return loadedPlayer;
@@ -1851,6 +1883,14 @@ public final class DatabaseManager implements Closeable {
         loadedPlayer.setPlayerTeam(null);
         if (loadedTeam != null) {
             removeInternalRequest(loadedTeam);
+        }
+    }
+
+    private void setOffline(@NotNull LoadedPlayer loadedPlayer) {
+        if (loadedPlayer.__setOnline(false)) {
+            // An internal request is always kept when the player is online,
+            // so remove it only if they were actually online
+            removeInternalRequest(loadedPlayer);
         }
     }
 
@@ -1990,7 +2030,7 @@ public final class DatabaseManager implements Closeable {
         private volatile LoadedTeam playerTeam;
 
         private final UUID uuid;
-        private volatile boolean online = false;
+        private final AtomicBoolean online = new AtomicBoolean(false);
 
         // Used to make loading requests wait for PlayerRegisteredEvent if the player is being registered
         @Nullable // Null here means a PlayerRegisteredEvent for this player has not been scheduled
@@ -2015,11 +2055,11 @@ public final class DatabaseManager implements Closeable {
         }
 
         public boolean isOnline() {
-            return online;
+            return online.get();
         }
 
-        public void setOnline(boolean online) {
-            this.online = online;
+        public boolean __setOnline(boolean online) {
+            return this.online.getAndSet(online);
         }
 
         public CompletableFuture<TeamProgression> getRegisteringCF() {
@@ -2289,6 +2329,7 @@ public final class DatabaseManager implements Closeable {
 
         private record Update(UpdateType type, LoadedPlayer player, LoadedTeam team, AdvancementKey key, int oldProgr, int newProgr, Runnable callback) {
             @Override
+            @NotNull
             public String toString() {
                 return switch (type) {
                     case TEAM_UPDATE -> "TeamUpdate{" +

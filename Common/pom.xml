@@ -60,8 +60,21 @@
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>eventmanagerapi</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${eventManagerAPIVersion}</version>
             <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-common-paper</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.papermc.paper</groupId>
+                    <artifactId>paper-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- NMS Wrappers -->

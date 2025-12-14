@@ -2,6 +2,8 @@ package com.fren_gor.ultimateAdvancementAPI.database;
 
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
+import com.google.common.base.Preconditions;
+import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -13,8 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.checkSync;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
 
 /**
@@ -33,8 +35,8 @@ final class JoinEventWaiter {
         waiting.put(uuid, new WaiterObject());
     }
 
-    public void onFinishLoading(@NotNull UUID uuid, long delay, @NotNull Runnable toRun, @NotNull Runnable onCancel) {
-        Runnable cancelled = null, oldCancelled = null;
+    public void onFinishLoading(@NotNull UUID uuid, long delay, @NotNull Consumer<Player> toRun, @NotNull Runnable onCancel) {
+        final Runnable cancelled;
         synchronized (JoinEventWaiter.this) {
             WaiterObject waiter = waiting.get(uuid);
             if (waiter == null) {
@@ -44,9 +46,10 @@ final class JoinEventWaiter {
                 // Already scheduled, just call onCancel (outside the synchronized block)
                 cancelled = onCancel;
             } else {
-                oldCancelled = waiter.onCancel; // Save old onCancel to be called outside the synchronized block
+                cancelled = waiter.onCancel; // Save old onCancel to be called outside the synchronized block
                 if (waiter.joinEventFired) {
-                    scheduleRunnable(waiter, toRun, delay, uuid);
+                    Preconditions.checkNotNull(waiter.joinEventPlayer, "waiter.joinEventFired is null.");
+                    scheduleRunnable(waiter, toRun, delay, waiter.joinEventPlayer);
                 } else {
                     // Save values for join event
                     waiter.toRun = toRun;
@@ -55,16 +58,13 @@ final class JoinEventWaiter {
                 }
             }
         }
-        if (oldCancelled != null) {
-            oldCancelled.run();
-        }
         if (cancelled != null) {
             cancelled.run();
         }
     }
 
-    public synchronized void onJoin(@NotNull UUID uuid) {
-        WaiterObject waiter = waiting.get(uuid);
+    public synchronized void onJoin(@NotNull Player player) {
+        WaiterObject waiter = waiting.get(player.getUniqueId());
         if (waiter == null) {
             return;
         }
@@ -73,15 +73,15 @@ final class JoinEventWaiter {
         }
         if (waiter.toRun == null) {
             waiter.joinEventFired = true;
+            waiter.joinEventPlayer = player;
             return;
         }
-        scheduleRunnable(waiter, waiter.toRun, waiter.delay, uuid);
+        scheduleRunnable(waiter, waiter.toRun, waiter.delay, player);
     }
 
     public void onQuit(@NotNull UUID uuid) {
         Runnable onCancel = null;
         synchronized (JoinEventWaiter.this) {
-            checkSync();
             WaiterObject w = waiting.remove(uuid);
             if (w != null) {
                 w.cancel();
@@ -99,31 +99,35 @@ final class JoinEventWaiter {
             toCancel = new ArrayList<>(waiting.size());
             for (WaiterObject w : waiting.values()) {
                 w.cancel();
-                toCancel.add(w.onCancel);
+                if (w.onCancel != null) {
+                    toCancel.add(w.onCancel);
+                }
             }
             waiting.clear();
         }
         for (Runnable cancel : toCancel) {
-            if (cancel != null) {
-                cancel.run();
-            }
+            cancel.run();
         }
     }
 
-    private synchronized void scheduleRunnable(@NotNull WaiterObject waiter, @NotNull Runnable toRun, long delay, @NotNull UUID uuid) {
+    private synchronized void scheduleRunnable(@NotNull WaiterObject waiter, @NotNull Consumer<Player> toRun, long delay, @NotNull Player player) {
         waiter.scheduled = true;
         waiter.task = runSync(plugin, delay, () -> {
             synchronized (JoinEventWaiter.this) {
-                waiting.remove(uuid);
+                waiting.remove(player.getUniqueId());
             }
-            toRun.run();
+            toRun.accept(player);
         });
     }
 
     private static class WaiterObject {
         @Nullable
-        private Runnable toRun, onCancel;
+        private Consumer<Player> toRun;
+        @Nullable
+        private Runnable onCancel;
         private boolean joinEventFired, scheduled;
+        @Nullable
+        private Player joinEventPlayer;
         @Nullable
         private BukkitTask task;
         private long delay;

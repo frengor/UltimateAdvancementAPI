@@ -35,6 +35,7 @@
 
     <modules>
         <module>NMS</module>
+        <module>CommonPaper</module>
         <module>Common</module>
         <module>Commands</module>
         <module>Distribution</module>
@@ -44,6 +45,7 @@
     <properties>
         <!-- Project Properties -->
         <libbyVersion>1.3.0</libbyVersion>
+        <eventManagerAPIVersion>1.0-SNAPSHOT</eventManagerAPIVersion>
         <mockBukkitArtifact>MockBukkit-v1.21</mockBukkitArtifact>
         <mockBukkitVersion>3.133.2</mockBukkitVersion>
         <maven.javadoc.skip>false</maven.javadoc.skip>
@@ -73,7 +75,7 @@
             <url>https://repo.alessiodp.com/releases/</url>
         </repository>
 
-        <!-- For MockBukkit -->
+        <!-- For MockBukkit and CommonPaper module -->
         <repository>
             <id>papermc</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
@@ -232,6 +234,7 @@
                             <dependencySourceInclude>com.frengor:ultimateadvancementapi*</dependencySourceInclude>
                         </dependencySourceIncludes>
                         <dependencySourceExcludes>
+                            <dependencySourceExclude>com.frengor:ultimateadvancementapi-common-paper</dependencySourceExclude>
                             <dependencySourceExclude>com.frengor:ultimateadvancementapi-nms-1_*</dependencySourceExclude>
                             <dependencySourceExclude>com.frengor:ultimateadvancementapi-nms-mocked*</dependencySourceExclude>
                         </dependencySourceExcludes>

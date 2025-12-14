@@ -4,6 +4,7 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
 import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
+import org.bukkit.entity.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,10 +21,13 @@ public class JoinEventWaiterTest {
     private ServerMock server;
     private JoinEventWaiter joinEventWaiter;
     @AutoInject
+    private Player player, player2;
     private UUID uuid, uuid2;
 
     @BeforeEach
     void setUp() {
+        uuid = player.getUniqueId();
+        uuid2 = player2.getUniqueId();
         joinEventWaiter = new JoinEventWaiter(MockBukkit.createMockPlugin());
     }
 
@@ -32,14 +36,15 @@ public class JoinEventWaiterTest {
         final AtomicBoolean run = new AtomicBoolean();
         final AtomicBoolean oldRun = new AtomicBoolean();
         joinEventWaiter.onLogin(uuid);
-        joinEventWaiter.onFinishLoading(uuid, 1, () -> {
+        joinEventWaiter.onFinishLoading(uuid, 1, p -> {
+            assertEquals(uuid, p.getUniqueId());
             boolean old = run.getAndSet(true);
             oldRun.set(old);
         }, () -> fail("Runnable cancelled"));
 
         assertFalse(run.get());
 
-        joinEventWaiter.onJoin(uuid);
+        joinEventWaiter.onJoin(player);
 
         assertFalse(run.get());
 
@@ -56,11 +61,12 @@ public class JoinEventWaiterTest {
         final AtomicBoolean run = new AtomicBoolean();
         final AtomicBoolean oldRun = new AtomicBoolean();
         joinEventWaiter.onLogin(uuid);
-        joinEventWaiter.onJoin(uuid);
+        joinEventWaiter.onJoin(player);
 
         assertFalse(run.get());
 
-        joinEventWaiter.onFinishLoading(uuid, 1, () -> {
+        joinEventWaiter.onFinishLoading(uuid, 1, p -> {
+            assertEquals(uuid, p.getUniqueId());
             boolean old = run.getAndSet(true);
             oldRun.set(old);
         }, () -> fail("Runnable cancelled"));
@@ -80,7 +86,8 @@ public class JoinEventWaiterTest {
         final AtomicBoolean run = new AtomicBoolean();
         final AtomicBoolean cancelled  = new AtomicBoolean();
         joinEventWaiter.onLogin(uuid);
-        joinEventWaiter.onFinishLoading(uuid, 1, () -> {
+        joinEventWaiter.onFinishLoading(uuid, 1, p -> {
+            assertEquals(uuid, p.getUniqueId());
             assertFalse(run.getAndSet(true));
         }, () -> {
             assertFalse(cancelled.getAndSet(true));
@@ -98,7 +105,7 @@ public class JoinEventWaiterTest {
 
         assertFalse(run.get());
 
-        joinEventWaiter.onJoin(uuid);
+        joinEventWaiter.onJoin(player);
 
         assertFalse(run.get());
 
@@ -112,11 +119,12 @@ public class JoinEventWaiterTest {
         final AtomicBoolean run = new AtomicBoolean();
         final AtomicBoolean cancelled = new AtomicBoolean();
         joinEventWaiter.onLogin(uuid);
-        joinEventWaiter.onJoin(uuid);
+        joinEventWaiter.onJoin(player);
 
         joinEventWaiter.onQuit(uuid);
 
-        joinEventWaiter.onFinishLoading(uuid, 1, () -> {
+        joinEventWaiter.onFinishLoading(uuid, 1, p -> {
+            assertEquals(uuid, p.getUniqueId());
             assertFalse(run.getAndSet(true));
         }, () -> {
             assertFalse(cancelled.getAndSet(true));
@@ -129,7 +137,7 @@ public class JoinEventWaiterTest {
 
         assertFalse(run.get());
 
-        joinEventWaiter.onJoin(uuid);
+        joinEventWaiter.onJoin(player);
 
         assertFalse(run.get());
 
@@ -145,7 +153,8 @@ public class JoinEventWaiterTest {
         joinEventWaiter.onLogin(uuid);
         joinEventWaiter.onQuit(uuid);
 
-        joinEventWaiter.onFinishLoading(uuid, 1, () -> {
+        joinEventWaiter.onFinishLoading(uuid, 1, p -> {
+            assertEquals(uuid, p.getUniqueId());
             assertFalse(run.getAndSet(true));
         }, () -> {
             assertFalse(cancelled.getAndSet(true));
@@ -158,7 +167,7 @@ public class JoinEventWaiterTest {
 
         assertFalse(run.get());
 
-        joinEventWaiter.onJoin(uuid);
+        joinEventWaiter.onJoin(player);
 
         assertFalse(run.get());
 
@@ -173,8 +182,9 @@ public class JoinEventWaiterTest {
 
         final AtomicBoolean cancelled = new AtomicBoolean();
 
-        final Runnable onJoin = () -> joinEventWaiter.onJoin(uuid);
-        final Runnable onFinish = () -> joinEventWaiter.onFinishLoading(uuid, 1, () -> {
+        final Runnable onJoin = () -> joinEventWaiter.onJoin(player);
+        final Runnable onFinish = () -> joinEventWaiter.onFinishLoading(uuid, 1, p -> {
+            assertEquals(uuid, p.getUniqueId());
         }, () -> {
             assertFalse(cancelled.getAndSet(true));
         });
@@ -217,7 +227,7 @@ public class JoinEventWaiterTest {
         final AtomicBoolean cancelled = new AtomicBoolean();
         final AtomicBoolean run2 = new AtomicBoolean();
         joinEventWaiter.onLogin(uuid);
-        joinEventWaiter.onFinishLoading(uuid, 1, () -> {
+        joinEventWaiter.onFinishLoading(uuid, 1, p -> {
             fail("Executed 1");
         }, () -> {
             assertFalse(cancelled.getAndSet(true));
@@ -226,12 +236,13 @@ public class JoinEventWaiterTest {
         assertFalse(cancelled.get());
 
         joinEventWaiter.onLogin(uuid2);
-        joinEventWaiter.onFinishLoading(uuid2, 1, () -> {
+        joinEventWaiter.onFinishLoading(uuid2, 1, p -> {
+            assertEquals(uuid2, p.getUniqueId());
             assertFalse(run2.getAndSet(true));
         }, () -> {
             fail("Cancelled 2");
         });
-        joinEventWaiter.onJoin(uuid2);
+        joinEventWaiter.onJoin(player2);
 
         server.getScheduler().performOneTick();
 
@@ -246,7 +257,7 @@ public class JoinEventWaiterTest {
     @Test
     void noOnLoginTest() {
         final AtomicBoolean cancelled = new AtomicBoolean();
-        joinEventWaiter.onFinishLoading(uuid, 1, () -> {
+        joinEventWaiter.onFinishLoading(uuid, 1, p -> {
             fail("Executed 1");
         }, () -> {
             assertFalse(cancelled.getAndSet(true));
@@ -259,12 +270,13 @@ public class JoinEventWaiterTest {
         final AtomicBoolean cancelled = new AtomicBoolean();
         final AtomicBoolean run = new AtomicBoolean();
         joinEventWaiter.onLogin(uuid);
-        joinEventWaiter.onFinishLoading(uuid, 1, () -> {
+        joinEventWaiter.onFinishLoading(uuid, 1, p -> {
             fail("Executed");
         }, () -> {
             assertFalse(cancelled.getAndSet(true));
         });
-        joinEventWaiter.onFinishLoading(uuid, 1, () -> {
+        joinEventWaiter.onFinishLoading(uuid, 1, p -> {
+            assertEquals(uuid, p.getUniqueId());
             assertFalse(run.getAndSet(true));
         }, () -> {
             fail("Cancelled");
@@ -272,11 +284,10 @@ public class JoinEventWaiterTest {
 
         assertTrue(cancelled.get());
 
-        joinEventWaiter.onJoin(uuid);
+        joinEventWaiter.onJoin(player);
 
         server.getScheduler().performOneTick();
 
         assertTrue(run.get());
     }
 }
-
