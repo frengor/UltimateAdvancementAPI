@@ -895,12 +895,14 @@ public final class DatabaseManager implements Closeable {
 
         runAsyncOnExecutor(completableFuture, () -> {
             int old = pendingUpdatesManager.getCurrentValue(progression, key);
-            try {
-                database.updateAdvancement(key, progression.getTeamId(), newProgression);
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Couldn't set progression of advancement " + key + " to team " + progression.getTeamId(), e);
-                completableFuture.completeExceptionally(new DatabaseException(e));
-                return;
+            if (newProgression != old) { // Don't update the db if the saved progression won't change
+                try {
+                    database.updateAdvancement(key, progression.getTeamId(), newProgression);
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, "Couldn't set progression of advancement " + key + " to team " + progression.getTeamId(), e);
+                    completableFuture.completeExceptionally(new DatabaseException(e));
+                    return;
+                }
             }
             registerProgressionUpdate(loadedNewTeam, key, old, newProgression, completableFuture);
         }).whenComplete((v, t) -> {
@@ -977,17 +979,8 @@ public final class DatabaseManager implements Closeable {
 
         runAsyncOnExecutor(completableFuture, () -> {
             final int old = pendingUpdatesManager.getCurrentValue(loadedNewTeam.getTeamProgression(), key);
-            int incremented = old;
-            if (increment != 0) { // Don't update the db if the saved progression won't change
-                incremented += increment;
-                if (incremented < 0) {
-                    // Don't throw an error if incremented < 0, simply put it to 0
-                    incremented = 0;
-                }
-                if (incremented > maxProgression) {
-                    // Never exceed maxProgression
-                    incremented = maxProgression;
-                }
+            int incremented = Math.min(Math.max(old + increment, 0), maxProgression);
+            if (incremented != old) { // Don't update the db if the saved progression won't change
                 try {
                     database.updateAdvancement(key, progression.getTeamId(), incremented);
                 } catch (Exception e) {
