@@ -318,7 +318,8 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
 
         CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
 
-        var res = advancementTab.getDatabaseManager().incrementProgression(tasks.iterator().next().getKey(), progression, 0);
+        var task = tasks.iterator().next();
+        var res = advancementTab.getDatabaseManager().incrementProgression(task.getKey(), progression, 0, task.getMaxProgression());
         runSync(res, getAdvancementTab().getOwningPlugin(), (result, err) -> {
             if (err != null) {
                 completableFuture.completeExceptionally(new DatabaseException(new RuntimeException("An exception occurred while setting the progression of 1 or more tasks.")));

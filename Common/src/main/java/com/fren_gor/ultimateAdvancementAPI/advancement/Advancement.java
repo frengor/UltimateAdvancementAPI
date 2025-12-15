@@ -367,7 +367,7 @@ public abstract class Advancement {
         validateTeamProgression(pro);
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
-        var completableFuture = ds.incrementProgression(key, pro, increment);
+        var completableFuture = ds.incrementProgression(key, pro, increment, maxProgression);
 
         runSync(completableFuture, advancementTab.getOwningPlugin(), (result, err) -> {
             if (err != null) {

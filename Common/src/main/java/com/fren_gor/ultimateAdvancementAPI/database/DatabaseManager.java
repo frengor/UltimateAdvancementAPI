@@ -917,13 +917,14 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player who made the advancement.
      * @param increment The increment of the progression. May be negative.
+     * @param maxProgression The maximum progression of the advancement.
      * @return A {@link CompletableFuture} that will complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      * @since 3.0.0
      */
     @NotNull
-    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, int increment) throws UserNotLoadedException {
-        return incrementProgression(key, getTeamProgression(uuid), increment);
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull UUID uuid, int increment, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) throws UserNotLoadedException {
+        return incrementProgression(key, getTeamProgression(uuid), increment, maxProgression);
     }
 
     /**
@@ -933,13 +934,14 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param player The player who made the advancement.
      * @param increment The increment of the progression. May be negative.
+     * @param maxProgression The maximum progression of the advancement.
      * @return A {@link CompletableFuture} that will complete when the database update finishes.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      * @since 3.0.0
      */
     @NotNull
-    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull Player player, int increment) throws UserNotLoadedException {
-        return incrementProgression(key, uuidFromPlayer(player), increment);
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull Player player, int increment, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) throws UserNotLoadedException {
+        return incrementProgression(key, uuidFromPlayer(player), increment, maxProgression);
     }
 
     /**
@@ -949,13 +951,15 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param progression The {@link TeamProgression} of the team which made the advancement.
      * @param increment The increment of the progression. May be negative.
+     * @param maxProgression The maximum progression of the advancement.
      * @return A {@link CompletableFuture} that will complete when the database update finishes.
      * @since 3.0.0
      */
     @NotNull
-    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, int increment) {
+    public CompletableFuture<ProgressionUpdateResult> incrementProgression(@NotNull AdvancementKey key, @NotNull TeamProgression progression, int increment, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
         checkClosed();
         Preconditions.checkNotNull(key, "Key is null.");
+        Preconditions.checkArgument(maxProgression > 0, "Maximum progression cannot be <= 0");
 
         final LoadedTeam loadedNewTeam;
         synchronized (DatabaseManager.this) {
@@ -979,6 +983,10 @@ public final class DatabaseManager implements Closeable {
                 if (incremented < 0) {
                     // Don't throw an error if incremented < 0, simply put it to 0
                     incremented = 0;
+                }
+                if (incremented > maxProgression) {
+                    // Never exceed maxProgression
+                    incremented = maxProgression;
                 }
                 try {
                     database.updateAdvancement(key, progression.getTeamId(), incremented);

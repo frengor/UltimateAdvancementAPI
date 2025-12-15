@@ -48,6 +48,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(UAAPIExtension.class)
 public class DatabaseManagerTest {
 
+    private static final int MAX_PROGRESSION = Integer.MAX_VALUE;
+
     @AutoInject
     private ServerMock server;
     @AutoInject
@@ -118,10 +120,40 @@ public class DatabaseManagerTest {
     void advancementIncrementProgressionTest(AdvancementKey key) throws Exception {
         PlayerMock p = loadPlayer();
 
-        ProgressionUpdateResult updateResult = waitCompletion(dbManager.incrementProgression(key, p, 10)).get();
+        ProgressionUpdateResult updateResult = waitCompletion(dbManager.incrementProgression(key, p, 10, MAX_PROGRESSION)).get();
 
         assertEquals(0, updateResult.oldProgression());
         assertEquals(10, updateResult.newProgression());
+        p.disconnect();
+    }
+
+    @Test
+    void advancementIncrementProgressionNegativeIncrementTest(AdvancementKey key) throws Exception {
+        PlayerMock p = loadPlayer();
+
+        ProgressionUpdateResult updateResult = waitCompletion(dbManager.incrementProgression(key, p, 15, MAX_PROGRESSION)).get();
+        assertEquals(0, updateResult.oldProgression());
+        assertEquals(15, updateResult.newProgression());
+
+        updateResult = waitCompletion(dbManager.incrementProgression(key, p, -5, MAX_PROGRESSION)).get();
+        assertEquals(15, updateResult.oldProgression());
+        assertEquals(10, updateResult.newProgression());
+
+        updateResult = waitCompletion(dbManager.incrementProgression(key, p, -20, MAX_PROGRESSION)).get();
+        assertEquals(10, updateResult.oldProgression());
+        assertEquals(0, updateResult.newProgression());
+
+        p.disconnect();
+    }
+
+    @Test
+    void advancementIncrementProgressionOverMaxTest(AdvancementKey key) throws Exception {
+        PlayerMock p = loadPlayer();
+
+        ProgressionUpdateResult updateResult = waitCompletion(dbManager.incrementProgression(key, p, 10, 5)).get();
+
+        assertEquals(0, updateResult.oldProgression());
+        assertEquals(5, updateResult.newProgression());
         p.disconnect();
     }
 
@@ -133,12 +165,12 @@ public class DatabaseManagerTest {
 
         dbImpls.getFallible().setFallibleOps(DBOperation.UPDATE_ADVANCEMENT);
         dbImpls.getFallible().addToPlanning(true, false, true);
-        CompletableFuture<ProgressionUpdateResult> updateResult1 = dbManager.incrementProgression(key, p, 10);
+        CompletableFuture<ProgressionUpdateResult> updateResult1 = dbManager.incrementProgression(key, p, 10, MAX_PROGRESSION);
 
         // This should fail
-        CompletableFuture<ProgressionUpdateResult> updateResult2 = dbManager.incrementProgression(key, p, 20);
+        CompletableFuture<ProgressionUpdateResult> updateResult2 = dbManager.incrementProgression(key, p, 20, MAX_PROGRESSION);
 
-        CompletableFuture<ProgressionUpdateResult> updateResult3 = dbManager.incrementProgression(key, p, 30);
+        CompletableFuture<ProgressionUpdateResult> updateResult3 = dbManager.incrementProgression(key, p, 30, MAX_PROGRESSION);
 
         paused.resume();
 
