@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @implSpec The default implementation of the methods which take a {@link Player} calls the respective method that takes an {@link OfflinePlayer}.
  */
-public abstract class AbstractPerPlayerAdvancementDisplay extends AbstractAdvancementDisplay {
+public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends AbstractAdvancementDisplay {
 
     /**
      * Returns whether the toast notification should be sent on advancement grant.

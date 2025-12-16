@@ -27,7 +27,7 @@ import java.util.List;
  * The most important method where this applies is {@link #getNMSWrapper()}, since reducing the creation of NMS wrappers
  * usually leads to better performance.
  */
-public abstract class AbstractImmutableAdvancementDisplay extends AbstractAdvancementDisplay {
+public abstract non-sealed class AbstractImmutableAdvancementDisplay extends AbstractAdvancementDisplay {
 
     @LazyValue
     private PreparedAdvancementDisplayWrapper wrapper;

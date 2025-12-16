@@ -18,7 +18,7 @@ import java.util.UUID;
  * The first advancement of an advancement tree.
  * <p>It has no parents and stores the path to the background texture image of the tab. Also, it must be always visible.
  */
-public class RootAdvancement extends Advancement {
+public non-sealed class RootAdvancement extends Advancement {
 
     @LazyValue
     private PreparedAdvancementWrapper wrapper;

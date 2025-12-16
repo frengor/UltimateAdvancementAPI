@@ -55,7 +55,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
  * It provides the basic methods and fields to work with advancements.
  * <p>It is extended only by {@link RootAdvancement} and {@link BaseAdvancement}. It cannot be extended by any other class, which should extend one of those instead.
  */
-public abstract class Advancement {
+public abstract sealed class Advancement permits BaseAdvancement, RootAdvancement {
 
     /**
      * The namespaced key of the advancement, which identifies it univocally.
@@ -111,12 +111,6 @@ public abstract class Advancement {
      * @param maxProgression The maximum advancement progression.
      */
     Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
-        // Validate class inheritance: Advancement can be extended only by RootAdvancement and BaseAdvancement
-        // This makes sure no reflection is being used to make an invalid Advancement
-        // The instanceOfs order provides max speed in most cases (there is usually one root for many base advancements)
-        if (!(this instanceof BaseAdvancement || this instanceof RootAdvancement)) {
-            throw new IllegalOperationException(getClass().getName() + " is neither an instance of RootAdvancement nor BaseAdvancement.");
-        }
         Preconditions.checkArgument(maxProgression > 0, "Maximum progression cannot be <= 0");
         this.advancementTab = Objects.requireNonNull(advancementTab, "AdvancementTab is null.");
         Preconditions.checkArgument(!advancementTab.isInitialised(), "AdvancementTab is already initialised.");

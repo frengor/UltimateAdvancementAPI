@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * A display which provides customized values based on the specified team.
  */
-public abstract class AbstractPerTeamAdvancementDisplay extends AbstractAdvancementDisplay {
+public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends AbstractAdvancementDisplay {
 
     /**
      * Returns whether the toast notification should be sent on advancement grant.

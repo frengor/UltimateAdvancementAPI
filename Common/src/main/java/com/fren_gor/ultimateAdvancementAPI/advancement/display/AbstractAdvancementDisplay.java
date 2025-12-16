@@ -2,7 +2,6 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.display.DefaultStyle;
@@ -40,13 +39,9 @@ import java.util.List;
  * @see AbstractPerTeamAdvancementDisplay
  * @see AdvancementDisplay
  */
-public abstract class AbstractAdvancementDisplay {
+public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutableAdvancementDisplay, AbstractPerTeamAdvancementDisplay, AbstractPerPlayerAdvancementDisplay {
 
     AbstractAdvancementDisplay() {
-        // Validate class inheritance. This makes sure no reflection is being used to make an invalid AbstractAdvancementDisplay
-        if (!(this instanceof AbstractImmutableAdvancementDisplay || this instanceof AbstractPerPlayerAdvancementDisplay || this instanceof AbstractPerTeamAdvancementDisplay)) {
-            throw new IllegalOperationException(getClass().getName() + " is not an instance of AbstractImmutableAdvancementDisplay, AbstractPerTeamAdvancementDisplay or AbstractPerPlayerAdvancementDisplay.");
-        }
     }
 
     /**

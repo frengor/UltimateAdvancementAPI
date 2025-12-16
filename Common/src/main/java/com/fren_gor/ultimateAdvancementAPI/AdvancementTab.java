@@ -1146,15 +1146,14 @@ public final class AdvancementTab {
     /**
      * The display of an {@link AdvancementTab}.
      */
-    // TODO Make sealed when switching to Java 17
-    public interface TabDisplay {
+    public sealed interface TabDisplay permits ImmutableTabDisplay, PerTeamTabDisplay, PerPlayerTabDisplay {
     }
 
     /**
      * The display of an {@link AdvancementTab} which is immutable, that is every method call should always return the same value.
      */
     @FunctionalInterface
-    public interface ImmutableTabDisplay extends TabDisplay {
+    public non-sealed interface ImmutableTabDisplay extends TabDisplay {
         /**
          * Returns the path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png").
          *
@@ -1188,7 +1187,7 @@ public final class AdvancementTab {
      * The display of an {@link AdvancementTab} which provides customized values based on the specified team.
      */
     @FunctionalInterface
-    public interface PerTeamTabDisplay extends TabDisplay {
+    public non-sealed interface PerTeamTabDisplay extends TabDisplay {
         /**
          * Returns the path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png").
          *
@@ -1225,7 +1224,7 @@ public final class AdvancementTab {
      * The display of an {@link AdvancementTab} which provides customized values based on the specified player.
      */
     @FunctionalInterface
-    public interface PerPlayerTabDisplay extends TabDisplay {
+    public non-sealed interface PerPlayerTabDisplay extends TabDisplay {
         /**
          * Returns the path of the background texture image of the tab in the advancement GUI (like "textures/block/stone.png").
          *

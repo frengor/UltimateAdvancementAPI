@@ -15,7 +15,7 @@ import java.util.Objects;
 /**
  * BaseAdvancement directly extends Advancement. It represents an advancement with a parent advancement.
  */
-public class BaseAdvancement extends Advancement {
+public non-sealed class BaseAdvancement extends Advancement {
 
     /**
      * The advancement parent of the advancement.

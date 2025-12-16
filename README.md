@@ -58,7 +58,7 @@ Also, please use the formatting style settings present under `.idea/codeStyles` 
 
 ## Required Java version
 
-Currently, the project is compiled for Java 16, although the minimum required Java version might change in future releases.
+Currently, the project is compiled for Java 17, although the minimum required Java version might change in future releases.
 
 > We consider changing the minimum required Java version a breaking change, so DO NOT expect it to be frequently modified.
 
