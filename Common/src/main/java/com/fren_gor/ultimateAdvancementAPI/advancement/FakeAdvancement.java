@@ -55,21 +55,21 @@ public class FakeAdvancement extends BaseAdvancement {
      * @param y The y coordinate of the advancement.
      */
     public FakeAdvancement(@NotNull Advancement parent, float x, float y) {
-        this(generateKey(), parent, x, y);
+        this(parent, generateKey(), x, y);
     }
 
     /**
      * Creates a new {@code FakeAdvancement}.
      * <p>The tab of this advancement will be the parent one.
      *
+     * @param parent The parent of the advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
-     * @param parent The parent of the advancement.
      * @param x The x coordinate of the advancement.
      * @param y The y coordinate of the advancement.
      */
-    public FakeAdvancement(@NotNull String key, @NotNull Advancement parent, float x, float y) {
-        this(key, parent, new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "FakeAdvancement").x(x).y(y).build());
+    public FakeAdvancement(@NotNull Advancement parent, @NotNull String key, float x, float y) {
+        this(parent, key, new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "FakeAdvancement").x(x).y(y).build());
     }
 
     /**
@@ -80,20 +80,20 @@ public class FakeAdvancement extends BaseAdvancement {
      * @param display The display information of this advancement.
      */
     public FakeAdvancement(@NotNull Advancement parent, @NotNull AbstractAdvancementDisplay display) {
-        this(generateKey(), parent, display);
+        this(parent, generateKey(), display);
     }
 
     /**
      * Creates a new {@code FakeAdvancement}.
      * <p>The tab of this advancement will be the parent one.
      *
+     * @param parent The parent of the advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
-     * @param parent The parent of the advancement.
      * @param display The display information of this advancement.
      */
-    public FakeAdvancement(@NotNull String key, @NotNull Advancement parent, @NotNull AbstractAdvancementDisplay display) {
-        super(key, wrapDisplay(display), parent);
+    public FakeAdvancement(@NotNull Advancement parent, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
+        super(parent, key, wrapDisplay(display));
     }
 
     /**

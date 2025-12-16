@@ -29,26 +29,26 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
     /**
      * Creates an {@code AbstractMultiTasksAdvancement} with maximum progression of {@code 1}.
      *
+     * @param parent The parent of this advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
-     * @param parent The parent of this advancement.
      */
-    public AbstractMultiTasksAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull Advancement parent) {
-        super(key, display, parent);
+    public AbstractMultiTasksAdvancement(@NotNull Advancement parent, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
+        this(parent, key, 1, display);
     }
 
     /**
      * Creates an {@code AbstractMultiTasksAdvancement}.
      *
+     * @param parent The parent of this advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
-     * @param display The display information of this advancement.
-     * @param parent The parent of this advancement.
      * @param maxProgression The maximum progression of the task.
+     * @param display The display information of this advancement.
      */
-    public AbstractMultiTasksAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
-        super(key, display, parent, maxProgression);
+    public AbstractMultiTasksAdvancement(@NotNull Advancement parent, @NotNull String key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull AbstractAdvancementDisplay display) {
+        super(parent, key, maxProgression, display);
     }
 
     /**

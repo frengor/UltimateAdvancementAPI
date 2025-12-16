@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +27,7 @@ public final class PlayerLoadingFailedEvent extends Event {
      * @param player The player who couldn't be loaded.
      * @param cause The {@link Throwable} which caused of the failure of the loading, or {@code null} if no exception occurred.
      */
+    @Internal
     public PlayerLoadingFailedEvent(@NotNull Player player, @Nullable Throwable cause) {
         this.player = Objects.requireNonNull(player, "Player is null.");
         this.cause = cause;

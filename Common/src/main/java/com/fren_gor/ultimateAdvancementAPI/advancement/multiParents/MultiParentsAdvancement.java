@@ -44,7 +44,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * @param parents The advancement parents. There must be at least one.
      */
     public MultiParentsAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull BaseAdvancement... parents) {
-        this(key, display, 1, parents);
+        this(key, 1, display, parents);
     }
 
     /**
@@ -52,12 +52,12 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
-     * @param display The display information of this advancement.
      * @param maxProgression The maximum advancement progression.
+     * @param display The display information of this advancement.
      * @param parents The advancement parents. There must be at least one.
      */
-    public MultiParentsAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull BaseAdvancement... parents) {
-        this(key, display, maxProgression, Sets.newHashSet(Objects.requireNonNull(parents)));
+    public MultiParentsAdvancement(@NotNull String key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull AbstractAdvancementDisplay display, @NotNull BaseAdvancement... parents) {
+        this(key, maxProgression, display, Sets.newHashSet(Objects.requireNonNull(parents)));
     }
 
     /**
@@ -69,7 +69,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * @param parents The advancement parents. There must be at least one.
      */
     public MultiParentsAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull Set<BaseAdvancement> parents) {
-        this(key, display, 1, parents);
+        this(key, 1, display, parents);
     }
 
     /**
@@ -77,12 +77,12 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
-     * @param display The display information of this advancement.
      * @param maxProgression The maximum advancement progression.
+     * @param display The display information of this advancement.
      * @param parents The advancement parents. There must be at least one.
      */
-    public MultiParentsAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull Set<BaseAdvancement> parents) {
-        super(key, display, validateAndGetFirst(parents), maxProgression);
+    public MultiParentsAdvancement(@NotNull String key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull AbstractAdvancementDisplay display, @NotNull Set<BaseAdvancement> parents) {
+        super(validateAndGetFirst(parents), key, maxProgression, display);
 
         this.parents = Maps.newHashMapWithExpectedSize(parents.size());
 

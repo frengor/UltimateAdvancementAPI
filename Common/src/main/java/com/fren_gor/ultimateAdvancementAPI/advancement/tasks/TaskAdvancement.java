@@ -43,49 +43,49 @@ public class TaskAdvancement extends BaseAdvancement {
     /**
      * Creates a new {@code TaskAdvancement} with a maximum progression of {@code 1}.
      *
+     * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
-     * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      */
-    public TaskAdvancement(@NotNull String key, @NotNull AbstractMultiTasksAdvancement multitask) {
-        this(key, multitask, 1);
+    public TaskAdvancement(@NotNull AbstractMultiTasksAdvancement multitask, @NotNull String key) {
+        this(multitask, key, 1);
     }
 
     /**
      * Creates a new {@code TaskAdvancement}.
      *
+     * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
-     * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param maxProgression The maximum progression of the task.
      */
-    public TaskAdvancement(@NotNull String key, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
-        this(key, new AdvancementDisplayBuilder(Material.GRASS_BLOCK, Objects.requireNonNull(key, "Key is null.")).build(), multitask, maxProgression);
+    public TaskAdvancement(@NotNull AbstractMultiTasksAdvancement multitask, @NotNull String key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+        this(multitask, key, maxProgression, new AdvancementDisplayBuilder(Material.GRASS_BLOCK, Objects.requireNonNull(key, "Key is null.")).build());
     }
 
     /**
      * Creates a new {@code TaskAdvancement} with a maximum progression of {@code 1}.
      *
+     * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this task.
-     * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      */
-    public TaskAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask) {
-        this(key, display, multitask, 1);
+    public TaskAdvancement(@NotNull AbstractMultiTasksAdvancement multitask, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
+        this(multitask, key, 1, display);
     }
 
     /**
      * Creates a new {@code TaskAdvancement}.
      *
+     * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
-     * @param display The display information of this task.
-     * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param maxProgression The maximum progression of the task.
+     * @param display The display information of this task.
      */
-    public TaskAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull AbstractMultiTasksAdvancement multitask, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
-        super(key, display, Objects.requireNonNull(multitask, "AbstractMultiTasksAdvancement is null."), maxProgression);
+    public TaskAdvancement(@NotNull AbstractMultiTasksAdvancement multitask, @NotNull String key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull AbstractAdvancementDisplay display) {
+        super(Objects.requireNonNull(multitask, "AbstractMultiTasksAdvancement is null."), key, maxProgression, display);
     }
 
     /**
@@ -105,7 +105,7 @@ public class TaskAdvancement extends BaseAdvancement {
             }
 
             try {
-                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), this));
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(this, pro, result.oldProgression(), result.newProgression()));
             } catch (Exception e) {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
@@ -139,7 +139,7 @@ public class TaskAdvancement extends BaseAdvancement {
             }
 
             try {
-                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), this));
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(this, pro, result.oldProgression(), result.newProgression()));
             } catch (Exception e) {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }

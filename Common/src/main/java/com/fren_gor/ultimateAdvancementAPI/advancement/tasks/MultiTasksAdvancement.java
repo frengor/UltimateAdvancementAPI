@@ -68,16 +68,28 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     private boolean initialised = false;
 
     /**
-     * Creates a new {@code MultiTasksAdvancement}.
+     * Creates a new {@code MultiTasksAdvancement} with maximum progression of {@code 1}.
      *
+     * @param parent The parent of this advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
-     * @param parent The parent of this advancement.
-     * @param maxProgression The sum of the maximum progressions of all the tasks that will be registered.
      */
-    public MultiTasksAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
-        super(key, display, parent, maxProgression);
+    public MultiTasksAdvancement(@NotNull Advancement parent, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
+        this(parent, key, 1, display);
+    }
+
+    /**
+     * Creates a new {@code MultiTasksAdvancement}.
+     *
+     * @param parent The parent of this advancement.
+     * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
+     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     * @param maxProgression The sum of the maximum progressions of all the tasks that will be registered.
+     * @param display The display information of this advancement.
+     */
+    public MultiTasksAdvancement(@NotNull Advancement parent, @NotNull String key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull AbstractAdvancementDisplay display) {
+        super(parent, key, maxProgression, display);
     }
 
     /**

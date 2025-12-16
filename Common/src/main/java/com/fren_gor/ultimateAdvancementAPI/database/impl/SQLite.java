@@ -204,7 +204,7 @@ public class SQLite implements IDatabase {
         }
         List<UUID> list = getTeamMembers(teamId);
         Map<AdvancementKey, Integer> map = getTeamAdvancements(teamId);
-        return new SimpleEntry<>(new TeamProgression(map, teamId, list), false);
+        return new SimpleEntry<>(new TeamProgression(teamId, list, map), false);
     }
 
     /**
@@ -212,24 +212,24 @@ public class SQLite implements IDatabase {
      */
     @Override
     public TeamProgression loadUUID(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
-        int teamID = Integer.MIN_VALUE;
+        int teamId = Integer.MIN_VALUE;
         List<UUID> list = new LinkedList<>();
         try (PreparedStatement psTeamId = openConnection().prepareStatement("SELECT `UUID`, `TeamID` FROM `Players` WHERE `TeamID`=(SELECT `TeamID` FROM `Players` WHERE `UUID`=? LIMIT 1);")) {
             psTeamId.setString(1, uuid.toString());
             ResultSet r = psTeamId.executeQuery();
             while (r.next()) {
                 list.add(UUID.fromString(r.getString(1)));
-                if (teamID == Integer.MIN_VALUE)
-                    teamID = r.getInt(2);
+                if (teamId == Integer.MIN_VALUE)
+                    teamId = r.getInt(2);
             }
         }
 
-        if (teamID == Integer.MIN_VALUE)
+        if (teamId == Integer.MIN_VALUE)
             throw new UserNotRegisteredException("No user " + uuid + " has been found.");
 
         try (PreparedStatement psAdv = openConnection().prepareStatement("SELECT `Namespace`, `Key`, `Progression` FROM `Advancements` WHERE `TeamID`=?;")) {
             Map<AdvancementKey, Integer> map = new HashMap<>();
-            psAdv.setInt(1, teamID);
+            psAdv.setInt(1, teamId);
             ResultSet r = psAdv.executeQuery();
             while (r.next()) {
                 String namespace = r.getString(1);
@@ -241,7 +241,7 @@ public class SQLite implements IDatabase {
                     logger.warning("Invalid AdvancementKey (" + namespace + ':' + key + ") encountered while reading Advancements table: " + e.getMessage());
                 }
             }
-            return new TeamProgression(map, teamID, list);
+            return new TeamProgression(teamId, list, map);
         }
     }
 
@@ -275,7 +275,7 @@ public class SQLite implements IDatabase {
         }
         List<UUID> list = getTeamMembers(teamId);
         Map<AdvancementKey, Integer> map = getTeamAdvancements(teamId);
-        return new TeamProgression(map, teamId, list);
+        return new TeamProgression(teamId, list, map);
     }
 
     /**

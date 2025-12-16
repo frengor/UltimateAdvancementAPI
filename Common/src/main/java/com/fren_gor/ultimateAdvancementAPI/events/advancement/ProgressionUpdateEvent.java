@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -32,12 +33,13 @@ public class ProgressionUpdateEvent extends Event {
     /**
      * Creates a new {@code ProgressionUpdateEvent}.
      *
+     * @param advancementKey The {@link AdvancementKey} of the updated {@link Advancement}.
      * @param team The {@link TeamProgression} of the updated team.
      * @param oldProgression The old progression prior to the update.
      * @param newProgression The new progression after the update.
-     * @param advancementKey The {@link AdvancementKey} of the updated {@link Advancement}.
      */
-    public ProgressionUpdateEvent(@NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, @NotNull AdvancementKey advancementKey) {
+    @Internal
+    public ProgressionUpdateEvent(@NotNull AdvancementKey advancementKey, @NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
         this.team = validateTeamProgression(team);
         this.oldProgression = validateProgressionValue(oldProgression);
         this.newProgression = validateProgressionValue(newProgression);

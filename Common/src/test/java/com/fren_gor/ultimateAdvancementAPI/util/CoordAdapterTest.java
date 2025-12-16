@@ -149,8 +149,8 @@ public class CoordAdapterTest {
 
         // Create the advancements
         var adv1 = new RootAdvancement(myTab, advKey1.getKey(), advDisplay1);
-        var adv2 = new BaseAdvancement(advKey2.getKey(), advDisplay2, adv1);
-        var adv3 = new BaseAdvancement(advKey3.getKey(), advDisplay3, adv1, 5);
+        var adv2 = new BaseAdvancement(adv1, advKey2.getKey(), advDisplay2);
+        var adv3 = new BaseAdvancement(adv1, advKey3.getKey(), 5, advDisplay3);
 
         myTab.registerAdvancements(adv1, adv2, adv3);
 

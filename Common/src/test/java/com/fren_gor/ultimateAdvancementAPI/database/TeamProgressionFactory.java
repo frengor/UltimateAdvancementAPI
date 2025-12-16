@@ -39,8 +39,8 @@ public final class TeamProgressionFactory {
         return pro;
     }
 
-    public static TeamProgression createTeamProgression(int teamId, @NotNull Map<AdvancementKey, Integer> advancements, @NotNull Collection<UUID> members) {
-        return FACTORY.createTeamProgression(teamId, advancements, members);
+    public static TeamProgression createTeamProgression(int teamId, @NotNull Collection<UUID> members, @NotNull Map<AdvancementKey, Integer> advancements) {
+        return FACTORY.createTeamProgression(teamId, members, advancements);
     }
 
     private TeamProgressionFactory() {
@@ -52,8 +52,8 @@ public final class TeamProgressionFactory {
             return new TeamProgression(teamId);
         }
 
-        public TeamProgression createTeamProgression(int teamId, Map<AdvancementKey, Integer> advancements, Collection<UUID> members) {
-            return new TeamProgression(advancements, teamId, members);
+        public TeamProgression createTeamProgression(int teamId, Collection<UUID> members, Map<AdvancementKey, Integer> advancements) {
+            return new TeamProgression(teamId, members, advancements);
         }
     }
 }

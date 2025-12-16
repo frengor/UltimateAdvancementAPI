@@ -6,6 +6,7 @@ import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -27,6 +28,7 @@ public class AsyncTeamUnloadEvent extends Event {
      *
      * @param team The {@link TeamProgression} of the unloaded team. It must be invalid (see {@link TeamProgression#isValid()}).
      */
+    @Internal
     public AsyncTeamUnloadEvent(@NotNull TeamProgression team) {
         super(!Bukkit.isPrimaryThread());
         Preconditions.checkArgument(!Objects.requireNonNull(team, "TeamProgression is null.").isValid(), "TeamProgression is valid.");

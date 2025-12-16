@@ -32,7 +32,7 @@ public non-sealed class RootAdvancement extends Advancement {
      * @param display The display information of this advancement.
      */
     public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
-        this(advancementTab, key, display, 1);
+        this(advancementTab, key, 1, display);
     }
 
     /**
@@ -41,11 +41,11 @@ public non-sealed class RootAdvancement extends Advancement {
      * @param advancementTab The advancement tab of the advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
-     * @param display The display information of this advancement.
      * @param maxProgression The maximum advancement progression.
+     * @param display The display information of this advancement.
      */
-    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
-        super(advancementTab, key, display, maxProgression);
+    public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull AbstractAdvancementDisplay display) {
+        super(advancementTab, key, maxProgression, display);
     }
 
     /**

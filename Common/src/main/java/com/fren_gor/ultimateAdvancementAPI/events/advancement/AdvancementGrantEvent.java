@@ -26,12 +26,12 @@ public class AdvancementGrantEvent extends Event {
     /**
      * Creates a new {@code AdvancementGrantEvent}.
      *
+     * @param advancement The {@link Advancement}.
      * @param team The {@link TeamProgression} of the team which completed the advancement.
      * @param advancementCompleter The member of the team who completed the advancement.
-     * @param advancement The {@link Advancement}.
      * @param giveRewards Whether rewards will be given.
      */
-    public AdvancementGrantEvent(@NotNull TeamProgression team, @NotNull Player advancementCompleter, @NotNull Advancement advancement, boolean giveRewards) {
+    public AdvancementGrantEvent(@NotNull Advancement advancement, @NotNull TeamProgression team, @NotNull Player advancementCompleter, boolean giveRewards) {
         this.team = validateTeamProgression(team);
         this.advancementCompleter = Objects.requireNonNull(advancementCompleter, "Player is null.");
         Preconditions.checkArgument(team.contains(advancementCompleter), "Team does not contain the advancement completer.");

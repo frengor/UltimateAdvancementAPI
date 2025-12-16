@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
@@ -26,6 +27,7 @@ public class AsyncTeamLoadEvent extends Event {
      *
      * @param team The loaded {@link TeamProgression}. It must be valid (see {@link TeamProgression#isValid()}).
      */
+    @Internal
     public AsyncTeamLoadEvent(@NotNull TeamProgression team) {
         super(!Bukkit.isPrimaryThread());
         this.team = validateTeamProgression(team);

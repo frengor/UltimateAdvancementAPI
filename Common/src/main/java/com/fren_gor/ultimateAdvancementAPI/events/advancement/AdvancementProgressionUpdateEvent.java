@@ -30,12 +30,12 @@ public class AdvancementProgressionUpdateEvent extends Event {
     /**
      * Creates a new {@code AdvancementProgressionUpdateEvent}.
      *
+     * @param advancement The updated {@link Advancement}.
      * @param team The {@link TeamProgression} of the updated team.
      * @param oldProgression The old progression prior to the update.
      * @param newProgression The new progression after the update.
-     * @param advancement The updated {@link Advancement}.
      */
-    public AdvancementProgressionUpdateEvent(@NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, @NotNull Advancement advancement) {
+    public AdvancementProgressionUpdateEvent(@NotNull Advancement advancement, @NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
         this.team = validateTeamProgression(team);
         this.oldProgression = validateProgressionValue(oldProgression);
         this.newProgression = validateProgressionValue(newProgression);

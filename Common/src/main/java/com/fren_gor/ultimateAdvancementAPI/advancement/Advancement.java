@@ -85,32 +85,16 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
     @Nullable
     private final MethodHandle iVisibilityMethod, iAnnouncementMessageMethod;
 
-    private Advancement() {
-        throw new UnsupportedOperationException("Private constructor.");
-    }
-
-    /**
-     * Creates a new {@code Advancement} with a maximum progression of {@code 1}.
-     *
-     * @param advancementTab The advancement tab.
-     * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
-     * @param display The display information of this advancement.
-     */
-    Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
-        this(advancementTab, key, display, 1);
-    }
-
     /**
      * Creates a new {@code Advancement}.
      *
      * @param advancementTab The advancement tab.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
-     * @param display The display information of this advancement.
      * @param maxProgression The maximum advancement progression.
+     * @param display The display information of this advancement.
      */
-    Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
+    Advancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull AbstractAdvancementDisplay display) {
         Preconditions.checkArgument(maxProgression > 0, "Maximum progression cannot be <= 0");
         this.advancementTab = Objects.requireNonNull(advancementTab, "AdvancementTab is null.");
         Preconditions.checkArgument(!advancementTab.isInitialised(), "AdvancementTab is already initialised.");
@@ -370,7 +354,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
             }
 
             try {
-                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), Advancement.this));
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(Advancement.this, pro, result.oldProgression(), result.newProgression()));
             } catch (Exception e) {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
@@ -473,7 +457,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
             }
 
             try {
-                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(pro, result.oldProgression(), result.newProgression(), Advancement.this));
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(Advancement.this, pro, result.oldProgression(), result.newProgression()));
             } catch (Exception e) {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
@@ -648,7 +632,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
         final TeamProgression progression = advancementTab.getDatabaseManager().getTeamProgression(advancementCompleter);
 
         try {
-            Bukkit.getPluginManager().callEvent(new AdvancementGrantEvent(progression, advancementCompleter, this, giveRewards));
+            Bukkit.getPluginManager().callEvent(new AdvancementGrantEvent(this, progression, advancementCompleter, giveRewards));
         } catch (Exception e) {
             advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementGrantEvent for " + key, e);
         }

@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -25,6 +26,7 @@ public class AsyncPlayerUnregisteredEvent extends Event {
      *
      * @param uuid The {@link UUID} of the player which has been unregistered.
      */
+    @Internal
     public AsyncPlayerUnregisteredEvent(@NotNull UUID uuid) {
         super(!Bukkit.isPrimaryThread());
         this.uuid = Objects.requireNonNull(uuid, "UUID is null.");

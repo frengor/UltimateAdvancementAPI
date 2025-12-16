@@ -162,7 +162,7 @@ public class TeamProgressionTest {
 
     @Test
     void advancementProgressionTest(AdvancementKey key1, AdvancementKey key2, AdvancementKey key3) {
-        TeamProgression pro = TeamProgressionFactory.createTeamProgression(0, Map.of(key1, 10, key2, 5), Collections.emptyList());
+        TeamProgression pro = TeamProgressionFactory.createTeamProgression(0, Collections.emptyList(), Map.of(key1, 10, key2, 5));
 
         assertEquals(10, pro.getRawProgression(key1));
         assertEquals(5, pro.getRawProgression(key2));

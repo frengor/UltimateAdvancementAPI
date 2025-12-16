@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -26,6 +27,7 @@ public final class PlayerLoadingCompletedEvent extends Event {
      * @param player The loaded player.
      * @param progression The {@link TeamProgression} of the loaded player's team. It must be valid (see {@link TeamProgression#isValid()}).
      */
+    @Internal
     public PlayerLoadingCompletedEvent(@NotNull Player player, @NotNull TeamProgression progression) {
         this.player = Objects.requireNonNull(player, "Player is null.");
         this.progression = validateTeamProgression(progression);

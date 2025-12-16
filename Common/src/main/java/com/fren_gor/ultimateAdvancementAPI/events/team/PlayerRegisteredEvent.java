@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.events.team;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -27,6 +28,7 @@ public class PlayerRegisteredEvent extends Event {
      * @param team The {@link TeamProgression} of the player's team. It must be valid (see {@link TeamProgression#isValid()}).
      * @param uuid The {@link UUID} of the player which has been unregistered.
      */
+    @Internal
     public PlayerRegisteredEvent(@NotNull TeamProgression team, @NotNull UUID uuid) {
         this.team = validateTeamProgression(team);
         this.uuid = Objects.requireNonNull(uuid, "UUID is null.");

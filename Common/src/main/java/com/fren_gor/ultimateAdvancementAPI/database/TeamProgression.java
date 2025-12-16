@@ -45,8 +45,8 @@ public final class TeamProgression {
     private final Object playersLock = new Object();
 
     /**
-     * Creates a new TeamProgression for an empty team.
-     * <p><strong>Note:</strong> TeamProgression should be instantiated only by database-related classes.
+     * Creates a new {@code TeamProgression} for an empty team.
+     * <p><strong>Note:</strong> {@code TeamProgression} classes should be instantiated only by database-related classes.
      * Any illegal instantiation will throw an {@link IllegalOperationException}.
      *
      * @param teamId The team id.
@@ -60,16 +60,16 @@ public final class TeamProgression {
     }
 
     /**
-     * Creates a new TeamProgression for a team with more than one player in it.
-     * <p><strong>Note:</strong> TeamProgression should be instantiated only by database-related classes.
+     * Creates a new {@code TeamProgression} for a team with more than one player in it.
+     * <p><strong>Note:</strong> {@code TeamProgression} classes should be instantiated only by database-related classes.
      * Any illegal instantiation will throw an {@link IllegalOperationException}.
      *
-     * @param advancements All the advancement keys with their progression.
      * @param teamId The team id.
      * @param members A collection of team members.
+     * @param advancements All the advancement keys with their progressions.
      * @throws IllegalOperationException If this constructor is called by a class which is not an instance of {@link IDatabase}.
      */
-    public TeamProgression(@NotNull Map<AdvancementKey, Integer> advancements, int teamId, @NotNull Collection<UUID> members) {
+    public TeamProgression(int teamId, @NotNull Collection<UUID> members, @NotNull Map<AdvancementKey, Integer> advancements) {
         validateCaller(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
         Preconditions.checkNotNull(advancements, "Advancements is null.");
         Preconditions.checkNotNull(members, "Members is null.");

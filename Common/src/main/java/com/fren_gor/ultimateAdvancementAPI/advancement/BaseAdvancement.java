@@ -31,27 +31,27 @@ public non-sealed class BaseAdvancement extends Advancement {
      * Creates a new {@code BaseAdvancement} with a maximum progression of {@code 1}.
      * <p>The tab of this advancement will be the parent one.
      *
+     * @param parent The parent of this advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
-     * @param parent The parent of this advancement.
      */
-    public BaseAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull Advancement parent) {
-        this(key, display, parent, 1);
+    public BaseAdvancement(@NotNull Advancement parent, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
+        this(parent, key, 1, display);
     }
 
     /**
      * Creates a new {@code BaseAdvancement}.
      * <p>The tab of this advancement will be the parent one.
      *
+     * @param parent The parent of this advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
      *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
-     * @param display The display information of this advancement.
-     * @param parent The parent of this advancement.
      * @param maxProgression The maximum advancement progression.
+     * @param display The display information of this advancement.
      */
-    public BaseAdvancement(@NotNull String key, @NotNull AbstractAdvancementDisplay display, @NotNull Advancement parent, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
-        super(Objects.requireNonNull(parent, "Parent advancement is null.").advancementTab, key, display, maxProgression);
+    public BaseAdvancement(@NotNull Advancement parent, @NotNull String key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull AbstractAdvancementDisplay display) {
+        super(Objects.requireNonNull(parent, "Parent advancement is null.").advancementTab, key, maxProgression, display);
         this.parent = parent;
     }
 

@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.events.team;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -23,11 +24,12 @@ public class TeamUpdateEvent extends Event {
     /**
      * Creates a new {@code AsyncTeamUpdateEvent}.
      *
+     * @param playerUUID The {@link UUID} of the player.
      * @param oldTeam The {@link TeamProgression} of the old player's team. It must be valid (see {@link TeamProgression#isValid()}).
      * @param newTeam The {@link TeamProgression} of the new player's team. It must be valid (see {@link TeamProgression#isValid()}).
-     * @param playerUUID The {@link UUID} of the player.
      */
-    public TeamUpdateEvent(@NotNull TeamProgression oldTeam, @NotNull TeamProgression newTeam, @NotNull UUID playerUUID) {
+    @Internal
+    public TeamUpdateEvent(@NotNull UUID playerUUID, @NotNull TeamProgression oldTeam, @NotNull TeamProgression newTeam) {
         this.oldTeam = validateTeamProgression(Objects.requireNonNull(oldTeam, "OldTeam is null."));
         this.newTeam = validateTeamProgression(Objects.requireNonNull(newTeam, "NewTeam is null."));
         this.playerUUID = Objects.requireNonNull(playerUUID, "UUID is null.");

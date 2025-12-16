@@ -1913,7 +1913,7 @@ public final class DatabaseManager implements Closeable {
         newTeam.addInternalRequest();
         player.setPlayerTeam(newTeam);
 
-        callEventCatchingExceptions(new TeamUpdateEvent(oldTeam.getTeamProgression(), newTeam.getTeamProgression(), player.getUuid()));
+        callEventCatchingExceptions(new TeamUpdateEvent(player.getUuid(), oldTeam.getTeamProgression(), newTeam.getTeamProgression()));
         removeInternalRequest(oldTeam);
     }
 
@@ -2305,7 +2305,7 @@ public final class DatabaseManager implements Closeable {
                         }
                         case PROGRESSION_UPDATE -> {
                             update.team.getTeamProgression().updateProgression(update.key, update.newProgr);
-                            callEventCatchingExceptions(new ProgressionUpdateEvent(update.team.getTeamProgression(), update.oldProgr, update.newProgr, update.key));
+                            callEventCatchingExceptions(new ProgressionUpdateEvent(update.key, update.team.getTeamProgression(), update.oldProgr, update.newProgr));
                         }
                     }
 
