@@ -18,7 +18,6 @@ import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateE
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.PlayerRegisteredEvent;
-import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseManagerClosedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
@@ -38,10 +37,11 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.fren_gor.ultimateAdvancementAPI.tests.Utils.assertCfThrows;
+import static com.fren_gor.ultimateAdvancementAPI.tests.Utils.assertCfThrowsInDatabaseException;
 import static com.fren_gor.ultimateAdvancementAPI.tests.Utils.waitCompletion;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -358,7 +358,8 @@ public class DatabaseManagerTest {
         dbImpls.getFallible().addToPlanning(false);
         assertTrue(waitCompletion(dbManager.loadAndAddLoadingRequestToPlayer(p.getUniqueId(), plugin)).isCompletedExceptionally());
         assertEquals(0, dbManager.getLoadingRequestsAmount(p.getUniqueId(), plugin));
-        assertThrows(UserNotLoadedException.class, () -> dbManager.getTeamProgression(p.getUniqueId()));
+        var exception = assertThrows(UserNotLoadedException.class, () -> dbManager.getTeamProgression(p.getUniqueId()));
+        assertEquals(p.getUniqueId(), exception.getUser());
     }
 
     @Test
@@ -367,14 +368,8 @@ public class DatabaseManagerTest {
         UUID uuid = UUID.randomUUID();
         plugin.getLogger().warning("Expecting a " + UserNotRegisteredException.class.getSimpleName() + " for user " + uuid + '.');
         var cf = waitCompletion(dbManager.loadAndAddLoadingRequestToPlayer(uuid, plugin));
-        assertTrue(cf.isCompletedExceptionally());
-        try {
-            cf.get(0, TimeUnit.SECONDS);
-            fail();
-        } catch (ExecutionException e) {
-            assertInstanceOf(DatabaseException.class, e.getCause());
-            assertInstanceOf(UserNotRegisteredException.class, e.getCause().getCause());
-        }
+        var exception = assertCfThrowsInDatabaseException(UserNotRegisteredException.class, cf);
+        assertEquals(uuid, exception.getUser());
     }
 
     @Test
@@ -537,18 +532,8 @@ public class DatabaseManagerTest {
 
         assertFalse(team.isValid());
 
-        try {
-            cf1.get(0, TimeUnit.SECONDS);
-            fail();
-        } catch (ExecutionException e) {
-            assertInstanceOf(DatabaseManagerClosedException.class, e.getCause());
-        }
-        try {
-            cf2.get(0, TimeUnit.SECONDS);
-            fail();
-        } catch (ExecutionException e) {
-            assertInstanceOf(DatabaseManagerClosedException.class, e.getCause());
-        }
+        assertCfThrows(DatabaseManagerClosedException.class, cf1);
+        assertCfThrows(DatabaseManagerClosedException.class, cf2);
     }
 
     @Test
@@ -616,7 +601,8 @@ public class DatabaseManagerTest {
         server.getPluginManager().assertEventNotFired(PlayerRegisteredEvent.class);
         assertTrue(team.isValid());
 
-        assertThrows(UserNotLoadedException.class, () -> dbManager.updatePlayerTeam(p, team));
+        var exception = assertThrows(UserNotLoadedException.class, () -> dbManager.updatePlayerTeam(p, team));
+        assertEquals(p.getUniqueId(), exception.getUser());
 
         server.getPluginManager().assertEventNotFired(PlayerRegisteredEvent.class);
         assertTrue(team.isValid());
@@ -639,7 +625,9 @@ public class DatabaseManagerTest {
         MockPlugin plugin = MockBukkit.createMockPlugin();
 
         plugin.getLogger().warning("Expecting a " + TeamNotRegisteredException.class.getSimpleName() + " for team -1.");
-        assertTrue(waitCompletion(dbManager.loadAndAddLoadingRequestToTeam(-1, plugin)).isCompletedExceptionally());
+        var invalidTeamCf = waitCompletion(dbManager.loadAndAddLoadingRequestToTeam(-1, plugin));
+        var exception = assertCfThrowsInDatabaseException(TeamNotRegisteredException.class, invalidTeamCf);
+        assertEquals(-1, exception.getTeamId());
 
         int teamId = dbImpls.getRawDB().createNewTeam().getTeamId();
 

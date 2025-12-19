@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
+import com.fren_gor.ultimateAdvancementAPI.exceptions.NotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.TeamNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
@@ -267,12 +268,12 @@ public interface IDatabase {
      * @param name The player name.
      * @return The {@link UUID} of the first player found with the provided name.
      * @throws SQLException If an SQL exception occurs.
-     * @throws UserNotRegisteredException If the provided player name could not be found in the database.
+     * @throws NotRegisteredException If the provided player name could not be found in the database.
      */
-    default UUID getPlayerByName(@NotNull String name) throws SQLException, UserNotRegisteredException {
+    default UUID getPlayerByName(@NotNull String name) throws SQLException, NotRegisteredException {
         List<UUID> l = getPlayersByName(name);
-        if (l.size() == 0) {
-            throw new UserNotRegisteredException("Couldn't find any player with name '" + name + '\'');
+        if (l.isEmpty()) {
+            throw new NotRegisteredException("Couldn't find any player with name '" + name + '\'');
         }
         return l.get(0);
     }

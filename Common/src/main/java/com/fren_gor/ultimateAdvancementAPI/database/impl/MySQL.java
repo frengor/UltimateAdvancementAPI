@@ -169,7 +169,7 @@ public class MySQL implements IDatabase {
             if (r.next()) {
                 return r.getInt(1);
             } else {
-                throw new UserNotRegisteredException("No user " + uuid + " has been found.");
+                throw new UserNotRegisteredException(uuid);
             }
         }
     }
@@ -280,7 +280,7 @@ public class MySQL implements IDatabase {
             }
 
             if (teamId == Integer.MIN_VALUE)
-                throw new UserNotRegisteredException("No user " + uuid + " has been found.");
+                throw new UserNotRegisteredException(uuid);
 
             try (PreparedStatement psAdv = conn.prepareStatement("SELECT `Namespace`, `Key`, `Progression` FROM `Advancements` WHERE `TeamID`=?;")) {
                 Map<AdvancementKey, Integer> map = new HashMap<>();
@@ -333,7 +333,7 @@ public class MySQL implements IDatabase {
                 ps.setInt(1, teamId);
                 ResultSet r = ps.executeQuery();
                 if (!r.next()) {
-                    throw new TeamNotRegisteredException("No team with id " + teamId + " has been found.");
+                    throw new TeamNotRegisteredException(teamId);
                 }
                 teamId = r.getInt(1);
             }
@@ -523,7 +523,7 @@ public class MySQL implements IDatabase {
             ps.setString(1, uuid.toString());
             ResultSet r = ps.executeQuery();
             if (!r.next()) {
-                throw new UserNotRegisteredException("No user " + uuid + " has been found.");
+                throw new UserNotRegisteredException(uuid);
             }
             return r.getString(1);
         }
@@ -551,7 +551,7 @@ public class MySQL implements IDatabase {
             ps.setInt(2, teamId);
             int modifiedRows = ps.executeUpdate();
             if (modifiedRows == 0) {
-                throw new TeamNotRegisteredException("No team with id " + teamId + " has been found.");
+                throw new TeamNotRegisteredException(teamId);
             }
         }
     }
@@ -565,7 +565,7 @@ public class MySQL implements IDatabase {
             ps.setInt(1, teamId);
             ResultSet r = ps.executeQuery();
             if (!r.next()) {
-                throw new TeamNotRegisteredException("No team with id " + teamId + " has been found.");
+                throw new TeamNotRegisteredException(teamId);
             }
             return r.getInt(1) != 0;
         }

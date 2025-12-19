@@ -4,6 +4,7 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
@@ -16,6 +17,8 @@ import org.mockito.Mockito;
 import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doNothing;
@@ -52,6 +55,19 @@ public final class Utils {
             Thread.yield();
         }
         return completableFuture;
+    }
+
+    public static <T extends Throwable> T assertCfThrows(Class<T> expectedType, CompletableFuture<?> completableFuture) {
+        assertTrue(completableFuture.isCompletedExceptionally(), "The provided CompletableFuture is not completed exceptionally.");
+        var exception = assertThrows(ExecutionException.class, () -> completableFuture.get(0, TimeUnit.SECONDS));
+        return assertInstanceOf(expectedType, exception.getCause());
+    }
+
+    public static <T extends Throwable> T assertCfThrowsInDatabaseException(Class<T> expectedType, CompletableFuture<?> completableFuture) {
+        assertTrue(completableFuture.isCompletedExceptionally(), "The provided CompletableFuture is not completed exceptionally.");
+        var exception = assertThrows(ExecutionException.class, () -> completableFuture.get(0, TimeUnit.SECONDS));
+        var dbEx = assertInstanceOf(DatabaseException.class, exception.getCause(), "The provided CompletableFuture is not completed exceptionally with a DatabaseException.");
+        return assertInstanceOf(expectedType, dbEx.getCause());
     }
 
     @NotNull

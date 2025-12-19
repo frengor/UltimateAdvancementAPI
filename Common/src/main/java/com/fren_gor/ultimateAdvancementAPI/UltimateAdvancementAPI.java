@@ -511,9 +511,10 @@ public final class UltimateAdvancementAPI {
         final int maxProgression = advancement.getMaxProgression();
         final AdvancementKey key = advancement.getKey();
         return callAfterLoad(uuid, ds -> {
+            TeamProgression pro = ds.getTeamProgression(uuid);
             // Don't call update if advancement isn't granted, it may throw a foreign key exception
-            if (ds.getTeamProgression(uuid).getRawProgression(key) != maxProgression) {
-                throw new NotGrantedException();
+            if (pro.getRawProgression(key) != maxProgression) {
+                throw new NotGrantedException(key, pro.getTeamId());
             }
             return ds.setUnredeemed(advancement.getKey(), giveRewards, uuid);
         });

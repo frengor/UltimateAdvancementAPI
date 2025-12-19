@@ -175,7 +175,8 @@ public class InMemoryTest {
         assertTrue(db.loadTeam(team1).contains(uuid));
         assertTrue(db.loadTeam(team2).contains(uuid2));
         assertEquals(0, db.loadTeam(team3).getSize());
-        assertThrows(TeamNotRegisteredException.class, () -> db.loadTeam(team4));
+        var exception = assertThrows(TeamNotRegisteredException.class, () -> db.loadTeam(team4));
+        assertEquals(team4, exception.getTeamId());
     }
 
     private static class FallibleList<T> extends LinkedList<T> {
