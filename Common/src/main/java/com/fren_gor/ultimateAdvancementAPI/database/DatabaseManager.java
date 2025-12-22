@@ -1929,7 +1929,11 @@ public final class DatabaseManager implements Closeable {
      */
     private synchronized void registerProgressionUpdate(@NotNull LoadedTeam team, @NotNull AdvancementKey key, int oldProgr, int newProgr, @NotNull CompletableFuture<ProgressionUpdateResult> completableFuture) {
         pendingUpdatesManager.registerProgressionUpdate(team, key, oldProgr, newProgr, () -> {
-            completableFuture.complete(new ProgressionUpdateResult(oldProgr, newProgr));
+            try {
+                callEventCatchingExceptions(new ProgressionUpdateEvent(key, team.getTeamProgression(), oldProgr, newProgr, completableFuture));
+            } finally {
+                completableFuture.complete(new ProgressionUpdateResult(oldProgr, newProgr));
+            }
         });
     }
 
@@ -2305,7 +2309,6 @@ public final class DatabaseManager implements Closeable {
                         }
                         case PROGRESSION_UPDATE -> {
                             update.team.getTeamProgression().updateProgression(update.key, update.newProgr);
-                            callEventCatchingExceptions(new ProgressionUpdateEvent(update.key, update.team.getTeamProgression(), update.oldProgr, update.newProgr));
                         }
                     }
 

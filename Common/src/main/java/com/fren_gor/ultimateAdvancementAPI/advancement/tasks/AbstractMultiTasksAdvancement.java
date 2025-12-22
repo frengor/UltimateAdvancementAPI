@@ -52,67 +52,77 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
     }
 
     /**
-     * Reloads and updates the tasks to the provided player's team members.
-     * <p>This method should be invoked when the progression of a task changes.
+     * Updates the provided team members after the progression of a task changes.
+     * <p>This method should be invoked by tasks when their progression changes.
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
-     * @param task The task which triggered the reload.
-     * @param player The player responsible for the task's progression update.
-     * @param result The result of the update.
+     * @param task The task which progression changed.
+     * @param player The player responsible for the task's progression change.
+     * @param result The result of the progression update.
+     * @param multiTaskProgression The progression of this multi-task advancement (i.e. this advancement) at the time of
+     *         the update (calculated using the new progression of the task).
      */
-    public void reloadTasks(@NotNull Advancement task, @NotNull Player player, @NotNull ProgressionUpdateResult result) {
-        reloadTasks(task, player, result, true);
+    public void onTaskProgressionChange(@NotNull Advancement task, @NotNull Player player, @NotNull ProgressionUpdateResult result, int multiTaskProgression) {
+        onTaskProgressionChange(task, player, result, multiTaskProgression, true);
     }
 
     /**
-     * Reloads and updates the tasks to the provided player's team members.
-     * <p>This method should be invoked when the progression of a task changes.
+     * Updates the provided team members after the progression of a task changes.
+     * <p>This method should be invoked by tasks when their progression changes.
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
-     * @param task The task which triggered the reload.
-     * @param uuid The {@link UUID} of the player responsible for the task's progression update.
-     * @param result The result of the update.
+     * @param task The task which progression changed.
+     * @param uuid The {@link UUID} of the player responsible for the task's progression change.
+     * @param result The result of the progression update.
+     * @param multiTaskProgression The progression of this multi-task advancement (i.e. this advancement) at the time of
+     *         the update (calculated using the new progression of the task).
      */
-    public void reloadTasks(@NotNull Advancement task, @NotNull UUID uuid, @NotNull ProgressionUpdateResult result) {
-        reloadTasks(task, uuid, result, true);
+    public void onTaskProgressionChange(@NotNull Advancement task, @NotNull UUID uuid, @NotNull ProgressionUpdateResult result, int multiTaskProgression) {
+        onTaskProgressionChange(task, uuid, result, multiTaskProgression, true);
     }
 
     /**
-     * Reloads and updates the tasks to the provided player's team members.
-     * <p>This method should be invoked when the progression of a task changes.
+     * Updates the provided team members after the progression of a task changes.
+     * <p>This method should be invoked by tasks when their progression changes.
      *
-     * @param task The task which triggered the reload.
-     * @param player The player responsible for the task's progression update.
-     * @param result The result of the update.
+     * @param task The task which progression changed.
+     * @param player The player responsible for the task's progression change.
+     * @param result The result of the progression update.
+     * @param multiTaskProgression The progression of this multi-task advancement (i.e. this advancement) at the time of
+     *         the update (calculated using the new progression of the task).
      * @param giveRewards Whether to give the player the advancement rewards if the advancement gets completed.
      */
-    public void reloadTasks(@NotNull Advancement task, @NotNull Player player, @NotNull ProgressionUpdateResult result, boolean giveRewards) {
-        reloadTasks(task, progressionFromPlayer(player, this), player, result, giveRewards);
+    public void onTaskProgressionChange(@NotNull Advancement task, @NotNull Player player, @NotNull ProgressionUpdateResult result, int multiTaskProgression, boolean giveRewards) {
+        onTaskProgressionChange(task, progressionFromPlayer(player, this), player, result, multiTaskProgression, giveRewards);
     }
 
     /**
-     * Reloads and updates the tasks to the provided player's team members.
-     * <p>This method should be invoked when the progression of a task changes.
+     * Updates the provided team members after the progression of a task changes.
+     * <p>This method should be invoked by tasks when their progression changes.
      *
-     * @param task The task which triggered the reload.
-     * @param uuid The {@link UUID} of the player responsible for the task's progression update.
-     * @param result The result of the update.
+     * @param task The task which progression changed.
+     * @param uuid The {@link UUID} of the player responsible for the task's progression change.
+     * @param result The result of the progression update.
+     * @param multiTaskProgression The progression of this multi-task advancement at the time of
+     *         the update (calculated using the new progression of the task).
      * @param giveRewards Whether to give the player the advancement rewards if the advancement gets completed.
      */
-    public void reloadTasks(@NotNull Advancement task, @NotNull UUID uuid, @NotNull ProgressionUpdateResult result, boolean giveRewards) {
-        reloadTasks(task, progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), result, giveRewards);
+    public void onTaskProgressionChange(@NotNull Advancement task, @NotNull UUID uuid, @NotNull ProgressionUpdateResult result, int multiTaskProgression, boolean giveRewards) {
+        onTaskProgressionChange(task, progressionFromUUID(uuid, this), Bukkit.getPlayer(uuid), result, multiTaskProgression, giveRewards);
     }
 
     /**
-     * Reloads and updates the tasks to the provided team members.
-     * <p>This method should be invoked when the progression of a task changes.
+     * Updates the provided team members after the progression of a task changes.
+     * <p>This method should be invoked by tasks when their progression changes.
      *
-     * @param task The task which triggered the reload.
+     * @param task The task which progression changed.
      * @param progression The {@link TeamProgression} of the team.
-     * @param player The player responsible for the task's progression update, or {@code null} if there's not.
-     *         In this case, the implementation can choose a random online member.
-     * @param result The result of the update.
+     * @param player The player responsible for the task's progression change, or {@code null} if there's not.
+     *         In this case, the implementation can choose a random online team member.
+     * @param result The result of the progression update.
+     * @param multiTaskProgression The progression of this multi-task advancement (i.e. this advancement) at the time of
+     *         the update (calculated using the new progression of the task).
      * @param giveRewards Whether to give the player the advancement rewards if the advancement gets completed.
      */
-    protected abstract void reloadTasks(@NotNull Advancement task, @NotNull TeamProgression progression, @Nullable Player player, @NotNull ProgressionUpdateResult result, boolean giveRewards);
+    protected abstract void onTaskProgressionChange(@NotNull Advancement task, @NotNull TeamProgression progression, @Nullable Player player, @NotNull ProgressionUpdateResult result, int multiTaskProgression, boolean giveRewards);
 }

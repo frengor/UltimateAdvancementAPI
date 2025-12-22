@@ -1,5 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
+import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementUpdater;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
@@ -8,18 +9,22 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import com.google.common.collect.MapMaker;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventPriority;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -32,13 +37,19 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 
 /**
  * The {@code TaskAdvancement} class represents a task. It can be used by any {@link AbstractMultiTasksAdvancement} subclass
- * to separate an advancement progression into different progression (one per task).
+ * to separate an advancement progression into different progressions (one per task).
  * <p>For example, the advancement "mine 5 blocks of every plank" can be made using a {@code TaskAdvancement}
  * for every plank (with a progression of 5) and registering them into an {@link AbstractMultiTasksAdvancement}.
  * <p>{@code TaskAdvancement}s are saved into the database, but they are never sent to players.
- * For this reason they cannot be registered in tabs either.
+ * For this reason they cannot be registered in an {@link AdvancementTab}.
  */
 public class TaskAdvancement extends BaseAdvancement {
+
+    // CompletableFuture -> MultiTask's progression at time of ProgressionUpdateEvent
+    private final Map<CompletableFuture<ProgressionUpdateResult>, Integer> pendingUpdates = new MapMaker()
+            .concurrencyLevel(1)
+            .weakKeys() // This makes the map use identity comparison (==) for keys
+            .makeMap();
 
     /**
      * Creates a new {@code TaskAdvancement} with a maximum progression of {@code 1}.
@@ -86,6 +97,14 @@ public class TaskAdvancement extends BaseAdvancement {
      */
     public TaskAdvancement(@NotNull AbstractMultiTasksAdvancement multitask, @NotNull String key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull AbstractAdvancementDisplay display) {
         super(Objects.requireNonNull(multitask, "AbstractMultiTasksAdvancement is null."), key, maxProgression, display);
+
+        registerEvent(ProgressionUpdateEvent.class, EventPriority.HIGHEST, e -> {
+            if (!this.getKey().equals(e.getAdvancementKey())) {
+                return;
+            }
+
+            pendingUpdates.put(e.getUpdateCompletableFuture(), multitask.getProgression(e.getTeamProgression()));
+        });
     }
 
     /**
@@ -114,7 +133,10 @@ public class TaskAdvancement extends BaseAdvancement {
             try {
                 handleAdvancementGranting(pro, player, result.newProgression(), result.oldProgression(), giveRewards);
             } finally {
-                getMultiTasksAdvancement().reloadTasks(this, pro, player, result, giveRewards);
+                Integer multiTaskProgression = pendingUpdates.remove(completableFuture);
+                if (multiTaskProgression != null) {
+                    getMultiTasksAdvancement().onTaskProgressionChange(this, pro, player, result, multiTaskProgression, giveRewards);
+                }
             }
         });
 
@@ -148,7 +170,10 @@ public class TaskAdvancement extends BaseAdvancement {
             try {
                 handleAdvancementGranting(pro, player, result.newProgression(), result.oldProgression(), giveRewards);
             } finally {
-                getMultiTasksAdvancement().reloadTasks(this, pro, player, result, giveRewards);
+                Integer multiTaskProgression = pendingUpdates.remove(completableFuture);
+                if (multiTaskProgression != null) {
+                    getMultiTasksAdvancement().onTaskProgressionChange(this, pro, player, result, multiTaskProgression, giveRewards);
+                }
             }
         });
 

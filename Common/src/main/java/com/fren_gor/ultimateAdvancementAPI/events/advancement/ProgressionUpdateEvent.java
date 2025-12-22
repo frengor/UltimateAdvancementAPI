@@ -1,9 +1,12 @@
 package com.fren_gor.ultimateAdvancementAPI.events.advancement;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.advancement.tasks.MultiTasksAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
+import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
+import com.google.common.base.Preconditions;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -11,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateProgressionValue;
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
@@ -18,6 +22,8 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 /**
  * Called synchronously when a team's progression of an advancement changes.
  * <p>This event differs from {@link AdvancementProgressionUpdateEvent} because it is called by {@link DatabaseManager}.
+ * As such, it is only called for advancements saved in the database (notably, this excludes multi-task advancements
+ * like {@link MultiTasksAdvancement}).
  *
  * @since 3.0.0
  */
@@ -30,6 +36,8 @@ public class ProgressionUpdateEvent extends Event {
 
     private final AdvancementKey advancementKey;
 
+    private final CompletableFuture<ProgressionUpdateResult> updateCompletableFuture;
+
     /**
      * Creates a new {@code ProgressionUpdateEvent}.
      *
@@ -37,13 +45,16 @@ public class ProgressionUpdateEvent extends Event {
      * @param team The {@link TeamProgression} of the updated team.
      * @param oldProgression The old progression prior to the update.
      * @param newProgression The new progression after the update.
+     * @param updateCompletableFuture The {@link CompletableFuture} associated with this update (see {@link #getUpdateCompletableFuture()}).
      */
     @Internal
-    public ProgressionUpdateEvent(@NotNull AdvancementKey advancementKey, @NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
+    public ProgressionUpdateEvent(@NotNull AdvancementKey advancementKey, @NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, @NotNull CompletableFuture<ProgressionUpdateResult> updateCompletableFuture) {
         this.team = validateTeamProgression(team);
         this.oldProgression = validateProgressionValue(oldProgression);
         this.newProgression = validateProgressionValue(newProgression);
         this.advancementKey = Objects.requireNonNull(advancementKey, "AdvancementKey is null.");
+        this.updateCompletableFuture = Objects.requireNonNull(updateCompletableFuture, "Update CompletableFuture is null.");
+        Preconditions.checkArgument(!updateCompletableFuture.isDone(), "Update CompletableFuture is completed.");
     }
 
     /**
@@ -82,6 +93,21 @@ public class ProgressionUpdateEvent extends Event {
      */
     public AdvancementKey getAdvancementKey() {
         return advancementKey;
+    }
+
+    /**
+     * Gets the {@link CompletableFuture} associated with this update (i.e. the {@link CompletableFuture} that is
+     * returned by the call to {@link DatabaseManager#setProgression(AdvancementKey, TeamProgression, int) setProgression(...)}
+     * or {@link DatabaseManager#incrementProgression(AdvancementKey, TeamProgression, int, int) incrementProgression(...)}
+     * that produced this update).
+     * <p>The returned {@link CompletableFuture} will be completed only after this event has finished being called
+     * (i.e. for listeners of {@code ProgressionUpdateEvent}, calling {@link CompletableFuture#isDone() isDone()} returns {@code false}).
+     *
+     * @return The {@link CompletableFuture} associated with this update.
+     */
+    @NotNull
+    public CompletableFuture<ProgressionUpdateResult> getUpdateCompletableFuture() {
+        return updateCompletableFuture;
     }
 
     private static final HandlerList handlers = new HandlerList();
