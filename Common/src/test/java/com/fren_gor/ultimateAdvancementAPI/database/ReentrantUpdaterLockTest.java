@@ -464,10 +464,10 @@ public class ReentrantUpdaterLockTest {
             fail(e);
         }
 
+        assertFalse(shouldStop.get(), "Timeout");
+
         interrupted.set(true);
         timeout.interrupt();
-
-        assertFalse(shouldStop.get(), "Timeout");
     }
 
     @Test
@@ -548,10 +548,10 @@ public class ReentrantUpdaterLockTest {
             throw e;
         }
 
+        assertFalse(shouldStop.get(), "Timeout");
+
         interrupted.set(true);
         timeout.interrupt();
-
-        assertFalse(shouldStop.get(), "Timeout");
     }
 
     @Test
