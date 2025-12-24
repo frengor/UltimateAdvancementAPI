@@ -1927,7 +1927,7 @@ public final class DatabaseManager implements Closeable {
      * @param newProgr The new progression.
      * @param completableFuture The {@link CompletableFuture} to complete after the update ends.
      */
-    private synchronized void registerProgressionUpdate(@NotNull LoadedTeam team, @NotNull AdvancementKey key, int oldProgr, int newProgr, @NotNull CompletableFuture<ProgressionUpdateResult> completableFuture) {
+    private /*synchronized*/ void registerProgressionUpdate(@NotNull LoadedTeam team, @NotNull AdvancementKey key, int oldProgr, int newProgr, @NotNull CompletableFuture<ProgressionUpdateResult> completableFuture) {
         pendingUpdatesManager.registerProgressionUpdate(team, key, oldProgr, newProgr, () -> {
             try {
                 callEventCatchingExceptions(new ProgressionUpdateEvent(key, team.getTeamProgression(), oldProgr, newProgr, completableFuture));
