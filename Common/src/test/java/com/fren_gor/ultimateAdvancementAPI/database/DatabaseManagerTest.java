@@ -25,18 +25,22 @@ import com.fren_gor.ultimateAdvancementAPI.tests.DatabaseManagerUtils.Paused;
 import com.fren_gor.ultimateAdvancementAPI.tests.database.DatabaseImpls;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
+import org.bukkit.Bukkit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -466,6 +470,83 @@ public class DatabaseManagerTest {
         } finally {
             manager.unregister(listener);
         }
+    }
+
+    @Test
+    void progressionUpdateEventTest(AdvancementKey key) throws Exception {
+        final int requestAmount = 10;
+
+        final Object listener = new Object();
+        final EventManager manager = advancementMain.getEventManager();
+        final List<CompletableFuture<ProgressionUpdateResult>> completableFutures = new ArrayList<>(requestAmount * 2);
+        final Set<ProgressionUpdateResult> eventResults = new HashSet<>();
+
+        final PlayerMock player = loadPlayer();
+
+        final AtomicReference<String> failed = new AtomicReference<>(null);
+
+        try {
+            manager.register(listener, ProgressionUpdateEvent.class, event -> {
+                if (!Bukkit.isPrimaryThread()) {
+                    failed.set("ProgressionUpdateEvent called not synchronously");
+                    return;
+                }
+
+                if (!event.getTeamProgression().contains(player)) {
+                    failed.set("Wrong TeamProgression");
+                    return;
+                }
+
+                if (!event.getAdvancementKey().equals(key)) {
+                    failed.set("Wrong AdvancementKey");
+                    return;
+                }
+
+                if (event.getUpdateCompletableFuture().isDone()) {
+                    failed.set("Update CompletableFuture already completed");
+                    return;
+                }
+
+                if (completableFutures.stream().filter(cf -> cf == event.getUpdateCompletableFuture()).count() != 1) {
+                    failed.set("ProgressionUpdateEvent's update CompletableFuture was not found");
+                    return;
+                }
+
+                if (!eventResults.add(new ProgressionUpdateResult(event.getOldProgression(), event.getNewProgression()))) {
+                    failed.set("Test is incorrectly written, duplicated ProgressionUpdateResult found");
+                }
+            });
+
+            for (int i = 1; i <= requestAmount; i++) {
+                completableFutures.add(dbManager.setProgression(key, player.getUniqueId(), i));
+                completableFutures.add(dbManager.incrementProgression(key, player.getUniqueId(), 2, MAX_PROGRESSION));
+                if (Math.random() > 0.5) {
+                    server.getScheduler().performOneTick();
+                }
+            }
+
+            Thread.sleep(500);
+
+            for (var cf : completableFutures) {
+                waitCompletion(cf);
+            }
+        } finally {
+            manager.unregister(listener);
+        }
+
+        String failedReason = failed.get();
+        if (failedReason != null) {
+            fail(failedReason);
+        }
+
+        for (var cf : completableFutures) {
+            assertTrue(cf.isDone());
+            assertFalse(cf.isCompletedExceptionally());
+            var update = cf.get(0, TimeUnit.SECONDS);
+            assertTrue(eventResults.contains(update));
+        }
+
+        disconnectPlayer(player);
     }
 
     @Test
