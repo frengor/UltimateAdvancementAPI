@@ -655,7 +655,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
         Preconditions.checkNotNull(advancementCompleter, "Player is null.");
         validateTeamProgression(progression);
 
-        Boolean gameRule = advancementCompleter.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
+        Boolean gameRule = advancementCompleter.getWorld().getGameRuleValue(AdvancementUtils.SHOW_ADVANCEMENT_MESSAGES_GAMERULE);
         if ((gameRule == null || gameRule) && display.dispatchDoesAnnounceToChat(advancementCompleter, progression)) {
             @Nullable Function<Player, @Nullable BaseComponent> perPlayerMsgGetter = getAnnouncementMessage(advancementCompleter);
             if (perPlayerMsgGetter != null) {

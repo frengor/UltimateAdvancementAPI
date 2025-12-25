@@ -26,6 +26,7 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.HoverEvent.Action;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -48,6 +49,11 @@ import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
 public final class AdvancementUtils {
+
+    /**
+     * The {@code show_advancement_messages} game rule (previously called {@code announceAdvancements}).
+     */
+    public static final GameRule<Boolean> SHOW_ADVANCEMENT_MESSAGES_GAMERULE = getShowAdvancementMessagesGamerule();
 
     private static final String NOTIFICATION_NAMESPACE;
     private static final AtomicInteger NOTIFICATION_KEY_NUMBER = new AtomicInteger(0);
@@ -509,6 +515,19 @@ public final class AdvancementUtils {
         text = text.duplicate();
         defaultStyle.applyTo(text);
         return text;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static GameRule<Boolean> getShowAdvancementMessagesGamerule() {
+        try {
+            // Spigot 1.21.11+
+            return (GameRule<Boolean>) GameRule.class.getDeclaredField("SHOW_ADVANCEMENT_MESSAGES").get(null);
+        } catch (NoSuchFieldException e) {
+            // Spigot <= 1.21.10, Paper all versions
+            return GameRule.ANNOUNCE_ADVANCEMENTS;
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private AdvancementUtils() {

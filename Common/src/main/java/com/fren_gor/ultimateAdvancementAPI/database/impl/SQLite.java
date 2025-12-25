@@ -184,8 +184,9 @@ public class SQLite implements IDatabase {
 
             r = psTeamId.executeQuery();
             if (!r.next()) { // Player isn't registered
-                try (PreparedStatement psInsert = openConnection().prepareStatement("INSERT INTO `Teams` DEFAULT VALUES RETURNING `ID`;")) {
-                    r = psInsert.executeQuery();
+                try (PreparedStatement psInsert = openConnection().prepareStatement("INSERT INTO `Teams` DEFAULT VALUES;")) {
+                    psInsert.executeUpdate();
+                    r = psInsert.getGeneratedKeys();
                     if (!r.next()) {
                         throw new SQLException("Cannot insert default values into Teams table.");
                     }
@@ -250,8 +251,9 @@ public class SQLite implements IDatabase {
      */
     @Override
     public TeamProgression createNewTeam() throws SQLException {
-        try (PreparedStatement psInsert = openConnection().prepareStatement("INSERT INTO `Teams` DEFAULT VALUES RETURNING `ID`;")) {
-            ResultSet r = psInsert.executeQuery();
+        try (PreparedStatement psInsert = openConnection().prepareStatement("INSERT INTO `Teams` DEFAULT VALUES;")) {
+            psInsert.executeUpdate();
+            ResultSet r = psInsert.getGeneratedKeys();
             if (!r.next()) {
                 throw new SQLException("Cannot insert default values into Teams table.");
             }

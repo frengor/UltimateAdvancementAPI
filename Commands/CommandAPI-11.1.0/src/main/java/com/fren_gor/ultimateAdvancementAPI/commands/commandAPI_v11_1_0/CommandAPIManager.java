@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v11_0_0;
+package com.fren_gor.ultimateAdvancementAPI.commands.commandAPI_v11_1_0;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.*;
@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CommandAPIManager implements ILoadable {
@@ -40,6 +39,7 @@ public class CommandAPIManager implements ILoadable {
         CommandAPI.onLoad(config
                 .verboseOutput(false)
                 .silentLogs(true)
+                .enableNetworking(false)
                 .setNamespace(plugin.getName().toLowerCase(Locale.ENGLISH)) // Plugin names contain only latin characters present in english
         );
 
@@ -53,12 +53,14 @@ public class CommandAPIManager implements ILoadable {
 
     @Override
     public void onDisable() {
-        Stream.concat(
-                CommandAPI.getRegisteredCommands().stream().map(RegisteredCommand::commandName),
-                CommandAPI.getRegisteredCommands().stream().flatMap(cmd -> Arrays.stream(cmd.aliases()))
-        ).distinct().forEach(command -> {
-            CommandAPI.unregister(command, true);
-        });
+        if (!MojangMappingsHandler.isMojangMapped()) { // Don't run command unregistration on Paper
+            Stream.concat(
+                    CommandAPI.getRegisteredCommands().stream().map(RegisteredCommand::commandName),
+                    CommandAPI.getRegisteredCommands().stream().flatMap(cmd -> Arrays.stream(cmd.aliases()))
+            ).distinct().forEach(command -> {
+                CommandAPI.unregister(command, true);
+            });
+        }
         CommandAPI.onDisable();
     }
 }
