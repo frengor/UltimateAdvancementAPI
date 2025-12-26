@@ -21,7 +21,6 @@ import com.fren_gor.ultimateAdvancementAPI.visibilities.IVisibility;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
