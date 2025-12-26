@@ -17,12 +17,12 @@ import java.util.logging.Logger;
 /**
  * Internal class used to support Paper-only events in {@code DatabaseManager}.
  */
-final class PaperEvents {
+final class DBPaperEvents {
 
     private final Logger logger;
     private final EventManager eventManager;
 
-    public PaperEvents(@NotNull Logger logger, @NotNull EventManager eventManager) {
+    public DBPaperEvents(@NotNull Logger logger, @NotNull EventManager eventManager) {
         this.logger = logger;
         this.eventManager = eventManager;
     }

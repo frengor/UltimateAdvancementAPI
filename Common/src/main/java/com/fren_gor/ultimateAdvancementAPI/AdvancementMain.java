@@ -53,6 +53,8 @@ public final class AdvancementMain {
 
     private final static AtomicBoolean LOADED = new AtomicBoolean(false), ENABLED = new AtomicBoolean(false), INVALID_VERSION = new AtomicBoolean(false);
 
+    private final static boolean IS_PAPER = ReflectionUtil.classExists("io.papermc.paper.advancement.AdvancementDisplay");
+
     private final Plugin owningPlugin;
     private EventManager eventManager;
     private DatabaseManager databaseManager;
@@ -166,16 +168,26 @@ public final class AdvancementMain {
         eventManager.register(this, PluginDisableEvent.class, EventPriority.HIGHEST, e -> unregisterAdvancementTabs(e.getPlugin()));
 
         // Resend advancements if /minecraft:reload is called
-        eventManager.register(this, ServerCommandEvent.class, e -> {
-            if (isMcReload(e.getCommand()))
-                runSync(this, 20, () -> Bukkit.getOnlinePlayers().forEach(this::updatePlayer));
-        });
-        eventManager.register(this, PlayerCommandPreprocessEvent.class, e -> {
-            if (isMcReload(e.getMessage()))
-                runSync(this, 20, () -> Bukkit.getOnlinePlayers().forEach(this::updatePlayer));
-        });
+        if (IS_PAPER && (ReflectionUtil.VERSION > 16 || (ReflectionUtil.VERSION == 16 && ReflectionUtil.MINOR_VERSION >= 4))) {
+            // ServerResourcesReloadedEvent was added in Paper 1.16.4
+            PaperEvents events = new PaperEvents(this.eventManager);
+            events.registerServerResourcesReloadedEvent(this, this::resendAdvancementsOnReload);
+        } else {
+            eventManager.register(this, ServerCommandEvent.class, e -> {
+                if (isMcReload(e.getCommand()))
+                    resendAdvancementsOnReload();
+            });
+            eventManager.register(this, PlayerCommandPreprocessEvent.class, e -> {
+                if (isMcReload(e.getMessage()))
+                    resendAdvancementsOnReload();
+            });
+        }
 
         UltimateAdvancementAPI.main = this;
+    }
+
+    private void resendAdvancementsOnReload() {
+        runSync(this, 20, () -> Bukkit.getOnlinePlayers().forEach(this::updatePlayer));
     }
 
     @Contract("_ -> fail")
