@@ -168,7 +168,7 @@ public final class AdvancementMain {
         eventManager.register(this, PluginDisableEvent.class, EventPriority.HIGHEST, e -> unregisterAdvancementTabs(e.getPlugin()));
 
         // Resend advancements if /minecraft:reload is called
-        if (IS_PAPER && (ReflectionUtil.VERSION > 16 || (ReflectionUtil.VERSION == 16 && ReflectionUtil.MINOR_VERSION >= 4))) {
+        if (IS_PAPER && PaperEvents.IS_SERVER_RESOURCES_RELOADED_EVENT_SUPPORTED) {
             // ServerResourcesReloadedEvent was added in Paper 1.16.4
             PaperEvents events = new PaperEvents(this.eventManager);
             events.registerServerResourcesReloadedEvent(this, this::resendAdvancementsOnReload);

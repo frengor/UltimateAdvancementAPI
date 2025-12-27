@@ -36,6 +36,14 @@
             <version>${eventManagerAPIVersion}</version>
             <scope>provided</scope>
         </dependency>
+
+        <!-- NMS Wrappers -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-common</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

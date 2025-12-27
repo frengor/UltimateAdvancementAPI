@@ -153,6 +153,7 @@ public final class AdvancementUtils {
 
     /**
      * Disables vanilla advancements.
+     * <p>Does not persist between datapack reloads (i.e. {@code /minecraft:reload}).
      *
      * @throws Exception If disabling fails.
      * @see UltimateAdvancementAPI#disableVanillaAdvancements()
@@ -163,6 +164,7 @@ public final class AdvancementUtils {
 
     /**
      * Disables vanilla recipe advancements (i.e. the advancements which unlock recipes).
+     * <p>Does not persist between datapack reloads (i.e. {@code /minecraft:reload}).
      *
      * @throws Exception If disabling fails.
      * @see UltimateAdvancementAPI#disableVanillaRecipeAdvancements()

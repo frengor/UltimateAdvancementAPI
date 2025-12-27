@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager;
 import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.ILoadable;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.metrics.BStats;
+import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisablerWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import org.bukkit.Bukkit;
@@ -24,6 +25,8 @@ public class AdvancementPlugin extends JavaPlugin {
      * Spigot resource id
      */
     private static final int RESOURCE_ID = 95585;
+
+    private final static boolean IS_PAPER = ReflectionUtil.classExists("io.papermc.paper.advancement.AdvancementDisplay");
 
     private static AdvancementPlugin instance;
 
@@ -101,17 +104,12 @@ public class AdvancementPlugin extends JavaPlugin {
         }
 
         if (configManager.getDisableVanillaAdvancements() || configManager.getDisableVanillaRecipeAdvancements()) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    try {
-                        VanillaAdvancementDisablerWrapper.disableVanillaAdvancements(configManager.getDisableVanillaAdvancements(), configManager.getDisableVanillaRecipeAdvancements());
-                    } catch (Exception e) {
-                        Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] Cannot disable vanilla advancements.");
-                        getLogger().log(Level.WARNING, "Cannot disable vanilla advancements", e);
-                    }
-                }
-            }.runTaskLater(this, 20);
+            disableVanillaAdvancements();
+
+            if (IS_PAPER && PaperEvents.IS_SERVER_RESOURCES_RELOADED_EVENT_SUPPORTED) {
+                PaperEvents events = new PaperEvents(this.main.getEventManager());
+                events.registerServerResourcesReloadedEvent(this, this::disableVanillaAdvancements);
+            }
         }
 
         BStats.init(this);
@@ -133,6 +131,20 @@ public class AdvancementPlugin extends JavaPlugin {
         }
         main.disable();
         main = null;
+    }
+
+    private void disableVanillaAdvancements() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                try {
+                    VanillaAdvancementDisablerWrapper.disableVanillaAdvancements(configManager.getDisableVanillaAdvancements(), configManager.getDisableVanillaRecipeAdvancements());
+                } catch (Exception e) {
+                    Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[UltimateAdvancementAPI] Cannot disable vanilla advancements.");
+                    getLogger().log(Level.WARNING, "Cannot disable vanilla advancements", e);
+                }
+            }
+        }.runTaskLater(this, 20);
     }
 
     private void checkForUpdates() {
