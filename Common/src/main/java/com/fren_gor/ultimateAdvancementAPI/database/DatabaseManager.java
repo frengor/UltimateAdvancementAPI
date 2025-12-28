@@ -1731,6 +1731,18 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
+     * Returns whether the team with the provided id is loaded into the cache.
+     *
+     * @param teamId The id of the team.
+     * @return Whether the team with the provided id is loaded into the cache.
+     */
+    @Contract(pure = true)
+    public synchronized boolean isLoaded(int teamId) {
+        checkClosed();
+        return teamsLoaded.containsKey(teamId);
+    }
+
+    /**
      * Returns whether the provided player is online and loaded into the cache.
      *
      * @param player The player.
