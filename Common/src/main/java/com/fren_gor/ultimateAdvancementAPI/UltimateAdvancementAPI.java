@@ -463,9 +463,8 @@ public final class UltimateAdvancementAPI {
      * @param advancement The advancement.
      * @param player The player.
      * @return A {@link CompletableFuture} which will complete when the operation finishes.
-     * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
-    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull Player player) throws NotGrantedException {
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull Player player) {
         return setUnredeemed(advancement, player, true);
     }
 
@@ -476,9 +475,8 @@ public final class UltimateAdvancementAPI {
      * @param player The player.
      * @param giveRewards Whether to give rewards on redeem.
      * @return A {@link CompletableFuture} which will complete when the operation finishes.
-     * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
-    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, boolean giveRewards) throws NotGrantedException {
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, boolean giveRewards) {
         return setUnredeemed(advancement, uuidFromPlayer(player), giveRewards);
     }
 
@@ -489,9 +487,8 @@ public final class UltimateAdvancementAPI {
      * @param advancement The advancement.
      * @param uuid The {@link UUID} of the player.
      * @return A {@link CompletableFuture} which will complete when the operation finishes.
-     * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
-    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid) throws NotGrantedException {
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid) {
         return setUnredeemed(advancement, uuid, true);
     }
 
@@ -502,9 +499,8 @@ public final class UltimateAdvancementAPI {
      * @param uuid The {@link UUID} of the player.
      * @param giveRewards Whether to give rewards on redeem.
      * @return A {@link CompletableFuture} which will complete when the operation finishes.
-     * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
-    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, boolean giveRewards) throws NotGrantedException {
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, boolean giveRewards) {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkNotNull(uuid, "UUID is null.");
 
@@ -512,11 +508,11 @@ public final class UltimateAdvancementAPI {
         final AdvancementKey key = advancement.getKey();
         return callAfterLoad(uuid, ds -> {
             TeamProgression pro = ds.getTeamProgression(uuid);
-            // Don't call update if advancement isn't granted, it may throw a foreign key exception
+            // Don't call update if advancement isn't granted
             if (pro.getRawProgression(key) != maxProgression) {
                 throw new NotGrantedException(key, pro.getTeamId());
             }
-            return ds.setUnredeemed(advancement.getKey(), giveRewards, uuid);
+            return ds.setUnredeemed(advancement.getKey(), uuid, giveRewards);
         });
     }
 

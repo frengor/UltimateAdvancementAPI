@@ -495,7 +495,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
                 if (player != null) {
                     onGrant(player, giveRewards);
                 } else {
-                    ds.setUnredeemed(key, giveRewards, pro);
+                    ds.setUnredeemed(key, pro, giveRewards);
                 }
             }
         }

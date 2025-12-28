@@ -94,7 +94,7 @@ public class InMemoryTest {
             db.updateAdvancement(entry.getKey(), progression.getTeamId(), 1);
 
         for (var entry : all)
-            db.setUnredeemed(entry.getKey(), entry.getValue(), progression.getTeamId());
+            db.setUnredeemed(entry.getKey(), progression.getTeamId(), entry.getValue());
 
         assertTrue(db.openConnection().getAutoCommit());
         assertThrows(RuntimePlannedFailureException.class, () -> {

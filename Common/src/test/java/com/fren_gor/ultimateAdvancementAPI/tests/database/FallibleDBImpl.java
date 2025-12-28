@@ -131,9 +131,9 @@ public class FallibleDBImpl implements IDatabase {
     }
 
     @Override
-    public void setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, int teamId) throws SQLException {
+    public void setUnredeemed(@NotNull AdvancementKey key, int teamId, boolean giveRewards) throws SQLException {
         checkPlanning(DBOperation.SET_UNREDEEMED);
-        inner.setUnredeemed(key, giveRewards, teamId);
+        inner.setUnredeemed(key, teamId, giveRewards);
     }
 
     @Override

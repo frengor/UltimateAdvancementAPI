@@ -533,7 +533,7 @@ public final class DatabaseManager implements Closeable {
                             for (Entry<AdvancementKey, Boolean> entry : list) {
                                 int teamId = loadedTeam.getTeamProgression().getTeamId();
                                 try {
-                                    database.setUnredeemed(entry.getKey(), entry.getValue(), teamId);
+                                    database.setUnredeemed(entry.getKey(), teamId, entry.getValue());
                                 } catch (Exception e) {
                                     logger.log(Level.SEVERE, "Error restoring unredeemed advancement '" + entry.getKey() + "' for team " + teamId, e);
                                 }
@@ -1105,27 +1105,27 @@ public final class DatabaseManager implements Closeable {
      * Sets an advancement unredeemed for the specified player.
      *
      * @param key The advancement key.
-     * @param giveRewards Whether advancement rewards will be given on redeem.
      * @param uuid The {@link UUID} of the player.
+     * @param giveRewards Whether advancement rewards will be given on redeem.
      * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      * @see UltimateAdvancementAPI#setUnredeemed(Advancement, UUID, boolean)
      */
     @NotNull
-    public CompletableFuture<Void> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull UUID uuid) throws UserNotLoadedException {
-        return setUnredeemed(key, giveRewards, getTeamProgression(uuid));
+    public CompletableFuture<Void> setUnredeemed(@NotNull AdvancementKey key, @NotNull UUID uuid, boolean giveRewards) throws UserNotLoadedException {
+        return setUnredeemed(key, getTeamProgression(uuid), giveRewards);
     }
 
     /**
      * Sets an advancement unredeemed for the specified team.
      *
      * @param key The advancement key.
-     * @param giveRewards Whether advancement rewards will be given on redeem.
      * @param pro The {@link TeamProgression} of the team.
+     * @param giveRewards Whether advancement rewards will be given on redeem.
      * @return A {@link CompletableFuture} which provides the result of the operation.
      */
     @NotNull
-    public CompletableFuture<Void> setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, @NotNull TeamProgression pro) {
+    public CompletableFuture<Void> setUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro, boolean giveRewards) {
         checkClosed();
         Preconditions.checkNotNull(key, "AdvancementKey is null.");
 
@@ -1145,7 +1145,7 @@ public final class DatabaseManager implements Closeable {
 
         runAsyncOnExecutor(completableFuture, () -> {
             try {
-                database.setUnredeemed(key, giveRewards, pro.getTeamId());
+                database.setUnredeemed(key, pro.getTeamId(), giveRewards);
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Couldn't set unredeemed advancement " + key + " to team " + pro.getTeamId(), e);
                 completableFuture.completeExceptionally(new DatabaseException(e));

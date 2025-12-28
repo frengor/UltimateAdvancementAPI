@@ -151,7 +151,7 @@ public interface IDatabase {
      *
      * @param teamId The team id.
      * @return A list of pairs containing the key of the unredeemed advancement and whether to give rewards for it
-     *         (see {@link #setUnredeemed(AdvancementKey, boolean, int)}).
+     *         (see {@link #setUnredeemed(AdvancementKey, int, boolean)}).
      * @throws SQLException If an SQL exception occurs.
      */
     LinkedList<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException;
@@ -160,11 +160,11 @@ public interface IDatabase {
      * Sets the provided advancement unredeemed for the specified team.
      *
      * @param key The advancement key.
-     * @param giveRewards Whether to give rewards on redeem.
      * @param teamId The team id.
+     * @param giveRewards Whether to give rewards on redeem.
      * @throws SQLException If an SQL exception occurs.
      */
-    void setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, int teamId) throws SQLException;
+    void setUnredeemed(@NotNull AdvancementKey key, int teamId, boolean giveRewards) throws SQLException;
 
     /**
      * Returns whether the provided advancement is unredeemed for the specified team.

@@ -330,7 +330,7 @@ public class SQLite implements IDatabase {
      * {@inheritDoc}
      */
     @Override
-    public void setUnredeemed(@NotNull AdvancementKey key, boolean giveRewards, int teamId) throws SQLException {
+    public void setUnredeemed(@NotNull AdvancementKey key, int teamId, boolean giveRewards) throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("INSERT OR IGNORE INTO `Unredeemed` (`Namespace`, `Key`, `TeamID`, `GiveRewards`) VALUES (?, ?, ?, ?);")) {
             ps.setString(1, key.getNamespace());
             ps.setString(2, key.getKey());
