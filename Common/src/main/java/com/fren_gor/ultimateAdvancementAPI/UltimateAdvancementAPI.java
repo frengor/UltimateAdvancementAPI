@@ -575,9 +575,9 @@ public final class UltimateAdvancementAPI {
 
     /**
      * Loads the provided player from the database into the caching system (if they aren't already) and keeps they
-     * loaded until {@link #removeLoadingRequestToPlayer(Player)} is called.
+     * loaded until {@link #removeLoadingRequest(Player)} is called.
      * <p>Each time this method is called, the number of <i>loading requests</i> for the provided player is incremented
-     * by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToPlayer(Player)}, decrements by one
+     * by one. Instead, the counterpart of this method, {@link #removeLoadingRequest(Player)}, decrements by one
      * the number of <i>loading requests</i> for the player every time it's called.
      * <br>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
      * this method can be used to make sure a player isn't unloaded, even if they were online and quit from the server.
@@ -587,19 +587,19 @@ public final class UltimateAdvancementAPI {
      *
      * @param player The player.
      * @return A {@link CompletableFuture} which will complete with the player team's {@link TeamProgression}.
-     * @see DatabaseManager#loadAndAddLoadingRequestToPlayer(UUID, Plugin)
-     * @see #removeLoadingRequestToPlayer(UUID)
+     * @see DatabaseManager#loadAndAddLoadingRequest(UUID, Plugin)
+     * @see #removeLoadingRequest(UUID)
      * @see #getLoadingRequestsAmount(UUID)
      */
-    public CompletableFuture<TeamProgression> loadAndAddLoadingRequestToPlayer(@NotNull Player player) {
-        return loadAndAddLoadingRequestToPlayer(uuidFromPlayer(player));
+    public CompletableFuture<TeamProgression> loadAndAddLoadingRequest(@NotNull Player player) {
+        return loadAndAddLoadingRequest(uuidFromPlayer(player));
     }
 
     /**
      * Loads the provided player from the database into the caching system (if they aren't already) and keeps they
-     * loaded until {@link #removeLoadingRequestToPlayer(OfflinePlayer)} is called.
+     * loaded until {@link #removeLoadingRequest(OfflinePlayer)} is called.
      * <p>Each time this method is called, the number of <i>loading requests</i> for the provided player is incremented
-     * by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToPlayer(OfflinePlayer)}, decrements by one
+     * by one. Instead, the counterpart of this method, {@link #removeLoadingRequest(OfflinePlayer)}, decrements by one
      * the number of <i>loading requests</i> for the player every time it's called.
      * <br>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
      * this method can be used to make sure a player isn't unloaded, even if they were online and quit from the server.
@@ -609,19 +609,19 @@ public final class UltimateAdvancementAPI {
      *
      * @param player The player.
      * @return A {@link CompletableFuture} which will complete with the player team's {@link TeamProgression}.
-     * @see DatabaseManager#loadAndAddLoadingRequestToPlayer(UUID, Plugin)
-     * @see #removeLoadingRequestToPlayer(UUID)
+     * @see DatabaseManager#loadAndAddLoadingRequest(UUID, Plugin)
+     * @see #removeLoadingRequest(UUID)
      * @see #getLoadingRequestsAmount(UUID)
      */
-    public CompletableFuture<TeamProgression> loadAndAddLoadingRequestToPlayer(@NotNull OfflinePlayer player) {
-        return loadAndAddLoadingRequestToPlayer(uuidFromPlayer(player));
+    public CompletableFuture<TeamProgression> loadAndAddLoadingRequest(@NotNull OfflinePlayer player) {
+        return loadAndAddLoadingRequest(uuidFromPlayer(player));
     }
 
     /**
      * Loads the provided player from the database into the caching system (if they aren't already) and keeps they
-     * loaded until {@link #removeLoadingRequestToPlayer(UUID)} is called.
+     * loaded until {@link #removeLoadingRequest(UUID)} is called.
      * <p>Each time this method is called, the number of <i>loading requests</i> for the provided player is incremented
-     * by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToPlayer(UUID)}, decrements by one
+     * by one. Instead, the counterpart of this method, {@link #removeLoadingRequest(UUID)}, decrements by one
      * the number of <i>loading requests</i> for the player every time it's called.
      * <br>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
      * this method can be used to make sure a player isn't unloaded, even if they were online and quit from the server.
@@ -631,16 +631,16 @@ public final class UltimateAdvancementAPI {
      *
      * @param uuid The {@link UUID} of the player.
      * @return A {@link CompletableFuture} which will complete with the player team's {@link TeamProgression}.
-     * @see DatabaseManager#loadAndAddLoadingRequestToPlayer(UUID, Plugin)
-     * @see #removeLoadingRequestToPlayer(UUID)
+     * @see DatabaseManager#loadAndAddLoadingRequest(UUID, Plugin)
+     * @see #removeLoadingRequest(UUID)
      * @see #getLoadingRequestsAmount(UUID)
      */
-    public CompletableFuture<TeamProgression> loadAndAddLoadingRequestToPlayer(@NotNull UUID uuid) {
-        return getMain().getDatabaseManager().loadAndAddLoadingRequestToPlayer(uuid, plugin);
+    public CompletableFuture<TeamProgression> loadAndAddLoadingRequest(@NotNull UUID uuid) {
+        return getMain().getDatabaseManager().loadAndAddLoadingRequest(uuid, plugin);
     }
 
     /**
-     * Counterpart of {@link #loadAndAddLoadingRequestToPlayer(Player)}. Decrements by one the <i>loading requests</i>
+     * Counterpart of {@link #loadAndAddLoadingRequest(Player)}. Decrements by one the <i>loading requests</i>
      * count for the provided player.
      * <p>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
      * if after the decrement (done by this method) the total amount of <i>loading requests</i> drops to {@code 0}, the
@@ -649,14 +649,14 @@ public final class UltimateAdvancementAPI {
      * <p>For more information about the caching system see {@link DatabaseManager}.
      *
      * @param player The player.
-     * @see DatabaseManager#removeLoadingRequestToPlayer(UUID, Plugin)
+     * @see DatabaseManager#removeLoadingRequest(UUID, Plugin)
      */
-    public void removeLoadingRequestToPlayer(@NotNull Player player) {
-        removeLoadingRequestToPlayer(uuidFromPlayer(player));
+    public void removeLoadingRequest(@NotNull Player player) {
+        removeLoadingRequest(uuidFromPlayer(player));
     }
 
     /**
-     * Counterpart of {@link #loadAndAddLoadingRequestToPlayer(UUID)}. Decrements by one the <i>loading requests</i>
+     * Counterpart of {@link #loadAndAddLoadingRequest(UUID)}. Decrements by one the <i>loading requests</i>
      * count for the provided player.
      * <p>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
      * if after the decrement (done by this method) the total amount of <i>loading requests</i> drops to {@code 0}, the
@@ -665,14 +665,14 @@ public final class UltimateAdvancementAPI {
      * <p>For more information about the caching system see {@link DatabaseManager}.
      *
      * @param player The player.
-     * @see DatabaseManager#removeLoadingRequestToPlayer(UUID, Plugin)
+     * @see DatabaseManager#removeLoadingRequest(UUID, Plugin)
      */
-    public void removeLoadingRequestToPlayer(@NotNull OfflinePlayer player) {
-        removeLoadingRequestToPlayer(uuidFromPlayer(player));
+    public void removeLoadingRequest(@NotNull OfflinePlayer player) {
+        removeLoadingRequest(uuidFromPlayer(player));
     }
 
     /**
-     * Counterpart of {@link #loadAndAddLoadingRequestToPlayer(UUID)}. Decrements by one the <i>loading requests</i>
+     * Counterpart of {@link #loadAndAddLoadingRequest(UUID)}. Decrements by one the <i>loading requests</i>
      * count for the provided player.
      * <p>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
      * if after the decrement (done by this method) the total amount of <i>loading requests</i> drops to {@code 0}, the
@@ -681,10 +681,10 @@ public final class UltimateAdvancementAPI {
      * <p>For more information about the caching system see {@link DatabaseManager}.
      *
      * @param uuid The {@link UUID} of the player.
-     * @see DatabaseManager#removeLoadingRequestToPlayer(UUID, Plugin)
+     * @see DatabaseManager#removeLoadingRequest(UUID, Plugin)
      */
-    public void removeLoadingRequestToPlayer(@NotNull UUID uuid) {
-        getMain().getDatabaseManager().removeLoadingRequestToPlayer(uuid, plugin);
+    public void removeLoadingRequest(@NotNull UUID uuid) {
+        getMain().getDatabaseManager().removeLoadingRequest(uuid, plugin);
     }
 
     /**
@@ -752,14 +752,14 @@ public final class UltimateAdvancementAPI {
         final DatabaseManager ds = main.getDatabaseManager();
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
 
-        ds.loadAndAddLoadingRequestToPlayer(uuid, plugin).thenRun(() -> {
+        ds.loadAndAddLoadingRequest(uuid, plugin).thenRun(() -> {
             CompletableFuture.supplyAsync(() -> internalAction.apply(ds))
                 .thenCompose(c -> c)
                 .thenAcceptAsync(completableFuture::complete)
                 .exceptionallyAsync(err -> {
                     handleException(err, completableFuture, main, "An exception occurred while calling an API method");
                     return null;
-                }).whenComplete((r, e) -> ds.removeLoadingRequestToPlayer(uuid, plugin));
+                }).whenComplete((r, e) -> ds.removeLoadingRequest(uuid, plugin));
         }).exceptionallyAsync(err -> {
             handleException(err, completableFuture, main, "An exception occurred while loading user " + uuid);
             return null;
@@ -781,8 +781,8 @@ public final class UltimateAdvancementAPI {
         final DatabaseManager ds = main.getDatabaseManager();
         CompletableFuture<T> completableFuture = new CompletableFuture<>();
 
-        ds.loadAndAddLoadingRequestToPlayer(uuid1, plugin).thenRun(() -> {
-            ds.loadAndAddLoadingRequestToPlayer(uuid2, plugin).thenRun(() -> {
+        ds.loadAndAddLoadingRequest(uuid1, plugin).thenRun(() -> {
+            ds.loadAndAddLoadingRequest(uuid2, plugin).thenRun(() -> {
                 CompletableFuture.supplyAsync(() -> internalAction.apply(ds))
                     .thenCompose(c -> c)
                     .thenAcceptAsync(completableFuture::complete)
@@ -791,16 +791,16 @@ public final class UltimateAdvancementAPI {
                         return null;
                     }).whenComplete((r, e) -> {
                         try {
-                            ds.removeLoadingRequestToPlayer(uuid1, plugin);
+                            ds.removeLoadingRequest(uuid1, plugin);
                         } finally {
-                            ds.removeLoadingRequestToPlayer(uuid2, plugin);
+                            ds.removeLoadingRequest(uuid2, plugin);
                         }
                     });
             }).exceptionallyAsync(err -> {
                 try {
                     handleException(err, completableFuture, main, "An exception occurred while loading user " + uuid2);
                 } finally {
-                    ds.removeLoadingRequestToPlayer(uuid1, plugin);
+                    ds.removeLoadingRequest(uuid1, plugin);
                 }
                 return null;
             });

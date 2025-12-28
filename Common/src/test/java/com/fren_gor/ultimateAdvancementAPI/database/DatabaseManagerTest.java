@@ -342,14 +342,14 @@ public class DatabaseManagerTest {
         TeamProgression trueTeam = dbManager.getTeamProgression(p);
         disconnectPlayer(p);
         MockPlugin plugin = MockBukkit.createMockPlugin();
-        TeamProgression team = waitCompletion(dbManager.loadAndAddLoadingRequestToPlayer(p.getUniqueId(), plugin)).get();
+        TeamProgression team = waitCompletion(dbManager.loadAndAddLoadingRequest(p.getUniqueId(), plugin)).get();
         assertEquals(1, dbManager.getLoadingRequestsAmount(p.getUniqueId(), plugin));
         assertEquals(trueTeam.getTeamId(), team.getTeamId());
         assertEquals(1, trueTeam.getSize());
         assertEquals(1, team.getSize());
         assertTrue(trueTeam.everyMemberMatch(uuid -> p.getUniqueId().equals(uuid)));
         assertTrue(team.everyMemberMatch(uuid -> p.getUniqueId().equals(uuid)));
-        dbManager.removeLoadingRequestToPlayer(p.getUniqueId(), plugin);
+        dbManager.removeLoadingRequest(p.getUniqueId(), plugin);
         assertEquals(0, dbManager.getLoadingRequestsAmount(p.getUniqueId(), plugin));
     }
 
@@ -360,7 +360,7 @@ public class DatabaseManagerTest {
         MockPlugin plugin = MockBukkit.createMockPlugin();
         dbImpls.getFallible().setFallibleOps(DBOperation.LOAD_UUID);
         dbImpls.getFallible().addToPlanning(false);
-        assertTrue(waitCompletion(dbManager.loadAndAddLoadingRequestToPlayer(p.getUniqueId(), plugin)).isCompletedExceptionally());
+        assertTrue(waitCompletion(dbManager.loadAndAddLoadingRequest(p.getUniqueId(), plugin)).isCompletedExceptionally());
         assertEquals(0, dbManager.getLoadingRequestsAmount(p.getUniqueId(), plugin));
         var exception = assertThrows(UserNotLoadedException.class, () -> dbManager.getTeamProgression(p.getUniqueId()));
         assertEquals(p.getUniqueId(), exception.getUser());
@@ -371,7 +371,7 @@ public class DatabaseManagerTest {
         MockPlugin plugin = MockBukkit.createMockPlugin();
         UUID uuid = UUID.randomUUID();
         plugin.getLogger().warning("Expecting a " + UserNotRegisteredException.class.getSimpleName() + " for user " + uuid + '.');
-        var cf = waitCompletion(dbManager.loadAndAddLoadingRequestToPlayer(uuid, plugin));
+        var cf = waitCompletion(dbManager.loadAndAddLoadingRequest(uuid, plugin));
         var exception = assertCfThrowsInDatabaseException(UserNotRegisteredException.class, cf);
         assertEquals(uuid, exception.getUser());
     }
@@ -443,7 +443,7 @@ public class DatabaseManagerTest {
 
             dbManagerUtils.waitForPendingTasks(false);
 
-            loaded.set(dbManager.loadAndAddLoadingRequestToPlayer(p.getUniqueId(), plugin));
+            loaded.set(dbManager.loadAndAddLoadingRequest(p.getUniqueId(), plugin));
             loaded.get().handle((team, err) -> {
                 if (err != null) {
                     return fail(err);
@@ -643,7 +643,7 @@ public class DatabaseManagerTest {
         assertNotEquals(team.getTeamId(), t1.getTeamId());
         assertNotEquals(team.getTeamId(), t2.getTeamId());
 
-        dbManager.removeLoadingRequestToTeam(team, plugin);
+        dbManager.removeLoadingRequest(team, plugin);
         assertFalse(team.isValid());
     }
 
@@ -662,7 +662,7 @@ public class DatabaseManagerTest {
 
         assertFalse(t1.isValid());
 
-        dbManager.removeLoadingRequestToTeam(team, plugin);
+        dbManager.removeLoadingRequest(team, plugin);
         assertTrue(team.isValid());
         assertEquals(0, dbManager.getLoadingRequestsAmount(team, plugin));
 
@@ -697,7 +697,7 @@ public class DatabaseManagerTest {
         assertTrue(team.isValid());
 
         waitCompletion(dbManager.updatePlayerTeam(p, team)).get();
-        dbManager.removeLoadingRequestToTeam(team, plugin);
+        dbManager.removeLoadingRequest(team, plugin);
         disconnectPlayer(p);
     }
 
@@ -706,28 +706,28 @@ public class DatabaseManagerTest {
         MockPlugin plugin = MockBukkit.createMockPlugin();
 
         plugin.getLogger().warning("Expecting a " + TeamNotRegisteredException.class.getSimpleName() + " for team -1.");
-        var invalidTeamCf = waitCompletion(dbManager.loadAndAddLoadingRequestToTeam(-1, plugin));
+        var invalidTeamCf = waitCompletion(dbManager.loadAndAddLoadingRequest(-1, plugin));
         var exception = assertCfThrowsInDatabaseException(TeamNotRegisteredException.class, invalidTeamCf);
         assertEquals(-1, exception.getTeamId());
 
         int teamId = dbImpls.getRawDB().createNewTeam().getTeamId();
 
-        TeamProgression team = waitCompletion(dbManager.loadAndAddLoadingRequestToTeam(teamId, plugin)).get();
+        TeamProgression team = waitCompletion(dbManager.loadAndAddLoadingRequest(teamId, plugin)).get();
         assertTrue(team.isValid());
         assertEquals(teamId, team.getTeamId());
         assertEquals(1, dbManager.getLoadingRequestsAmount(team, plugin));
 
-        TeamProgression team1 = waitCompletion(dbManager.loadAndAddLoadingRequestToTeam(teamId, plugin)).get();
+        TeamProgression team1 = waitCompletion(dbManager.loadAndAddLoadingRequest(teamId, plugin)).get();
         assertSame(team, team1);
         assertTrue(team.isValid());
         assertEquals(teamId,  team.getTeamId());
         assertEquals(2, dbManager.getLoadingRequestsAmount(team, plugin));
 
-        dbManager.removeLoadingRequestToTeam(team, plugin);
+        dbManager.removeLoadingRequest(team, plugin);
         assertTrue(team.isValid());
         assertEquals(1, dbManager.getLoadingRequestsAmount(team, plugin));
 
-        dbManager.removeLoadingRequestToTeam(team, plugin);
+        dbManager.removeLoadingRequest(team, plugin);
         assertFalse(team.isValid());
         assertEquals(0, dbManager.getLoadingRequestsAmount(team, plugin));
     }
@@ -740,7 +740,7 @@ public class DatabaseManagerTest {
 
         int teamId = dbImpls.getRawDB().createNewTeam().getTeamId();
 
-        assertTrue(waitCompletion(dbManager.loadAndAddLoadingRequestToTeam(teamId, plugin)).isCompletedExceptionally());
+        assertTrue(waitCompletion(dbManager.loadAndAddLoadingRequest(teamId, plugin)).isCompletedExceptionally());
     }
 
     private PlayerMock loadPlayer() {

@@ -82,7 +82,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
  *    assert teamP1 != teamP2;
  * }}</pre>
  * By default, players are kept in cache until they quit.
- * However, this behavior can be overridden through the {@link #loadAndAddLoadingRequestToPlayer(UUID, Plugin)} method,
+ * However, this behavior can be overridden through the {@link #loadAndAddLoadingRequest(UUID, Plugin)} method,
  * which forces a player to stay in cache even if they quit. If the player is not online, they'll be loaded.
  * <p>This class is thread safe.
  */
@@ -1357,9 +1357,9 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Loads the provided player from the database into the caching system (if they aren't already) and keeps they
-     * loaded until {@link #removeLoadingRequestToPlayer(UUID, Plugin)} is called.
+     * loaded until {@link #removeLoadingRequest(UUID, Plugin)} is called.
      * <p>Each time this method is called, the number of <i>loading requests</i> for the provided player and requester
-     * plugin is incremented by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToPlayer(UUID, Plugin)},
+     * plugin is incremented by one. Instead, the counterpart of this method, {@link #removeLoadingRequest(UUID, Plugin)},
      * decrements by one the number of <i>loading requests</i> for the player and requester plugin every time it's called.
      * <br>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
      * this method can be used to make sure a player isn't unloaded, even if they were online and quit from the server.
@@ -1370,11 +1370,11 @@ public final class DatabaseManager implements Closeable {
      * @param uuid The {@link UUID} of the player.
      * @param requester The plugin making the request.
      * @return A {@link CompletableFuture} which provides the player team's {@link TeamProgression}.
-     * @see #removeLoadingRequestToPlayer(UUID, Plugin)
+     * @see #removeLoadingRequest(UUID, Plugin)
      * @see #getLoadingRequestsAmount(UUID, Plugin)
      */
     @NotNull
-    public CompletableFuture<TeamProgression> loadAndAddLoadingRequestToPlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
+    public CompletableFuture<TeamProgression> loadAndAddLoadingRequest(@NotNull UUID uuid, @NotNull Plugin requester) {
         checkClosed();
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
@@ -1474,7 +1474,7 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Counterpart of {@link #loadAndAddLoadingRequestToPlayer(UUID, Plugin)}. Decrements by one the <i>loading requests</i>
+     * Counterpart of {@link #loadAndAddLoadingRequest(UUID, Plugin)}. Decrements by one the <i>loading requests</i>
      * count for the provided player and requester plugin.
      * <p>Since the caching system ensures a player is always kept loaded while they have at least {@code 1} <i>loading request</i>,
      * if after the decrement (done by this method) the total amount of <i>loading requests</i> drops to {@code 0}, the
@@ -1484,10 +1484,10 @@ public final class DatabaseManager implements Closeable {
      *
      * @param uuid The {@link UUID} of the player.
      * @param requester The plugin which requested the loading.
-     * @see #loadAndAddLoadingRequestToPlayer(UUID, Plugin)
+     * @see #loadAndAddLoadingRequest(UUID, Plugin)
      * @see #getLoadingRequestsAmount(UUID, Plugin)
      */
-    public void removeLoadingRequestToPlayer(@NotNull UUID uuid, @NotNull Plugin requester) {
+    public void removeLoadingRequest(@NotNull UUID uuid, @NotNull Plugin requester) {
         checkClosed();
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
@@ -1502,15 +1502,15 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Creates a new empty team with {@code 1} <i>loading request</i> for the team and the provided requester plugin.
-     * <p>The method {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} can be used to remove the <i>loading request</i>.
-     * <p>For more information about <i>loading requests</i> see {@link #addLoadingRequestToTeam(TeamProgression, Plugin)},
-     * {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} and {@link #getLoadingRequestsAmount(TeamProgression, Plugin)}.
+     * <p>The method {@link #removeLoadingRequest(TeamProgression, Plugin)} can be used to remove the <i>loading request</i>.
+     * <p>For more information about <i>loading requests</i> see {@link #addLoadingRequest(TeamProgression, Plugin)},
+     * {@link #removeLoadingRequest(TeamProgression, Plugin)} and {@link #getLoadingRequestsAmount(TeamProgression, Plugin)}.
      * <p>Also, a plugin should only use its own instance as requester to not interfere with other plugins.
      *
      * @param requester The plugin which requested to create the team.
      * @return A {@link CompletableFuture} which provides the {@link TeamProgression} of the new team.
-     * @see #addLoadingRequestToTeam(TeamProgression, Plugin)
-     * @see #removeLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #addLoadingRequest(TeamProgression, Plugin)
+     * @see #removeLoadingRequest(TeamProgression, Plugin)
      * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
      */
     @NotNull
@@ -1555,24 +1555,24 @@ public final class DatabaseManager implements Closeable {
 
     /**
      * Loads the team with provided id from the database into the caching system (if it isn't already) and keeps it
-     * loaded until {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} is called.
+     * loaded until {@link #removeLoadingRequest(TeamProgression, Plugin)} is called.
      * <p>Each time this method is called, the number of <i>loading requests</i> for the team and requester
-     * plugin is incremented by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)},
+     * plugin is incremented by one. Instead, the counterpart of this method, {@link #removeLoadingRequest(TeamProgression, Plugin)},
      * decrements by one the number of <i>loading requests</i> for the team and requester plugin every time it's called.
-     * <p>For more information about <i>loading requests</i> see {@link #addLoadingRequestToTeam(TeamProgression, Plugin)},
-     * {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} and {@link #getLoadingRequestsAmount(TeamProgression, Plugin)}.
+     * <p>For more information about <i>loading requests</i> see {@link #addLoadingRequest(TeamProgression, Plugin)},
+     * {@link #removeLoadingRequest(TeamProgression, Plugin)} and {@link #getLoadingRequestsAmount(TeamProgression, Plugin)}.
      * <p>To create a brand new team see {@link #createNewTeamWithOneLoadingRequest(Plugin)}.
      * <p>Also, a plugin should only use its own instance as requester to not interfere with other plugins.
      *
      * @param teamId The id of the team to load.
      * @param requester The plugin making the request.
      * @return A {@link CompletableFuture} which provides the team's {@link TeamProgression}.
-     * @see #addLoadingRequestToTeam(TeamProgression, Plugin)
-     * @see #removeLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #addLoadingRequest(TeamProgression, Plugin)
+     * @see #removeLoadingRequest(TeamProgression, Plugin)
      * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
      * @see #createNewTeamWithOneLoadingRequest(Plugin)
      */
-    public CompletableFuture<TeamProgression> loadAndAddLoadingRequestToTeam(int teamId, @NotNull Plugin requester) {
+    public CompletableFuture<TeamProgression> loadAndAddLoadingRequest(int teamId, @NotNull Plugin requester) {
         checkClosed();
         Preconditions.checkNotNull(requester, "Plugin is null.");
 
@@ -1634,9 +1634,9 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Keeps the provided team loaded until {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)} is called.
+     * Keeps the provided team loaded until {@link #removeLoadingRequest(TeamProgression, Plugin)} is called.
      * <p>Each time this method is called, the number of <i>loading requests</i> for the provided team and requester
-     * plugin is incremented by one. Instead, the counterpart of this method, {@link #removeLoadingRequestToTeam(TeamProgression, Plugin)},
+     * plugin is incremented by one. Instead, the counterpart of this method, {@link #removeLoadingRequest(TeamProgression, Plugin)},
      * decrements by one the number of <i>loading requests</i> for the team and requester plugin every time it's called.
      * <br>Since the caching system ensures a team is always kept loaded while they have at least {@code 1} <i>loading request</i>,
      * this method can be used to make sure a team isn't unloaded, even if none of its members are loaded.
@@ -1647,10 +1647,10 @@ public final class DatabaseManager implements Closeable {
      * @param teamProgression The team to keep loaded.
      * @param requester The plugin which requested to keep the team loaded.
      * @throws IllegalArgumentException If the provided {@link TeamProgression} is invalid (see {@link TeamProgression#isValid()}).
-     * @see #removeLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #removeLoadingRequest(TeamProgression, Plugin)
      * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
      */
-    public void addLoadingRequestToTeam(@NotNull TeamProgression teamProgression, @NotNull Plugin requester) throws IllegalArgumentException {
+    public void addLoadingRequest(@NotNull TeamProgression teamProgression, @NotNull Plugin requester) throws IllegalArgumentException {
         checkClosed();
         Preconditions.checkNotNull(requester, "Plugin is null.");
 
@@ -1668,7 +1668,7 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Counterpart of {@link #addLoadingRequestToTeam(TeamProgression, Plugin)}. Decrements by one the <i>loading requests</i>
+     * Counterpart of {@link #addLoadingRequest(TeamProgression, Plugin)}. Decrements by one the <i>loading requests</i>
      * count for the provided team and requester plugin.
      * <p>Since the caching system ensures a team is always kept loaded while they have at least {@code 1} <i>loading request</i>,
      * if after the decrement (done by this method) the total amount of <i>loading requests</i> drops to {@code 0}, the
@@ -1678,10 +1678,10 @@ public final class DatabaseManager implements Closeable {
      *
      * @param teamProgression The team to keep loaded.
      * @param requester The plugin which requested to keep the team loaded.
-     * @see #addLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #addLoadingRequest(TeamProgression, Plugin)
      * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
      */
-    public void removeLoadingRequestToTeam(@NotNull TeamProgression teamProgression, @NotNull Plugin requester) {
+    public void removeLoadingRequest(@NotNull TeamProgression teamProgression, @NotNull Plugin requester) {
         checkClosed();
         Preconditions.checkNotNull(teamProgression, "TeamProgression is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
@@ -1772,8 +1772,8 @@ public final class DatabaseManager implements Closeable {
      * @param player The player.
      * @param requester The plugin.
      * @return The number of <i>loading requests</i> that a plugin currently holds for the specified player.
-     * @see #loadAndAddLoadingRequestToPlayer(UUID, Plugin)
-     * @see #removeLoadingRequestToPlayer(UUID, Plugin)
+     * @see #loadAndAddLoadingRequest(UUID, Plugin)
+     * @see #removeLoadingRequest(UUID, Plugin)
      */
     @Contract(pure = true)
     public int getLoadingRequestsAmount(@NotNull Player player, @NotNull Plugin requester) {
@@ -1786,8 +1786,8 @@ public final class DatabaseManager implements Closeable {
      * @param player The player.
      * @param requester The plugin.
      * @return The number of <i>loading requests</i> that a plugin currently holds for the specified player.
-     * @see #loadAndAddLoadingRequestToPlayer(UUID, Plugin)
-     * @see #removeLoadingRequestToPlayer(UUID, Plugin)
+     * @see #loadAndAddLoadingRequest(UUID, Plugin)
+     * @see #removeLoadingRequest(UUID, Plugin)
      */
     @Contract(pure = true)
     public int getLoadingRequestsAmount(@NotNull OfflinePlayer player, @NotNull Plugin requester) {
@@ -1800,8 +1800,8 @@ public final class DatabaseManager implements Closeable {
      * @param uuid The {@link UUID} of the player.
      * @param requester The plugin.
      * @return The number of <i>loading requests</i> that a plugin currently holds for the specified player.
-     * @see #loadAndAddLoadingRequestToPlayer(UUID, Plugin)
-     * @see #removeLoadingRequestToPlayer(UUID, Plugin)
+     * @see #loadAndAddLoadingRequest(UUID, Plugin)
+     * @see #removeLoadingRequest(UUID, Plugin)
      */
     @Contract(pure = true)
     public int getLoadingRequestsAmount(@NotNull UUID uuid, @NotNull Plugin requester) {
@@ -1825,8 +1825,8 @@ public final class DatabaseManager implements Closeable {
      * @param teamProgression The team.
      * @param requester The plugin.
      * @return The number of <i>loading requests</i> that a plugin currently holds for the specified team.
-     * @see #addLoadingRequestToTeam(TeamProgression, Plugin)
-     * @see #removeLoadingRequestToTeam(TeamProgression, Plugin)
+     * @see #addLoadingRequest(TeamProgression, Plugin)
+     * @see #removeLoadingRequest(TeamProgression, Plugin)
      */
     @Contract(pure = true)
     public int getLoadingRequestsAmount(@NotNull TeamProgression teamProgression, @NotNull Plugin requester) {
