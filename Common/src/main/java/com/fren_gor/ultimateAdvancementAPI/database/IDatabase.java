@@ -198,16 +198,6 @@ public interface IDatabase {
     /**
      * Deletes the provided player from the database.
      *
-     * @param player The player to be unregistered.
-     * @throws SQLException If an SQL exception occurs.
-     */
-    default void unregisterPlayer(@NotNull Player player) throws SQLException {
-        unregisterPlayer(uuidFromPlayer(player));
-    }
-
-    /**
-     * Deletes the provided player from the database.
-     *
      * @param uuid The {@link UUID} of the player to be unregistered.
      * @throws SQLException If an SQL exception occurs.
      */

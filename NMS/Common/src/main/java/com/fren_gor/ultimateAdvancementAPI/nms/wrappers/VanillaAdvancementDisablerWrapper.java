@@ -29,18 +29,6 @@ public class VanillaAdvancementDisablerWrapper {
      * Disables vanilla advancements.
      * <p>Does not persist between datapack reloads (i.e. {@code /minecraft:reload}).
      *
-     * @throws Exception If disabling fails.
-     * @deprecated Use {@link #disableVanillaAdvancements(boolean, boolean) disableVanillaAdvancements(true, false)} instead.
-     */
-    @Deprecated(forRemoval = true)
-    public static void disableVanillaAdvancements() throws Exception {
-        disableVanillaAdvancements(true, false);
-    }
-
-    /**
-     * Disables vanilla advancements.
-     * <p>Does not persist between datapack reloads (i.e. {@code /minecraft:reload}).
-     *
      * @param vanillaAdvancements Whether to disable vanilla advancements.
      * @param vanillaRecipeAdvancements Whether to disable vanilla recipe advancements (i.e. the advancements which unlock recipes).
      * @throws Exception If disabling fails.

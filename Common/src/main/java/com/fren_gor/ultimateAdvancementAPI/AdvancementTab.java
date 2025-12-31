@@ -372,20 +372,6 @@ public final class AdvancementTab {
     }
 
     /**
-     * Sends or updates the advancements of the tab to the provided player.
-     *
-     * @param player The player.
-     * @throws IllegalStateException If the tab is not initialised.
-     * @throws DisposedException If the tab is disposed.
-     * @throws UserNotLoadedException If the provided player's team is not loaded.
-     * @deprecated Use {@link #updateAdvancementsToTeam(Player)} instead.
-     */
-    @Deprecated(since = "2.2.0")
-    public void updateEveryAdvancement(@NotNull Player player) throws UserNotLoadedException {
-        updateAdvancementsToTeam(player);
-    }
-
-    /**
      * Register the advancements for this tab, initializing the tab. Thus, it cannot be called twice.
      *
      * @param rootAdvancement The root of this tab.
