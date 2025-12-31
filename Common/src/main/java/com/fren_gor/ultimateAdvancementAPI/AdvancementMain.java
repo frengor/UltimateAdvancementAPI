@@ -4,9 +4,11 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
+import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
@@ -36,6 +38,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -43,6 +46,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.runSync;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.uuidFromPlayer;
+import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
 
 /**
  * Main class of the API. It is used to instantiate the API.
@@ -187,7 +192,7 @@ public final class AdvancementMain {
     }
 
     private void resendAdvancementsOnReload() {
-        runSync(this, 20, () -> Bukkit.getOnlinePlayers().forEach(this::updatePlayer));
+        runSync(this, 20, () -> Bukkit.getOnlinePlayers().forEach(this::updateAdvancementsToTeam));
     }
 
     @Contract("_ -> fail")
@@ -533,22 +538,44 @@ public final class AdvancementMain {
     }
 
     /**
-     * Updates every advancement to a player.
-     * <p>An advancement is updated only if its tab is shown to the player (see {@link AdvancementTab#isShownTo(Player)}).
+     * Sends or updates the advancements of every tab to the provided player's team members.
      *
-     * @param player The player to be updated.
+     * @param player The player.
      * @throws IllegalStateException If the API is not enabled.
-     * @see UltimateAdvancementAPI#updatePlayer(Player)
+     * @throws UserNotLoadedException If the provided player's team is not loaded.
+     * @see UltimateAdvancementAPI#updateAdvancementsToTeam(Player)
      */
-    public void updatePlayer(@NotNull Player player) {
+    public void updateAdvancementsToTeam(@NotNull Player player) throws UserNotLoadedException {
+        updateAdvancementsToTeam(uuidFromPlayer(player));
+    }
+
+    /**
+     * Sends or updates the advancements of every tab to the provided player's team members.
+     *
+     * @param uuid The {@link UUID} of the player.
+     * @throws IllegalStateException If the API is not enabled.
+     * @throws UserNotLoadedException If the provided player's team is not loaded.
+     * @see UltimateAdvancementAPI#updateAdvancementsToTeam(UUID)
+     */
+    public void updateAdvancementsToTeam(@NotNull UUID uuid) throws UserNotLoadedException {
+        updateAdvancementsToTeam(databaseManager.getTeamProgression(uuid));
+    }
+
+    /**
+     * Sends or updates the advancements of every tab to the provided player's team members.
+     *
+     * @param teamProgression The {@link TeamProgression} of the team.
+     * @throws IllegalStateException If the API is not enabled.
+     * @see UltimateAdvancementAPI#updateAdvancementsToTeam(TeamProgression)
+     */
+    public void updateAdvancementsToTeam(@NotNull TeamProgression teamProgression) {
         checkInitialisation();
-        Preconditions.checkNotNull(player, "Player is null.");
-        Preconditions.checkArgument(player.isOnline(), "Player isn't online");
+        validateTeamProgression(teamProgression);
 
         synchronized (tabs) {
             for (AdvancementTab tab : tabs.values()) {
-                if (tab.isActive() && tab.isShownTo(player)) {
-                    tab.updateAdvancementsToTeam(player);
+                if (tab.isActive()) {
+                    tab.updateAdvancementsToTeam(teamProgression);
                 }
             }
         }

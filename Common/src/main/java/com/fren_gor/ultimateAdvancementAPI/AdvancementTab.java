@@ -349,7 +349,7 @@ public final class AdvancementTab {
     /**
      * Sends or updates the advancements of the tab to the provided player's team members.
      *
-     * @param uuid A {@link UUID} of the player.
+     * @param uuid The {@link UUID} of the player.
      * @throws IllegalStateException If the tab is not initialised.
      * @throws DisposedException If the tab is disposed.
      * @throws UserNotLoadedException If the provided player's team is not loaded.

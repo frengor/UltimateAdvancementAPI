@@ -373,7 +373,7 @@ public final class DatabaseManager implements Closeable {
                 // No need to call addInternalRequest here since the request can be reused and removed later
                 processUnredeemed(loadedPlayer, player);
             }
-            main.updatePlayer(player);
+            main.updateAdvancementsToTeam(player);
         }, () -> {
             // On cancel remove the internal request since the task didn't run
             if (!closed.get()) {
@@ -1992,7 +1992,7 @@ public final class DatabaseManager implements Closeable {
 
             if (playerToMove != null && playerToMove.isOnline()) {
                 // We are already on main thread here since we are in the callback
-                main.updatePlayer(playerToMove);
+                main.updateAdvancementsToTeam(playerToMove);
 
                 if (processUnredeemed) {
                     // processUnredeemed expects to have an internal request "passed" to it

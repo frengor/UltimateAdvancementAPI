@@ -228,14 +228,35 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Updates every advancement to a player.
-     * <p>An advancement is updated only if its tab is shown to the player (see {@link AdvancementTab#isShownTo(Player)}).
+     * Sends or updates the advancements of every tab to the provided player's team members.
      *
-     * @param player The player to be updated.
+     * @param player The player.
+     * @throws IllegalStateException If the API is not enabled.
+     * @throws UserNotLoadedException If the provided player's team is not loaded.
+     */
+    public void updateAdvancementsToTeam(@NotNull Player player) throws UserNotLoadedException {
+        getMain().updateAdvancementsToTeam(player);
+    }
+
+    /**
+     * Sends or updates the advancements of every tab to the provided player's team members.
+     *
+     * @param uuid The {@link UUID} of the player.
+     * @throws IllegalStateException If the API is not enabled.
+     * @throws UserNotLoadedException If the provided player's team is not loaded.
+     */
+    public void updateAdvancementsToTeam(@NotNull UUID uuid) throws UserNotLoadedException {
+        getMain().updateAdvancementsToTeam(uuid);
+    }
+
+    /**
+     * Sends or updates the advancements of every tab to the provided player's team members.
+     *
+     * @param teamProgression The {@link TeamProgression} of the team.
      * @throws IllegalStateException If the API is not enabled.
      */
-    public void updatePlayer(@NotNull Player player) {
-        getMain().updatePlayer(player);
+    public void updateAdvancementsToTeam(@NotNull TeamProgression teamProgression) {
+        getMain().updateAdvancementsToTeam(teamProgression);
     }
 
     /**
