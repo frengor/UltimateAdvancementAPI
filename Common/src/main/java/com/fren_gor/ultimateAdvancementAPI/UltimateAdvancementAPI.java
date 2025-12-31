@@ -338,6 +338,19 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
+     * Returns the {@link TeamProgression} of the team of the provided offline player.
+     *
+     * @param player The player.
+     * @return The {@link TeamProgression} of the player's team.
+     * @throws UserNotLoadedException If the player was not loaded into the caching system.
+     *         For more information about the caching system see {@link DatabaseManager}.
+     */
+    @NotNull
+    public TeamProgression getTeamProgression(@NotNull OfflinePlayer player) throws UserNotLoadedException {
+        return getMain().getDatabaseManager().getTeamProgression(player);
+    }
+
+    /**
      * Returns the {@link TeamProgression} of the team of the provided player.
      *
      * @param uuid The {@link UUID} of the player.
@@ -374,6 +387,32 @@ public final class UltimateAdvancementAPI {
         Preconditions.checkNotNull(playerToMove, "Player to move is null.");
         Preconditions.checkNotNull(aDestTeamPlayer, "Destination player (representing destination team) is null.");
         return callAfterLoad(playerToMove, aDestTeamPlayer, ds -> ds.updatePlayerTeam(playerToMove, aDestTeamPlayer));
+    }
+
+    /**
+     * Moves the provided player from their team to the provided one.
+     *
+     * @param playerToMove The player to move.
+     * @param destinationTeam The destination team.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
+     */
+    public CompletableFuture<Void> updatePlayerTeam(@NotNull Player playerToMove, @NotNull TeamProgression destinationTeam) {
+        Preconditions.checkNotNull(playerToMove, "Player to move is null.");
+        Preconditions.checkNotNull(destinationTeam, "Destination team is null.");
+        return callAfterLoad(playerToMove, destinationTeam, ds -> ds.updatePlayerTeam(playerToMove, destinationTeam));
+    }
+
+    /**
+     * Moves the provided player from their team to the provided one.
+     *
+     * @param playerToMove The player to move.
+     * @param destinationTeam The destination team.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
+     */
+    public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull TeamProgression destinationTeam) {
+        Preconditions.checkNotNull(playerToMove, "Player to move is null.");
+        Preconditions.checkNotNull(destinationTeam, "Destination team is null.");
+        return callAfterLoad(playerToMove, destinationTeam, ds -> ds.updatePlayerTeam(playerToMove, destinationTeam));
     }
 
     /**
@@ -444,7 +483,7 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Returns whether the provided advancement is unredeemed for the specified team.
+     * Returns whether the provided advancement is unredeemed for the specified player.
      *
      * @param advancement The advancement.
      * @param uuid The {@link UUID} of the player.
@@ -454,6 +493,19 @@ public final class UltimateAdvancementAPI {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkNotNull(uuid, "UUID is null.");
         return callAfterLoad(uuid, ds -> ds.isUnredeemed(advancement.getKey(), uuid));
+    }
+
+    /**
+     * Returns whether the provided advancement is unredeemed for the specified team.
+     *
+     * @param advancement The advancement.
+     * @param teamProgression The {@link TeamProgression} of the team.
+     * @return A {@link CompletableFuture} which will complete with the operation's result when it finishes.
+     */
+    public CompletableFuture<Boolean> isUnredeemed(@NotNull Advancement advancement, @NotNull TeamProgression teamProgression) {
+        Preconditions.checkNotNull(advancement, "Advancement is null.");
+        Preconditions.checkNotNull(teamProgression, "TeamProgression is null.");
+        return callAfterLoad(teamProgression, ds -> ds.isUnredeemed(advancement.getKey(), teamProgression));
     }
 
     /**
@@ -517,6 +569,41 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
+     * Sets the provided advancement unredeemed for the specified team.
+     * <p>Rewards will be given on redeem.
+     *
+     * @param advancement The advancement.
+     * @param teamProgression The {@link TeamProgression} of the team.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
+     */
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull TeamProgression teamProgression) {
+        return setUnredeemed(advancement, teamProgression, true);
+    }
+
+    /**
+     * Sets the provided advancement unredeemed for the specified team.
+     *
+     * @param advancement The advancement.
+     * @param teamProgression The {@link TeamProgression} of the team.
+     * @param giveRewards Whether to give rewards on redeem.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
+     */
+    public CompletableFuture<Void> setUnredeemed(@NotNull Advancement advancement, @NotNull TeamProgression teamProgression, boolean giveRewards) {
+        Preconditions.checkNotNull(advancement, "Advancement is null.");
+        Preconditions.checkNotNull(teamProgression, "TeamProgression is null.");
+
+        final int maxProgression = advancement.getMaxProgression();
+        final AdvancementKey key = advancement.getKey();
+        return callAfterLoad(teamProgression, ds -> {
+            // Don't call update if advancement isn't granted
+            if (teamProgression.getRawProgression(key) != maxProgression) {
+                throw new NotGrantedException(key, teamProgression.getTeamId());
+            }
+            return ds.setUnredeemed(advancement.getKey(), teamProgression, giveRewards);
+        });
+    }
+
+    /**
      * Redeems the specified advancement for the provided player.
      *
      * @param advancement The advancement.
@@ -538,6 +625,19 @@ public final class UltimateAdvancementAPI {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkNotNull(uuid, "UUID is null.");
         return callAfterLoad(uuid, ds -> ds.unsetUnredeemed(advancement.getKey(), uuid));
+    }
+
+    /**
+     * Redeems the specified advancement for the provided team.
+     *
+     * @param advancement The advancement.
+     * @param teamProgression The {@link TeamProgression} of the team.
+     * @return A {@link CompletableFuture} which will complete when the operation finishes.
+     */
+    public CompletableFuture<Void> unsetUnredeemed(@NotNull Advancement advancement, @NotNull TeamProgression teamProgression) {
+        Preconditions.checkNotNull(advancement, "Advancement is null.");
+        Preconditions.checkNotNull(teamProgression, "TeamProgression is null.");
+        return callAfterLoad(teamProgression, ds -> ds.unsetUnredeemed(advancement.getKey(), teamProgression));
     }
 
     /**
@@ -574,7 +674,18 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Loads the provided player from the database into the caching system (if they aren't already) and keeps they
+     * Returns whether the team with the provided id is loaded into the caching system.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
+     *
+     * @param teamId The id of the team.
+     * @return Whether the team with the provided id is loaded into the caching system.
+     */
+    public boolean isLoaded(int teamId) {
+        return getMain().getDatabaseManager().isLoaded(teamId);
+    }
+
+    /**
+     * Loads the provided player from the database into the caching system (if they aren't already) and keeps them
      * loaded until {@link #removeLoadingRequest(Player)} is called.
      * <p>Each time this method is called, the number of <i>loading requests</i> for the provided player is incremented
      * by one. Instead, the counterpart of this method, {@link #removeLoadingRequest(Player)}, decrements by one
@@ -587,7 +698,6 @@ public final class UltimateAdvancementAPI {
      *
      * @param player The player.
      * @return A {@link CompletableFuture} which will complete with the player team's {@link TeamProgression}.
-     * @see DatabaseManager#loadAndAddLoadingRequest(UUID, Plugin)
      * @see #removeLoadingRequest(UUID)
      * @see #getLoadingRequestsAmount(UUID)
      */
@@ -596,7 +706,7 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Loads the provided player from the database into the caching system (if they aren't already) and keeps they
+     * Loads the provided player from the database into the caching system (if they aren't already) and keeps them
      * loaded until {@link #removeLoadingRequest(OfflinePlayer)} is called.
      * <p>Each time this method is called, the number of <i>loading requests</i> for the provided player is incremented
      * by one. Instead, the counterpart of this method, {@link #removeLoadingRequest(OfflinePlayer)}, decrements by one
@@ -618,7 +728,7 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
-     * Loads the provided player from the database into the caching system (if they aren't already) and keeps they
+     * Loads the provided player from the database into the caching system (if they aren't already) and keeps them
      * loaded until {@link #removeLoadingRequest(UUID)} is called.
      * <p>Each time this method is called, the number of <i>loading requests</i> for the provided player is incremented
      * by one. Instead, the counterpart of this method, {@link #removeLoadingRequest(UUID)}, decrements by one
@@ -637,6 +747,68 @@ public final class UltimateAdvancementAPI {
      */
     public CompletableFuture<TeamProgression> loadAndAddLoadingRequest(@NotNull UUID uuid) {
         return getMain().getDatabaseManager().loadAndAddLoadingRequest(uuid, plugin);
+    }
+
+    /**
+     * Creates a new empty team with {@code 1} <i>loading request</i>.
+     * <p>The method {@link #removeLoadingRequest(TeamProgression)} can be used to remove the <i>loading request</i>.
+     * <p>For more information about <i>loading requests</i> see {@link #addLoadingRequest(TeamProgression)},
+     * {@link #removeLoadingRequest(TeamProgression)} and {@link #getLoadingRequestsAmount(TeamProgression)}.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
+     *
+     * @return A {@link CompletableFuture} which will complete with the {@link TeamProgression} of the new team.
+     * @see DatabaseManager#createNewTeamWithOneLoadingRequest(Plugin)
+     * @see #addLoadingRequest(TeamProgression)
+     * @see #loadAndAddLoadingRequest(int)
+     * @see #removeLoadingRequest(TeamProgression)
+     * @see #getLoadingRequestsAmount(TeamProgression)
+     */
+    public CompletableFuture<TeamProgression> createNewTeamWithOneLoadingRequest() {
+        return getMain().getDatabaseManager().createNewTeamWithOneLoadingRequest(plugin);
+    }
+
+    /**
+     * Loads the team with provided id from the database into the caching system (if it isn't already) and keeps it
+     * loaded until {@link #removeLoadingRequest(TeamProgression)} is called.
+     * <p>Each time this method is called, the number of <i>loading requests</i> for the team is incremented
+     * by one. Instead, the counterpart of this method, {@link #removeLoadingRequest(TeamProgression)}, decrements by one
+     * the number of <i>loading requests</i> for the team every time it's called.
+     * <br>Since the caching system ensures a team is always kept loaded while they have at least {@code 1} <i>loading request</i>,
+     * this method can be used to make sure a team isn't unloaded, even if no member is currently online.
+     * <p>To know how many <i>loading requests</i> are currently held for a team, the method
+     * {@link #getLoadingRequestsAmount(TeamProgression)} can be used.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
+     *
+     * @param teamId The id of the team to load.
+     * @return A {@link CompletableFuture} which will complete with the team's {@link TeamProgression}.
+     * @see DatabaseManager#loadAndAddLoadingRequest(int, Plugin)
+     * @see #addLoadingRequest(TeamProgression)
+     * @see #removeLoadingRequest(TeamProgression)
+     * @see #getLoadingRequestsAmount(TeamProgression)
+     */
+    public CompletableFuture<TeamProgression> loadAndAddLoadingRequest(int teamId) {
+        return getMain().getDatabaseManager().loadAndAddLoadingRequest(teamId, plugin);
+    }
+
+    /**
+     * Keeps the provided team loaded into the caching system until {@link #removeLoadingRequest(TeamProgression)} is called.
+     * <p>Each time this method is called, the number of <i>loading requests</i> for the team is incremented
+     * by one. Instead, the counterpart of this method, {@link #removeLoadingRequest(TeamProgression)}, decrements by one
+     * the number of <i>loading requests</i> for the team every time it's called.
+     * <br>Since the caching system ensures a team is always kept loaded while they have at least {@code 1} <i>loading request</i>,
+     * this method can be used to make sure a team isn't unloaded, even if no member is currently online.
+     * <p>To know how many <i>loading requests</i> are currently held for a team, the method
+     * {@link #getLoadingRequestsAmount(TeamProgression)} can be used.
+     * <p>For more information about the caching system see {@link DatabaseManager}.
+     *
+     * @param teamProgression The {@link TeamProgression} of the team.
+     * @see DatabaseManager#addLoadingRequest(TeamProgression, Plugin)
+     * @see #loadAndAddLoadingRequest(int)
+     * @see #removeLoadingRequest(TeamProgression)
+     * @see #getLoadingRequestsAmount(TeamProgression)
+     */
+    public void addLoadingRequest(@NotNull TeamProgression teamProgression) {
+        getMain().getDatabaseManager().addLoadingRequest(teamProgression, plugin);
     }
 
     /**
@@ -688,6 +860,22 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
+     * Counterpart of {@link #loadAndAddLoadingRequest(int)}. Decrements by one the <i>loading requests</i>
+     * count for the provided team.
+     * <p>Since the caching system ensures a team is always kept loaded while they have at least {@code 1} <i>loading request</i>,
+     * if after the decrement (done by this method) the total amount of <i>loading requests</i> drops to {@code 0}, the
+     * caching system becomes able to unload the team at any time as soon as it can (for example, the team cannot be
+     * unloaded if a member is online).
+     * <p>For more information about the caching system see {@link DatabaseManager}.
+     *
+     * @param teamProgression The {@link TeamProgression} of the team.
+     * @see DatabaseManager#removeLoadingRequest(TeamProgression, Plugin)
+     */
+    public void removeLoadingRequest(@NotNull TeamProgression teamProgression) {
+        getMain().getDatabaseManager().removeLoadingRequest(teamProgression, plugin);
+    }
+
+    /**
      * Returns the number of <i>loading requests</i> currently held for the specified player.
      *
      * @param player The player.
@@ -721,6 +909,78 @@ public final class UltimateAdvancementAPI {
     }
 
     /**
+     * Returns the number of <i>loading requests</i> currently held for the specified team.
+     *
+     * @param teamProgression The {@link TeamProgression} of the team.
+     * @return The number of <i>loading requests</i> currently held for the specified team.
+     * @see DatabaseManager#getLoadingRequestsAmount(TeamProgression, Plugin)
+     */
+    public int getLoadingRequestsAmount(@NotNull TeamProgression teamProgression) {
+        return getMain().getDatabaseManager().getLoadingRequestsAmount(teamProgression, plugin);
+    }
+
+    /**
+     * Sets the provided team as permanent.
+     * <p>Permanent teams are never cleared from the database.
+     *
+     * @param progression The {@link TeamProgression} of the team.
+     * @param permanent Whether to make the team permanent or not permanent.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
+     */
+    @NotNull
+    public CompletableFuture<Void> setTeamPermanent(@NotNull TeamProgression progression, boolean permanent) {
+        return getMain().getDatabaseManager().setTeamPermanent(progression, permanent);
+    }
+
+    /**
+     * Sets the provided team as permanent.
+     * <p>Permanent teams are never cleared from the database.
+     *
+     * @param teamId The id of the team.
+     * @param permanent Whether to make the team permanent or not permanent.
+     * @return A {@link CompletableFuture} which provides the result of the operation.
+     */
+    @NotNull
+    public CompletableFuture<Void> setTeamPermanent(int teamId, boolean permanent) {
+        return getMain().getDatabaseManager().setTeamPermanent(teamId, permanent);
+    }
+
+    /**
+     * Returns whether the provided team is permanent.
+     * <p>Permanent teams are never cleared from the database.
+     *
+     * @param progression The {@link TeamProgression} of the team.
+     * @return A {@link CompletableFuture} which provides whether the provided team is permanent.
+     */
+    @NotNull
+    public CompletableFuture<Boolean> isTeamPermanent(@NotNull TeamProgression progression) {
+        return getMain().getDatabaseManager().isTeamPermanent(progression);
+    }
+
+    /**
+     * Returns whether the provided team is permanent.
+     * <p>Permanent teams are never cleared from the database.
+     *
+     * @param teamId The id of the team.
+     * @return A {@link CompletableFuture} which provides whether the provided team is permanent.
+     */
+    @NotNull
+    public CompletableFuture<Boolean> isTeamPermanent(int teamId) {
+        return getMain().getDatabaseManager().isTeamPermanent(teamId);
+    }
+
+    /**
+     * Returns a list of all the permanent teams.
+     * <p>Permanent teams are never cleared from the database.
+     *
+     * @return A {@link CompletableFuture} which provides a list containing all the permanent teams.
+     */
+    @NotNull
+    public CompletableFuture<List<Integer>> getPermanentTeams() {
+        return getMain().getDatabaseManager().getPermanentTeams();
+    }
+
+    /**
      * Gets the in-database stored name of the provided player.
      *
      * @param player The player.
@@ -738,6 +998,26 @@ public final class UltimateAdvancementAPI {
      */
     public CompletableFuture<String> getStoredPlayerName(@NotNull UUID uuid) {
         return getMain().getDatabaseManager().getStoredPlayerName(uuid);
+    }
+
+    private <T> CompletableFuture<T> callAfterLoad(@NotNull TeamProgression progression, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction) {
+        Preconditions.checkNotNull(internalAction, "internalAction is null.");
+
+        final AdvancementMain main = getMain();
+        final DatabaseManager ds = main.getDatabaseManager();
+        CompletableFuture<T> completableFuture = new CompletableFuture<>();
+
+        ds.addLoadingRequest(progression, plugin);
+
+        CompletableFuture.supplyAsync(() -> internalAction.apply(ds))
+            .thenCompose(c -> c)
+            .thenAcceptAsync(completableFuture::complete)
+            .exceptionallyAsync(err -> {
+                handleException(err, completableFuture, main, "An exception occurred while calling an API method");
+                return null;
+            }).whenComplete((r, e) -> ds.removeLoadingRequest(progression, plugin));
+
+        return completableFuture;
     }
 
     private <T> CompletableFuture<T> callAfterLoad(@NotNull Player player, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction) {
@@ -764,6 +1044,30 @@ public final class UltimateAdvancementAPI {
             handleException(err, completableFuture, main, "An exception occurred while loading user " + uuid);
             return null;
         });
+
+        return completableFuture;
+    }
+
+    private <T> CompletableFuture<T> callAfterLoad(@NotNull Player player, @NotNull TeamProgression progression, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction) {
+        return callAfterLoad(uuidFromPlayer(player), progression, internalAction);
+    }
+
+    private <T> CompletableFuture<T> callAfterLoad(@NotNull UUID uuid, @NotNull TeamProgression progression, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction) {
+        final AdvancementMain main = getMain();
+        final DatabaseManager ds = main.getDatabaseManager();
+
+        ds.addLoadingRequest(progression, plugin);
+
+        CompletableFuture<T> completableFuture = null;
+        try {
+            completableFuture = callAfterLoad(uuid, internalAction);
+        } finally {
+            if (completableFuture == null) {
+                ds.removeLoadingRequest(progression, plugin);
+            } else {
+                completableFuture.whenComplete((r, e) -> ds.removeLoadingRequest(progression, plugin));
+            }
+        }
 
         return completableFuture;
     }

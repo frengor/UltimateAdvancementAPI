@@ -645,6 +645,7 @@ public final class DatabaseManager implements Closeable {
      * @param otherTeamProgression The {@link TeamProgression} of the target team.
      * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
+     * @see UltimateAdvancementAPI#updatePlayerTeam(UUID, TeamProgression)
      */
     @NotNull
     public CompletableFuture<Void> updatePlayerTeam(@NotNull UUID playerToMove, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
@@ -659,6 +660,7 @@ public final class DatabaseManager implements Closeable {
      * @param otherTeamProgression The {@link TeamProgression} of the target team.
      * @return A {@link CompletableFuture} which provides the result of the operation.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
+     * @see UltimateAdvancementAPI#updatePlayerTeam(Player, TeamProgression)
      */
     @NotNull
     public CompletableFuture<Void> updatePlayerTeam(@NotNull Player playerToMove, @NotNull TeamProgression otherTeamProgression) throws UserNotLoadedException {
@@ -1064,6 +1066,7 @@ public final class DatabaseManager implements Closeable {
      * @param pro The {@link TeamProgression} of the team.
      * @return A {@link CompletableFuture} which provides a boolean value that is {@code true} if the
      *         provided advancement is unredeemed for the specified player, false otherwise.
+     * @see UltimateAdvancementAPI#isUnredeemed(Advancement, TeamProgression)
      */
     @NotNull
     public CompletableFuture<Boolean> isUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
@@ -1123,6 +1126,7 @@ public final class DatabaseManager implements Closeable {
      * @param pro The {@link TeamProgression} of the team.
      * @param giveRewards Whether advancement rewards will be given on redeem.
      * @return A {@link CompletableFuture} which provides the result of the operation.
+     * @see UltimateAdvancementAPI#setUnredeemed(Advancement, TeamProgression, boolean)
      */
     @NotNull
     public CompletableFuture<Void> setUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro, boolean giveRewards) {
@@ -1179,6 +1183,7 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param pro The {@link TeamProgression} of the team.
      * @return A {@link CompletableFuture} which provides the result of the operation.
+     * @see UltimateAdvancementAPI#unsetUnredeemed(Advancement, TeamProgression)
      */
     @NotNull
     public CompletableFuture<Void> unsetUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
@@ -1222,6 +1227,7 @@ public final class DatabaseManager implements Closeable {
      * @param progression The {@link TeamProgression} of the team.
      * @param permanent Whether to make the team permanent or not permanent.
      * @return A {@link CompletableFuture} which provides the result of the operation.
+     * @see UltimateAdvancementAPI#setTeamPermanent(TeamProgression, boolean)
      */
     @NotNull
     public CompletableFuture<Void> setTeamPermanent(@NotNull TeamProgression progression, boolean permanent) {
@@ -1236,6 +1242,7 @@ public final class DatabaseManager implements Closeable {
      * @param teamId The id of the team.
      * @param permanent Whether to make the team permanent or not permanent.
      * @return A {@link CompletableFuture} which provides the result of the operation.
+     * @see UltimateAdvancementAPI#setTeamPermanent(int, boolean)
      */
     @NotNull
     public CompletableFuture<Void> setTeamPermanent(int teamId, boolean permanent) {
@@ -1263,6 +1270,7 @@ public final class DatabaseManager implements Closeable {
      *
      * @param progression The {@link TeamProgression} of the team.
      * @return A {@link CompletableFuture} which provides whether the provided team is permanent.
+     * @see UltimateAdvancementAPI#isTeamPermanent(TeamProgression)
      */
     @NotNull
     public CompletableFuture<Boolean> isTeamPermanent(@NotNull TeamProgression progression) {
@@ -1276,6 +1284,7 @@ public final class DatabaseManager implements Closeable {
      *
      * @param teamId The id of the team.
      * @return A {@link CompletableFuture} which provides whether the provided team is permanent.
+     * @see UltimateAdvancementAPI#isTeamPermanent(int)
      */
     @NotNull
     public CompletableFuture<Boolean> isTeamPermanent(int teamId) {
@@ -1303,6 +1312,7 @@ public final class DatabaseManager implements Closeable {
      * <p>Permanent teams are never cleared from the database.
      *
      * @return A {@link CompletableFuture} which provides a list containing all the permanent teams.
+     * @see UltimateAdvancementAPI#getPermanentTeams()
      */
     @NotNull
     public CompletableFuture<List<Integer>> getPermanentTeams() {
@@ -1370,6 +1380,7 @@ public final class DatabaseManager implements Closeable {
      * @param uuid The {@link UUID} of the player.
      * @param requester The plugin making the request.
      * @return A {@link CompletableFuture} which provides the player team's {@link TeamProgression}.
+     * @see UltimateAdvancementAPI#loadAndAddLoadingRequest(UUID)
      * @see #removeLoadingRequest(UUID, Plugin)
      * @see #getLoadingRequestsAmount(UUID, Plugin)
      */
@@ -1484,6 +1495,7 @@ public final class DatabaseManager implements Closeable {
      *
      * @param uuid The {@link UUID} of the player.
      * @param requester The plugin which requested the loading.
+     * @see UltimateAdvancementAPI#removeLoadingRequest(UUID)
      * @see #loadAndAddLoadingRequest(UUID, Plugin)
      * @see #getLoadingRequestsAmount(UUID, Plugin)
      */
@@ -1509,6 +1521,7 @@ public final class DatabaseManager implements Closeable {
      *
      * @param requester The plugin which requested to create the team.
      * @return A {@link CompletableFuture} which provides the {@link TeamProgression} of the new team.
+     * @see UltimateAdvancementAPI#createNewTeamWithOneLoadingRequest()
      * @see #addLoadingRequest(TeamProgression, Plugin)
      * @see #removeLoadingRequest(TeamProgression, Plugin)
      * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
@@ -1567,6 +1580,7 @@ public final class DatabaseManager implements Closeable {
      * @param teamId The id of the team to load.
      * @param requester The plugin making the request.
      * @return A {@link CompletableFuture} which provides the team's {@link TeamProgression}.
+     * @see UltimateAdvancementAPI#loadAndAddLoadingRequest(int)
      * @see #addLoadingRequest(TeamProgression, Plugin)
      * @see #removeLoadingRequest(TeamProgression, Plugin)
      * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
@@ -1647,6 +1661,7 @@ public final class DatabaseManager implements Closeable {
      * @param teamProgression The team to keep loaded.
      * @param requester The plugin which requested to keep the team loaded.
      * @throws IllegalArgumentException If the provided {@link TeamProgression} is invalid (see {@link TeamProgression#isValid()}).
+     * @see UltimateAdvancementAPI#addLoadingRequest(TeamProgression)
      * @see #removeLoadingRequest(TeamProgression, Plugin)
      * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
      */
@@ -1678,6 +1693,7 @@ public final class DatabaseManager implements Closeable {
      *
      * @param teamProgression The team to keep loaded.
      * @param requester The plugin which requested to keep the team loaded.
+     * @see UltimateAdvancementAPI#removeLoadingRequest(TeamProgression)
      * @see #addLoadingRequest(TeamProgression, Plugin)
      * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
      */
@@ -1700,6 +1716,7 @@ public final class DatabaseManager implements Closeable {
      *
      * @param player The player.
      * @return Whether the provided player is loaded into the cache.
+     * @see UltimateAdvancementAPI#isLoaded(Player)
      */
     @Contract(pure = true)
     public boolean isLoaded(@NotNull Player player) {
@@ -1711,6 +1728,7 @@ public final class DatabaseManager implements Closeable {
      *
      * @param player The player.
      * @return Whether the provided offline player is loaded into the cache.
+     * @see UltimateAdvancementAPI#isLoaded(OfflinePlayer)
      */
     @Contract(pure = true)
     public boolean isLoaded(@NotNull OfflinePlayer player) {
@@ -1722,6 +1740,7 @@ public final class DatabaseManager implements Closeable {
      *
      * @param uuid The {@link UUID} of the player.
      * @return Whether the provided player is loaded into the cache.
+     * @see UltimateAdvancementAPI#isLoaded(UUID)
      */
     @Contract(pure = true, value = "null -> false")
     public synchronized boolean isLoaded(UUID uuid) {
@@ -1735,6 +1754,7 @@ public final class DatabaseManager implements Closeable {
      *
      * @param teamId The id of the team.
      * @return Whether the team with the provided id is loaded into the cache.
+     * @see UltimateAdvancementAPI#isLoaded(int)
      */
     @Contract(pure = true)
     public synchronized boolean isLoaded(int teamId) {
@@ -1772,6 +1792,7 @@ public final class DatabaseManager implements Closeable {
      * @param player The player.
      * @param requester The plugin.
      * @return The number of <i>loading requests</i> that a plugin currently holds for the specified player.
+     * @see UltimateAdvancementAPI#getLoadingRequestsAmount(Player)
      * @see #loadAndAddLoadingRequest(UUID, Plugin)
      * @see #removeLoadingRequest(UUID, Plugin)
      */
@@ -1786,6 +1807,7 @@ public final class DatabaseManager implements Closeable {
      * @param player The player.
      * @param requester The plugin.
      * @return The number of <i>loading requests</i> that a plugin currently holds for the specified player.
+     * @see UltimateAdvancementAPI#getLoadingRequestsAmount(OfflinePlayer)
      * @see #loadAndAddLoadingRequest(UUID, Plugin)
      * @see #removeLoadingRequest(UUID, Plugin)
      */
@@ -1800,6 +1822,7 @@ public final class DatabaseManager implements Closeable {
      * @param uuid The {@link UUID} of the player.
      * @param requester The plugin.
      * @return The number of <i>loading requests</i> that a plugin currently holds for the specified player.
+     * @see UltimateAdvancementAPI#getLoadingRequestsAmount(UUID)
      * @see #loadAndAddLoadingRequest(UUID, Plugin)
      * @see #removeLoadingRequest(UUID, Plugin)
      */
@@ -1825,6 +1848,7 @@ public final class DatabaseManager implements Closeable {
      * @param teamProgression The team.
      * @param requester The plugin.
      * @return The number of <i>loading requests</i> that a plugin currently holds for the specified team.
+     * @see UltimateAdvancementAPI#getLoadingRequestsAmount(TeamProgression)
      * @see #addLoadingRequest(TeamProgression, Plugin)
      * @see #removeLoadingRequest(TeamProgression, Plugin)
      */
