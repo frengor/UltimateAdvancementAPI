@@ -14,6 +14,7 @@ import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
 import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -29,34 +30,25 @@ public class MultiTasksAdvancementTest {
     @AutoInject
     private DatabaseManager dbManager;
 
+    // Initialized by init()
     private MultiTasksAdvancement multiTask;
     private TaskAdvancement task1, task2, task3;
+    private Player player;
+    private TeamProgression progression;
+
+    @AfterEach
+    void tearDown() {
+        multiTask = null;
+        task1 = null;
+        task2 = null;
+        task3 = null;
+        player = null;
+        progression = null;
+    }
 
     @Test
     void taskSetProgression() {
-        var tab = advancementMain.createAdvancementTab(advancementMain.getOwningPlugin(), "test-tab", "background/texture");
-        var root = new RootAdvancement(tab, "root", new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "root").build());
-
-        multiTask = new MultiTasksAdvancement(root, "multi-task", 10, new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "root").build());
-        task1 = new TaskAdvancement(multiTask, "task1", 2);
-        task2 = new TaskAdvancement(multiTask, "task2", 3);
-        task3 = new TaskAdvancement(multiTask, "task3", 5);
-        multiTask.registerTasks(task1, task2, task3);
-
-        tab.registerAdvancements(root, multiTask);
-
-        Player player = server.addPlayer();
-
-        // TODO Replace with proper loadPlayer() call like in DatabaseManagerTest
-        TeamProgression progression;
-        do {
-            server.getScheduler().performTicks(5);
-            try {
-                progression = dbManager.getTeamProgression(player);
-            } catch (UserNotLoadedException e) {
-                progression = null;
-            }
-        } while (progression == null);
+        init();
 
         waitCompletion(task1.setProgression(player, 1, true));
         assertProgressionEventFired(task1, progression, 0, 1);
@@ -106,30 +98,21 @@ public class MultiTasksAdvancementTest {
     }
 
     @Test
+    void taskIncrementMoreThanMaxProgression() {
+        init();
+
+        waitCompletion(task1.incrementProgression(player, 10, true));
+        assertProgressionEventFired(task1, progression, 0, 2);
+        assertProgressionEventFired(multiTask, progression, 0, 2);
+        assertGrantEventFired(task1, progression, player, true);
+        server.getPluginManager().clearEvents();
+
+        advancementMain.unregisterAdvancementTabs(advancementMain.getOwningPlugin());
+    }
+
+    @Test
     void multiTaskSetProgression() {
-        var tab = advancementMain.createAdvancementTab(advancementMain.getOwningPlugin(), "test-tab", "background/texture");
-        var root = new RootAdvancement(tab, "root", new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "root").build());
-
-        multiTask = new MultiTasksAdvancement(root, "multi-task", 10, new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "root").build());
-        task1 = new TaskAdvancement(multiTask, "task1", 2);
-        task2 = new TaskAdvancement(multiTask, "task2", 3);
-        task3 = new TaskAdvancement(multiTask, "task3", 5);
-        multiTask.registerTasks(task1, task2, task3);
-
-        tab.registerAdvancements(root, multiTask);
-
-        Player player = server.addPlayer();
-
-        // TODO Replace with proper loadPlayer() call like in DatabaseManagerTest
-        TeamProgression progression;
-        do {
-            server.getScheduler().performTicks(5);
-            try {
-                progression = dbManager.getTeamProgression(player);
-            } catch (UserNotLoadedException e) {
-                progression = null;
-            }
-        } while (progression == null);
+        init();
 
         waitCompletion(multiTask.setProgression(player, multiTask.getMaxProgression(), true));
         assertProgressionEventFired(task1, progression, 0, task1.getMaxProgression());
@@ -165,6 +148,35 @@ public class MultiTasksAdvancementTest {
         server.getPluginManager().clearEvents();
 
         advancementMain.unregisterAdvancementTabs(advancementMain.getOwningPlugin());
+    }
+
+    private void init() {
+        var tab = advancementMain.createAdvancementTab(advancementMain.getOwningPlugin(), "test-tab", "background/texture");
+        var root = new RootAdvancement(tab, "root", new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "root").build());
+
+        multiTask = new MultiTasksAdvancement(root, "multi-task", 10, new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "root").build());
+        task1 = new TaskAdvancement(multiTask, "task1", 2);
+        task2 = new TaskAdvancement(multiTask, "task2", 3);
+        task3 = new TaskAdvancement(multiTask, "task3", 5);
+        multiTask.registerTasks(task1, task2, task3);
+
+        tab.registerAdvancements(root, multiTask);
+
+        this.player = server.addPlayer();
+
+        // TODO Replace with a proper loadPlayer() call like in DatabaseManagerTest
+        long startTime = System.currentTimeMillis();
+        do {
+            if (System.currentTimeMillis() - startTime >= 5000) {
+                throw new RuntimeException("Timeout loading player");
+            }
+            server.getScheduler().performTicks(5);
+            try {
+                this.progression = dbManager.getTeamProgression(this.player);
+            } catch (UserNotLoadedException e) {
+                this.progression = null;
+            }
+        } while (this.progression == null);
     }
 
     private void assertProgressionEventFired(Advancement adv, TeamProgression progression, Integer oldProgr, Integer newProgr) {

@@ -457,6 +457,8 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         Preconditions.checkNotNull(result, "ProgressionUpdateResult is null");
         Preconditions.checkArgument(this.tasksKeys.contains(task.getKey()), task.getKey() + " is not a TaskAdvancement of this MultiTaskAdvancement (" + this.getKey() + ')');
         validateProgressionValueStrict(multiTaskProgression, this.maxProgression);
+        validateProgressionValueStrict(result.newProgression(), task.getMaxProgression());
+        validateProgressionValueStrict(result.oldProgression(), task.getMaxProgression());
 
         int oldMultiTaskProgression = multiTaskProgression - (result.newProgression() - result.oldProgression());
         validateProgressionValueStrict(oldMultiTaskProgression, this.maxProgression);
