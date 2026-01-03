@@ -192,7 +192,14 @@ public final class AdvancementMain {
     }
 
     private void resendAdvancementsOnReload() {
-        runSync(this, 20, () -> Bukkit.getOnlinePlayers().forEach(this::updateAdvancementsToTeam));
+        runSync(this, 20, () -> Bukkit.getOnlinePlayers().forEach(p -> {
+            try {
+                updateAdvancementsToTeam(p);
+            } catch (UserNotLoadedException ignored) {
+            } catch (Exception e) {
+                getLogger().log(Level.SEVERE, "Could not resend advancements to " + p.getName(), e);
+            }
+        }));
     }
 
     @Contract("_ -> fail")
