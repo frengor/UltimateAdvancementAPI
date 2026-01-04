@@ -18,7 +18,7 @@ A powerful API to create custom advancements for your minecraft server.
 **UltimateAdvancementGenerator:** <https://escanortargaryen.dev/UltimateAdvancementGenerator/>  
 **Discord:** <https://discord.gg/BMg6VJk5n3>  
 **Official Wiki:** <https://github.com/frengor/UltimateAdvancementAPI/wiki/>  
-**Javadoc:** <https://frengor.com/javadocs/UltimateAdvancementAPI/latest/>  
+**Javadoc:** <https://frengor.com/javadocs/UltimateAdvancementAPI/3.0.0-beta-1/>  
 **Jenkins:** <https://jenkins.frengor.com/job/UltimateAdvancementAPI/>
 
 **Get it with maven:**
