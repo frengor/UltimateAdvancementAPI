@@ -12,6 +12,9 @@ A powerful API to create custom advancements for your minecraft server.
 
 ![Advancement Tab Image](https://github.com/frengor/UltimateAdvancementAPI/wiki/images/spigot-photo.png)
 
+> [!CAUTION]
+> Please be advised that this is a **beta version** and does not represent the final, stable version. Users should expect potential bugs and breaking changes during this phase. We advise against using this version in a production environment. If you choose to proceed, ensure you perform frequent backups of all data. Furthermore, be aware that the database schema will be upgraded, which may result in breaking compatibility with previous v2 versions.
+
 **Modrinth Page:** <https://modrinth.com/plugin/ultimateadvancementapi>  
 **Spigot Page:** <https://www.spigotmc.org/resources/95585/>  
 **Hangar Page:** <https://hangar.papermc.io/DevHeim/UltimateAdvancementAPI>  
