@@ -2,7 +2,7 @@
 [![Build Status main Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/badge/icon?subject=main&style=flat)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/)
 [![Build Status dev Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/badge/icon?subject=dev&style=flat)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/)
 [![License](https://img.shields.io/badge/license-LGPL--3.0-orange?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/blob/main/LGPL)
-[![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Ffrengor%2FUltimateAdvancementAPI%2Ftags&query=%24%5B%3A1%5D.name&style=flat&label=version&color=blue)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
+[![Version](https://img.shields.io/badge/version-2.7.2-blue?style=flat&color=007ec6)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
 [![Issues](https://img.shields.io/github/issues/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/issues)
 [![Stars](https://img.shields.io/github/stars/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/stargazers)
 [![Forks](https://img.shields.io/github/forks/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/network)
@@ -11,6 +11,10 @@
 A powerful API to create custom advancements for your minecraft server.
 
 ![Advancement Tab Image](https://github.com/frengor/UltimateAdvancementAPI/wiki/images/spigot-photo.png)
+
+> [!IMPORTANT]
+> **3.0.0 Beta** is available on the [`main-3.0.0` branch](https://github.com/frengor/UltimateAdvancementAPI/tree/main-3.0.0). Download the beta from Modrinth on Hangar (links below).  
+> The Javadoc for the beta is published [here](https://frengor.com/javadocs/UltimateAdvancementAPI/3.0.0-beta-1/).
 
 **Modrinth Page:** <https://modrinth.com/plugin/ultimateadvancementapi>  
 **Spigot Page:** <https://www.spigotmc.org/resources/95585/>  
