@@ -15,13 +15,13 @@ public class ReflectionUtil {
 
     /**
      * The Minecraft version.
-     * <p>For example {@code 1.17.1}.
+     * <p>For example {@code 1.17.1} or {@code 26.1} (new year-based scheme introduced in 26.1).
      */
     public static final String MINECRAFT_VERSION = Bukkit.getBukkitVersion().split("-")[0];
 
     /**
      * The Minecraft minor version.
-     * <p>For example, for {@code 1.19.2} it is {@code 2}.
+     * <p>For example, for {@code 1.19.2} it is {@code 2}. For new-format versions like {@code 26.1} it is {@code 0}.
      */
     public static final int MINOR_VERSION;
 
@@ -36,13 +36,19 @@ public class ReflectionUtil {
 
     private static final String CRAFTBUKKIT_PACKAGE = Bukkit.getServer().getClass().getPackage().getName();
 
+    // First segment of the version string: "1" for old format (1.x.y), year for new format (26.1)
+    private static final int MAJOR_SEGMENT = Integer.parseInt(MINECRAFT_VERSION.split("\\.")[0]);
+
     /**
      * The NMS version.
-     * <p>For example, for {@code v1_17_R1} it is {@code 17}.
+     * <p>For old-format versions (1.x.y), this is the major release number (e.g., {@code 21} for 1.21.x).
+     * For new year-based versions (e.g., {@code 26.1}), this is the drop number (e.g., {@code 1}).
      */
     public static final int VERSION = Integer.parseInt(MINECRAFT_VERSION.split("\\.")[1]);
 
-    private static final boolean IS_1_17 = VERSION >= 17;
+    // True if the server uses Mojang-mapped class names (net.minecraft.xxx) rather than net.minecraft.server.vX_Y_RZ.
+    // All new year-based versions (26.x+) and old 1.17+ versions use Mojang mappings.
+    private static final boolean IS_1_17 = MAJOR_SEGMENT > 1 || VERSION >= 17;
 
     /**
      * Returns whether the provided class exists.

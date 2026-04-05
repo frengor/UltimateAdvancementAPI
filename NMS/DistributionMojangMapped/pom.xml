@@ -159,6 +159,13 @@
             <classifier>mojang-mapped</classifier>
         </dependency>
 
+        <!-- 26.1 ships fully unobfuscated; no mojang-mapped classifier needed -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-26_1_R1</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- When adding a version remember to add the CraftBukkit relocation below -->
     </dependencies>
 
