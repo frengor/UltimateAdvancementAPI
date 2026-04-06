@@ -161,7 +161,7 @@ public final class DatabaseManager {
                     if (Bukkit.isPrimaryThread()) {
                         callEventCatchingExceptions(new TeamUnloadEvent(t));
                     } else {
-                        runSync(main.getOwningPlugin(), () -> callEventCatchingExceptions(new TeamUnloadEvent(t)));
+                        runSync(main.getOwningPlugin(), main.getScheduler(), () -> callEventCatchingExceptions(new TeamUnloadEvent(t)));
                     }
                 }
             }

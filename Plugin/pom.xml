@@ -102,6 +102,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.Anon8281</groupId>
+            <artifactId>UniversalScheduler</artifactId>
+            <version>0.1.6</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -197,6 +204,10 @@
                         <relocation>
                             <pattern>org.bstats</pattern>
                             <shadedPattern>com.fren_gor.ultimateAdvancementAPI.libs.org.bstats</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.github.Anon8281.universalScheduler</pattern>
+                            <shadedPattern>com.frengor.ultimateadvancementapi-parent.universalScheduler</shadedPattern>
                         </relocation>
                     </relocations>
                     <createSourcesJar>false</createSourcesJar>

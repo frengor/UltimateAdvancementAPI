@@ -4,6 +4,7 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
+import com.github.Anon8281.universalScheduler.scheduling.schedulers.TaskScheduler;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -115,8 +116,8 @@ public final class Utils {
      *
      * @param plugin The plugin
      */
-    public static AdvancementMain newAdvancementMain(@NotNull Plugin plugin) {
-        return newAdvancementMain(plugin, new EventManager(plugin));
+    public static AdvancementMain newAdvancementMain(@NotNull Plugin plugin, @NotNull TaskScheduler scheduler) {
+        return newAdvancementMain(plugin, scheduler, new EventManager(plugin));
     }
 
     /**
@@ -129,11 +130,11 @@ public final class Utils {
      * @param plugin The plugin
      * @param manager The event manager
      */
-    public static AdvancementMain newAdvancementMain(@NotNull Plugin plugin, @NotNull EventManager manager) {
+    public static AdvancementMain newAdvancementMain(@NotNull Plugin plugin, @NotNull TaskScheduler scheduler, @NotNull EventManager manager) {
         assertNotNull("newAdvancementMain(...) must be called inside Utils.mockServer(...)", Bukkit.getServer());
         assertNotNull(plugin);
         assertNotNull(manager);
-        AdvancementMain main = new AdvancementMain(plugin);
+        AdvancementMain main = new AdvancementMain(plugin, scheduler);
         try {
             ((AtomicBoolean) mainLOADED.get(main)).set(true);
             ((AtomicBoolean) mainENABLED.get(main)).set(true);

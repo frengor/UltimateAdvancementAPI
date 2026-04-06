@@ -867,7 +867,7 @@ public final class UltimateAdvancementAPI {
      */
     public void getStoredPlayerName(@NotNull UUID uuid, @NotNull Consumer<ObjectResult<@Nullable String>> action) {
         Preconditions.checkNotNull(action, "Consumer is null.");
-        getMain().getDatabaseManager().getStoredPlayerName(uuid).thenAccept(s -> runSync(plugin, () -> action.accept(s)));
+        getMain().getDatabaseManager().getStoredPlayerName(uuid).thenAccept(s -> runSync(plugin, main.getScheduler(), () -> action.accept(s)));
     }
 
     private <T extends Result> void callAfterLoad(@NotNull Player player, @NotNull Function<DatabaseManager, CompletableFuture<T>> internalAction, @Nullable Consumer<T> action) {
@@ -892,7 +892,7 @@ public final class UltimateAdvancementAPI {
             }
             c.thenAccept(b -> {
                 if (action != null) {
-                    runSync(plugin, () -> {
+                    runSync(plugin, main.getScheduler(), () -> {
                         try {
                             if (plugin.isEnabled())
                                 action.accept(b);
@@ -936,7 +936,7 @@ public final class UltimateAdvancementAPI {
                     }
                     c.thenAccept(b -> {
                         if (action != null) {
-                            runSync(plugin, () -> {
+                            runSync(plugin, main.getScheduler(), () -> {
                                 try {
                                     if (plugin.isEnabled())
                                         action.accept(b);
@@ -959,7 +959,7 @@ public final class UltimateAdvancementAPI {
 
     private <T extends Result> void callSyncIfNotNull(@NotNull CompletableFuture<T> completableFuture, @Nullable Consumer<T> action) {
         if (action != null) {
-            completableFuture.thenAccept(t -> runSync(plugin, () -> action.accept(t)));
+            completableFuture.thenAccept(t -> runSync(plugin, main.getScheduler(), () -> action.accept(t)));
         }
     }
 

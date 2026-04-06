@@ -13,6 +13,7 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.Versions;
+import com.github.Anon8281.universalScheduler.scheduling.schedulers.TaskScheduler;
 import com.google.common.base.Preconditions;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
@@ -57,6 +58,7 @@ public final class AdvancementMain {
 
     private final static AtomicBoolean LOADED = new AtomicBoolean(false), ENABLED = new AtomicBoolean(false), INVALID_VERSION = new AtomicBoolean(false);
 
+    private final TaskScheduler scheduler;
     private final Plugin owningPlugin;
     private EventManager eventManager;
     private DatabaseManager databaseManager;
@@ -68,13 +70,14 @@ public final class AdvancementMain {
     /**
      * Creates a new {@code AdvancementMain}.
      * <p>The library folder is {@code "plugins/pluginDirectory/.libs"}.
-     * Use {@link #AdvancementMain(Plugin, String)} to customize.
+     * Use {@link #AdvancementMain(Plugin, TaskScheduler, String)} to customize.
      *
      * @param owningPlugin The plugin instantiating the API.
      */
-    public AdvancementMain(@NotNull Plugin owningPlugin) {
+    public AdvancementMain(@NotNull Plugin owningPlugin, @NotNull TaskScheduler scheduler) {
         // Don't use AdvancementUtils here until having checked that the current mc version is supported
         Preconditions.checkNotNull(owningPlugin, "Plugin is null.");
+        this.scheduler = scheduler;
         this.owningPlugin = owningPlugin;
         this.libFolder = ".libs";
     }
@@ -83,13 +86,15 @@ public final class AdvancementMain {
      * Creates a new {@code AdvancementMain}.
      *
      * @param owningPlugin The plugin instantiating the API.
+     * @param scheduler The scheduler from the plugin.
      * @param libFolder The name of the folder when additional libraries will be stored into.
      *         The folder is created into the plugin directory.
      */
-    public AdvancementMain(@NotNull Plugin owningPlugin, String libFolder) {
+    public AdvancementMain(@NotNull Plugin owningPlugin, @NotNull TaskScheduler scheduler, String libFolder) {
         // Don't use AdvancementUtils here until having checked that the current mc version is supported
         Preconditions.checkNotNull(owningPlugin, "Plugin is null.");
         Preconditions.checkNotNull(libFolder, "Lib folder is null.");
+        this.scheduler = scheduler;
         this.owningPlugin = owningPlugin;
         this.libFolder = libFolder;
     }
@@ -307,7 +312,7 @@ public final class AdvancementMain {
             throw new DuplicatedException("An AdvancementTab with '" + namespace + "' namespace already exists.");
         }
 
-        AdvancementTab tab = new AdvancementTab(plugin, databaseManager, namespace);
+        AdvancementTab tab = new AdvancementTab(plugin, scheduler, databaseManager, namespace);
         tabs.put(namespace, tab);
         pluginMap.computeIfAbsent(plugin, p -> new LinkedList<>()).add(tab);
         return tab;
@@ -551,6 +556,16 @@ public final class AdvancementMain {
     @NotNull
     public Plugin getOwningPlugin() {
         return owningPlugin;
+    }
+
+    /**
+     * Gets the scheduler from the plugin that instantiated the API.
+     *
+     * @return The scheduler from plugin that instantiated the API.
+     */
+    @NotNull
+    public TaskScheduler getScheduler() {
+        return scheduler;
     }
 
     /**

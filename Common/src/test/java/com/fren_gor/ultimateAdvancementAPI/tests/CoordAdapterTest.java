@@ -8,6 +8,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDispla
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter.Coord;
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.bukkit.Bukkit;
@@ -139,7 +140,7 @@ public class CoordAdapterTest {
     @Test
     public void docCodeTest() {
         Plugin myPlugin = InterfaceImplementer.newFakePlugin("myPlugin");
-        AdvancementMain main = Utils.newAdvancementMain(myPlugin);
+        AdvancementMain main = Utils.newAdvancementMain(myPlugin, UniversalScheduler.getScheduler(myPlugin));
         AdvancementTab myTab = main.createAdvancementTab(myPlugin, "mytab");
 
         // Keys of the advancements to create

@@ -27,7 +27,7 @@
         <!-- CommandAPI -->
         <dependency>
             <groupId>dev.jorel</groupId>
-            <artifactId>commandapi-spigot-core</artifactId>
+            <artifactId>commandapi-spigot-shade</artifactId>
             <version>11.1.0</version>
             <scope>provided</scope>
         </dependency>

@@ -22,6 +22,8 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutSel
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
+import com.github.Anon8281.universalScheduler.scheduling.schedulers.TaskScheduler;
+import com.github.Anon8281.universalScheduler.scheduling.tasks.MyScheduledTask;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -32,7 +34,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,6 +71,7 @@ public final class AdvancementTab {
     private final Map<AdvancementKey, Advancement> advancements = new HashMap<>();
     private final Map<Player, Set<MinecraftKeyWrapper>> players = new HashMap<>();
     private final AdvsUpdateRunnable updateManager;
+    private static TaskScheduler scheduler;
 
     private RootAdvancement rootAdvancement;
     private boolean initialised = false, disposed = false, automaticallyShown = false, automaticallyGrant = false;
@@ -78,10 +80,11 @@ public final class AdvancementTab {
     @LazyValue
     private Collection<BaseAdvancement> advsWithoutRoot;
 
-    AdvancementTab(@NotNull Plugin owningPlugin, @NotNull DatabaseManager databaseManager, @NotNull String namespace) {
+    AdvancementTab(@NotNull Plugin owningPlugin, @NotNull TaskScheduler scheduler, @NotNull DatabaseManager databaseManager, @NotNull String namespace) {
         checkNamespace(namespace);
         this.namespace = Objects.requireNonNull(namespace);
         this.owningPlugin = Objects.requireNonNull(owningPlugin);
+        this.scheduler = Objects.requireNonNull(scheduler);
         this.eventManager = new EventManager(owningPlugin);
         this.databaseManager = Objects.requireNonNull(databaseManager);
         this.updateManager = new AdvsUpdateRunnable();
@@ -770,6 +773,16 @@ public final class AdvancementTab {
     }
 
     /**
+     * Gets the scheduler from the plugin that created this advancement tab.
+     *
+     * @return The scheduler from the plugin that created this advancement tab.
+     */
+    @NotNull
+    public TaskScheduler getScheduler() {
+        return scheduler;
+    }
+
+    /**
      * Gets the {@link EventManager} of this tab.
      *
      * @return The {@link EventManager} of this tab.
@@ -821,12 +834,12 @@ public final class AdvancementTab {
 
         private final Set<TeamProgression> advsToUpdate = new HashSet<>();
         private boolean scheduled = false;
-        private BukkitTask task;
+        private MyScheduledTask task;
 
         public void schedule(@NotNull TeamProgression progression) {
             if (!scheduled) {
                 scheduled = true;
-                task = Bukkit.getScheduler().runTaskLater(owningPlugin, this, 1L);
+                task = scheduler.runTaskLater(this, 1L);
             }
             advsToUpdate.add(progression);
         }

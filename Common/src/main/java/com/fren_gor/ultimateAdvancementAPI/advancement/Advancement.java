@@ -541,7 +541,7 @@ public abstract class Advancement {
      *         When overridden, this method (called via {@code super}) enables the AVS features for that method.
      */
     public boolean isVisible(@NotNull TeamProgression progression) {
-        validateTeamProgression(progression);
+        // validateTeamProgression(progression);
         // Advancement visibility system
         if (iVisibilityMethod != null) {
             try {
@@ -576,7 +576,7 @@ public abstract class Advancement {
         // Show Toast
         if (display.doesShowToast()) {
             // TODO Find a better solution
-            runSync(advancementTab.getOwningPlugin(), 2, () -> AdvancementUtils.displayToastDuringUpdate(player, this));
+            runSync(advancementTab.getOwningPlugin(), advancementTab.getScheduler(), 2, () -> AdvancementUtils.displayToastDuringUpdate(player, this));
         }
 
         if (giveRewards)
@@ -623,7 +623,7 @@ public abstract class Advancement {
      *         The values are the current progressions of the team.
      */
     public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
-        if (isVisible(teamProgression)) {
+        if (teamProgression.isValid() && isVisible(teamProgression)) {
             addedAdvancements.put(getNMSWrapper(), getProgression(teamProgression));
         }
     }
