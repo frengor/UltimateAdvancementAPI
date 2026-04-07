@@ -1,6 +1,5 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.tasks;
 
-import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
@@ -17,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockbukkit.mockbukkit.ServerMock;
 
 import static com.fren_gor.ultimateAdvancementAPI.tests.Utils.waitCompletion;
 

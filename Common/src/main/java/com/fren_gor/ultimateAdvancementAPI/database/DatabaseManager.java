@@ -92,7 +92,8 @@ public final class DatabaseManager implements Closeable {
     // since the latter can't be used inside lambdas, which are very commonly used in the code
 
     private static final int LOAD_EVENTS_DELAY = 3;
-    private static final boolean IS_PAPER = ReflectionUtil.classExists("io.papermc.paper.advancement.AdvancementDisplay");
+    private static final boolean IS_PAPER = ReflectionUtil.classExists("io.papermc.paper.advancement.AdvancementDisplay")
+            && !ReflectionUtil.classExists("org.mockbukkit.mockbukkit.MockBukkit"); // Workaround: MockBukkit doesn't call PlayerConnectionInitialConfigureEvent
 
     // A single-thread executor is used to maintain executed queries sequential
     private final ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("DatabaseManager Thread - %d").build());

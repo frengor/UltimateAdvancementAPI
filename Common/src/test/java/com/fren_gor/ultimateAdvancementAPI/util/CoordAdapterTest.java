@@ -1,6 +1,5 @@
 package com.fren_gor.ultimateAdvancementAPI.util;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.advancement.BaseAdvancement;
@@ -16,6 +15,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockbukkit.mockbukkit.MockBukkit;
 
 import java.util.Collection;
 import java.util.List;

@@ -20,9 +20,17 @@
         <!-- Put before every other dependency in order to have it loaded before Spigot dependency-->
         <!-- See https://github.com/MockBukkit/MockBukkit/issues/462 and https://github.com/MockBukkit/MockBukkit/issues/462#issuecomment-1156574495 -->
         <dependency>
-            <groupId>com.github.seeseemelk</groupId>
+            <groupId>org.mockbukkit.mockbukkit</groupId>
             <artifactId>${mockBukkitArtifact}</artifactId>
             <version>${mockBukkitVersion}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Paper API for tests (MockBukkit is based on Paper, so we can use it in tests) -->
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>${mockBukkitPaperAPIVersion}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

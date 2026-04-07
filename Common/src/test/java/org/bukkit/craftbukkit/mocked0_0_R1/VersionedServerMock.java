@@ -1,10 +1,10 @@
 package org.bukkit.craftbukkit.mocked0_0_R1;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.tests.Utils.AbstractMockedServer;
 import org.jetbrains.annotations.NotNull;
+import org.mockbukkit.mockbukkit.MockBukkit;
+import org.mockbukkit.mockbukkit.ServerMock;
 
 import java.util.Optional;
 
