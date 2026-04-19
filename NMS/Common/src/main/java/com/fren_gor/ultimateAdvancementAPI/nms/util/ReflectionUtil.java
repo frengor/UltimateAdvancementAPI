@@ -14,10 +14,33 @@ import java.util.Optional;
 public class ReflectionUtil {
 
     /**
-     * The Minecraft version.
-     * <p>For example {@code 1.17.1}.
+     * The complete Minecraft version.
+     * <p>For example {@code 1.17.1} or {@code 26.1.2}.
      */
-    public static final String MINECRAFT_VERSION = Bukkit.getBukkitVersion().split("-")[0];
+    public static final String MINECRAFT_VERSION = getMinecraftVersion();
+
+    private static String getMinecraftVersion() {
+        try {
+            // Paper-only method
+            return (String) Bukkit.class.getDeclaredMethod("getMinecraftVersion").invoke(null);
+        } catch (ReflectiveOperationException e) {
+            return Bukkit.getBukkitVersion().split("-")[0];
+        }
+    }
+
+    /**
+     * The Minecraft major version.
+     * <p>For example, for {@code 1.19.2} it is {@code 1}.
+     * For {@code 26.1.2} it is {@code 26}.
+     */
+    public static final int MAJOR_VERSION;
+
+    /**
+     * The Minecraft version.
+     * <p>For example, for {@code 1.17.1} it is {@code 17}.
+     * For {@code 26.1.2} it is {@code 1}.
+     */
+    public static final int VERSION;
 
     /**
      * The Minecraft minor version.
@@ -27,6 +50,10 @@ public class ReflectionUtil {
 
     static {
         var splitted = MINECRAFT_VERSION.split("\\.");
+
+        MAJOR_VERSION = Integer.parseInt(splitted[0]);
+        VERSION = Integer.parseInt(splitted[1]);
+
         if (splitted.length > 2) {
             MINOR_VERSION = Integer.parseInt(splitted[2]);
         } else {
@@ -35,14 +62,7 @@ public class ReflectionUtil {
     }
 
     private static final String CRAFTBUKKIT_PACKAGE = Bukkit.getServer().getClass().getPackage().getName();
-
-    /**
-     * The NMS version.
-     * <p>For example, for {@code v1_17_R1} it is {@code 17}.
-     */
-    public static final int VERSION = Integer.parseInt(MINECRAFT_VERSION.split("\\.")[1]);
-
-    private static final boolean IS_1_17 = VERSION >= 17;
+    private static final boolean IS_1_17 = MAJOR_VERSION >= 26 || (MAJOR_VERSION == 1 && VERSION >= 17);
 
     /**
      * Returns whether the provided class exists.

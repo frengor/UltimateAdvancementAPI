@@ -89,7 +89,7 @@ public final class Utils {
         try {
             Field f = Versions.class.getDeclaredField("COMPLETE_VERSION");
             f.setAccessible(true);
-            f.set(null, Optional.of("serverVersion1_17_R1"));
+            f.set(null, Optional.of("mocked1_17_R1"));
 
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
@@ -98,7 +98,7 @@ public final class Utils {
         MockedStatic<Bukkit> bukkitMock = Mockito.mockStatic(Bukkit.class);
         Server server = InterfaceImplementer.newFakeServer();
         bukkitMock.when(Bukkit::getServer).thenReturn(server);
-        bukkitMock.when(Bukkit::getBukkitVersion).thenReturn("serverVersion1.17.1-R0.1-SNAPSHOT");
+        bukkitMock.when(Bukkit::getBukkitVersion).thenReturn("1.17.1-mocked-R0.1-SNAPSHOT");
         assertSame("Server mock failed", Bukkit.getServer(), server);
         PluginManager plManager = new SimplePluginManager(server, new SimpleCommandMap(server));
         bukkitMock.when(Bukkit::getPluginManager).thenReturn(plManager);
