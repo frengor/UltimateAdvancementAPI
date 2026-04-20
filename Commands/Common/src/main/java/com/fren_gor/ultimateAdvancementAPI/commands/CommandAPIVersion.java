@@ -59,16 +59,17 @@ public enum CommandAPIVersion {
                     "v1_21_R4"
             )
     ),
-    LATEST("11.1.0",
+    LATEST("11.2.0",
             "commandapi-spigot-shade",
             "commandapi-paper-shade",
-            "E0rUSMwJKIHP5skpdscHMhq4VslVNnfcxh4QnY8N2Vw=",
-            "WG0DkQHBm8me54fVf5e3lVY+50qwvvOFhApxT+na+Ho=",
-            "11_1_0",
+            "Kx6c7DPWPyFkrmlEYq1hj6VeQm4BbBBMbthKI1pHLes=",
+            "F6KljlYn01+rt6JIKJPOKmWI++d46LgeOd8e6dw6gIM=",
+            "11_2_0",
             List.of(
                     "v1_21_R5",
                     "v1_21_R6",
-                    "v1_21_R7"
+                    "v1_21_R7",
+                    "v26_1_R2"
             )
     );
 
