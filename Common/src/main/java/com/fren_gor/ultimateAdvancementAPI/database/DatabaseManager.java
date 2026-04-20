@@ -149,7 +149,7 @@ public final class DatabaseManager implements Closeable {
         database.setUp();
 
         // Don't use PlayerLoginEvent on Paper 1.21.7+
-        if (IS_PAPER && (ReflectionUtil.VERSION > 21 || (ReflectionUtil.VERSION == 21 && ReflectionUtil.MINOR_VERSION >= 7))) {
+        if (IS_PAPER && (ReflectionUtil.MAJOR_VERSION >= 26 || (ReflectionUtil.MAJOR_VERSION == 1 && (ReflectionUtil.VERSION > 21 || (ReflectionUtil.VERSION == 21 && ReflectionUtil.MINOR_VERSION >= 7))))) {
             DBPaperEvents events = new DBPaperEvents(logger, eventManager);
             events.registerPlayerConnectionInitialConfigureEvent(this, this::loadPlayerOnConnect);
             events.registerPlayerConnectionCloseEvent(this, this::unloadPlayerOnDisconnect);

@@ -159,7 +159,11 @@
             <classifier>mojang-mapped</classifier>
         </dependency>
 
-        <!-- When adding a version remember to add the CraftBukkit relocation below -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-26_1_R2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
