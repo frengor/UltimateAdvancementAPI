@@ -24,7 +24,7 @@
     <properties>
         <!-- (optionally) overridden by modules -->
         <javadocArtifactId>ultimateadvancementapi-common</javadocArtifactId>
-        <mojangMappedJarFile>${project.build.directory}/${project.build.finalName}-Mojang-Mapped.jar</mojangMappedJarFile>
+        <mojangMappedJarFile>${project.build.directory}/${project.build.finalName}-Mojang-Mapped-Legacy.jar</mojangMappedJarFile>
         <artifactIdToExclude>overridden-by-modules</artifactIdToExclude>
     </properties>
 
@@ -155,7 +155,7 @@
                                     <artifact>
                                         <file>${mojangMappedJarFile}</file>
                                         <type>jar</type>
-                                        <classifier>mojang-mapped</classifier>
+                                        <classifier>mojang-mapped-legacy</classifier>
                                     </artifact>
                                 </artifacts>
                             </configuration>

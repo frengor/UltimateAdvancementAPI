@@ -61,7 +61,7 @@
                         <execution>
                             <id>generate-mojang-mapped-jar</id>
                             <configuration>
-                                <classifier>mojang-mapped</classifier>
+                                <classifier>mojang-mapped-legacy</classifier>
                             </configuration>
                         </execution>
                     </executions>
