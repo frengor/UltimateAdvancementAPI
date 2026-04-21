@@ -16,7 +16,7 @@ import java.util.Optional;
  */
 public final class Versions {
 
-    private static final String API_VERSION = "3.0.0-beta-1";
+    private static final String API_VERSION = "3.0.0-beta-2";
 
     private static final List<String> SUPPORTED_NMS_VERSIONS = List.of(
             "v1_15_R1",
