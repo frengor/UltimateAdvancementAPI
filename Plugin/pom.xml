@@ -16,7 +16,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <mojangMappedJarFile>${project.build.directory}/${project.build.finalName}-Mojang-Mapped.jar</mojangMappedJarFile>
+        <mojangMappedJarFile>${project.build.directory}/${project.build.finalName}-Mojang-Mapped-Legacy.jar</mojangMappedJarFile>
 
         <!-- Skip deploy -->
         <maven.deploy.skip>true</maven.deploy.skip>
@@ -79,7 +79,7 @@
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-shadeable</artifactId>
             <version>${project.version}</version>
-            <classifier>mojang-mapped</classifier>
+            <classifier>mojang-mapped-legacy</classifier>
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
@@ -93,7 +93,7 @@
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-commands</artifactId>
             <version>${project.version}</version>
-            <classifier>mojang-mapped</classifier>
+            <classifier>mojang-mapped-legacy</classifier>
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
@@ -165,8 +165,8 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>com.frengor:ultimateadvancementapi-shadeable:mojang-mapped</exclude>
-                                    <exclude>com.frengor:ultimateadvancementapi-commands:mojang-mapped</exclude>
+                                    <exclude>com.frengor:ultimateadvancementapi-shadeable:mojang-mapped-legacy</exclude>
+                                    <exclude>com.frengor:ultimateadvancementapi-commands:mojang-mapped-legacy</exclude>
                                 </excludes>
                             </artifactSet>
 
@@ -225,7 +225,7 @@
                                 <artifact>
                                     <file>${mojangMappedJarFile}</file>
                                     <type>jar</type>
-                                    <classifier>mojang-mapped</classifier>
+                                    <classifier>mojang-mapped-legacy</classifier>
                                 </artifact>
                             </artifacts>
                         </configuration>
