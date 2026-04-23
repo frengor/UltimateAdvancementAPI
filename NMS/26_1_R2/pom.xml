@@ -6,29 +6,41 @@
 
     <parent>
         <groupId>com.frengor</groupId>
-        <artifactId>ultimateadvancementapi-commands-parent</artifactId>
-        <version>3.0.0-beta-1</version>
+        <artifactId>ultimateadvancementapi-nms-parent</artifactId>
+        <version>3.0.0-beta-2</version>
     </parent>
 
-    <artifactId>ultimateadvancementapi-commands-commandapi-11.1.0</artifactId>
-    <name>UltimateAdvancementAPI-Commands-CommandAPI-11.1.0</name>
+    <artifactId>ultimateadvancementapi-nms-26_1_R2</artifactId>
+    <name>UltimateAdvancementAPI-NMS-26_1_R2</name>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
+    <properties>
+        <mc-version>26.1.2-R0.1-SNAPSHOT</mc-version>
+    </properties>
+
     <dependencies>
-        <!-- Common Module -->
+        <!-- Spigot API -->
         <dependency>
-            <groupId>com.frengor</groupId>
-            <artifactId>ultimateadvancementapi-commands-common</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>${mc-version}</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- CommandAPI -->
+        <!-- Spigot -->
         <dependency>
-            <groupId>dev.jorel</groupId>
-            <artifactId>commandapi-spigot-core</artifactId>
-            <version>11.1.0</version>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>${mc-version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- NMS Common Module -->
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-common</artifactId>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -52,4 +64,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

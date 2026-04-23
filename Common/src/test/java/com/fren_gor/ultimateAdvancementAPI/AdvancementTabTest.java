@@ -1,10 +1,10 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
 import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
 import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockbukkit.mockbukkit.MockBukkit;
 
 @ExtendWith(UAAPIExtension.class)
 public class AdvancementTabTest {

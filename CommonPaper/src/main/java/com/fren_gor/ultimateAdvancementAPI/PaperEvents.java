@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 final class PaperEvents {
 
     // ServerResourcesReloadedEvent was added in Paper 1.16.4
-    public static final boolean IS_SERVER_RESOURCES_RELOADED_EVENT_SUPPORTED = ReflectionUtil.VERSION > 16 || (ReflectionUtil.VERSION == 16 && ReflectionUtil.MINOR_VERSION >= 4);
+    public static final boolean IS_SERVER_RESOURCES_RELOADED_EVENT_SUPPORTED = ReflectionUtil.MAJOR_VERSION >= 26 || (ReflectionUtil.MAJOR_VERSION == 1 && (ReflectionUtil.VERSION > 16 || (ReflectionUtil.VERSION == 16 && ReflectionUtil.MINOR_VERSION >= 4)));
 
     private final EventManager eventManager;
 

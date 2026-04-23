@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-parent</artifactId>
-        <version>3.0.0-beta-1</version>
+        <version>3.0.0-beta-2</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-nms-parent</artifactId>
@@ -45,6 +45,7 @@
         <module>1_21_R5</module>
         <module>1_21_R6</module>
         <module>1_21_R7</module>
+        <module>26_1_R2</module>
         <module>Distribution</module>
         <module>DistributionMojangMapped</module>
         <module>MockedImplementation</module>
@@ -61,7 +62,7 @@
                         <execution>
                             <id>generate-mojang-mapped-jar</id>
                             <configuration>
-                                <classifier>mojang-mapped</classifier>
+                                <classifier>mojang-mapped-legacy</classifier>
                             </configuration>
                         </execution>
                     </executions>

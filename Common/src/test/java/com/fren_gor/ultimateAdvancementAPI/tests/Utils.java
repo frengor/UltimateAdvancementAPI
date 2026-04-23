@@ -1,7 +1,5 @@
 package com.fren_gor.ultimateAdvancementAPI.tests;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import be.seeseemelk.mockbukkit.ServerMock;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.database.IDatabase;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
@@ -12,6 +10,8 @@ import org.bukkit.craftbukkit.mocked0_0_R1.VersionedServerMock;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.mockbukkit.mockbukkit.MockBukkit;
+import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;

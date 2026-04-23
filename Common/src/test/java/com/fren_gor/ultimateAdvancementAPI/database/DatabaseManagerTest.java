@@ -1,9 +1,5 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import be.seeseemelk.mockbukkit.MockPlugin;
-import be.seeseemelk.mockbukkit.ServerMock;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.TeamNotRegisteredException;
@@ -28,6 +24,10 @@ import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import org.bukkit.Bukkit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockbukkit.mockbukkit.MockBukkit;
+import org.mockbukkit.mockbukkit.ServerMock;
+import org.mockbukkit.mockbukkit.entity.PlayerMock;
+import org.mockbukkit.mockbukkit.plugin.PluginMock;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -341,7 +341,7 @@ public class DatabaseManagerTest {
         PlayerMock p = loadPlayer();
         TeamProgression trueTeam = dbManager.getTeamProgression(p);
         disconnectPlayer(p);
-        MockPlugin plugin = MockBukkit.createMockPlugin();
+        PluginMock plugin = MockBukkit.createMockPlugin();
         TeamProgression team = waitCompletion(dbManager.loadAndAddLoadingRequest(p.getUniqueId(), plugin)).get();
         assertEquals(1, dbManager.getLoadingRequestsAmount(p.getUniqueId(), plugin));
         assertEquals(trueTeam.getTeamId(), team.getTeamId());
@@ -357,7 +357,7 @@ public class DatabaseManagerTest {
     void loadAndAddLoadingRequestToPlayerWithFailureTest() throws Exception {
         PlayerMock p = loadPlayer();
         disconnectPlayer(p);
-        MockPlugin plugin = MockBukkit.createMockPlugin();
+        PluginMock plugin = MockBukkit.createMockPlugin();
         dbImpls.getFallible().setFallibleOps(DBOperation.LOAD_UUID);
         dbImpls.getFallible().addToPlanning(false);
         assertTrue(waitCompletion(dbManager.loadAndAddLoadingRequest(p.getUniqueId(), plugin)).isCompletedExceptionally());
@@ -368,7 +368,7 @@ public class DatabaseManagerTest {
 
     @Test
     void loadAndAddLoadingRequestToPlayerWithNonRegisteredPlayerTest() throws Exception {
-        MockPlugin plugin = MockBukkit.createMockPlugin();
+        PluginMock plugin = MockBukkit.createMockPlugin();
         UUID uuid = UUID.randomUUID();
         plugin.getLogger().warning("Expecting a " + UserNotRegisteredException.class.getSimpleName() + " for user " + uuid + '.');
         var cf = waitCompletion(dbManager.loadAndAddLoadingRequest(uuid, plugin));
@@ -413,7 +413,7 @@ public class DatabaseManagerTest {
         final Object listener = new Object();
         final EventManager manager = advancementMain.getEventManager();
 
-        final MockPlugin plugin = MockBukkit.createMockPlugin();
+        final PluginMock plugin = MockBukkit.createMockPlugin();
         final PlayerMock p = server.addPlayer();
 
         try {
@@ -628,7 +628,7 @@ public class DatabaseManagerTest {
 
     @Test
     void createNewTeamTest() throws Exception {
-        MockPlugin plugin = MockBukkit.createMockPlugin();
+        PluginMock plugin = MockBukkit.createMockPlugin();
         PlayerMock p1 = loadPlayer();
 
         TeamProgression team = waitCompletion(dbManager.createNewTeamWithOneLoadingRequest(plugin)).get();
@@ -649,7 +649,7 @@ public class DatabaseManagerTest {
 
     @Test
     void createNewTeamAndMovePlayerInsideTest() throws Exception {
-        MockPlugin plugin = MockBukkit.createMockPlugin();
+        PluginMock plugin = MockBukkit.createMockPlugin();
         PlayerMock p1 = loadPlayer();
 
         TeamProgression t1 = dbManager.getTeamProgression(p1);
@@ -672,7 +672,7 @@ public class DatabaseManagerTest {
 
     @Test
     void makeSurePlayerAreNotMovedBeforeRegisterEventTest() throws Exception {
-        MockPlugin plugin = MockBukkit.createMockPlugin();
+        PluginMock plugin = MockBukkit.createMockPlugin();
         TeamProgression team = waitCompletion(dbManager.createNewTeamWithOneLoadingRequest(plugin)).get();
 
         Paused paused = dbManagerUtils.pauseFutureTasks();
@@ -703,7 +703,7 @@ public class DatabaseManagerTest {
 
     @Test
     void loadTeamTest() throws Exception {
-        MockPlugin plugin = MockBukkit.createMockPlugin();
+        PluginMock plugin = MockBukkit.createMockPlugin();
 
         plugin.getLogger().warning("Expecting a " + TeamNotRegisteredException.class.getSimpleName() + " for team -1.");
         var invalidTeamCf = waitCompletion(dbManager.loadAndAddLoadingRequest(-1, plugin));
@@ -734,7 +734,7 @@ public class DatabaseManagerTest {
 
     @Test
     void loadTeamWithFailureTest() throws Exception {
-        MockPlugin plugin = MockBukkit.createMockPlugin();
+        PluginMock plugin = MockBukkit.createMockPlugin();
         dbImpls.getFallible().setFallibleOps(DBOperation.LOAD_TEAM);
         dbImpls.getFallible().addToPlanning(false);
 

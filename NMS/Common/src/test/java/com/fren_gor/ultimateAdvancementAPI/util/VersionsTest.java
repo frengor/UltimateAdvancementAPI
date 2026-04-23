@@ -1,9 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.util;
 
-import be.seeseemelk.mockbukkit.MockBukkitExtension;
 import org.bukkit.Bukkit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockbukkit.mockbukkit.MockBukkitExtension;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.Versions.getApiVersion;
 import static com.fren_gor.ultimateAdvancementAPI.util.Versions.getNMSVersionsList;
