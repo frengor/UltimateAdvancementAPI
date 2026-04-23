@@ -235,7 +235,7 @@ public final class DatabaseManager {
         database.setUp();
 
         // Don't use PlayerLoginEvent on Paper 1.21.7+
-        if (IS_PAPER && (ReflectionUtil.VERSION > 21 || (ReflectionUtil.VERSION == 21 && ReflectionUtil.MINOR_VERSION >= 7))) {
+        if (IS_PAPER && (ReflectionUtil.MAJOR_VERSION >= 26 || (ReflectionUtil.MAJOR_VERSION == 1 && (ReflectionUtil.VERSION > 21 || (ReflectionUtil.VERSION == 21 && ReflectionUtil.MINOR_VERSION >= 7))))) {
             // Must use reflections since we're compiling using the Spigot artifact
             Class<? extends Event> playerConnectionInitialConfigureEventClass, playerConnectionCloseEventClass;
             Method getConnection, getProfile, getId, getName, getPlayerUniqueId;
