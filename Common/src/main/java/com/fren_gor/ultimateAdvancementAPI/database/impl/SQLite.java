@@ -444,8 +444,10 @@ public class SQLite implements IDatabase {
      */
     @Override
     public void clearUpTeams() throws SQLException {
-        try (PreparedStatement ps = openConnection().prepareStatement("DELETE FROM `Teams` WHERE `ID` NOT IN (SELECT `TeamID` FROM `Players` GROUP BY `TeamID`);")) {
-            ps.execute();
+        try (Statement statement = openConnection().createStatement()) {
+            statement.addBatch("DELETE FROM `Teams` WHERE `ID` NOT IN (SELECT `TeamID` FROM `Players` GROUP BY `TeamID`);");
+            statement.addBatch("VACUUM;"); // Vacuuming here ensures it is done periodically (at startup)
+            statement.executeBatch();
         }
     }
 }
