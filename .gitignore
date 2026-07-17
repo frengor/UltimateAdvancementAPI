@@ -28,6 +28,7 @@
 .idea/*
 *.iml
 *.iws
+!.idea/icon.png
 
 # Maven #
 target/
