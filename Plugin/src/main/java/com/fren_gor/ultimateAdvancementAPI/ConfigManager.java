@@ -22,11 +22,11 @@ public class ConfigManager {
 
     public static final int CONFIG_VERSION = 2;
     public static final Library CONFIG_UPDATER = Library.builder()
-            .groupId("com.tchristofferson")
-            .artifactId("ConfigUpdater")
-            .version("2.2")
-            .checksum("3LHINAggl0kkNC3nROgEWBXVu0aiFlofmFjq5aNAi3A=")
-            .build();
+        .groupId("com.tchristofferson")
+        .artifactId("ConfigUpdater")
+        .version("2.2")
+        .checksum("3LHINAggl0kkNC3nROgEWBXVu0aiFlofmFjq5aNAi3A=")
+        .build();
 
     private final File configFile;
     private final AdvancementPlugin plugin;

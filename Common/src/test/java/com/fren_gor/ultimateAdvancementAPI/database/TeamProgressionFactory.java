@@ -20,10 +20,10 @@ public final class TeamProgressionFactory {
 
     static {
         FACTORY = mock(
-                SimpleTeamProgressionFactory.class,
-                withSettings().defaultAnswer(i -> {
-                    throw new UnsupportedOperationException("Mocked method.");
-                })
+            SimpleTeamProgressionFactory.class,
+            withSettings().defaultAnswer(i -> {
+                throw new UnsupportedOperationException("Mocked method.");
+            })
         );
         doCallRealMethod().when(FACTORY).createTeamProgression(anyInt());
         doCallRealMethod().when(FACTORY).createTeamProgression(anyInt(), any(), any());

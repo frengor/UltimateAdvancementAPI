@@ -31,7 +31,7 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      *
      * @param parent The parent of this advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      */
     public AbstractMultiTasksAdvancement(@NotNull Advancement parent, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
@@ -43,7 +43,7 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      *
      * @param parent The parent of this advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param maxProgression The maximum progression of the task.
      * @param display The display information of this advancement.
      */
@@ -60,7 +60,7 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      * @param player The player responsible for the task's progression change.
      * @param result The result of the progression update.
      * @param multiTaskProgression The progression of this multi-task advancement (i.e. this advancement) at the time of
-     *         the update (calculated using the new progression of the task).
+     *     the update (calculated using the new progression of the task).
      */
     public void onTaskProgressionChange(@NotNull Advancement task, @NotNull Player player, @NotNull ProgressionUpdateResult result, int multiTaskProgression) {
         onTaskProgressionChange(task, player, result, multiTaskProgression, true);
@@ -75,7 +75,7 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      * @param uuid The {@link UUID} of the player responsible for the task's progression change.
      * @param result The result of the progression update.
      * @param multiTaskProgression The progression of this multi-task advancement (i.e. this advancement) at the time of
-     *         the update (calculated using the new progression of the task).
+     *     the update (calculated using the new progression of the task).
      */
     public void onTaskProgressionChange(@NotNull Advancement task, @NotNull UUID uuid, @NotNull ProgressionUpdateResult result, int multiTaskProgression) {
         onTaskProgressionChange(task, uuid, result, multiTaskProgression, true);
@@ -89,7 +89,7 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      * @param player The player responsible for the task's progression change.
      * @param result The result of the progression update.
      * @param multiTaskProgression The progression of this multi-task advancement (i.e. this advancement) at the time of
-     *         the update (calculated using the new progression of the task).
+     *     the update (calculated using the new progression of the task).
      * @param giveRewards Whether to give the player the advancement rewards if the advancement gets completed.
      */
     public void onTaskProgressionChange(@NotNull Advancement task, @NotNull Player player, @NotNull ProgressionUpdateResult result, int multiTaskProgression, boolean giveRewards) {
@@ -104,7 +104,7 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      * @param uuid The {@link UUID} of the player responsible for the task's progression change.
      * @param result The result of the progression update.
      * @param multiTaskProgression The progression of this multi-task advancement at the time of
-     *         the update (calculated using the new progression of the task).
+     *     the update (calculated using the new progression of the task).
      * @param giveRewards Whether to give the player the advancement rewards if the advancement gets completed.
      */
     public void onTaskProgressionChange(@NotNull Advancement task, @NotNull UUID uuid, @NotNull ProgressionUpdateResult result, int multiTaskProgression, boolean giveRewards) {
@@ -118,10 +118,10 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      * @param task The task which progression changed.
      * @param progression The {@link TeamProgression} of the team.
      * @param player The player responsible for the task's progression change, or {@code null} if there's not.
-     *         In this case, the implementation can choose a random online team member.
+     *     In this case, the implementation can choose a random online team member.
      * @param result The result of the progression update.
      * @param multiTaskProgression The progression of this multi-task advancement (i.e. this advancement) at the time of
-     *         the update (calculated using the new progression of the task).
+     *     the update (calculated using the new progression of the task).
      * @param giveRewards Whether to give the player the advancement rewards if the advancement gets completed.
      */
     protected abstract void onTaskProgressionChange(@NotNull Advancement task, @NotNull TeamProgression progression, @Nullable Player player, @NotNull ProgressionUpdateResult result, int multiTaskProgression, boolean giveRewards);

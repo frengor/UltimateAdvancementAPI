@@ -93,11 +93,11 @@ public class AdvancementGrantEvent extends Event {
     @Override
     public String toString() {
         return "AdvancementGrantEvent{" +
-                "team=" + team +
-                ", advancementCompleter=" + advancementCompleter +
-                ", advancement=" + advancement +
-                ", giveRewards=" + giveRewards +
-                '}';
+            "team=" + team +
+            ", advancementCompleter=" + advancementCompleter +
+            ", advancement=" + advancement +
+            ", giveRewards=" + giveRewards +
+            '}';
     }
 
     @Override
@@ -106,9 +106,9 @@ public class AdvancementGrantEvent extends Event {
 
         AdvancementGrantEvent that = (AdvancementGrantEvent) o;
         return giveRewards == that.giveRewards &&
-                team.equals(that.team) &&
-                advancementCompleter.equals(that.advancementCompleter) &&
-                advancement.equals(that.advancement);
+            team.equals(that.team) &&
+            advancementCompleter.equals(that.advancementCompleter) &&
+            advancement.equals(that.advancement);
     }
 
     @Override

@@ -44,8 +44,8 @@ public final class CompositeCollection<T> extends AbstractCompositeCollection<T>
     @Override
     public String toString() {
         return "CompositeCollection{" +
-                "collections=" + Arrays.toString(collections) +
-                '}';
+            "collections=" + Arrays.toString(collections) +
+            '}';
     }
 
     @Override

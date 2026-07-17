@@ -69,9 +69,9 @@ public class PlayerRegisteredEvent extends Event {
     @Override
     public String toString() {
         return "PlayerRegisteredEvent{" +
-                "team=" + team +
-                ", uuid=" + uuid +
-                '}';
+            "team=" + team +
+            ", uuid=" + uuid +
+            '}';
     }
 
     @Override

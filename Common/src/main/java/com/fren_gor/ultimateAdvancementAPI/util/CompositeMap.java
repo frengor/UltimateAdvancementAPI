@@ -134,8 +134,8 @@ public final class CompositeMap<K, V> implements Map<K, V> {
     @Override
     public String toString() {
         return "CompositeMap{" +
-                "maps=" + Arrays.toString(maps) +
-                '}';
+            "maps=" + Arrays.toString(maps) +
+            '}';
     }
 
     @Override

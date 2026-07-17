@@ -45,8 +45,8 @@ public final class CompositeSet<T> extends AbstractCompositeCollection<T> implem
     @Override
     public String toString() {
         return "CompositeSet{" +
-                "sets=" + Arrays.toString(sets) +
-                '}';
+            "sets=" + Arrays.toString(sets) +
+            '}';
     }
 
     @Override

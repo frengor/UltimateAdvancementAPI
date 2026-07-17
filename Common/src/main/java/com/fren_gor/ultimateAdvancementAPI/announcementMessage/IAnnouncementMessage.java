@@ -36,7 +36,7 @@ public interface IAnnouncementMessage {
      * @param advancement The advancement.
      * @param advancementCompleter The player who has completed the advancement.
      * @return A function which returns, for each player, the announcement message to be displayed to them.
-     *         {@code null} can be returned instead if no message should be displayed to any player.
+     *     {@code null} can be returned instead if no message should be displayed to any player.
      */
     @Nullable
     Function<@NotNull Player, @Nullable BaseComponent> getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter);

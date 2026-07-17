@@ -47,16 +47,16 @@ public class TaskAdvancement extends BaseAdvancement {
 
     // CompletableFuture -> MultiTask's progression at time of ProgressionUpdateEvent
     private final Map<CompletableFuture<ProgressionUpdateResult>, Integer> pendingUpdates = new MapMaker()
-            .concurrencyLevel(1)
-            .weakKeys() // This makes the map use identity comparison (==) for keys
-            .makeMap();
+        .concurrencyLevel(1)
+        .weakKeys() // This makes the map use identity comparison (==) for keys
+        .makeMap();
 
     /**
      * Creates a new {@code TaskAdvancement} with a maximum progression of {@code 1}.
      *
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      */
     public TaskAdvancement(@NotNull AbstractMultiTasksAdvancement multitask, @NotNull String key) {
         this(multitask, key, 1);
@@ -67,7 +67,7 @@ public class TaskAdvancement extends BaseAdvancement {
      *
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param maxProgression The maximum progression of the task.
      */
     public TaskAdvancement(@NotNull AbstractMultiTasksAdvancement multitask, @NotNull String key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
@@ -79,7 +79,7 @@ public class TaskAdvancement extends BaseAdvancement {
      *
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this task.
      */
     public TaskAdvancement(@NotNull AbstractMultiTasksAdvancement multitask, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
@@ -91,7 +91,7 @@ public class TaskAdvancement extends BaseAdvancement {
      *
      * @param multitask The {@link AbstractMultiTasksAdvancement} that owns this task.
      * @param key The unique key of the task. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param maxProgression The maximum progression of the task.
      * @param display The display information of this task.
      */

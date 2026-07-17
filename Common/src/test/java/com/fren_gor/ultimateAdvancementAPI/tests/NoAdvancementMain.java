@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * Tests annotated with this annotation are executed without an initialized {@link AdvancementMain} and database.
  * <p>Applying this annotation to a class is the same as annotating each test in that class.
  */
-@Target({ ElementType.METHOD, ElementType.TYPE })
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface NoAdvancementMain {
 }

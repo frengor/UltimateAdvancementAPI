@@ -84,7 +84,7 @@ public class JoinEventWaiterTest {
     @Test
     void earlyQuitFinishLoadingTest() {
         final AtomicBoolean run = new AtomicBoolean();
-        final AtomicBoolean cancelled  = new AtomicBoolean();
+        final AtomicBoolean cancelled = new AtomicBoolean();
         joinEventWaiter.onLogin(uuid);
         joinEventWaiter.onFinishLoading(uuid, 1, p -> {
             assertEquals(uuid, p.getUniqueId());

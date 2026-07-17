@@ -37,10 +37,10 @@ public class CommandAPIManager implements ILoadable {
         }
 
         CommandAPI.onLoad(config
-                .verboseOutput(false)
-                .silentLogs(true)
-                .enableNetworking(false)
-                .setNamespace(plugin.getName().toLowerCase(Locale.ENGLISH)) // Plugin names contain only latin characters present in english
+            .verboseOutput(false)
+            .silentLogs(true)
+            .enableNetworking(false)
+            .setNamespace(plugin.getName().toLowerCase(Locale.ENGLISH)) // Plugin names contain only latin characters present in english
         );
 
         new UltimateAdvancementAPICommand(main).register();
@@ -55,8 +55,8 @@ public class CommandAPIManager implements ILoadable {
     public void onDisable() {
         if (!MojangMappingsHandler.isMojangMapped()) { // Don't run command unregistration on Paper
             Stream.concat(
-                    CommandAPI.getRegisteredCommands().stream().map(RegisteredCommand::commandName),
-                    CommandAPI.getRegisteredCommands().stream().flatMap(cmd -> Arrays.stream(cmd.aliases()))
+                CommandAPI.getRegisteredCommands().stream().map(RegisteredCommand::commandName),
+                CommandAPI.getRegisteredCommands().stream().flatMap(cmd -> Arrays.stream(cmd.aliases()))
             ).distinct().forEach(command -> {
                 CommandAPI.unregister(command, true);
             });

@@ -2,12 +2,6 @@ package com.fren_gor.ultimateAdvancementAPI.database;
 
 import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
-import com.fren_gor.ultimateAdvancementAPI.exceptions.TeamNotRegisteredException;
-import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
-import com.fren_gor.ultimateAdvancementAPI.tests.DatabaseManagerUtils;
-import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
-import com.fren_gor.ultimateAdvancementAPI.tests.database.BlockingDBImpl.BlockedDB;
-import com.fren_gor.ultimateAdvancementAPI.tests.database.DBOperation;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
@@ -15,9 +9,15 @@ import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.PlayerRegisteredEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseManagerClosedException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.TeamNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
+import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
+import com.fren_gor.ultimateAdvancementAPI.tests.DatabaseManagerUtils;
 import com.fren_gor.ultimateAdvancementAPI.tests.DatabaseManagerUtils.Paused;
+import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
+import com.fren_gor.ultimateAdvancementAPI.tests.database.BlockingDBImpl.BlockedDB;
+import com.fren_gor.ultimateAdvancementAPI.tests.database.DBOperation;
 import com.fren_gor.ultimateAdvancementAPI.tests.database.DatabaseImpls;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
@@ -720,7 +720,7 @@ public class DatabaseManagerTest {
         TeamProgression team1 = waitCompletion(dbManager.loadAndAddLoadingRequest(teamId, plugin)).get();
         assertSame(team, team1);
         assertTrue(team.isValid());
-        assertEquals(teamId,  team.getTeamId());
+        assertEquals(teamId, team.getTeamId());
         assertEquals(2, dbManager.getLoadingRequestsAmount(team, plugin));
 
         dbManager.removeLoadingRequest(team, plugin);

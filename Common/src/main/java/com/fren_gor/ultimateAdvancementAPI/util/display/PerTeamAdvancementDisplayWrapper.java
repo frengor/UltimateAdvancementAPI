@@ -166,8 +166,8 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
     @Override
     public String toString() {
         return "PerTeamAdvancementDisplayWrapper{" +
-                "wrapped=" + wrapped +
-                '}';
+            "wrapped=" + wrapped +
+            '}';
     }
 
     @Override

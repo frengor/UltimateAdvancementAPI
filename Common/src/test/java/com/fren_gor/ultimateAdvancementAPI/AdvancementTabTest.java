@@ -14,7 +14,7 @@ public class AdvancementTabTest {
     @Test
     void disableBeforeRegisteringAdvsTest() {
         String nameapace = "a-namespace";
-        AdvancementTab tab = main.createAdvancementTab(MockBukkit.createMockPlugin(),nameapace,"background/texture");
+        AdvancementTab tab = main.createAdvancementTab(MockBukkit.createMockPlugin(), nameapace, "background/texture");
         main.unregisterAdvancementTab(nameapace);
     }
 }

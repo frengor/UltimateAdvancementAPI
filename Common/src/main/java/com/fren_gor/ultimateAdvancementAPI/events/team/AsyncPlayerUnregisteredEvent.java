@@ -57,8 +57,8 @@ public class AsyncPlayerUnregisteredEvent extends Event {
     @Override
     public String toString() {
         return "AsyncPlayerUnregisteredEvent{" +
-                "uuid=" + uuid +
-                '}';
+            "uuid=" + uuid +
+            '}';
     }
 
     @Override

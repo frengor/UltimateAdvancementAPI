@@ -282,7 +282,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -296,7 +296,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -308,7 +308,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -322,7 +322,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -334,7 +334,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the title in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -348,7 +348,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the title in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -360,7 +360,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the title in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -374,7 +374,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the title in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -490,7 +490,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -504,7 +504,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -516,7 +516,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -530,7 +530,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -542,7 +542,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the description in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -556,7 +556,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the description in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -568,7 +568,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the description in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
@@ -582,7 +582,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the description in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull

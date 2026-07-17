@@ -14,63 +14,63 @@ import java.util.Objects;
  */
 public enum CommandAPIVersion {
     v9_3_0("9.3.0",
-            "commandapi-bukkit-shade",
-            null,
-            "K9cYHoWiGLP8z+cyYb5NIarVE9fzMeJRqHu1UJ+Li/U=",
-            null,
-            "9_3_0",
-            List.of(
-                    // Versions without a mojang-mapped jar
-                    "v1_15_R1",
-                    "v1_16_R1",
-                    "v1_16_R2",
-                    "v1_16_R3"
-            )
+        "commandapi-bukkit-shade",
+        null,
+        "K9cYHoWiGLP8z+cyYb5NIarVE9fzMeJRqHu1UJ+Li/U=",
+        null,
+        "9_3_0",
+        List.of(
+            // Versions without a mojang-mapped jar
+            "v1_15_R1",
+            "v1_16_R1",
+            "v1_16_R2",
+            "v1_16_R3"
+        )
     ),
     v9_7_0("9.7.0",
-            "commandapi-bukkit-shade",
-            "commandapi-bukkit-shade-mojang-mapped",
-            "q1XHz7oYfdoeous1MOQoP7zopfjdnxMh9Za1ToN0x2s=",
-            "TFSpIzREfb8ChAkZ/sl1Nmk/ACUpuNk5c4PARCFlj80=",
-            "9_7_0",
-            List.of(
-                    "v1_17_R1",
-                    "v1_18_R1",
-                    "v1_18_R2",
-                    "v1_19_R1",
-                    "v1_19_R2",
-                    "v1_19_R3"
-            )
+        "commandapi-bukkit-shade",
+        "commandapi-bukkit-shade-mojang-mapped",
+        "q1XHz7oYfdoeous1MOQoP7zopfjdnxMh9Za1ToN0x2s=",
+        "TFSpIzREfb8ChAkZ/sl1Nmk/ACUpuNk5c4PARCFlj80=",
+        "9_7_0",
+        List.of(
+            "v1_17_R1",
+            "v1_18_R1",
+            "v1_18_R2",
+            "v1_19_R1",
+            "v1_19_R2",
+            "v1_19_R3"
+        )
     ),
     v10_1_2("10.1.2",
-            "commandapi-bukkit-shade",
-            "commandapi-bukkit-shade-mojang-mapped",
-            "vwfO0UPX+wKoOgbv0SLS6YmzBjf0Inkuh6e00LKcekg=",
-            "K1BBUo+b2ZReI2qsuSlWAGmpG0WAyEfDcZOnZS7u6z4=",
-            "10_1_2",
-            List.of(
-                    "v1_20_R1",
-                    "v1_20_R2",
-                    "v1_20_R3",
-                    "v1_20_R4",
-                    "v1_21_R1",
-                    "v1_21_R2",
-                    "v1_21_R3",
-                    "v1_21_R4"
-            )
+        "commandapi-bukkit-shade",
+        "commandapi-bukkit-shade-mojang-mapped",
+        "vwfO0UPX+wKoOgbv0SLS6YmzBjf0Inkuh6e00LKcekg=",
+        "K1BBUo+b2ZReI2qsuSlWAGmpG0WAyEfDcZOnZS7u6z4=",
+        "10_1_2",
+        List.of(
+            "v1_20_R1",
+            "v1_20_R2",
+            "v1_20_R3",
+            "v1_20_R4",
+            "v1_21_R1",
+            "v1_21_R2",
+            "v1_21_R3",
+            "v1_21_R4"
+        )
     ),
     LATEST("11.2.0",
-            "commandapi-spigot-shade",
-            "commandapi-paper-shade",
-            "Kx6c7DPWPyFkrmlEYq1hj6VeQm4BbBBMbthKI1pHLes=",
-            "F6KljlYn01+rt6JIKJPOKmWI++d46LgeOd8e6dw6gIM=",
-            "11_2_0",
-            List.of(
-                    "v1_21_R5",
-                    "v1_21_R6",
-                    "v1_21_R7",
-                    "v26_1_R2"
-            )
+        "commandapi-spigot-shade",
+        "commandapi-paper-shade",
+        "Kx6c7DPWPyFkrmlEYq1hj6VeQm4BbBBMbthKI1pHLes=",
+        "F6KljlYn01+rt6JIKJPOKmWI++d46LgeOd8e6dw6gIM=",
+        "11_2_0",
+        List.of(
+            "v1_21_R5",
+            "v1_21_R6",
+            "v1_21_R7",
+            "v26_1_R2"
+        )
     );
 
     private final String version, suffix;
@@ -153,7 +153,7 @@ public enum CommandAPIVersion {
      *
      * @param nms The NMS version, like "v1_17_R1".
      * @return The correct version of <a href="https://github.com/JorelAli/CommandAPI">CommandAPI</a>,
-     *         or {@code null} if the NMS version is not supported.
+     *     or {@code null} if the NMS version is not supported.
      */
     @Nullable
     public static CommandAPIVersion getVersionToLoad(String nms) {

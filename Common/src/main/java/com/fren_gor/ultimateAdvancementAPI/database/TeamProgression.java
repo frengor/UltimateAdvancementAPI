@@ -389,8 +389,8 @@ public final class TeamProgression {
     @Override
     public String toString() {
         return "TeamProgression{" +
-                "teamId=" + teamId +
-                '}';
+            "teamId=" + teamId +
+            '}';
     }
 
     @Override

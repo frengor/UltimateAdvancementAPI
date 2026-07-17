@@ -351,7 +351,7 @@ public final class UltimateAdvancementAPI {
      * @param player The player.
      * @return The {@link TeamProgression} of the player's team.
      * @throws UserNotLoadedException If the player was not loaded into the caching system.
-     *         For more information about the caching system see {@link DatabaseManager}.
+     *     For more information about the caching system see {@link DatabaseManager}.
      */
     @NotNull
     public TeamProgression getTeamProgression(@NotNull Player player) throws UserNotLoadedException {
@@ -364,7 +364,7 @@ public final class UltimateAdvancementAPI {
      * @param player The player.
      * @return The {@link TeamProgression} of the player's team.
      * @throws UserNotLoadedException If the player was not loaded into the caching system.
-     *         For more information about the caching system see {@link DatabaseManager}.
+     *     For more information about the caching system see {@link DatabaseManager}.
      */
     @NotNull
     public TeamProgression getTeamProgression(@NotNull OfflinePlayer player) throws UserNotLoadedException {
@@ -377,7 +377,7 @@ public final class UltimateAdvancementAPI {
      * @param uuid The {@link UUID} of the player.
      * @return The {@link TeamProgression} of the player's team.
      * @throws UserNotLoadedException If the player was not loaded into the caching system.
-     *         For more information about the caching system see {@link DatabaseManager}.
+     *     For more information about the caching system see {@link DatabaseManager}.
      */
     @NotNull
     public TeamProgression getTeamProgression(@NotNull UUID uuid) throws UserNotLoadedException {
@@ -441,7 +441,7 @@ public final class UltimateAdvancementAPI {
      *
      * @param playerToMove The player to be moved.
      * @return A {@link CompletableFuture} which will complete with the {@link TeamProgression} of the player's new team
-     *         when the operation finishes.
+     *     when the operation finishes.
      */
     public CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull Player playerToMove) {
         return callAfterLoad(playerToMove, ds -> ds.movePlayerInNewTeam(playerToMove));
@@ -452,7 +452,7 @@ public final class UltimateAdvancementAPI {
      *
      * @param playerToMove The {@link UUID} of the player to be moved.
      * @return A {@link CompletableFuture} which will complete with the {@link TeamProgression} of the player's new team
-     *         when the operation finishes.
+     *     when the operation finishes.
      */
     public CompletableFuture<TeamProgression> movePlayerInNewTeam(@NotNull UUID playerToMove) {
         return callAfterLoad(playerToMove, ds -> ds.movePlayerInNewTeam(playerToMove));

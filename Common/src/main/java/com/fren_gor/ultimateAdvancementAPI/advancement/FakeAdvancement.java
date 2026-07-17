@@ -64,7 +64,7 @@ public class FakeAdvancement extends BaseAdvancement {
      *
      * @param parent The parent of the advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param x The x coordinate of the advancement.
      * @param y The y coordinate of the advancement.
      */
@@ -89,7 +89,7 @@ public class FakeAdvancement extends BaseAdvancement {
      *
      * @param parent The parent of the advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      */
     public FakeAdvancement(@NotNull Advancement parent, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {

@@ -136,7 +136,7 @@ public final class ReentrantUpdaterLock implements Lock {
      * Acquires a lock for the current thread, blocking if necessary, unless it gets interrupted.
      *
      * @throws InterruptedException If the current thread is interrupted when this method is called or if it gets
-     *         interrupted while blocked.
+     *     interrupted while blocked.
      * @throws IllegalStateException If the current thread already holds {@link #MAX_LOCKS_PER_THREAD} locks.
      * @throws SyncExecutionException If this method is called on the main thread.
      */
@@ -246,7 +246,7 @@ public final class ReentrantUpdaterLock implements Lock {
      * @param timeUnit The time unit of the time argument.
      * @return {@code true} if the lock has been acquired for this thread, {@code false} if the time ran out.
      * @throws InterruptedException If the current thread is interrupted when this method is called or if it gets
-     *         interrupted while blocked.
+     *     interrupted while blocked.
      * @throws SyncExecutionException If this method is called on the main thread.
      */
     @Override

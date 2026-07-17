@@ -165,8 +165,8 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
     @Override
     public String toString() {
         return "ImmutableAdvancementDisplayWrapper{" +
-                "wrapped=" + wrapped +
-                '}';
+            "wrapped=" + wrapped +
+            '}';
     }
 
     @Override

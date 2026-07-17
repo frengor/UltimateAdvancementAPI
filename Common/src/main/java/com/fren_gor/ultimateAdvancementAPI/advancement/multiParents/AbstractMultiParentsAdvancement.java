@@ -28,7 +28,7 @@ public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
      *
      * @param aParent One of the parents of this advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      */
     public AbstractMultiParentsAdvancement(@NotNull BaseAdvancement aParent, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
@@ -40,7 +40,7 @@ public abstract class AbstractMultiParentsAdvancement extends BaseAdvancement {
      *
      * @param aParent One of the parents of this advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param maxProgression The maximum progression of the task.
      * @param display The display information of this advancement.
      */

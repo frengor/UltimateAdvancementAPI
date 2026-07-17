@@ -17,10 +17,10 @@ public class CommandAPIManager implements ILoadable {
     @Override
     public void onLoad(@NotNull AdvancementMain main, @NotNull JavaPlugin plugin) {
         CommandAPI.onLoad(
-                new CommandAPIBukkitConfig(plugin)
-                        .verboseOutput(false)
-                        .silentLogs(true)
-                        .setNamespace(plugin.getName().toLowerCase(Locale.ENGLISH)) // Plugin names contain only latin characters present in english
+            new CommandAPIBukkitConfig(plugin)
+                .verboseOutput(false)
+                .silentLogs(true)
+                .setNamespace(plugin.getName().toLowerCase(Locale.ENGLISH)) // Plugin names contain only latin characters present in english
         );
 
         new UltimateAdvancementAPICommand(main).register();

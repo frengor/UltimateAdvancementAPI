@@ -289,8 +289,8 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
     @Override
     public String toString() {
         return "PerPlayerAdvancementDisplayWrapper{" +
-                "wrapped=" + wrapped +
-                '}';
+            "wrapped=" + wrapped +
+            '}';
     }
 
     @Override
