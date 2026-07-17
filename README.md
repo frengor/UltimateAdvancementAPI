@@ -57,7 +57,8 @@ The plugin used for tests can be found [here](https://github.com/frengor/Ultimat
 Feel free to open issues or pull requests. Feature requests can be done opening an issue, the `enhancement` tag will be applied by maintainers.
 
 For pull requests, open them towards the `dev` branch, as the `main` branch is only for releases. Make sure to allow edits by maintainers.
-Also, please use the formatting style settings present under `.idea/codeStyles` folder.
+Also, if possible please use the formatting style settings present in the `.editorconfig` file. If you are using an IDE like IntelliJ, they should be picked up automatically.
+Otherwise, try to manually keep the style as consistent as possible in regard to the surrounding code.
 
 ## Required Java version
 
