@@ -8,8 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validateTeamProgression;
-
 /**
  * Called when a team member joins or leaves a team.
  *
