@@ -28,8 +28,6 @@
 .idea/*
 *.iml
 *.iws
-!.idea/fileTemplates/
-!.idea/codeStyles/
 
 # Maven #
 target/
