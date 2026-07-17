@@ -157,7 +157,7 @@ public final class AdvancementTab {
      *
      * @param filterClass The filter class.
      * @return An unmodifiable {@link Collection} of all the tab's advancements
-     *         that are an instance of the provided class or any of its subclasses.
+     *     that are an instance of the provided class or any of its subclasses.
      * @throws IllegalStateException If the tab is not initialised.
      * @throws DisposedException If the tab is disposed.
      */

@@ -20,7 +20,7 @@ storage-type: SQLite
 # SQLite database file
 # Used when storage-type is "SQLite"
 sqlite:
-    file: "database.db"
+  file: "database.db"
 
 # MySQL settings
 # Used when storage-type is "MySQL"

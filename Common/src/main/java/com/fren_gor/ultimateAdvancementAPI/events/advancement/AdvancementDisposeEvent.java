@@ -49,8 +49,8 @@ public class AdvancementDisposeEvent extends Event {
     @Override
     public String toString() {
         return "AdvancementDisposeEvent{" +
-                "advancement=" + advancement +
-                '}';
+            "advancement=" + advancement +
+            '}';
     }
 
     @Override

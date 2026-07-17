@@ -86,10 +86,10 @@ public class TeamUpdateEvent extends Event {
     @Override
     public String toString() {
         return "TeamUpdateEvent{" +
-                "team=" + team +
-                ", playerUUID=" + playerUUID +
-                ", action=" + action +
-                '}';
+            "team=" + team +
+            ", playerUUID=" + playerUUID +
+            ", action=" + action +
+            '}';
     }
 
     @Override

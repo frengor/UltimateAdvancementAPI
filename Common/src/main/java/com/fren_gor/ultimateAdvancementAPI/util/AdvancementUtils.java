@@ -78,8 +78,8 @@ public class AdvancementUtils {
             AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(icon, title, ADV_DESCRIPTION, frame.getNMSWrapper(), 1, 0, true, false, false);
             AdvancementWrapper notification = AdvancementWrapper.craftBaseAdvancement(NOTIFICATION_KEY, ROOT, display, 1);
             PacketPlayOutAdvancementsWrapper.craftSendPacket(Map.of(
-                    ROOT, 1,
-                    notification, 1
+                ROOT, 1,
+                notification, 1
             )).sendTo(player);
             PacketPlayOutAdvancementsWrapper.craftRemovePacket(Set.of(ROOT_KEY, NOTIFICATION_KEY)).sendTo(player);
         } catch (ReflectiveOperationException e) {
@@ -143,7 +143,7 @@ public class AdvancementUtils {
 
     /**
      * Disables vanilla advancements.
-     * 
+     *
      * @throws Exception If disabling fails.
      * @see UltimateAdvancementAPI#disableVanillaAdvancements()
      */

@@ -56,8 +56,8 @@ public class AsyncTeamLoadEvent extends Event {
     @Override
     public String toString() {
         return "AsyncTeamLoadEvent{" +
-                "team=" + team +
-                '}';
+            "team=" + team +
+            '}';
     }
 
     @Override

@@ -97,7 +97,7 @@ public interface IDatabase {
      * @param uuid The player {@link UUID}.
      * @param name The player name.
      * @return A pair containing a (always new) {@link TeamProgression} with the player team information and
-     *         whether the player has been registered (so it was not found in the database).
+     *     whether the player has been registered (so it was not found in the database).
      * @throws SQLException If an SQL exception occurs.
      */
     Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @NotNull String name) throws SQLException;
@@ -129,7 +129,7 @@ public interface IDatabase {
      *
      * @param teamId The team id.
      * @return A list of pairs containing the key of the unredeemed advancement and whether to give rewards for it
-     *         (see {@link #setUnredeemed(AdvancementKey, boolean, int)}).
+     *     (see {@link #setUnredeemed(AdvancementKey, boolean, int)}).
      * @throws SQLException If an SQL exception occurs.
      */
     List<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException;

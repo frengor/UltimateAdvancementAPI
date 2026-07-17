@@ -66,9 +66,9 @@ public final class PlayerLoadingCompletedEvent extends Event {
     @Override
     public String toString() {
         return "PlayerLoadingCompletedEvent{" +
-                "player=" + player +
-                ", progression=" + progression +
-                '}';
+            "player=" + player +
+            ", progression=" + progression +
+            '}';
     }
 
     @Override

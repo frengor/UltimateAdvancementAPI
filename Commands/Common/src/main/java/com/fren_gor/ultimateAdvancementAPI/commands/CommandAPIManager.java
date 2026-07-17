@@ -53,12 +53,12 @@ public class CommandAPIManager {
         // Download correct version of CommandAPI
         libbyManager.addMavenCentral();
         Library commandAPILibrary = Library.builder()
-                .groupId("dev{}jorel")
-                .artifactId(ver.getArtifactId())
-                .version(ver.getVersion())
-                .checksum(ver.getChecksum())
-                .relocate("dev{}jorel{}commandapi", "dev.jorel.commandapi") // Should be changed by shading
-                .build();
+            .groupId("dev{}jorel")
+            .artifactId(ver.getArtifactId())
+            .version(ver.getVersion())
+            .checksum(ver.getChecksum())
+            .relocate("dev{}jorel{}commandapi", "dev.jorel.commandapi") // Should be changed by shading
+            .build();
         try {
             libbyManager.loadLibrary(commandAPILibrary);
         } catch (Exception e) {
