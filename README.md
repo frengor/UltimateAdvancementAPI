@@ -22,10 +22,10 @@ A powerful API to create custom advancements for your Minecraft server.
 **Modrinth Page:** <https://modrinth.com/plugin/ultimateadvancementapi>  
 **Spigot Page:** <https://www.spigotmc.org/resources/95585/>  
 **Hangar Page:** <https://hangar.papermc.io/DevHeim/UltimateAdvancementAPI>  
-**UltimateAdvancementGenerator:** <https://escanortargaryen.dev/UltimateAdvancementGenerator/>  
+**UltimateAdvancementGenerator:** <https://generator.devheim.space/>  
 **Discord:** <https://discord.gg/BMg6VJk5n3>  
 **Official Wiki:** <https://github.com/frengor/UltimateAdvancementAPI/wiki/>  
-**Javadoc:** <https://frengor.com/javadocs/UltimateAdvancementAPI/3.0.0-beta-1/>  
+**Javadoc:** <https://frengor.com/javadocs/UltimateAdvancementAPI/3.0.0-beta-3/>  
 **Jenkins:** <https://jenkins.frengor.com/job/UltimateAdvancementAPI/>
 
 **Get it with maven:**
@@ -43,7 +43,7 @@ A powerful API to create custom advancements for your Minecraft server.
 <dependency>
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi</artifactId>
-    <version>3.0.0-beta-2</version>
+    <version>3.0.0-beta-3</version>
     <scope>provided</scope>
 </dependency>
 ```
