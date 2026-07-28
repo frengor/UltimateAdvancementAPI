@@ -24,8 +24,7 @@
         <module>Common</module>
         <module>CommandAPI-9.3.0</module>
         <module>CommandAPI-9.7.0</module>
-        <module>CommandAPI-10.1.2</module>
-        <module>CommandAPI-11.2.0</module>
+        <module>CommandAPI-12.0.0</module>
         <module>Distribution</module>
         <module>DistributionMojangMapped</module>
     </modules>

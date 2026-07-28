@@ -42,12 +42,12 @@ public enum CommandAPIVersion {
             "v1_19_R3"
         )
     ),
-    v10_1_2("10.1.2",
-        "commandapi-bukkit-shade",
-        "commandapi-bukkit-shade-mojang-mapped",
-        "vwfO0UPX+wKoOgbv0SLS6YmzBjf0Inkuh6e00LKcekg=",
-        "K1BBUo+b2ZReI2qsuSlWAGmpG0WAyEfDcZOnZS7u6z4=",
-        "10_1_2",
+    LATEST("12.0.0",
+        "commandapi-spigot-shade",
+        "commandapi-paper-shade",
+        "WYJSdZPnABtIb7Jn27wwE58LTjhXh757I+ZIbGPp1q0=",
+        "rQLFFwTKL1NbLKw93E4y83Qsg3FMUDIYHLD1BN/NZ20=",
+        "12_0_0",
         List.of(
             "v1_20_R1",
             "v1_20_R2",
@@ -56,20 +56,12 @@ public enum CommandAPIVersion {
             "v1_21_R1",
             "v1_21_R2",
             "v1_21_R3",
-            "v1_21_R4"
-        )
-    ),
-    LATEST("11.2.0",
-        "commandapi-spigot-shade",
-        "commandapi-paper-shade",
-        "Kx6c7DPWPyFkrmlEYq1hj6VeQm4BbBBMbthKI1pHLes=",
-        "F6KljlYn01+rt6JIKJPOKmWI++d46LgeOd8e6dw6gIM=",
-        "11_2_0",
-        List.of(
+            "v1_21_R4",
             "v1_21_R5",
             "v1_21_R6",
             "v1_21_R7",
-            "v26_1_R2"
+            "v26_1_R2",
+            "v26_2_R1"
         )
     );
 
