@@ -10,8 +10,8 @@
         <version>3.0.0-beta-2</version>
     </parent>
 
-    <artifactId>ultimateadvancementapi-commands-commandapi-10.1.2</artifactId>
-    <name>UltimateAdvancementAPI-Commands-CommandAPI-10.1.2</name>
+    <artifactId>ultimateadvancementapi-commands-commandapi-12.0.0</artifactId>
+    <name>UltimateAdvancementAPI-Commands-CommandAPI-12.0.0</name>
     <url>${parent.url}</url>
     <packaging>jar</packaging>
 
@@ -27,8 +27,8 @@
         <!-- CommandAPI -->
         <dependency>
             <groupId>dev.jorel</groupId>
-            <artifactId>commandapi-bukkit-shade</artifactId>
-            <version>10.1.2</version>
+            <artifactId>commandapi-spigot-core</artifactId>
+            <version>12.0.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
