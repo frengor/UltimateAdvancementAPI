@@ -1,31 +1,34 @@
 # UltimateAdvancementAPI
+
 [![Build Status main Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/badge/icon?subject=main&style=flat)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/main/)
 [![Build Status dev Branch](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/badge/icon?subject=dev&style=flat)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/job/dev/)
 [![License](https://img.shields.io/badge/license-LGPL--3.0-orange?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/blob/main/LGPL)
-[![Version](https://img.shields.io/badge/version-2.8.0-blue?style=flat&color=007ec6)](https://jenkins.frengor.com/job/UltimateAdvancementAPI/)
+[![Version](https://img.shields.io/github/v/tag/frengor/UltimateAdvancementAPI?sort=date&filter=!*beta*&style=flat&label=version&color=blue)](https://github.com/frengor/UltimateAdvancementAPI/tags)
 [![Issues](https://img.shields.io/github/issues/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/issues)
 [![Stars](https://img.shields.io/github/stars/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/stargazers)
 [![Forks](https://img.shields.io/github/forks/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/network)
 [![Contributors](https://img.shields.io/github/contributors/frengor/UltimateAdvancementAPI?style=flat)](https://github.com/frengor/UltimateAdvancementAPI/graphs/contributors)
 
-A powerful API to create custom advancements for your minecraft server.
+A powerful API to create custom advancements for your Minecraft server.
 
 ![Advancement Tab Image](https://github.com/frengor/UltimateAdvancementAPI/wiki/images/spigot-photo.png)
 
 > [!IMPORTANT]
-> **3.0.0 Beta** is available on the [`main-3.0.0` branch](https://github.com/frengor/UltimateAdvancementAPI/tree/main-3.0.0). Download the beta from Modrinth on Hangar (links below).  
-> The Javadoc for the beta is published [here](https://frengor.com/javadocs/UltimateAdvancementAPI/3.0.0-beta-1/).
+> **3.0.0 Beta** is available on the [`main-3.0.0` branch](https://github.com/frengor/UltimateAdvancementAPI/tree/main-3.0.0). Download the beta from
+> Modrinth on Hangar (links below).  
+> The Javadoc for the beta is published [here](https://frengor.com/javadocs/UltimateAdvancementAPI/3.0.0-beta-3/).
 
 **Modrinth Page:** <https://modrinth.com/plugin/ultimateadvancementapi>  
 **Spigot Page:** <https://www.spigotmc.org/resources/95585/>  
 **Hangar Page:** <https://hangar.papermc.io/DevHeim/UltimateAdvancementAPI>  
-**UltimateAdvancementGenerator:** <https://escanortargaryen.dev/UltimateAdvancementGenerator/>  
+**UltimateAdvancementGenerator:** <https://generator.devheim.space>  
 **Discord:** <https://discord.gg/BMg6VJk5n3>  
 **Official Wiki:** <https://github.com/frengor/UltimateAdvancementAPI/wiki/>  
 **Javadoc:** <https://frengor.com/javadocs/UltimateAdvancementAPI/latest/>  
 **Jenkins:** <https://jenkins.frengor.com/job/UltimateAdvancementAPI/>
 
 **Get it with maven:**
+
 ```xml
 <repositories>
     <repository>
@@ -34,11 +37,12 @@ A powerful API to create custom advancements for your minecraft server.
     </repository>
 </repositories>
 ```   
+
 ```xml
 <dependency>
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi</artifactId>
-    <version>2.8.0</version>
+    <version>2.8.1</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -58,7 +62,9 @@ The plugin used for tests can be found [here](https://github.com/frengor/Ultimat
 Feel free to open issues or pull requests. Feature requests can be done opening an issue, the `enhancement` tag will be applied by maintainers.
 
 For pull requests, open them towards the `dev` branch, as the `main` branch is only for releases. Make sure to allow edits by maintainers.
-Also, please use the formatting style settings present under `.idea/codeStyles` folder.
+Also, if possible please use the formatting style settings present in the `.editorconfig` file. If you are using an IDE like IntelliJ, they should be
+picked up automatically.
+Otherwise, try to manually keep the style as consistent as possible in regard to the surrounding code.
 
 ## Required Java version
 
@@ -76,9 +82,12 @@ This project is licensed under the [GNU Lesser General Public License v3.0 or la
 
 UltimateAdvancementAPI has been made by [fren_gor](https://github.com/frengor) and [EscanorTargaryen](https://github.com/EscanorTargaryen).  
 The API uses the following libraries:
-  * [EventManagerAPI](https://github.com/frengor/EventManagerAPI) (released under Apache-2.0 license) to handle events
-  * [Libby](https://github.com/AlessioDP/libby) (released under MIT license) to handle dependencies at runtime
-  * [CommandAPI](https://github.com/CommandAPI/CommandAPI) (released under MIT license) to add commands to the plugin version of the API
-  * [HikariCP](https://github.com/brettwooldridge/HikariCP) (released under Apache-2.0 license) to connect to MySQL databases
-  * [Config-Updater](https://github.com/tchristofferson/Config-Updater) (released under MIT license) to update the configuration in the plugin version of the API
-  * [bStats](https://bstats.org/) (the Java library is released under MIT license) to collect usage data (which can be found [here](https://bstats.org/plugin/bukkit/UltimateAdvancementAPI/12593)) about the plugin version of the API
+
+* [EventManagerAPI](https://github.com/frengor/EventManagerAPI) (released under Apache-2.0 license) to handle events
+* [Libby](https://github.com/AlessioDP/libby) (released under MIT license) to handle dependencies at runtime
+* [CommandAPI](https://github.com/CommandAPI/CommandAPI) (released under MIT license) to add commands to the plugin version of the API
+* [HikariCP](https://github.com/brettwooldridge/HikariCP) (released under Apache-2.0 license) to connect to MySQL databases
+* [Config-Updater](https://github.com/tchristofferson/Config-Updater) (released under MIT license) to update the configuration in the plugin version
+  of the API
+* [bStats](https://bstats.org/) (the Java library is released under MIT license) to collect usage data (which can be
+  found [here](https://bstats.org/plugin/bukkit/UltimateAdvancementAPI/12593)) about the plugin version of the API

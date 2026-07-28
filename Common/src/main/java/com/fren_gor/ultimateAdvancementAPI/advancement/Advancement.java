@@ -22,7 +22,6 @@ import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.HoverEvent.Action;
 import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
@@ -235,18 +234,18 @@ public abstract class Advancement {
         Preconditions.checkNotNull(player, "Player is null.");
         ChatColor color = display.getFrame().getColor();
         return new ComponentBuilder(player.getName() + ' ' + display.getFrame().getChatText() + ' ')
-                .color(ChatColor.WHITE)
-                .append(new ComponentBuilder("[")
-                                .color(color)
-                                .event(new HoverEvent(Action.SHOW_TEXT, display.getChatDescription()))
-                                .create()
-                        , FormatRetention.NONE)
-                .append(display.getChatTitle(), FormatRetention.EVENTS)
-                .append(new ComponentBuilder("]")
-                                .color(color)
-                                .create()
-                        , FormatRetention.EVENTS)
-                .create();
+            .color(ChatColor.WHITE)
+            .append(new ComponentBuilder("[")
+                    .color(color)
+                    .event(new HoverEvent(Action.SHOW_TEXT, display.getChatDescription()))
+                    .create()
+                , FormatRetention.NONE)
+            .append(display.getChatTitle(), FormatRetention.EVENTS)
+            .append(new ComponentBuilder("]")
+                    .color(color)
+                    .create()
+                , FormatRetention.EVENTS)
+            .create();
     }
 
     /**
@@ -304,7 +303,7 @@ public abstract class Advancement {
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
      * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
-     *         online member of the same team if there are any, or it will be set unredeemed.
+     *     online member of the same team if there are any, or it will be set unredeemed.
      * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
     @Range(from = 0, to = Integer.MAX_VALUE)
@@ -316,7 +315,7 @@ public abstract class Advancement {
      * Increases the progression of the provided player's team by one.
      *
      * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
-     *         online member of the same team if there are any, or it will be set unredeemed.
+     *     online member of the same team if there are any, or it will be set unredeemed.
      * @param giveReward Whether to give rewards if the advancement gets completed.
      * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
@@ -330,7 +329,7 @@ public abstract class Advancement {
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
      * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
-     *         online member of the same team if there are any, or it will be set unredeemed.
+     *     online member of the same team if there are any, or it will be set unredeemed.
      * @param increment The progression increment. Must be greater than {@code 0}.
      * @return The new progression. It is always less or equal to {@link #maxProgression}.
      */
@@ -343,7 +342,7 @@ public abstract class Advancement {
      * Increases the progression of the provided player's team.
      *
      * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
-     *         online member of the same team if there are any, or it will be set unredeemed.
+     *     online member of the same team if there are any, or it will be set unredeemed.
      * @param increment The progression increment. Must be greater than {@code 0}.
      * @param giveReward Whether to give rewards if the advancement gets completed.
      * @return The new progression. It is always less or equal to {@link #maxProgression}.
@@ -409,7 +408,7 @@ public abstract class Advancement {
      * <p>If the advancement gets completed, advancement rewards will be given.
      *
      * @param uuid The {@link UUID} of the player responsible for the update. If the player is not online, rewards will be given to a pseudorandom
-     *         online member of the same team if there are any, or it will be set unredeemed.
+     *     online member of the same team if there are any, or it will be set unredeemed.
      * @param progression The new non-negative progression to set.
      */
     public void setProgression(@NotNull UUID uuid, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
@@ -420,7 +419,7 @@ public abstract class Advancement {
      * Sets a progression for the provided player's team.
      *
      * @param uuid The {@link UUID} of the player responsible for the update. If the player is not online, rewards will be given to a pseudorandom
-     *         online member of the same team if there are any, or it will be set unredeemed.
+     *     online member of the same team if there are any, or it will be set unredeemed.
      * @param progression The new non-negative progression to set.
      * @param giveReward Whether to give rewards if the advancement gets completed.
      */
@@ -468,7 +467,7 @@ public abstract class Advancement {
      * @param oldProgression The previous progression of the team.
      * @param giveRewards Whether to give rewards if the advancement gets completed.
      * @param afterHandle The action to perform after the reward process, or {@code null} to don't do any action.
-     *         The default action updates the tab's advancement to the team (see {@link AfterHandle#UPDATE_ADVANCEMENTS_TO_TEAM}).
+     *     The default action updates the tab's advancement to the team (see {@link AfterHandle#UPDATE_ADVANCEMENTS_TO_TEAM}).
      */
     protected void handlePlayer(@NotNull TeamProgression pro, @Nullable Player player, int newProgression, int oldProgression, boolean giveRewards, @Nullable AfterHandle afterHandle) {
         validateTeamProgression(pro);
@@ -536,9 +535,9 @@ public abstract class Advancement {
      * @param progression The{@link TeamProgression} of the team.
      * @return Whether the advancement is visible to the provided team.
      * @implSpec This method is the core method of the Advancement Visibility System (AVS).
-     *         The return value is {@code true} if no suitable interfaces for the AVS are implemented, or
-     *         the result of {@link IVisibility#isVisible(Advancement, TeamProgression)} otherwise.
-     *         When overridden, this method (called via {@code super}) enables the AVS features for that method.
+     *     The return value is {@code true} if no suitable interfaces for the AVS are implemented, or
+     *     the result of {@link IVisibility#isVisible(Advancement, TeamProgression)} otherwise.
+     *     When overridden, this method (called via {@code super}) enables the AVS features for that method.
      */
     public boolean isVisible(@NotNull TeamProgression progression) {
         validateTeamProgression(progression);
@@ -620,7 +619,7 @@ public abstract class Advancement {
      *
      * @param teamProgression The {@link TeamProgression} of the team of the player(s).
      * @param addedAdvancements The {@link Map} in which the advancements to be sent are added as keys.
-     *         The values are the current progressions of the team.
+     *     The values are the current progressions of the team.
      */
     public void onUpdate(@NotNull TeamProgression teamProgression, @NotNull Map<AdvancementWrapper, Integer> addedAdvancements) {
         if (isVisible(teamProgression)) {

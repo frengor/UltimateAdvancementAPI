@@ -58,19 +58,19 @@ public final class InterfaceImplementer {
         Preconditions.checkNotNull(uuid, "UUID not null.");
         Preconditions.checkNotNull(name, "Name not null.");
         return InterfaceImplementer.implement(Player.class,
-                new ImplementedMethod("getUniqueId", (o, args) -> uuid),
-                new ImplementedMethod("getName", (o, args) -> name),
-                new ImplementedMethod("getDisplayName", (o, args) -> name),
-                new ImplementedMethod("getType", (o, args) -> EntityType.PLAYER),
-                new ImplementedMethod("equals", (o, args) -> {
-                    Object other = args[0];
-                    if (o == other) return true;
-                    if (!(other instanceof Player that)) return false;
+            new ImplementedMethod("getUniqueId", (o, args) -> uuid),
+            new ImplementedMethod("getName", (o, args) -> name),
+            new ImplementedMethod("getDisplayName", (o, args) -> name),
+            new ImplementedMethod("getType", (o, args) -> EntityType.PLAYER),
+            new ImplementedMethod("equals", (o, args) -> {
+                Object other = args[0];
+                if (o == other) return true;
+                if (!(other instanceof Player that)) return false;
 
-                    return Objects.equals(uuid, that.getUniqueId());
-                }),
-                new ImplementedMethod("hashCode", (o, args) -> uuid.hashCode()),
-                new ImplementedMethod("toString", (o, args) -> "Player{uuid=" + uuid + '}')
+                return Objects.equals(uuid, that.getUniqueId());
+            }),
+            new ImplementedMethod("hashCode", (o, args) -> uuid.hashCode()),
+            new ImplementedMethod("toString", (o, args) -> "Player{uuid=" + uuid + '}')
         );
     }
 
@@ -79,29 +79,29 @@ public final class InterfaceImplementer {
         Preconditions.checkNotNull(name, "Name is null.");
         Logger logger = Logger.getLogger(name);
         return InterfaceImplementer.implement(Plugin.class,
-                new ImplementedMethod("getLogger", (o, args) -> logger),
-                new ImplementedMethod("getName", (o, args) -> name),
-                new ImplementedMethod("isEnabled", (o, args) -> true),
-                new ImplementedMethod("equals", (o, args) -> {
-                    Object other = args[0];
-                    if (o == other) return true;
-                    if (!(other instanceof Plugin that)) return false;
+            new ImplementedMethod("getLogger", (o, args) -> logger),
+            new ImplementedMethod("getName", (o, args) -> name),
+            new ImplementedMethod("isEnabled", (o, args) -> true),
+            new ImplementedMethod("equals", (o, args) -> {
+                Object other = args[0];
+                if (o == other) return true;
+                if (!(other instanceof Plugin that)) return false;
 
-                    // Fake plugin is always enabled
-                    return that.isEnabled() && name.equals(that.getName());
-                }),
-                new ImplementedMethod("hashCode", (o, args) -> name.hashCode()),
-                new ImplementedMethod("toString", (o, args) -> "Plugin{name=" + name + '}')
+                // Fake plugin is always enabled
+                return that.isEnabled() && name.equals(that.getName());
+            }),
+            new ImplementedMethod("hashCode", (o, args) -> name.hashCode()),
+            new ImplementedMethod("toString", (o, args) -> "Plugin{name=" + name + '}')
         );
     }
 
     public static Server newFakeServer() {
         var fakeServer = new ByteBuddy()
-                .subclass(Object.class)
-                .implement(Server.class)
-                .name("org.bukkit.craftbukkit.serverVersion1_17_R1.FakeServer")
-                .method(isDeclaredBy(Server.class)).intercept(ExceptionMethod.throwing(UnsupportedOperationException.class))
-                .make().load(InterfaceImplementer.class.getClassLoader());
+            .subclass(Object.class)
+            .implement(Server.class)
+            .name("org.bukkit.craftbukkit.serverVersion1_17_R1.FakeServer")
+            .method(isDeclaredBy(Server.class)).intercept(ExceptionMethod.throwing(UnsupportedOperationException.class))
+            .make().load(InterfaceImplementer.class.getClassLoader());
         try {
             return (Server) fakeServer.getLoaded().getDeclaredConstructor().newInstance();
         } catch (ReflectiveOperationException e) {

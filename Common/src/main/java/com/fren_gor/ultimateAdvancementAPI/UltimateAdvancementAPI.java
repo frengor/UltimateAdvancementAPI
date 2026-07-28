@@ -286,7 +286,7 @@ public final class UltimateAdvancementAPI {
      * @param player The player.
      * @return The {@link TeamProgression} of the player's team.
      * @throws UserNotLoadedException If the player was not loaded into the caching system.
-     *         For more information about the caching system see {@link DatabaseManager}.
+     *     For more information about the caching system see {@link DatabaseManager}.
      */
     @NotNull
     public TeamProgression getTeamProgression(@NotNull Player player) throws UserNotLoadedException {
@@ -299,7 +299,7 @@ public final class UltimateAdvancementAPI {
      * @param uuid The {@link UUID} of the player.
      * @return The {@link TeamProgression} of the player's team.
      * @throws UserNotLoadedException If the player was not loaded into the caching system.
-     *         For more information about the caching system see {@link DatabaseManager}.
+     *     For more information about the caching system see {@link DatabaseManager}.
      */
     @NotNull
     public TeamProgression getTeamProgression(@NotNull UUID uuid) throws UserNotLoadedException {
@@ -322,7 +322,7 @@ public final class UltimateAdvancementAPI {
      * @param playerToMove The player to move.
      * @param aDestTeamPlayer A player of the destination team.
      * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     *     If no code should be called, it can be put to {@code null}.
      */
     public void updatePlayerTeam(@NotNull Player playerToMove, @NotNull Player aDestTeamPlayer, @Nullable Consumer<Result> action) {
         Preconditions.checkNotNull(playerToMove, "Player to move is null.");
@@ -346,7 +346,7 @@ public final class UltimateAdvancementAPI {
      * @param playerToMove The {@link UUID} of the player to move.
      * @param aDestTeamPlayer The {@link UUID} of a player of the destination team.
      * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     *     If no code should be called, it can be put to {@code null}.
      */
     public void updatePlayerTeam(@NotNull UUID playerToMove, @NotNull UUID aDestTeamPlayer, @Nullable Consumer<Result> action) {
         Preconditions.checkNotNull(playerToMove, "Player to move is null.");
@@ -368,8 +368,8 @@ public final class UltimateAdvancementAPI {
      *
      * @param playerToMove The player to be moved.
      * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the {@link TeamProgression} of the player's new team (when the operation is successful).
-     *         If no code should be called, it can be put to {@code null}.
+     *     which provides the {@link TeamProgression} of the player's new team (when the operation is successful).
+     *     If no code should be called, it can be put to {@code null}.
      */
     public void movePlayerInNewTeam(@NotNull Player playerToMove, @Nullable Consumer<ObjectResult<@NotNull TeamProgression>> action) {
         callAfterLoad(playerToMove, ds -> ds.movePlayerInNewTeam(playerToMove), action);
@@ -389,8 +389,8 @@ public final class UltimateAdvancementAPI {
      *
      * @param playerToMove The {@link UUID} of the player to be moved.
      * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the {@link TeamProgression} of the player's new team (when the operation is successful).
-     *         If no code should be called, it can be put to {@code null}.
+     *     which provides the {@link TeamProgression} of the player's new team (when the operation is successful).
+     *     If no code should be called, it can be put to {@code null}.
      */
     public void movePlayerInNewTeam(@NotNull UUID playerToMove, @Nullable Consumer<ObjectResult<@NotNull TeamProgression>> action) {
         callAfterLoad(playerToMove, ds -> ds.movePlayerInNewTeam(playerToMove), action);
@@ -415,7 +415,7 @@ public final class UltimateAdvancementAPI {
      *
      * @param player The offline player to unregister.
      * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     *     If no code should be called, it can be put to {@code null}.
      * @throws IllegalStateException If the player is online or loaded into the caching system.
      */
     public void unregisterOfflinePlayer(@NotNull OfflinePlayer player, @Nullable Consumer<Result> action) throws IllegalStateException {
@@ -441,7 +441,7 @@ public final class UltimateAdvancementAPI {
      *
      * @param uuid The {@link UUID} of the player to unregister.
      * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     *     If no code should be called, it can be put to {@code null}.
      * @throws IllegalStateException If the player is online or loaded into the caching system.
      */
     public void unregisterOfflinePlayer(@NotNull UUID uuid, @Nullable Consumer<Result> action) throws IllegalStateException {
@@ -462,7 +462,7 @@ public final class UltimateAdvancementAPI {
      *
      * @param player The player to update.
      * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     *     If no code should be called, it can be put to {@code null}.
      */
     public void updatePlayerName(@NotNull Player player, @Nullable Consumer<Result> action) {
         callSyncIfNotNull(getMain().getDatabaseManager().updatePlayerName(player), action);
@@ -474,7 +474,7 @@ public final class UltimateAdvancementAPI {
      * @param advancement The advancement.
      * @param player The player.
      * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the {@link Boolean} result.
+     *     which provides the {@link Boolean} result.
      */
     public void isUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @NotNull Consumer<ObjectResult<@NotNull Boolean>> action) {
         isUnredeemed(advancement, uuidFromPlayer(player), action);
@@ -486,7 +486,7 @@ public final class UltimateAdvancementAPI {
      * @param advancement The advancement.
      * @param uuid The {@link UUID} of the player.
      * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the {@link Boolean} result.
+     *     which provides the {@link Boolean} result.
      */
     public void isUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @NotNull Consumer<ObjectResult<@NotNull Boolean>> action) {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
@@ -519,7 +519,7 @@ public final class UltimateAdvancementAPI {
      * @param advancement The advancement.
      * @param player The player.
      * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     *     If no code should be called, it can be put to {@code null}.
      * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @Nullable Consumer<Result> action) throws NotGrantedException {
@@ -545,7 +545,7 @@ public final class UltimateAdvancementAPI {
      * @param player The player.
      * @param giveRewards Whether to give rewards on redeem.
      * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     *     If no code should be called, it can be put to {@code null}.
      * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull Player player, boolean giveRewards, @Nullable Consumer<Result> action) throws NotGrantedException {
@@ -571,7 +571,7 @@ public final class UltimateAdvancementAPI {
      * @param advancement The advancement.
      * @param uuid The {@link UUID} of the player.
      * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     *     If no code should be called, it can be put to {@code null}.
      * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @Nullable Consumer<Result> action) throws NotGrantedException {
@@ -597,7 +597,7 @@ public final class UltimateAdvancementAPI {
      * @param uuid The {@link UUID} of the player.
      * @param giveRewards Whether to give rewards on redeem.
      * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     *     If no code should be called, it can be put to {@code null}.
      * @throws NotGrantedException If the advancement is not granted for the specified player.
      */
     public void setUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, boolean giveRewards, @Nullable Consumer<Result> action) throws NotGrantedException {
@@ -627,7 +627,7 @@ public final class UltimateAdvancementAPI {
      * @param advancement The advancement.
      * @param player The player.
      * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     *     If no code should be called, it can be put to {@code null}.
      */
     public void unsetUnredeemed(@NotNull Advancement advancement, @NotNull Player player, @Nullable Consumer<Result> action) {
         unsetUnredeemed(advancement, uuidFromPlayer(player), action);
@@ -649,7 +649,7 @@ public final class UltimateAdvancementAPI {
      * @param advancement The advancement.
      * @param uuid The {@link UUID} of the player.
      * @param action A {@link Consumer} that is called synchronously after the operation with a {@link Result}.
-     *         If no code should be called, it can be put to {@code null}.
+     *     If no code should be called, it can be put to {@code null}.
      */
     public void unsetUnredeemed(@NotNull Advancement advancement, @NotNull UUID uuid, @Nullable Consumer<Result> action) {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
@@ -721,7 +721,7 @@ public final class UltimateAdvancementAPI {
      *
      * @param player The offline player to load.
      * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the loaded {@link TeamProgression}.
+     *     which provides the loaded {@link TeamProgression}.
      */
     public void loadOfflinePlayer(@NotNull OfflinePlayer player, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
         loadOfflinePlayer(uuidFromPlayer(player), action);
@@ -734,7 +734,7 @@ public final class UltimateAdvancementAPI {
      *
      * @param uuid The {@link UUID} of the player to load.
      * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the loaded {@link TeamProgression}.
+     *     which provides the loaded {@link TeamProgression}.
      */
     public void loadOfflinePlayer(@NotNull UUID uuid, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
         loadOfflinePlayer(uuid, CacheFreeingOption.DONT_CACHE(), action);
@@ -748,7 +748,7 @@ public final class UltimateAdvancementAPI {
      * @param player The offline player to load.
      * @param option The chosen {@link CacheFreeingOption}.
      * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the loaded {@link TeamProgression}.
+     *     which provides the loaded {@link TeamProgression}.
      */
     public void loadOfflinePlayer(@NotNull OfflinePlayer player, @NotNull CacheFreeingOption option, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
         loadOfflinePlayer(uuidFromPlayer(player), option, action);
@@ -762,7 +762,7 @@ public final class UltimateAdvancementAPI {
      * @param uuid The {@link UUID} of the player to load.
      * @param option The chosen {@link CacheFreeingOption}.
      * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the loaded {@link TeamProgression}.
+     *     which provides the loaded {@link TeamProgression}.
      */
     public void loadOfflinePlayer(@NotNull UUID uuid, @NotNull CacheFreeingOption option, @Nullable Consumer<ObjectResult<@Nullable TeamProgression>> action) {
         callSyncIfNotNull(getMain().getDatabaseManager().loadOfflinePlayer(uuid, option), action);
@@ -852,7 +852,7 @@ public final class UltimateAdvancementAPI {
      *
      * @param player The player.
      * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the in-database stored name of the player.
+     *     which provides the in-database stored name of the player.
      */
     public void getStoredPlayerName(@NotNull OfflinePlayer player, @NotNull Consumer<ObjectResult<@Nullable String>> action) {
         getStoredPlayerName(uuidFromPlayer(player), action);
@@ -863,7 +863,7 @@ public final class UltimateAdvancementAPI {
      *
      * @param uuid The {@link UUID} of the player.
      * @param action A {@link Consumer} that is called synchronously after the operation with an {@link ObjectResult},
-     *         which provides the in-database stored name of the player.
+     *     which provides the in-database stored name of the player.
      */
     public void getStoredPlayerName(@NotNull UUID uuid, @NotNull Consumer<ObjectResult<@Nullable String>> action) {
         Preconditions.checkNotNull(action, "Consumer is null.");

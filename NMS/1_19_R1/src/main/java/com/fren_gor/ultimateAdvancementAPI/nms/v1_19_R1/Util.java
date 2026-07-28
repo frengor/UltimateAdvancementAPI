@@ -82,7 +82,6 @@ public class Util {
         return base == null ? CommonComponents.EMPTY : base;
     }
 
-
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {
         Preconditions.checkNotNull(player, "Player is null.");
         Preconditions.checkNotNull(packet, "Packet is null.");

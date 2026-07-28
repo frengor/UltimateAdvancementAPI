@@ -97,7 +97,7 @@ public abstract class AbstractMultiTasksAdvancement extends BaseAdvancement {
      *
      * @param progression The {@link TeamProgression} of the team.
      * @param player The player responsible for the task's progression update, or {@code null} if there's not.
-     *         In this case, the implementation can choose a random online member.
+     *     In this case, the implementation can choose a random online member.
      */
     protected abstract void reloadTasks(@NotNull TeamProgression progression, @Nullable Player player, boolean giveRewards);
 }

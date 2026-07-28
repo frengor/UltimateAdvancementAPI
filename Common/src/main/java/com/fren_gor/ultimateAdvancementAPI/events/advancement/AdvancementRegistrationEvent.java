@@ -53,8 +53,8 @@ public class AdvancementRegistrationEvent extends Event {
     @Override
     public String toString() {
         return "AdvancementRegistrationEvent{" +
-                "advancement=" + advancement +
-                '}';
+            "advancement=" + advancement +
+            '}';
     }
 
     @Override

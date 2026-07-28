@@ -149,10 +149,10 @@ public class CoordAdapterTest {
 
         // Create the CoordAdapter instance
         CoordAdapter adapter = CoordAdapter.builder()
-                .add(advKey1, 0, 0)  // Will become (0, 1)
-                .add(advKey2, 1, -1) // Will become (1, 0)
-                .add(advKey3, 1, 1)  // Will become (1, 2)
-                .build();
+            .add(advKey1, 0, 0)  // Will become (0, 1)
+            .add(advKey2, 1, -1) // Will become (1, 0)
+            .add(advKey3, 1, 1)  // Will become (1, 2)
+            .build();
 
         // Create the AdvancementDisplays
         var advDisplay1 = new AdvancementDisplay.Builder(Material.GRASS_BLOCK, "Title1").coords(adapter, advKey1).build();

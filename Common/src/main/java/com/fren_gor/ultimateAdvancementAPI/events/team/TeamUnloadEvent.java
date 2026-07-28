@@ -57,8 +57,8 @@ public class TeamUnloadEvent extends Event {
     @Override
     public String toString() {
         return "TeamUnloadEvent{" +
-                "team=" + team +
-                '}';
+            "team=" + team +
+            '}';
     }
 
     @Override

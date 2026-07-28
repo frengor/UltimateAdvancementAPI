@@ -98,7 +98,9 @@ public final class DatabaseManager {
     private final IDatabase database;
 
     private final Map<UUID, Consumer<Player>> waitingForJoinEvent = Collections.synchronizedMap(new HashMap<>());
-    private static final Consumer<Player> LOGIN_SENTINEL = p -> {}, JOIN_SENTINEL = p -> {};
+    private static final Consumer<Player> LOGIN_SENTINEL = p -> {
+    }, JOIN_SENTINEL = p -> {
+    };
 
     private void registerForJoinEvent(@NotNull UUID uuid, @NotNull Consumer<Player> action) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
@@ -382,7 +384,7 @@ public final class DatabaseManager {
      * @param uuid The {@link UUID} of player to load.
      * @param name The name of player to load.
      * @return A pair containing the loaded {@link TeamProgression} and a {@code boolean},
-     *         which is {@code true} if and only if the player was not found in the database.
+     *     which is {@code true} if and only if the player was not found in the database.
      * @throws SQLException If anything goes wrong.
      */
     @NotNull
@@ -975,7 +977,7 @@ public final class DatabaseManager {
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player.
      * @return A {@link CompletableFuture}&lt;{@link ObjectResult}&gt; which provides a boolean value that is {@code true} if the
-     *         provided advancement is unredeemed for the specified player, false otherwise.
+     *     provided advancement is unredeemed for the specified player, false otherwise.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      * @see UltimateAdvancementAPI#isUnredeemed(Advancement, UUID, Consumer)
      */
@@ -990,7 +992,7 @@ public final class DatabaseManager {
      * @param key The advancement key.
      * @param pro The {@link TeamProgression} of the team.
      * @return A {@link CompletableFuture}&lt;{@link ObjectResult}&gt; which provides a boolean value that is {@code true} if the
-     *         provided advancement is unredeemed for the specified player, false otherwise.
+     *     provided advancement is unredeemed for the specified player, false otherwise.
      */
     @NotNull
     public CompletableFuture<ObjectResult<@NotNull Boolean>> isUnredeemed(@NotNull AdvancementKey key, @NotNull TeamProgression pro) {
@@ -1326,9 +1328,9 @@ public final class DatabaseManager {
         @Override
         public String toString() {
             return "TempUserMetadata{" +
-                    "pluginRequests=" + pluginRequests +
-                    ", isOnline=" + isOnline +
-                    '}';
+                "pluginRequests=" + pluginRequests +
+                ", isOnline=" + isOnline +
+                '}';
         }
     }
 }

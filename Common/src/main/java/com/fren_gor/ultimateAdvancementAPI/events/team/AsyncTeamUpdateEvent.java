@@ -90,10 +90,10 @@ public class AsyncTeamUpdateEvent extends Event {
     @Override
     public String toString() {
         return "AsyncTeamUpdateEvent{" +
-                "team=" + team +
-                ", playerUUID=" + playerUUID +
-                ", action=" + action +
-                '}';
+            "team=" + team +
+            ", playerUUID=" + playerUUID +
+            ", action=" + action +
+            '}';
     }
 
     @Override
