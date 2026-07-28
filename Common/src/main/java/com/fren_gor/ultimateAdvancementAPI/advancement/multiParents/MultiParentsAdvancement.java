@@ -39,7 +39,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * Creates a new {@code MultiParentsAdvancement} with a maximum progression of {@code 1}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param parents The advancement parents. There must be at least one.
      */
@@ -51,7 +51,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * Creates a new {@code MultiParentsAdvancement}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param maxProgression The maximum advancement progression.
      * @param display The display information of this advancement.
      * @param parents The advancement parents. There must be at least one.
@@ -64,7 +64,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * Creates a new {@code MultiParentsAdvancement} with a maximum progression of {@code 1}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      * @param parents The advancement parents. There must be at least one.
      */
@@ -76,7 +76,7 @@ public class MultiParentsAdvancement extends AbstractMultiParentsAdvancement {
      * Creates a new {@code MultiParentsAdvancement}.
      *
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param maxProgression The maximum advancement progression.
      * @param display The display information of this advancement.
      * @param parents The advancement parents. There must be at least one.

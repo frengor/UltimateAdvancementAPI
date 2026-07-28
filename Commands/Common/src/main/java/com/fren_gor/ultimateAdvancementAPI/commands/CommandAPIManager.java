@@ -11,8 +11,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.logging.Level;
 import java.util.Optional;
+import java.util.logging.Level;
 
 /**
  * <a href="https://github.com/JorelAli/CommandAPI">CommandAPI</a> manager, which loads the correct version of the API
@@ -54,12 +54,12 @@ public class CommandAPIManager {
         // Download correct version of CommandAPI
         libbyManager.addMavenCentral();
         Library commandAPILibrary = Library.builder()
-                .groupId("dev{}jorel")
-                .artifactId(ver.getArtifactId())
-                .version(ver.getVersion())
-                .checksum(ver.getChecksum())
-                .relocate("dev{}jorel{}commandapi", "dev.jorel.commandapi") // Should be changed by shading
-                .build();
+            .groupId("dev{}jorel")
+            .artifactId(ver.getArtifactId())
+            .version(ver.getVersion())
+            .checksum(ver.getChecksum())
+            .relocate("dev{}jorel{}commandapi", "dev.jorel.commandapi") // Should be changed by shading
+            .build();
         try {
             libbyManager.loadLibrary(commandAPILibrary);
         } catch (Exception e) {

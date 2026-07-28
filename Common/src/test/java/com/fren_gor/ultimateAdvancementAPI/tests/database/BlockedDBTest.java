@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.tests.database;
 
-import com.fren_gor.ultimateAdvancementAPI.tests.database.BlockingDBImpl.BlockedDB;
 import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
+import com.fren_gor.ultimateAdvancementAPI.tests.database.BlockingDBImpl.BlockedDB;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;

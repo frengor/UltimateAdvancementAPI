@@ -81,7 +81,7 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
      * Creates a new {@code AdvancementKey} from the specified {@link NamespacedKey}.
      *
      * @param key The {@link NamespacedKey}. The namespace and key should not start with {@link #RESERVED_NAMESPACE_PREFIX}
-     *         and {@link #RESERVED_KEY_PREFIX}, respectively.
+     *     and {@link #RESERVED_KEY_PREFIX}, respectively.
      */
     public AdvancementKey(@NotNull NamespacedKey key) {
         this(Objects.requireNonNull(key, "NamespacedKey is null.").getNamespace(), key.getKey());
@@ -91,7 +91,7 @@ public final class AdvancementKey implements Comparable<AdvancementKey> {
      * Creates a new {@code AdvancementKey} from the specified NMS {@code MinecraftKey}.
      *
      * @param key The {@code MinecraftKey}. The namespace and key should not start with {@link #RESERVED_NAMESPACE_PREFIX}
-     *         and {@link #RESERVED_KEY_PREFIX}, respectively.
+     *     and {@link #RESERVED_KEY_PREFIX}, respectively.
      * @throws IllegalKeyException If the namespace or the key is not valid. See {@link #AdvancementKey(String, String)}.
      */
     public AdvancementKey(@NotNull MinecraftKeyWrapper key) throws IllegalKeyException {

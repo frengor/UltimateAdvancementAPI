@@ -28,7 +28,7 @@ public non-sealed class RootAdvancement extends Advancement {
      *
      * @param advancementTab The advancement tab of the advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param display The display information of this advancement.
      */
     public RootAdvancement(@NotNull AdvancementTab advancementTab, @NotNull String key, @NotNull AbstractAdvancementDisplay display) {
@@ -40,7 +40,7 @@ public non-sealed class RootAdvancement extends Advancement {
      *
      * @param advancementTab The advancement tab of the advancement.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param maxProgression The maximum advancement progression.
      * @param display The display information of this advancement.
      */

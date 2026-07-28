@@ -72,28 +72,28 @@ public final class DefaultStyle {
      */
     public DefaultStyle(@NotNull ComponentStyle style) {
         this(
-                validateColor(Objects.requireNonNull(style, "ComponentStyle is null.").getColor()),
-                COMPONENT_STYLE_HAS_SHADOW_COLOR ? style.getShadowColor() : null,
-                // No need to check for BASE_COMPONENT_HAS_FONT, font was added in 1.16, but ComponentStyle was added in 1.18
-                style.getFont(),
-                style.isBoldRaw(),
-                style.isItalicRaw(),
-                style.isUnderlinedRaw(),
-                style.isStrikethroughRaw(),
-                style.isObfuscatedRaw()
+            validateColor(Objects.requireNonNull(style, "ComponentStyle is null.").getColor()),
+            COMPONENT_STYLE_HAS_SHADOW_COLOR ? style.getShadowColor() : null,
+            // No need to check for BASE_COMPONENT_HAS_FONT, font was added in 1.16, but ComponentStyle was added in 1.18
+            style.getFont(),
+            style.isBoldRaw(),
+            style.isItalicRaw(),
+            style.isUnderlinedRaw(),
+            style.isStrikethroughRaw(),
+            style.isObfuscatedRaw()
         );
     }
 
     // Assumes color has already been validated
     private DefaultStyle(
-            @Nullable ChatColor color,
-            @Nullable Color shadowColor,
-            @Nullable String font,
-            @Nullable Boolean bold,
-            @Nullable Boolean italic,
-            @Nullable Boolean underlined,
-            @Nullable Boolean strikethrough,
-            @Nullable Boolean obfuscated
+        @Nullable ChatColor color,
+        @Nullable Color shadowColor,
+        @Nullable String font,
+        @Nullable Boolean bold,
+        @Nullable Boolean italic,
+        @Nullable Boolean underlined,
+        @Nullable Boolean strikethrough,
+        @Nullable Boolean obfuscated
     ) {
         this.color = color;
         this.shadowColor = shadowColor;
@@ -109,7 +109,7 @@ public final class DefaultStyle {
      * Returns a copy of this {@code DefaultStyle} with the specified color.
      *
      * @param color The color, or {@code null} to use Minecraft's default.
-     *         Must represent a color and not a formatting option.
+     *     Must represent a color and not a formatting option.
      * @return A copy of this {@code DefaultStyle} with the specified color.
      */
     @NotNull
@@ -208,14 +208,14 @@ public final class DefaultStyle {
             return baseStyle;
         }
         return new DefaultStyle(
-                this.color != null ? this.color : baseStyle.color,
-                this.shadowColor != null ? this.shadowColor : baseStyle.shadowColor,
-                this.font != null ? this.font : baseStyle.font,
-                this.bold != null ? this.bold : baseStyle.bold,
-                this.italic != null ? this.italic : baseStyle.italic,
-                this.underlined != null ? this.underlined : baseStyle.underlined,
-                this.strikethrough != null ? this.strikethrough : baseStyle.strikethrough,
-                this.obfuscated != null ? this.obfuscated : baseStyle.obfuscated
+            this.color != null ? this.color : baseStyle.color,
+            this.shadowColor != null ? this.shadowColor : baseStyle.shadowColor,
+            this.font != null ? this.font : baseStyle.font,
+            this.bold != null ? this.bold : baseStyle.bold,
+            this.italic != null ? this.italic : baseStyle.italic,
+            this.underlined != null ? this.underlined : baseStyle.underlined,
+            this.strikethrough != null ? this.strikethrough : baseStyle.strikethrough,
+            this.obfuscated != null ? this.obfuscated : baseStyle.obfuscated
         );
     }
 
@@ -302,14 +302,14 @@ public final class DefaultStyle {
     @NotNull
     public ComponentStyle toComponentStyle() {
         var builder = ComponentStyle.builder()
-                .color(color)
-                // No need to check for BASE_COMPONENT_HAS_FONT, font was added in 1.16, but ComponentStyle was added in 1.18
-                .font(font)
-                .bold(bold)
-                .italic(italic)
-                .underlined(underlined)
-                .strikethrough(strikethrough)
-                .obfuscated(obfuscated);
+            .color(color)
+            // No need to check for BASE_COMPONENT_HAS_FONT, font was added in 1.16, but ComponentStyle was added in 1.18
+            .font(font)
+            .bold(bold)
+            .italic(italic)
+            .underlined(underlined)
+            .strikethrough(strikethrough)
+            .obfuscated(obfuscated);
 
         if (COMPONENT_STYLE_HAS_SHADOW_COLOR) {
             builder.shadowColor(shadowColor);
@@ -436,13 +436,13 @@ public final class DefaultStyle {
         if (!(o instanceof DefaultStyle that)) return false;
 
         return Objects.equals(color, that.color) &&
-                Objects.equals(shadowColor, that.shadowColor) &&
-                Objects.equals(font, that.font) &&
-                Objects.equals(bold, that.bold) &&
-                Objects.equals(italic, that.italic) &&
-                Objects.equals(underlined, that.underlined) &&
-                Objects.equals(strikethrough, that.strikethrough) &&
-                Objects.equals(obfuscated, that.obfuscated);
+            Objects.equals(shadowColor, that.shadowColor) &&
+            Objects.equals(font, that.font) &&
+            Objects.equals(bold, that.bold) &&
+            Objects.equals(italic, that.italic) &&
+            Objects.equals(underlined, that.underlined) &&
+            Objects.equals(strikethrough, that.strikethrough) &&
+            Objects.equals(obfuscated, that.obfuscated);
     }
 
     @Override
@@ -461,8 +461,8 @@ public final class DefaultStyle {
     @Nullable
     private static ChatColor validateColor(@Nullable ChatColor color) {
         Preconditions.checkArgument(
-                !CHAT_COLOR_HAS_GET_COLOR || color == null || color.getColor() != null,
-                "Invalid ChatColor, expected a color but found a formatting option"
+            !CHAT_COLOR_HAS_GET_COLOR || color == null || color.getColor() != null,
+            "Invalid ChatColor, expected a color but found a formatting option"
         );
         return color;
     }

@@ -53,28 +53,28 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
         var testClass = extensionContext.getRequiredTestClass();
         var testInstance = extensionContext.getRequiredTestInstance();
         var fields = FieldUtils.getFieldsListWithAnnotation(testClass, AutoInject.class)
-                .stream()
-                .filter(field -> !Modifier.isStatic(field.getModifiers()))
-                .toList();
+            .stream()
+            .filter(field -> !Modifier.isStatic(field.getModifiers()))
+            .toList();
         if (fields.isEmpty()) {
             return;
         }
 
         fields.stream()
-                .filter(field -> shouldInject(field.getType(), isNoAdvMain))
-                .forEach(field -> inject(field, testInstance, extensionContext));
+            .filter(field -> shouldInject(field.getType(), isNoAdvMain))
+            .forEach(field -> inject(field, testInstance, extensionContext));
 
         fields.stream()
-                .filter(field -> field.getType() == AdvancementKey.class)
-                .forEach(field -> injectField(field, testInstance, createAdvKey()));
+            .filter(field -> field.getType() == AdvancementKey.class)
+            .forEach(field -> injectField(field, testInstance, createAdvKey()));
 
         fields.stream()
-                .filter(field -> field.getType() == UUID.class)
-                .forEach(field -> injectField(field, testInstance, createUUID()));
+            .filter(field -> field.getType() == UUID.class)
+            .forEach(field -> injectField(field, testInstance, createUUID()));
 
         fields.stream()
-                .filter(field -> field.getType() == PlayerMock.class || field.getType() == Player.class)
-                .forEach(field -> injectField(field, testInstance, createPlayer(server)));
+            .filter(field -> field.getType() == PlayerMock.class || field.getType() == Player.class)
+            .forEach(field -> injectField(field, testInstance, createPlayer(server)));
     }
 
     @Override
@@ -125,12 +125,12 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
 
     private boolean shouldInject(Class<?> type, boolean isNoAdvMain) {
         return type == ServerMock.class || (
-                !isNoAdvMain && (
-                        type == AdvancementMain.class ||
-                        type == DatabaseManagerUtils.class ||
-                        type == DatabaseImpls.class ||
-                        type == DatabaseManager.class
-                )
+            !isNoAdvMain && (
+                type == AdvancementMain.class ||
+                    type == DatabaseManagerUtils.class ||
+                    type == DatabaseImpls.class ||
+                    type == DatabaseManager.class
+            )
         );
     }
 
@@ -212,6 +212,6 @@ public class UAAPIExtension implements BeforeEachCallback, AfterEachCallback, Pa
 
     private boolean isNoAdvancementMain(ExtensionContext extensionContext) {
         return extensionContext.getRequiredTestClass().getAnnotation(NoAdvancementMain.class) != null ||
-                extensionContext.getRequiredTestMethod().getAnnotation(NoAdvancementMain.class) != null;
+            extensionContext.getRequiredTestMethod().getAnnotation(NoAdvancementMain.class) != null;
     }
 }

@@ -6,8 +6,8 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementD
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import com.google.gson.JsonParseException;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.advancements.AdvancementType;
+import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;

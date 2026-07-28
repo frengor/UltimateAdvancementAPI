@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.frengor</groupId>
         <artifactId>ultimateadvancementapi-nms-parent</artifactId>
-        <version>3.0.0-beta-2</version>
+        <version>3.0.0-beta-3</version>
     </parent>
 
     <artifactId>ultimateadvancementapi-nms-distribution</artifactId>
@@ -146,6 +146,12 @@
         <dependency>
             <groupId>com.frengor</groupId>
             <artifactId>ultimateadvancementapi-nms-26_1_R2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.frengor</groupId>
+            <artifactId>ultimateadvancementapi-nms-26_2_R1</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

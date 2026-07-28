@@ -87,7 +87,7 @@ public final class AdvancementMain {
      *
      * @param owningPlugin The plugin instantiating the API.
      * @param libFolder The name of the folder when additional libraries will be stored into.
-     *         The folder is created into the plugin directory.
+     *     The folder is created into the plugin directory.
      */
     public AdvancementMain(@NotNull Plugin owningPlugin, String libFolder) {
         // Don't use AdvancementUtils here until having checked that the current mc version is supported

@@ -115,8 +115,8 @@ public final class AdvancementUtils {
             AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(icon, title, ADV_DESCRIPTION, frame.getNMSWrapper(), 0.2f, 0, true, false, false);
             AdvancementWrapper notification = AdvancementWrapper.craftBaseAdvancement(notification_key, PREPARED_ROOT, display, 1);
             PacketPlayOutAdvancementsWrapper.craftSendPacket(Map.of(
-                    ROOT, 0,
-                    notification, 1
+                ROOT, 0,
+                notification, 1
             )).sendTo(player);
             PacketPlayOutAdvancementsWrapper.craftRemovePacket(Set.of(NOTIFICATION_ROOT_KEY, notification_key)).sendTo(player);
         } catch (ReflectiveOperationException e) {
@@ -238,7 +238,7 @@ public final class AdvancementUtils {
      * @param completableFuture The {@link CompletableFuture} which will complete in the future.
      * @param plugin The plugin which will schedule the task on Bukkit.
      * @param consumer The {@link BiConsumer} to execute. It is called with the result (or {@code null} if none) and the
-     *         exception (or {@code null} if none) of the provided {@link CompletableFuture}.
+     *     exception (or {@code null} if none) of the provided {@link CompletableFuture}.
      * @param <T> The value returned by the {@link CompletableFuture}.
      * @return A {@link CompletableFuture} with the same result or exception as the provided one.
      * @see BukkitScheduler
@@ -264,10 +264,10 @@ public final class AdvancementUtils {
      *
      * @param completableFuture The {@link CompletableFuture} which will complete in the future.
      * @param delay The delay in ticks to wait between the {@link CompletableFuture} competition and the execution of
-     *         the provided consumer.
+     *     the provided consumer.
      * @param plugin The plugin which will schedule the task on Bukkit.
      * @param consumer The {@link BiConsumer} to execute. It is called with the result (or {@code null} if none) and the
-     *         exception (or {@code null} if none) of the provided {@link CompletableFuture}.
+     *     exception (or {@code null} if none) of the provided {@link CompletableFuture}.
      * @param <T> The value returned by the {@link CompletableFuture}.
      * @return A {@link CompletableFuture} with the same result or exception as the provided one.
      * @see BukkitScheduler
@@ -372,15 +372,15 @@ public final class AdvancementUtils {
         ComponentBuilder hoverBuilder = new ComponentBuilder("[");
         parenthesesStyle.applyTo(hoverBuilder);
         hoverBuilder.append(title, FormatRetention.NONE)
-                .append("]", FormatRetention.NONE);
+            .append("]", FormatRetention.NONE);
         parenthesesStyle.applyTo(hoverBuilder);
 
         TextComponent withHover = new TextComponent(hoverBuilder.create());
         withHover.setHoverEvent(new HoverEvent(Action.SHOW_TEXT, hoverText.create()));
 
         var cb = new ComponentBuilder(advancementCompleter.getName() + ' ' + frame.getChatText() + ' ')
-                .color(ChatColor.WHITE)
-                .append(withHover, FormatRetention.NONE);
+            .color(ChatColor.WHITE)
+            .append(withHover, FormatRetention.NONE);
         return build(cb);
     }
 

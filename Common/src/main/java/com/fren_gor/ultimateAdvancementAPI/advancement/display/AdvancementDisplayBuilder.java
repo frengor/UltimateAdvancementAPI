@@ -391,7 +391,7 @@ public class AdvancementDisplayBuilder {
      * Sets the default style of the title when displayed in the advancement GUI.
      *
      * @param defaultStyle The default style of the title when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be provided if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be provided if Minecraft's default style should be used.
      * @return This builder.
      */
     @NotNull
@@ -404,7 +404,7 @@ public class AdvancementDisplayBuilder {
      * Sets the default style of the title in the advancement's announcement message.
      *
      * @param defaultStyle The default style of the title in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be provided if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be provided if Minecraft's default style should be used.
      * @return This builder.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
@@ -419,7 +419,7 @@ public class AdvancementDisplayBuilder {
      * Sets the default style of the description when displayed in the advancement GUI.
      *
      * @param defaultStyle The default style of the description when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be provided if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be provided if Minecraft's default style should be used.
      * @return This builder.
      */
     @NotNull
@@ -432,7 +432,7 @@ public class AdvancementDisplayBuilder {
      * Sets the default style of the description in the advancement's announcement message.
      *
      * @param defaultStyle The default style of the description in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be provided if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be provided if Minecraft's default style should be used.
      * @return This builder.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)

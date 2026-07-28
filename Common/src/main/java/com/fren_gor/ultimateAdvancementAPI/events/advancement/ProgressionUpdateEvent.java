@@ -125,11 +125,11 @@ public class ProgressionUpdateEvent extends Event {
     @Override
     public String toString() {
         return "ProgressionUpdateEvent{" +
-                "team=" + team +
-                ", oldProgression=" + oldProgression +
-                ", newProgression=" + newProgression +
-                ", advancementKey=" + advancementKey +
-                '}';
+            "team=" + team +
+            ", oldProgression=" + oldProgression +
+            ", newProgression=" + newProgression +
+            ", advancementKey=" + advancementKey +
+            '}';
     }
 
     @Override

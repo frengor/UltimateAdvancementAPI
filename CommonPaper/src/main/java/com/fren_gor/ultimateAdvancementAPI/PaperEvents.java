@@ -20,8 +20,8 @@ final class PaperEvents {
     }
 
     public void registerServerResourcesReloadedEvent(
-            @NotNull Object listener,
-            @NotNull Runnable onServerResourcesReloaded
+        @NotNull Object listener,
+        @NotNull Runnable onServerResourcesReloaded
     ) {
         eventManager.register(listener, ServerResourcesReloadedEvent.class, e -> {
             onServerResourcesReloaded.run();

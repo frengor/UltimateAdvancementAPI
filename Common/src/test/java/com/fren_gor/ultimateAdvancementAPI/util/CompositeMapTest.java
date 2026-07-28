@@ -84,12 +84,12 @@ public class CompositeMapTest {
         // Coping into two new lists is necessary since the equals method requires them to be the same class to work
         List<Entry<Integer, Integer>> actual = new ArrayList<>(map.entrySet());
         List<Entry<Integer, Integer>> expected = new ArrayList<>(List.of(
-                Map.entry(0, 1),
-                Map.entry(2,3),
-                Map.entry(4, 5),
-                Map.entry(6, 7),
-                Map.entry(2, -1),
-                Map.entry(4, -2)
+            Map.entry(0, 1),
+            Map.entry(2, 3),
+            Map.entry(4, 5),
+            Map.entry(6, 7),
+            Map.entry(2, -1),
+            Map.entry(4, -2)
         ));
 
         Comparator<Entry<Integer, Integer>> comparator = (e1, e2) -> {

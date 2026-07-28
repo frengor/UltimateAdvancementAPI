@@ -89,7 +89,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
      *
      * @param advancementTab The advancement tab.
      * @param key The unique key of the advancement. It must be unique among the other advancements of the tab.
-     *         Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
+     *     Should not start with {@link AdvancementKey#RESERVED_KEY_PREFIX}.
      * @param maxProgression The maximum advancement progression.
      * @param display The display information of this advancement.
      */
@@ -235,7 +235,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
      *
      * @param player The player who is responsible for the increment.
      * @param increment The progression increment. May be less than {@code 0}. If the final progression would be lower
-     *         than {@code 0}, the progression will be set to {@code 0}.
+     *     than {@code 0}, the progression will be set to {@code 0}.
      * @return A {@link CompletableFuture} which will complete with the result of the operation.
      * @see ProgressionUpdateResult
      * @see CompletableFuture
@@ -250,7 +250,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
      *
      * @param player The player who is responsible for the increment.
      * @param increment The progression increment. May be less than {@code 0}. If the final progression would be lower
-     *         than {@code 0}, the progression will be set to {@code 0}.
+     *     than {@code 0}, the progression will be set to {@code 0}.
      * @param giveReward Whether to give rewards if the advancement gets completed.
      * @return A {@link CompletableFuture} which will complete with the result of the operation.
      * @see ProgressionUpdateResult
@@ -266,7 +266,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
      * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
-     *         online member of the same team if there are any, or it will be set unredeemed.
+     *     online member of the same team if there are any, or it will be set unredeemed.
      * @return A {@link CompletableFuture} which will complete with the result of the operation.
      * @see ProgressionUpdateResult
      * @see CompletableFuture
@@ -280,7 +280,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
      * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
-     *         online member of the same team if there are any, or it will be set unredeemed.
+     *     online member of the same team if there are any, or it will be set unredeemed.
      * @param giveReward Whether to give rewards if the advancement gets completed.
      * @return A {@link CompletableFuture} which will complete with the result of the operation.
      * @see ProgressionUpdateResult
@@ -296,9 +296,9 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
      * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
-     *         online member of the same team if there are any, or it will be set unredeemed.
+     *     online member of the same team if there are any, or it will be set unredeemed.
      * @param increment The progression increment. May be less than {@code 0}. If the final progression would be lower
-     *         than {@code 0}, the progression will be set to {@code 0}.
+     *     than {@code 0}, the progression will be set to {@code 0}.
      * @return A {@link CompletableFuture} which will complete with the result of the operation.
      * @see ProgressionUpdateResult
      * @see CompletableFuture
@@ -312,9 +312,9 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
      * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player responsible for the increment. If the player is not online, rewards will be given to a pseudorandom
-     *         online member of the same team if there are any, or it will be set unredeemed.
+     *     online member of the same team if there are any, or it will be set unredeemed.
      * @param increment The progression increment. May be less than {@code 0}. If the final progression would be lower
-     *         than {@code 0}, the progression will be set to {@code 0}.
+     *     than {@code 0}, the progression will be set to {@code 0}.
      * @param giveReward Whether to give rewards if the advancement gets completed.
      * @return A {@link CompletableFuture} which will complete with the result of the operation.
      * @see ProgressionUpdateResult
@@ -334,7 +334,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
      * @param pro The {@link TeamProgression} of the team.
      * @param player The team member responsible for the increment. May be {@code null}.
      * @param increment The progression increment. May be less than {@code 0}. If the final progression would be lower
-     *         than {@code 0}, the progression will be set to {@code 0}.
+     *     than {@code 0}, the progression will be set to {@code 0}.
      * @param giveRewards Whether to give rewards if the advancement gets completed.
      * @return A {@link CompletableFuture} which will complete with the result of the operation.
      * @see ProgressionUpdateResult
@@ -401,7 +401,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
      * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player responsible for the update. If the player is not online, rewards will be given to a pseudorandom
-     *         online member of the same team if there are any, or it will be set unredeemed.
+     *     online member of the same team if there are any, or it will be set unredeemed.
      * @param progression The new non-negative progression to set.
      * @return A {@link CompletableFuture} which will complete with the result of the operation.
      * @see ProgressionUpdateResult
@@ -416,7 +416,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
      * <p>The progression is not updated immediately, only when the database operation ends and the {@link CompletableFuture} returns.
      *
      * @param uuid The {@link UUID} of the player responsible for the update. If the player is not online, rewards will be given to a pseudorandom
-     *         online member of the same team if there are any, or it will be set unredeemed.
+     *     online member of the same team if there are any, or it will be set unredeemed.
      * @param progression The new non-negative progression to set.
      * @param giveReward Whether to give rewards if the advancement gets completed.
      * @return A {@link CompletableFuture} which will complete with the result of the operation.
@@ -565,9 +565,9 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
      * @param progression The{@link TeamProgression} of the team.
      * @return Whether the advancement is visible to the provided team.
      * @implSpec This method is the core method of the Advancement Visibility System (AVS).
-     *         The return value is {@code true} if no suitable interfaces for the AVS are implemented, or
-     *         the result of {@link IVisibility#isVisible(Advancement, TeamProgression)} otherwise.
-     *         When overridden, this method (called via {@code super}) enables the AVS features for that method.
+     *     The return value is {@code true} if no suitable interfaces for the AVS are implemented, or
+     *     the result of {@link IVisibility#isVisible(Advancement, TeamProgression)} otherwise.
+     *     When overridden, this method (called via {@code super}) enables the AVS features for that method.
      * @see IVisibility
      */
     public boolean isVisible(@NotNull TeamProgression progression) {
@@ -593,11 +593,11 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
      *
      * @param advancementCompleter The player who has completed the advancement.
      * @return A function which returns, for each player, the announcement message to be displayed to them.
-     *         {@code null} can be returned instead if no message should be displayed to any player.
+     *     {@code null} can be returned instead if no message should be displayed to any player.
      * @implSpec This method is the core method of the Advancement Announcement Message System (AAMS).
-     *         The default announcement message is returned if no suitable interfaces for the AAMS are implemented, or
-     *         the result of {@link IAnnouncementMessage#getAnnouncementMessage(Advancement, Player)} otherwise.
-     *         When overridden, this method (called via {@code super}) enables the AAMS features for that method.
+     *     The default announcement message is returned if no suitable interfaces for the AAMS are implemented, or
+     *     the result of {@link IAnnouncementMessage#getAnnouncementMessage(Advancement, Player)} otherwise.
+     *     When overridden, this method (called via {@code super}) enables the AAMS features for that method.
      * @see IAnnouncementMessage
      */
     @Nullable

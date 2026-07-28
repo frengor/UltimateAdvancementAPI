@@ -177,7 +177,7 @@ public final class AdvancementTab {
      *
      * @param filterClass The filter class.
      * @return An unmodifiable {@link Collection} of all the tab's advancements
-     *         that are an instance of the provided class or any of its subclasses.
+     *     that are an instance of the provided class or any of its subclasses.
      * @throws IllegalStateException If the tab is not initialised.
      * @throws DisposedException If the tab is disposed.
      */
@@ -858,7 +858,7 @@ public final class AdvancementTab {
      * Sets whether the announcement message should be sent <i>only</i> to the team members on advancement grant.
      *
      * @param sendAnnouncementMessageOnlyToTeam Whether the announcement message should be sent <i>only</i> to the
-     *         team members on advancement grant.
+     *     team members on advancement grant.
      */
     public void setSendAnnouncementMessageOnlyToTeam(boolean sendAnnouncementMessageOnlyToTeam) {
         this.sendAnnouncementMessageOnlyToTeam = sendAnnouncementMessageOnlyToTeam;
@@ -1098,34 +1098,34 @@ public final class AdvancementTab {
         }
 
         private record TabDisplayData(
-                @NotNull String backgroundTexture,
-                @NotNull Optional<ItemStack> icon,
-                @NotNull Optional<BaseComponent> title
+            @NotNull String backgroundTexture,
+            @NotNull Optional<ItemStack> icon,
+            @NotNull Optional<BaseComponent> title
         ) {
             @NotNull
             public AdvancementDisplayWrapper toRootDisplayWrapper(
-                    float rootX,
-                    float rootY,
-                    Supplier<? extends ItemStack> rootIcon,
-                    Supplier<? extends BaseComponent> rootTitle
+                float rootX,
+                float rootY,
+                Supplier<? extends ItemStack> rootIcon,
+                Supplier<? extends BaseComponent> rootTitle
             ) throws ReflectiveOperationException {
                 ItemStack icon = this.icon.orElseGet(rootIcon);
                 BaseComponent title = this.title.orElseGet(rootTitle);
                 return AdvancementDisplayWrapper.craft(
-                        icon, title, new TextComponent(""), AdvancementFrameTypeWrapper.TASK, rootX - 0.2f, rootY, false, false, true, this.backgroundTexture
+                    icon, title, new TextComponent(""), AdvancementFrameTypeWrapper.TASK, rootX - 0.2f, rootY, false, false, true, this.backgroundTexture
                 );
             }
         }
 
         private record ImmutableAndPerTeamUpdateData(
-                @NotNull AdvancementUpdater updater,
-                @NotNull Map<AdvancementWrapper, Integer> perTeamToSend,
-                @Nullable TabDisplayData displayData,
-                boolean internalRootAlreadyAddedToMap,
-                @Nullable AdvancementDisplayWrapper internalRootDisplay,
-                @Nullable PreparedAdvancementDisplayWrapper rootDisplay,
-                @NotNull ISendable noTab,
-                @NotNull ISendable thisTab) {
+            @NotNull AdvancementUpdater updater,
+            @NotNull Map<AdvancementWrapper, Integer> perTeamToSend,
+            @Nullable TabDisplayData displayData,
+            boolean internalRootAlreadyAddedToMap,
+            @Nullable AdvancementDisplayWrapper internalRootDisplay,
+            @Nullable PreparedAdvancementDisplayWrapper rootDisplay,
+            @NotNull ISendable noTab,
+            @NotNull ISendable thisTab) {
         }
     }
 

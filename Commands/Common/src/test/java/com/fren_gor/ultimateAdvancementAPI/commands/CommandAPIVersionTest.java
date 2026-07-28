@@ -42,11 +42,11 @@ public class CommandAPIVersionTest {
         manager.addMavenCentral();
 
         Library commandAPI = Library.builder()
-                .groupId("dev{}jorel")
-                .artifactId(version.artifactId)
-                .version(version.getVersion())
-                .checksum(version.checksum)
-                .build();
+            .groupId("dev{}jorel")
+            .artifactId(version.artifactId)
+            .version(version.getVersion())
+            .checksum(version.checksum)
+            .build();
 
         try {
             assertTrue(Files.exists(manager.downloadLibrary(commandAPI)));
@@ -60,11 +60,11 @@ public class CommandAPIVersionTest {
             Preconditions.checkNotNull(version.mojangMappedChecksum, "mojangMappedChecksum is null");
 
             Library commandAPIMojangMapped = Library.builder()
-                    .groupId("dev{}jorel")
-                    .artifactId(version.mojangMappedArtifactId)
-                    .version(version.getVersion())
-                    .checksum(version.mojangMappedChecksum)
-                    .build();
+                .groupId("dev{}jorel")
+                .artifactId(version.mojangMappedArtifactId)
+                .version(version.getVersion())
+                .checksum(version.mojangMappedChecksum)
+                .build();
 
             try {
                 assertTrue(Files.exists(manager.downloadLibrary(commandAPIMojangMapped)));

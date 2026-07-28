@@ -127,7 +127,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      * Returns the default style of the title when displayed in the advancement GUI.
      *
      * @return The default style of the title when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @implSpec The default implementation calls {@link #getDefaultTitleStyle(OfflinePlayer)}.
      */
     @NotNull
@@ -140,7 +140,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      *
      * @param player The player.
      * @return The default style of the title when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
      */
     @NotNull
@@ -153,7 +153,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      *
      * @param player The player.
      * @return The default style of the title in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @implSpec The default implementation calls {@link #getAnnouncementMessageDefaultTitleStyle(OfflinePlayer)}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
@@ -168,7 +168,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      *
      * @param player The player.
      * @return The default style of the title in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
@@ -231,7 +231,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      *
      * @param player The player.
      * @return The default style of the description when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @implSpec The default implementation calls {@link #getDefaultDescriptionStyle(OfflinePlayer)}.
      */
     @NotNull
@@ -244,7 +244,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      *
      * @param player The player.
      * @return The default style of the description when displayed in the advancement GUI.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
      */
     @NotNull
@@ -257,7 +257,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      *
      * @param player The player.
      * @return The default style of the description in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @implSpec The default implementation calls {@link #getAnnouncementMessageDefaultDescriptionStyle(OfflinePlayer)}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
@@ -272,7 +272,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      *
      * @param player The player.
      * @return The default style of the description in the advancement's announcement message.
-     *         {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
      * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)

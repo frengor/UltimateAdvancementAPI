@@ -93,7 +93,7 @@ public final class DatabaseManager implements Closeable {
 
     private static final int LOAD_EVENTS_DELAY = 3;
     private static final boolean IS_PAPER = ReflectionUtil.classExists("io.papermc.paper.advancement.AdvancementDisplay")
-            && !ReflectionUtil.classExists("org.mockbukkit.mockbukkit.MockBukkit"); // Workaround: MockBukkit doesn't call PlayerConnectionInitialConfigureEvent
+        && !ReflectionUtil.classExists("org.mockbukkit.mockbukkit.MockBukkit"); // Workaround: MockBukkit doesn't call PlayerConnectionInitialConfigureEvent
 
     // A single-thread executor is used to maintain executed queries sequential
     private final ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("DatabaseManager Thread - %d").build());
@@ -1051,7 +1051,7 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param uuid The {@link UUID} of the player.
      * @return A {@link CompletableFuture} which provides a boolean value that is {@code true} if the
-     *         provided advancement is unredeemed for the specified player, false otherwise.
+     *     provided advancement is unredeemed for the specified player, false otherwise.
      * @throws UserNotLoadedException If the player was not loaded into the cache.
      * @see UltimateAdvancementAPI#isUnredeemed(Advancement, UUID)
      */
@@ -1066,7 +1066,7 @@ public final class DatabaseManager implements Closeable {
      * @param key The advancement key.
      * @param pro The {@link TeamProgression} of the team.
      * @return A {@link CompletableFuture} which provides a boolean value that is {@code true} if the
-     *         provided advancement is unredeemed for the specified player, false otherwise.
+     *     provided advancement is unredeemed for the specified player, false otherwise.
      * @see UltimateAdvancementAPI#isUnredeemed(Advancement, TeamProgression)
      */
     @NotNull
@@ -1964,7 +1964,7 @@ public final class DatabaseManager implements Closeable {
      * @param newProgr The new progression.
      * @param completableFuture The {@link CompletableFuture} to complete after the update ends.
      */
-    private /*synchronized*/ void registerProgressionUpdate(@NotNull LoadedTeam team, @NotNull AdvancementKey key, int oldProgr, int newProgr, @NotNull CompletableFuture<ProgressionUpdateResult> completableFuture) {
+    private synchronized void registerProgressionUpdate(@NotNull LoadedTeam team, @NotNull AdvancementKey key, int oldProgr, int newProgr, @NotNull CompletableFuture<ProgressionUpdateResult> completableFuture) {
         pendingUpdatesManager.registerProgressionUpdate(team, key, oldProgr, newProgr, () -> {
             try {
                 callEventCatchingExceptions(new ProgressionUpdateEvent(key, team.getTeamProgression(), oldProgr, newProgr, completableFuture));
@@ -2009,7 +2009,7 @@ public final class DatabaseManager implements Closeable {
      *
      * @param runnable The {@link Runnable} to run.
      * @return A {@link CompletableFuture} which will complete once the runnable has been executed (or skipped if
-     *         {@link DatabaseManager} gets closed).
+     *     {@link DatabaseManager} gets closed).
      */
     private CompletableFuture<Void> runAsyncOnExecutor(Runnable runnable) {
         return CompletableFuture.runAsync(() -> {
@@ -2023,11 +2023,11 @@ public final class DatabaseManager implements Closeable {
      * Runs the provided runnable into the {@link DatabaseManager#executor} thread if the {@code DatabaseManager} isn't closed.
      *
      * @param returnedCompletableFuture The {@link CompletableFuture} that is completed by the provided runnable when
-     *         the operation ends or errors. It will be completed with a {@link DatabaseManagerClosedException} if the
-     *         {@link DatabaseManager} gets closed.
+     *     the operation ends or errors. It will be completed with a {@link DatabaseManagerClosedException} if the
+     *     {@link DatabaseManager} gets closed.
      * @param runnable The {@link Runnable} to run.
      * @return A {@link CompletableFuture} which will complete once the runnable has been executed (or skipped if
-     *         {@link DatabaseManager} gets closed).
+     *     {@link DatabaseManager} gets closed).
      */
     private CompletableFuture<Void> runAsyncOnExecutor(CompletableFuture<?> returnedCompletableFuture, Runnable runnable) {
         final Integer key = keysOfUncompletedCFs.incrementAndGet();
@@ -2197,7 +2197,7 @@ public final class DatabaseManager implements Closeable {
          * @param callback A callback called on the main thread after the update has been applied.
          */
         void registerTeamUpdate(@NotNull LoadedPlayer player, @NotNull LoadedTeam team, @NotNull Runnable callback) {
-            synchronized(DatabaseManager.this) {
+            synchronized (DatabaseManager.this) {
                 // Keep in cache, removes are done after the callback returns
                 player.addInternalRequest();
                 team.addInternalRequest();
@@ -2216,7 +2216,7 @@ public final class DatabaseManager implements Closeable {
          * @param callback A callback called on the main thread after the update has been applied.
          */
         void registerPlayerRegisteredUpdate(@NotNull LoadedPlayer player, @NotNull LoadedTeam team, @NotNull Runnable callback) {
-            synchronized(DatabaseManager.this) {
+            synchronized (DatabaseManager.this) {
                 // Keep in cache, removes are done after the callback returns
                 player.addInternalRequest();
                 team.addInternalRequest();
@@ -2238,12 +2238,12 @@ public final class DatabaseManager implements Closeable {
          * @param callback A callback called on the main thread after the update has been applied.
          */
         void registerProgressionUpdate(@NotNull LoadedTeam team, @NotNull AdvancementKey key, int oldProgr, int newProgr, @NotNull Runnable callback) {
-            synchronized(DatabaseManager.this) {
+            synchronized (DatabaseManager.this) {
                 // Keep in cache, removes are done after the callback returns
                 team.addInternalRequest();
 
                 var map = realProgressions.computeIfAbsent(team.getTeamProgression().getTeamId(), HashMap::new);
-                map.put(key,newProgr);
+                map.put(key, newProgr);
                 progressionUpdates.add(new Update(UpdateType.PROGRESSION_UPDATE, null, team, key, oldProgr, newProgr, callback));
             }
             registerUpdaterTask();
@@ -2299,7 +2299,7 @@ public final class DatabaseManager implements Closeable {
         }
 
         int getCurrentValue(@NotNull TeamProgression team, @NotNull AdvancementKey key) {
-            synchronized(DatabaseManager.this) {
+            synchronized (DatabaseManager.this) {
                 var map = realProgressions.get(team.getTeamId());
                 if (map == null) {
                     return team.getRawProgression(key);
@@ -2379,19 +2379,19 @@ public final class DatabaseManager implements Closeable {
             public String toString() {
                 return switch (type) {
                     case TEAM_UPDATE -> "TeamUpdate{" +
-                            "player=" + player.getUuid() +
-                            ", team=" + team.getTeamProgression().getTeamId() +
-                            '}';
+                        "player=" + player.getUuid() +
+                        ", team=" + team.getTeamProgression().getTeamId() +
+                        '}';
                     case PLAYER_REGISTERED_UPDATE -> "PlayerRegisteredUpdate{" +
-                            "player=" + player.getUuid() +
-                            ", team=" + team.getTeamProgression().getTeamId() +
-                            '}';
+                        "player=" + player.getUuid() +
+                        ", team=" + team.getTeamProgression().getTeamId() +
+                        '}';
                     case PROGRESSION_UPDATE -> "ProgressionUpdate{" +
-                            "team=" + team.getTeamProgression().getTeamId() +
-                            ", key=" + key +
-                            ", oldProgr=" + oldProgr +
-                            ", newProgr=" + newProgr +
-                            '}';
+                        "team=" + team.getTeamProgression().getTeamId() +
+                        ", key=" + key +
+                        ", oldProgr=" + oldProgr +
+                        ", newProgr=" + newProgr +
+                        '}';
                 };
             }
         }

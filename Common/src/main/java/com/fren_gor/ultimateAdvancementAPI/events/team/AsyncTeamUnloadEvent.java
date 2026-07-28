@@ -61,8 +61,8 @@ public class AsyncTeamUnloadEvent extends Event {
     @Override
     public String toString() {
         return "AsyncTeamUnloadEvent{" +
-                "team=" + team +
-                '}';
+            "team=" + team +
+            '}';
     }
 
     @Override

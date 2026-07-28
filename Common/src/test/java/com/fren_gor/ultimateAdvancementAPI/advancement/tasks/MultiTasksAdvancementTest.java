@@ -182,18 +182,18 @@ public class MultiTasksAdvancementTest {
     private void assertProgressionEventFired(Advancement adv, TeamProgression progression, Integer oldProgr, Integer newProgr) {
         server.getPluginManager().assertEventFired(AdvancementProgressionUpdateEvent.class, e -> {
             return e.getAdvancement().equals(adv) &&
-                    progression.equals(e.getTeamProgression()) &&
-                    (oldProgr == null || e.getOldProgression() == oldProgr) &&
-                    (newProgr == null || e.getNewProgression() == newProgr);
+                progression.equals(e.getTeamProgression()) &&
+                (oldProgr == null || e.getOldProgression() == oldProgr) &&
+                (newProgr == null || e.getNewProgression() == newProgr);
         });
     }
 
     private void assertGrantEventFired(Advancement adv, TeamProgression progression, Player player, boolean giveRewards) {
         server.getPluginManager().assertEventFired(AdvancementGrantEvent.class, e -> {
             return e.getAdvancement().equals(adv) &&
-                    progression.equals(e.getTeamProgression()) &&
-                    e.getAdvancementCompleter().equals(player) &&
-                    e.doesGiveRewards() == giveRewards;
+                progression.equals(e.getTeamProgression()) &&
+                e.getAdvancementCompleter().equals(player) &&
+                e.doesGiveRewards() == giveRewards;
         });
     }
 }

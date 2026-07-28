@@ -22,16 +22,16 @@ public class AdvancementUtilsTest {
     private static final String WHITESPACE_SPAM = "\t " + ChatColor.DARK_PURPLE + "\r" + ChatColor.of(new java.awt.Color(52, 27, 244));
 
     private static final List<String> NEW_LINES_STRINGS = List.of(
-            "\n",
-            "\n\n",
-            WHITESPACE_SPAM + "\n" + WHITESPACE_SPAM + "\n",
-            WHITESPACE_SPAM + "\nsomething"
+        "\n",
+        "\n\n",
+        WHITESPACE_SPAM + "\n" + WHITESPACE_SPAM + "\n",
+        WHITESPACE_SPAM + "\nsomething"
     );
     private static final List<String> NO_NEW_LINES_STRINGS = List.of(
-            "a",
-            "a\nb",
-            "a" + WHITESPACE_SPAM + "\n" + WHITESPACE_SPAM + "\n",
-            "a" + WHITESPACE_SPAM + "\n" + WHITESPACE_SPAM + "\nb"
+        "a",
+        "a\nb",
+        "a" + WHITESPACE_SPAM + "\n" + WHITESPACE_SPAM + "\n",
+        "a" + WHITESPACE_SPAM + "\n" + WHITESPACE_SPAM + "\nb"
     );
     private static final List<TextComponent> NEW_LINES_COMPONENTS = NEW_LINES_STRINGS.stream().map(TextComponent::new).toList();
     private static final List<TextComponent> NO_NEW_LINES_COMPONENTS = NO_NEW_LINES_STRINGS.stream().map(TextComponent::new).toList();
@@ -63,11 +63,11 @@ public class AdvancementUtilsTest {
     @Test
     void startsWithNewLineComplexTest() {
         NEW_LINES_COMPONENTS.stream().flatMap(c -> Stream.of(
-                nest(c, 0),
-                nest(c, 1),
-                nest(c, 2),
-                nest(c, 5),
-                nest(c, 10)
+            nest(c, 0),
+            nest(c, 1),
+            nest(c, 2),
+            nest(c, 5),
+            nest(c, 10)
         )).forEach(c -> assertEquals(NEW_LINE, AdvancementUtils.startsWithNewLine(c)));
     }
 
@@ -81,11 +81,11 @@ public class AdvancementUtilsTest {
     @Test
     void startsWithNewLineNoNewLineComplexTest() {
         NO_NEW_LINES_COMPONENTS.stream().flatMap(c -> Stream.of(
-                nest(c, 0),
-                nest(c, 1),
-                nest(c, 2),
-                nest(c, 5),
-                nest(c, 10)
+            nest(c, 0),
+            nest(c, 1),
+            nest(c, 2),
+            nest(c, 5),
+            nest(c, 10)
         )).forEach(c -> assertEquals(NO_NEW_LINE, AdvancementUtils.startsWithNewLine(c)));
         for (var i : new int[]{0, 1, 2, 5, 10}) {
             assertEquals(NO_NEW_LINE, AdvancementUtils.startsWithNewLine(nest(new KeybindComponent("key"), i)));

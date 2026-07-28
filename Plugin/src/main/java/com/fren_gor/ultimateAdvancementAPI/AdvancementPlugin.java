@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI;
 
 import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager;
-import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.ILoadable;
+import com.fren_gor.ultimateAdvancementAPI.commands.CommandAPIManager.*;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.metrics.BStats;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;

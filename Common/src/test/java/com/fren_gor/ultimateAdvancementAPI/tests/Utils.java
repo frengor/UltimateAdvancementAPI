@@ -109,12 +109,12 @@ public final class Utils {
         assertNotNull(plugin);
         assertNotNull(databaseSupplier);
         try (var libraryManagerMock = Mockito.mockConstruction(BukkitLibraryManager.class,
-                withSettings().defaultAnswer(i -> {
-                    throw new UnsupportedOperationException("Mocked method.");
-                }),
-                (mock, context) -> {
-                    doNothing().when(mock).addMavenCentral();
-                })
+            withSettings().defaultAnswer(i -> {
+                throw new UnsupportedOperationException("Mocked method.");
+            }),
+            (mock, context) -> {
+                doNothing().when(mock).addMavenCentral();
+            })
         ) {
             AdvancementMain main = new AdvancementMain(plugin);
             main.load();
