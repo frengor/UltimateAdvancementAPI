@@ -117,7 +117,8 @@ public class Util {
         Identifier texturePath = Identifier.parse(backgroundTexture);
         if (!texturePath.getPath().startsWith("textures/") || !texturePath.getPath().endsWith(".png")) {
             ERROR.severe("Invalid background texture \"" + backgroundTexture + "\" (the path should be in the form \"textures/**.png\")");
-            return null;
+            // Return an invalid texture instead of null, otherwise the vanilla client will not show the tab
+            return new ClientAsset.ResourceTexture(Identifier.parse("__invalid__missing_texture__"));
         }
 
         Identifier id = texturePath.withPath(path -> {
