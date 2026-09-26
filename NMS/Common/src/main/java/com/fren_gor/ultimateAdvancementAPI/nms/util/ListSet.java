@@ -6,10 +6,11 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
-import java.util.AbstractSet;
+import java.util.AbstractList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Spliterator;
 
 /**
  * Immutable copy of the non-null elements of a {@link Set}.
@@ -21,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @param <E> The type of the elements of this {@link Set}.
  */
-public final class ListSet<E> extends AbstractSet<E> implements Set<E> {
+public final class ListSet<E> extends AbstractList<E> implements List<E>, Set<E> {
 
     private final E[] elements;
     private final int size;
@@ -79,30 +80,33 @@ public final class ListSet<E> extends AbstractSet<E> implements Set<E> {
      * {@inheritDoc}
      */
     @Override
-    @NotNull
-    public Iterator<E> iterator() {
-        return new Iterator<>() {
-            private final AtomicInteger current = new AtomicInteger(0);
-
-            @Override
-            public boolean hasNext() {
-                return current.get() < size;
-            }
-
-            @Override
-            public E next() {
-                // It is thread-safe to not synchronize accesses to elements array
-                // since it cannot be modified after being populated by the constructor
-                return elements[current.getAndIncrement()];
-            }
-        };
+    public int size() {
+        return size;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int size() {
-        return size;
+    public E get(int index) {
+        return elements[index];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public Iterator<E> iterator() {
+        return super.iterator();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public Spliterator<E> spliterator() {
+        return super.spliterator();
     }
 }
