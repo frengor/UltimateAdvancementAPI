@@ -34,7 +34,7 @@ public class PacketPlayOutAdvancementsWrapper_v26_3_R1 extends PacketPlayOutAdva
             AdvancementWrapper adv = e.getKey();
             map.put((Identifier) adv.getKey().toNMS(), Util.getAdvancementProgress((PositionedAdvancement) adv.toNMS(), e.getValue()));
         }
-        this.packet = new ClientboundUpdateAdvancementsPacket(false, (List<PositionedAdvancement>) ListSet.fromWrapperSet(toSend.keySet()), Collections.emptySet(), map, true);
+        this.packet = new ClientboundUpdateAdvancementsPacket(false, (List<PositionedAdvancement>) ListSet.fromWrapperSet(toSend.keySet()).toList(), Collections.emptySet(), map, true);
     }
 
     @SuppressWarnings("unchecked")
