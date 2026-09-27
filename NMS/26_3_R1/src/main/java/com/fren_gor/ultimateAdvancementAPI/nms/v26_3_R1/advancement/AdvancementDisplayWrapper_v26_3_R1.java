@@ -41,7 +41,7 @@ public class AdvancementDisplayWrapper_v26_3_R1 extends AdvancementDisplayWrappe
     @Override
     @NotNull
     public ItemStack getIcon() {
-        return CraftItemStack.asCraftMirror(display.icon().create());
+        return Util.asCraftMirror(display.icon().create());
     }
 
     @Override
