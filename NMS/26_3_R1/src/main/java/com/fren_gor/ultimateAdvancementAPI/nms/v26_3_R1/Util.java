@@ -19,20 +19,41 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundUpdateAdvancementsPacket.PositionedAdvancement;
 import net.minecraft.resources.Identifier;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Util {
 
     public static final Logger ERROR = Logger.getLogger("UltimateAdvancementAPI-NMS");
+
+    private static Method asBukkitMirror, asCraftMirror;
+    private static RuntimeException asMirrorException;
+
+    static {
+        try {
+            asBukkitMirror = CraftItemStack.class.getDeclaredMethod("asBukkitMirror", net.minecraft.world.item.ItemStack.class);
+        } catch (Exception bme) {
+            try {
+                asCraftMirror = CraftItemStack.class.getDeclaredMethod("asCraftMirror", net.minecraft.world.item.ItemStack.class);
+            } catch (Exception cme) {
+                String msg = "Could not resolve CraftItemStack.asBukkitMirror/asCraftMirror method";
+                asMirrorException = new RuntimeException(msg, cme);
+                asMirrorException.addSuppressed(bme);
+                ERROR.log(Level.SEVERE, msg, asMirrorException);
+            }
+        }
+    }
 
     @NotNull
     public static Map<String, Criterion<?>> getAdvancementCriteria(@Range(from = 1, to = Integer.MAX_VALUE) int maxProgression) {
@@ -125,6 +146,20 @@ public class Util {
             return path.substring("textures/".length(), path.length() - ".png".length());
         });
         return new ClientAsset.ResourceTexture(id, texturePath);
+    }
+
+    public static CraftItemStack asCraftMirror(net.minecraft.world.item.ItemStack original) {
+        try {
+            if (asBukkitMirror != null) {
+                return (CraftItemStack) asBukkitMirror.invoke(null, original);
+            } else if (asCraftMirror != null) {
+                return (CraftItemStack) asCraftMirror.invoke(null, original);
+            } else {
+                throw asMirrorException;
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {
