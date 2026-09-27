@@ -7,8 +7,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 import java.lang.reflect.Array;
+import java.util.AbstractList;
 import java.util.AbstractSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.RandomAccess;
 import java.util.Set;
 
 /**
@@ -76,6 +80,16 @@ public final class ListSet<E> extends AbstractSet<E> implements Set<E> {
     }
 
     /**
+     * Returns this class as an immutable list.
+     *
+     * @return A {@link List} with the same contents as this {@code ListSet}.
+     */
+    @NotNull
+    public List<E> toList() {
+        return new InternalList();
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -120,8 +134,12 @@ public final class ListSet<E> extends AbstractSet<E> implements Set<E> {
 
             @Override
             public E next() {
-                // `elements` is never modified, so this is fine
-                return elements[current++];
+                try {
+                    // `elements` is never modified, so this is fine
+                    return elements[current++];
+                } catch (IndexOutOfBoundsException e) {
+                    throw new NoSuchElementException();
+                }
             }
         };
     }
@@ -132,5 +150,35 @@ public final class ListSet<E> extends AbstractSet<E> implements Set<E> {
     @Override
     public int size() {
         return size;
+    }
+
+    private final class InternalList extends AbstractList<E> implements List<E>, RandomAccess {
+        @Override
+        public E get(int index) {
+            return elements[index];
+        }
+
+        @Override
+        public int size() {
+            return ListSet.this.size;
+        }
+
+        @Override
+        @NotNull
+        public E[] toArray() {
+            return ListSet.this.toArray();
+        }
+
+        @Override
+        @NotNull
+        public <T> T[] toArray(T[] array) {
+            return ListSet.this.toArray(array);
+        }
+
+        @Override
+        @NotNull
+        public Iterator<E> iterator() {
+            return ListSet.this.iterator();
+        }
     }
 }
