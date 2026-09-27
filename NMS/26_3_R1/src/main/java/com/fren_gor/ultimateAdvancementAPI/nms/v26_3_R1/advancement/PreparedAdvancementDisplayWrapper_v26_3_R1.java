@@ -50,7 +50,7 @@ public class PreparedAdvancementDisplayWrapper_v26_3_R1 extends PreparedAdvancem
     @Override
     @NotNull
     public ItemStack getIcon() {
-        return CraftItemStack.asCraftMirror(icon.create());
+        return Util.asCraftMirror(icon.create());
     }
 
     @Override
