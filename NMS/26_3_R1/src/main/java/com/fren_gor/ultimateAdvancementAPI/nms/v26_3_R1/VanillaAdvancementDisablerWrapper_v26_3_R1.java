@@ -2,7 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.nms.v26_3_R1;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisablerWrapper;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementTree;
 import net.minecraft.network.protocol.game.ClientboundUpdateAdvancementsPacket;
@@ -21,16 +21,19 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 public class VanillaAdvancementDisablerWrapper_v26_3_R1 extends VanillaAdvancementDisablerWrapper {
 
     private static Logger LOGGER = null;
-    private static Field firstPacket;
+    private static Field advancements, firstPacket;
 
     static {
+        try {
+            advancements = ServerAdvancementManager.class.getDeclaredField("advancements");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         try {
             firstPacket = Arrays.stream(PlayerAdvancements.class.getDeclaredFields()).filter(f -> f.getType() == boolean.class).findFirst().orElseThrow();
             firstPacket.setAccessible(true);
@@ -65,33 +68,40 @@ public class VanillaAdvancementDisablerWrapper_v26_3_R1 extends VanillaAdvanceme
             return;
         }
 
-        final Set<Identifier> removed = Sets.newHashSetWithExpectedSize(serverAdvancements.advancements.size());
+        final ImmutableSet.Builder<Identifier> removed = ImmutableSet.builderWithExpectedSize(serverAdvancements.advancements.size());
+        final ImmutableMap.Builder<Identifier, AdvancementHolder> builder = ImmutableMap.builder();
 
-        Set<Identifier> locations = new HashSet<>();
-        ImmutableMap.Builder<Identifier, AdvancementHolder> builder = ImmutableMap.builder();
         for (var entry : serverAdvancements.advancements.entrySet()) {
             Identifier key = entry.getKey();
             boolean isRecipe = key.getPath().startsWith("recipes/");
             if (key.getNamespace().equals("minecraft") && ((vanillaAdvancements && !isRecipe) || (vanillaRecipeAdvancements && isRecipe))) {
-                locations.add(key);
+                removed.add(key);
             } else {
                 builder.put(key, entry.getValue());
             }
         }
 
-        var built = builder.buildOrThrow();
-        serverAdvancements.advancements.clear();
-        serverAdvancements.advancements.putAll(built);
+        var builtMap = builder.buildOrThrow();
+        var builtRemoved = removed.build();
+
+        if (Modifier.isFinal(advancements.getModifiers())) {
+            // Spigot: the map is mutable
+            serverAdvancements.advancements.clear();
+            serverAdvancements.advancements.putAll(builtMap);
+        } else {
+            // Paper: the field is not final
+            advancements.set(serverAdvancements, builtMap);
+        }
 
         final Level oldLevel = disableLogger();
         try {
-            tree.remove(locations);
+            tree.remove(builtRemoved);
         } finally {
             // Always restore old logger
             enableLogger(oldLevel);
         }
 
-        final var removePacket = new ClientboundUpdateAdvancementsPacket(false, Collections.emptyList(), removed, Collections.emptyMap(), false);
+        final var removePacket = new ClientboundUpdateAdvancementsPacket(false, Collections.emptyList(), builtRemoved, Collections.emptyMap(), false);
 
         // Remove advancements from players
         for (Player player : Bukkit.getOnlinePlayers()) {
