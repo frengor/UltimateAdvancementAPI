@@ -48,7 +48,7 @@ public final class UpdateChecker {
                 () -> fetchVersion(SPIGOT_URL),
                 err -> {
                     AdvancementUtils.runSync(this.plugin, () -> {
-                        plugin.getLogger().log(Level.FINE, "Could not look for updates, fallback used", err);
+                        plugin.getLogger().log(Level.WARNING, "Could not look for updates, fallback used", err);
                     });
                 }
             );
