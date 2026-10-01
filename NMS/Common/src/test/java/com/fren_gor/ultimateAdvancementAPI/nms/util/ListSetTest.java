@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -64,10 +65,12 @@ public class ListSetTest {
         ListSet<Integer> toTest = new ListSet<>(original);
 
         int counter = 0;
-        for (Integer i : toTest) {
+        var it = toTest.iterator();
+        while (it.hasNext()) {
             counter++;
-            assertTrue(original.contains(i));
+            assertTrue(original.contains(it.next()));
         }
+        assertThrows(NoSuchElementException.class, it::next);
         assertEquals(original.size(), counter);
     }
 

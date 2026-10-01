@@ -6,7 +6,6 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidVersionException;
 import com.fren_gor.ultimateAdvancementAPI.metrics.BStats;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisablerWrapper;
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.ConsoleCommandSender;
@@ -14,17 +13,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Scanner;
 import java.util.logging.Level;
 
 public class AdvancementPlugin extends JavaPlugin {
-
-    /**
-     * Spigot resource id
-     */
-    private static final int RESOURCE_ID = 95585;
 
     private final static boolean IS_PAPER = ReflectionUtil.classExists("io.papermc.paper.advancement.AdvancementDisplay");
 
@@ -113,7 +104,9 @@ public class AdvancementPlugin extends JavaPlugin {
         }
 
         BStats.init(this);
-        checkForUpdates();
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+            new UpdateChecker(this).checkForUpdates();
+        });
     }
 
     @Override
@@ -145,25 +138,6 @@ public class AdvancementPlugin extends JavaPlugin {
                 }
             }
         }.runTaskLater(this, 20);
-    }
-
-    private void checkForUpdates() {
-        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-            try (InputStream inputStream = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + RESOURCE_ID).openStream();
-                 Scanner scanner = new Scanner(inputStream)) {
-                if (scanner.hasNextLine()) {
-                    if (!this.getDescription().getVersion().equalsIgnoreCase(scanner.next())) {
-                        AdvancementUtils.runSync(this, () -> {
-                            getLogger().info("A new version of " + this.getDescription().getName() + " is out! Download it at https://modrinth.com/plugin/ultimateadvancementapi");
-                        });
-                    }
-                }
-            } catch (Exception e) {
-                AdvancementUtils.runSync(this, () -> {
-                    getLogger().info("Cannot look for updates: " + e.getMessage());
-                });
-            }
-        });
     }
 
     public static AdvancementPlugin getInstance() {

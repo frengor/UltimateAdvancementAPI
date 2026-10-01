@@ -6,7 +6,7 @@
 
     <groupId>com.frengor</groupId>
     <artifactId>ultimateadvancementapi-parent</artifactId>
-    <version>3.0.0-beta-3</version>
+    <version>3.0.0-beta-4</version>
     <packaging>pom</packaging>
 
     <name>UltimateAdvancementAPI-Parent</name>
@@ -227,8 +227,8 @@
                         <failOnWarnings>true</failOnWarnings>
                         <links>
                             <link>https://frengor.com/javadocs/EventManagerAPI/build-server/</link>
-                            <link>https://javadoc.io/doc/org.jetbrains/annotations/22.0.0/</link>
-                            <link>https://javadoc.io/static/net.md-5/bungeecord-chat/1.16-R0.4/</link>
+                            <link>https://javadoc.io/doc/org.jetbrains/annotations/24.1.0/</link>
+                            <link>https://javadoc.io/doc/net.md-5/bungeecord-chat/1.21-R0.4/</link>
                             <link>https://hub.spigotmc.org/javadocs/spigot/</link>
                         </links>
                         <includeDependencySources>true</includeDependencySources>
