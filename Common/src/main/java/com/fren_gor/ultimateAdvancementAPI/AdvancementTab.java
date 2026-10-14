@@ -850,10 +850,10 @@ public final class AdvancementTab {
                     advancement.onUpdate(pro, advs);
                 }
 
-                final Set<MinecraftKeyWrapper> keys = Sets.newHashSetWithExpectedSize(advs.size());
-                for (AdvancementWrapper wrapper : advs.keySet()) {
-                    keys.add(wrapper.getKey());
-                }
+                // Minecraft removes descendants recursively. Retain only the highest
+                // sent ancestors, so refresh, hide and dispose do not remove children twice.
+                final Set<MinecraftKeyWrapper> keys = RemovalRoots.select(
+                        advs.keySet(), AdvancementWrapper::getKey, AdvancementWrapper::getParent);
 
                 ISendable sendPacket, noTab, thisTab;
                 try {
