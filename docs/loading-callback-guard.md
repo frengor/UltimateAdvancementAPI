@@ -17,12 +17,14 @@ This is source reconstruction of verified behavior, not a claim to recover the
 original build provenance. Existing upstream connection/version handling is retained.
 
 SPEAR: source inspected at canonical main/dev dfbcbb4c. Project has no EARS or
-state helpers; this manual requirement/test/evidence record is used. Nine tests
+state helpers; this manual requirement/test/evidence record is used. Eleven tests
 exercise the actual delayed callback, including reentrant event-listener invalidation.
-After correcting the test fixture's NMS-dependent event construction, the old
-callback failed eight of nine cases (zero test errors). The restored guard
-passes all nine. The complete Common reactor passes 31 tests (6 NMS Common,
-25 Common), zero failures/errors/skips, on Java 25 with Javadocs skipped.
+After correcting the test fixture's NMS-dependent event construction, the initial
+old callback failed eight of nine cases (zero test errors). Refinement added
+newly registered team notification and listener-unload cases. The final eleven
+tests fail nine cases on unmodified dev and pass all eleven with the guard.
+The complete Common reactor passes 33 tests (6 NMS Common, 27 Common), zero
+failures/errors/skips, on Java 25 with Javadocs skipped.
 Common verification is also configured in GitHub Actions; this job is explicitly
 not full-plugin verification. Tests mock only event construction and async
 dispatch, and run the actual compiled delayed callback and listener ordering.

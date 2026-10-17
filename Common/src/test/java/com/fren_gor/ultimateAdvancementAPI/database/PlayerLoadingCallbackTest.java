@@ -2,6 +2,8 @@ package com.fren_gor.ultimateAdvancementAPI.database;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent;
 import com.fren_gor.ultimateAdvancementAPI.tests.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -29,6 +31,8 @@ public class PlayerLoadingCallbackTest {
     private MockedStatic<Bukkit> bukkit;
     private MockedStatic<CompletableFuture> futures;
     private MockedConstruction<PlayerLoadingCompletedEvent> events;
+    private MockedConstruction<AsyncTeamUpdateEvent> asyncTeamEvents;
+    private MockedConstruction<TeamUpdateEvent> teamEvents;
     private DatabaseManager manager;
     private AdvancementMain main;
     private Player player;
@@ -45,6 +49,8 @@ public class PlayerLoadingCallbackTest {
         // Keep real dispatch/listener ordering without requiring NMS display wrappers
         // initialized by the event DTO's progression validation utility.
         events = mockConstruction(PlayerLoadingCompletedEvent.class);
+        asyncTeamEvents = mockConstruction(AsyncTeamUpdateEvent.class);
+        teamEvents = mockConstruction(TeamUpdateEvent.class);
         main = mock(AdvancementMain.class);
         manager = mock(DatabaseManager.class, CALLS_REAL_METHODS);
         player = mock(Player.class);
@@ -76,8 +82,12 @@ public class PlayerLoadingCallbackTest {
     }
 
     private void complete() throws Exception {
+        complete(false);
+    }
+
+    private void complete(boolean newlyRegistered) throws Exception {
         futures.clearInvocations();
-        callback.invoke(manager, progression, new SimpleEntry<>(progression, false), uuid, player);
+        callback.invoke(manager, progression, new SimpleEntry<>(progression, newlyRegistered), uuid, player);
     }
 
     private void verifyNoCompletion() {
@@ -88,6 +98,8 @@ public class PlayerLoadingCallbackTest {
 
     @After
     public void tearDown() {
+        if (teamEvents != null) teamEvents.close();
+        if (asyncTeamEvents != null) asyncTeamEvents.close();
         if (events != null) events.close();
         if (futures != null) futures.close();
         if (bukkit != null) bukkit.close();
@@ -97,6 +109,16 @@ public class PlayerLoadingCallbackTest {
     public void currentPlayerReceivesCompletionAndUpdate() throws Exception {
         complete();
         verify(plugins).callEvent(any(PlayerLoadingCompletedEvent.class));
+        verify(main).updatePlayer(player);
+        futures.verify(() -> CompletableFuture.runAsync(any(Runnable.class)));
+    }
+
+    @Test
+    public void newlyRegisteredPlayerStillReceivesTeamNotifications() throws Exception {
+        complete(true);
+        verify(plugins).callEvent(any(PlayerLoadingCompletedEvent.class));
+        verify(plugins).callEvent(any(AsyncTeamUpdateEvent.class));
+        verify(plugins).callEvent(any(TeamUpdateEvent.class));
         verify(main).updatePlayer(player);
         futures.verify(() -> CompletableFuture.runAsync(any(Runnable.class)));
     }
@@ -159,6 +181,18 @@ public class PlayerLoadingCallbackTest {
                 .when(plugins).callEvent(any(PlayerLoadingCompletedEvent.class));
         complete();
         verify(plugins).callEvent(any(PlayerLoadingCompletedEvent.class));
+        verifyNoInteractions(main);
+        futures.verify(() -> CompletableFuture.runAsync(any(Runnable.class)), never());
+    }
+
+    @Test
+    public void listenerUnloadingNewPlayerPreventsTeamNotifications() throws Exception {
+        doAnswer(invocation -> { cache.clear(); return null; })
+                .when(plugins).callEvent(any(PlayerLoadingCompletedEvent.class));
+        complete(true);
+        verify(plugins).callEvent(any(PlayerLoadingCompletedEvent.class));
+        verify(plugins, never()).callEvent(any(AsyncTeamUpdateEvent.class));
+        verify(plugins, never()).callEvent(any(TeamUpdateEvent.class));
         verifyNoInteractions(main);
         futures.verify(() -> CompletableFuture.runAsync(any(Runnable.class)), never());
     }
