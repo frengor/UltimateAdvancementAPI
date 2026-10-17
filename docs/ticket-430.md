@@ -38,3 +38,15 @@ Separate upstream PR122 restores the owner's historical stale-player loading
 guard in source. A local integration of both changes passes 36 Common/NMS Common
 tests, zero failures/errors/skips, Java 25, with Javadocs skipped. This integration
 is not an installable server plugin, upstream merge, or client acceptance.
+
+Final release-build refinement, 17 October 2026: the combined fork candidate
+1ef44837 now passes the complete canonical `mvn -B -ntp clean verify`, including
+Javadocs and all 24 native adapters. All 41 tests pass, zero failures/errors/skips.
+Both installable variants retain all 406 official 2.8.2 plugin classes plus the
+package-private removal selector. The loading guard is present in packaged
+bytecode, and all 44 renderer tests pass against the rebuilt API. Existing 2.8.1
+public API signatures are preserved. Public CI was refined to build the API
+library with tests and Javadocs; it does not claim to build the server plugin.
+The required 1.21.11-R0.1 input uses official BuildTools revision 4583 because
+the current alias produces R0.2. No dependency was relabelled or module removed.
+The source builds are separate from upstream merge and native client acceptance.
