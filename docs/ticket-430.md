@@ -27,3 +27,14 @@ Hosted CI, reviewed source, full plugin packaging, monorepo ownership/pinning an
 Paper 26.2/26.3 client acceptance remain pending. A Common module JAR is NOT
 an installable server plugin and must not be uploaded as one.
 No server uploads, activation, database changes or warning suppression.
+
+Release verification follow-up, 17 October 2026: current parent main/dev and fork
+main remain dfbcbb4c. Added a scoped Common/NMS Common Actions job without server
+credentials. Full canonical `mvn -B -ntp -Dmaven.javadoc.skip=true clean verify`
+was attempted and stops at missing provided `org.spigotmc:spigot:1.15.2-R0.1-SNAPSHOT`.
+The full NMS matrix requires BuildTools-generated server inputs absent locally;
+no NMS module was removed or distribution artifact assembled from loose patches.
+Separate upstream PR122 restores the owner's historical stale-player loading
+guard in source. A local integration of both changes passes 36 Common/NMS Common
+tests, zero failures/errors/skips, Java 25, with Javadocs skipped. This integration
+is not an installable server plugin, upstream merge, or client acceptance.
