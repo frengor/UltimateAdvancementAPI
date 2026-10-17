@@ -39,3 +39,21 @@ artifact. This machine lacks BuildTools-generated server inputs for the supporte
 NMS matrix. No module was removed, precompiled class inserted, dependency version
 mislabelled, or test disabled to present a partial build as an installable plugin.
 The original historical JAR was not replaced.
+
+Release refinement, 17 October 2026: the combined fork candidate at 1ef44837
+passes the complete canonical `mvn -B -ntp clean verify` build on Java 25,
+with Javadocs enabled and all 24 native adapters retained. All 41 tests pass,
+zero failures/errors/skips. Both installable plugin variants retain all 406
+classes from the official 2.8.2 plugin plus the package-private removal selector;
+the loading guard is present in packaged bytecode. All 109 shared API/library
+public signatures match stock 2.8.2; all existing signatures/classes from the
+108 shared 2.8.1 API classes remain available. All 44 renderer tests pass against
+the rebuilt API. Public CI now verifies API packaging, tests and Javadocs, and
+labels its API-library artifact as not an installable server plugin.
+
+BuildTools-generated inputs were built from recorded official version refs.
+The latest 1.21.11 alias produces R0.2, so exact official revision 4583 was used
+for the requested R0.1 artifact; no dependency was relabelled or NMS module
+removed. This closes the initial local packaging gap above. Upstream PRs and
+the owner-fork main integration are separate states. No server upload/restart
+or real player/client acceptance is implied by these build results.
