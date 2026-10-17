@@ -58,6 +58,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -91,6 +92,8 @@ public final class DatabaseManager implements Closeable {
     // In this class using `synchronized (DatabaseManager.this) {...}` is to prefer over `synchronized (this) {...}`,
     // since the latter can't be used inside lambdas, which are very commonly used in the code
 
+    // To avoid potential deadlocks, avoid completing CompletableFutures or calling events inside synchronized blocks
+
     private static final int LOAD_EVENTS_DELAY = 3;
     private static final boolean IS_PAPER = ReflectionUtil.classExists("io.papermc.paper.advancement.AdvancementDisplay")
         && !ReflectionUtil.classExists("org.mockbukkit.mockbukkit.MockBukkit"); // Workaround: MockBukkit doesn't call PlayerConnectionInitialConfigureEvent
@@ -110,6 +113,7 @@ public final class DatabaseManager implements Closeable {
     private final AtomicInteger keysOfUncompletedCFs = new AtomicInteger(0); // Used to generate the keys of uncompletedCompletableFutures map
 
     // All these fields must be accessed inside a `synchronized (DatabaseManager.this) {...}` block
+    // Remember to add the loading request(s) before leaving the synchronized block
     private final Map<Integer, LoadedTeam> teamsLoaded = new HashMap<>();
     private final Map<UUID, LoadedPlayer> playersLoaded = new HashMap<>();
 
@@ -165,18 +169,19 @@ public final class DatabaseManager implements Closeable {
             unloadPlayerOnDisconnect(e.getPlayer().getUniqueId());
         });
         eventManager.register(this, PluginDisableEvent.class, EventPriority.HIGHEST, e -> {
+            List<LoadedPlayer> toUnload = new ArrayList<>();
             synchronized (DatabaseManager.this) {
-                List<LoadedPlayer> list = new ArrayList<>(playersLoaded.size());
                 for (LoadedPlayer loadedPlayer : playersLoaded.values()) {
                     if (loadedPlayer.__removeAllPluginRequests(e.getPlugin()) != 0 && loadedPlayer.canBeUnloaded()) {
                         // Player can be unloaded
-                        list.add(loadedPlayer);
+                        // Add and later remove an internal request to trigger unloading without holding a lock
+                        loadedPlayer.addInternalRequest();
+                        toUnload.add(loadedPlayer);
                     }
                 }
-                for (LoadedPlayer loadedPlayer : list) {
-                    // Handle unload
-                    unloadPlayer(loadedPlayer);
-                }
+            }
+            for (LoadedPlayer loadedPlayer : toUnload) {
+                removeInternalRequest(loadedPlayer);
             }
         });
         runAsyncOnExecutor(() -> {
@@ -223,33 +228,45 @@ public final class DatabaseManager implements Closeable {
             executor.shutdownNow();
         }
 
+        List<Entry<UUID, CompletableFuture<TeamProgression>>> registeringPlayers = new ArrayList<>(0); // Usually there won't be any
         synchronized (DatabaseManager.this) {
             pendingUpdatesManager.clearUpdates();
+            teamsLoaded.forEach((u, t) -> t.getTeamProgression().inCache.set(false)); // Invalidate TeamProgressions
 
-            teamsLoaded.forEach((u, t) -> t.getTeamProgression().inCache.set(false)); // Invalidate TeamProgression
             for (LoadedPlayer player : playersLoaded.values()) {
                 @Nullable var cf = player.getRegisteringCF();
                 if (cf != null) {
                     player.unsetRegistering();
-                    // The player was being registered, but the updater task hasn't run. Unregister they from the db
-                    // so that next time they log in the PlayerRegisteredEvent will be called
-                    cf.completeExceptionally(new DatabaseManagerClosedException());
-                    try {
-                        database.unregisterPlayer(player.getUuid());
-                    } catch (Exception e) {
-                        logger.log(Level.SEVERE, "Couldn't unregister player " + player.getUuid() + " (waiting PlayerRegisteredEvent) while closing the DatabaseManager", e);
-                    }
+                    registeringPlayers.add(Map.entry(player.getUuid(), cf));
                 }
-            }
-            playersLoaded.clear();
-            teamsLoaded.clear();
-            synchronized (uncompletedCompletableFutures) {
-                for (CompletableFuture<?> uncompleted : uncompletedCompletableFutures.values()) {
-                    uncompleted.completeExceptionally(new DatabaseManagerClosedException());
-                }
-                uncompletedCompletableFutures.clear();
             }
         }
+
+        for (var registeringPlayer : registeringPlayers) {
+            // The player was being registered, but the updater task hasn't run. Unregister they from the db
+            // so that next time they log in the PlayerRegisteredEvent will be called
+            registeringPlayer.getValue().completeExceptionally(new DatabaseManagerClosedException());
+            try {
+                database.unregisterPlayer(registeringPlayer.getKey());
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Couldn't unregister player " + registeringPlayer.getKey() + " (waiting PlayerRegisteredEvent) while closing the DatabaseManager", e);
+            }
+        }
+
+        synchronized (DatabaseManager.this) {
+            playersLoaded.clear();
+            teamsLoaded.clear();
+        }
+
+        List<CompletableFuture<?>> uncompletedCFs;
+        synchronized (uncompletedCompletableFutures) {
+            uncompletedCFs = new ArrayList<>(uncompletedCompletableFutures.values());
+            uncompletedCompletableFutures.clear();
+        }
+        for (CompletableFuture<?> uncompleted : uncompletedCFs) {
+            uncompleted.completeExceptionally(new DatabaseManagerClosedException());
+        }
+
         try {
             database.close();
         } catch (Exception e) {
@@ -273,50 +290,54 @@ public final class DatabaseManager implements Closeable {
         }
 
         runAsyncOnExecutor(() -> {
+            if (!loadedPlayer.isOnline()) {
+                // Make sure the player is still online. Shouldn't be a problem here, but better be sure
+                return;
+            }
+
+            // Return instantly if the player is already loaded
+            if (loadedPlayer.getPlayerTeam() != null) {
+                firePlayerLoadingCompletedEvent(loadedPlayer);
+                return;
+            }
+
+            CompletableFuture<TeamProgression> registeringCF = loadedPlayer.getRegisteringCF();
+            if (registeringCF != null) {
+                // Wait for PlayerRegisteredEvent
+                loadedPlayer.addInternalRequest(); // Keep in cache while waiting for event
+                registeringCF.whenComplete((team, err) -> {
+                    if (closed.get()) {
+                        return;
+                    }
+                    try {
+                        if (err != null) {
+                            firePlayerLoadingFailedEvent(uuid, err);
+                        } else {
+                            firePlayerLoadingCompletedEvent(loadedPlayer);
+                        }
+                    } finally {
+                        removeInternalRequest(loadedPlayer);
+                    }
+                });
+                return;
+            }
+
+            // Search the player in already loaded teams to see if they're there.
+            // The searching is done here since more players from the same team may join at the same moment
+            // and running the searching on the executor thread increases the possibilities of a cache hit
+            LoadedTeam loadedTeam;
             synchronized (DatabaseManager.this) {
-                if (!loadedPlayer.isOnline()) {
-                    // Make sure the player is still online. Shouldn't be a problem here, but better be sure
-                    return;
-                }
-
-                // Return instantly if the player is already loaded
-                if (loadedPlayer.getPlayerTeam() != null) {
-                    firePlayerLoadingCompletedEvent(loadedPlayer);
-                    return;
-                }
-
-                CompletableFuture<TeamProgression> registeringCF = loadedPlayer.getRegisteringCF();
-                if (registeringCF != null) {
-                    // Wait for PlayerRegisteredEvent
-                    loadedPlayer.addInternalRequest(); // Keep in cache while waiting for event
-                    registeringCF.whenComplete((team, err) -> {
-                        if (closed.get()) {
-                            return;
-                        }
-                        try {
-                            if (err != null) {
-                                firePlayerLoadingFailedEvent(uuid, err);
-                            } else {
-                                firePlayerLoadingCompletedEvent(loadedPlayer);
-                            }
-                        } finally {
-                            removeInternalRequest(loadedPlayer);
-                        }
-                    });
-                    return;
-                }
-
-                // Search the player in already loaded teams to see if they're there.
-                // The searching is done here since more players from the same team may join at the same moment
-                // and running the searching on the executor thread increases the possibilities of a cache hit
-                LoadedTeam loadedTeam = searchPlayerTeam(uuid);
+                loadedTeam = searchPlayerTeam(uuid);
                 if (loadedTeam != null) {
                     // Player team is already loaded
                     loadedPlayer.setPlayerTeam(loadedTeam);
                     loadedTeam.addInternalRequest(); // Add the request for the player
-                    firePlayerLoadingCompletedEvent(loadedPlayer);
-                    return;
                 }
+            }
+            if (loadedTeam != null) {
+                // Keep this outside the synchronized block
+                firePlayerLoadingCompletedEvent(loadedPlayer);
+                return;
             }
 
             try {
@@ -339,11 +360,12 @@ public final class DatabaseManager implements Closeable {
         // Impl note: this method is called twice on Paper (PlayerQuitEvent and PlayerConnectionCloseEvent)
 
         joinEventWaiter.onQuit(uuid);
+        LoadedPlayer loadedPlayer;
         synchronized (DatabaseManager.this) {
-            LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
-            if (loadedPlayer != null) {
-                setOffline(loadedPlayer);
-            }
+            loadedPlayer = playersLoaded.get(uuid);
+        }
+        if (loadedPlayer != null) {
+            setOffline(loadedPlayer);
         }
     }
 
@@ -353,27 +375,26 @@ public final class DatabaseManager implements Closeable {
         joinEventWaiter.onFinishLoading(loadedPlayer.getUuid(), LOAD_EVENTS_DELAY, player -> {
             checkSync(); // To catch bugs
 
-            synchronized (DatabaseManager.this) {
-                if (closed.get()) {
-                    return;
-                }
-
-                if (!player.isOnline()) {
-                    removeInternalRequest(loadedPlayer);
-                    return;
-                }
-
-                LoadedTeam loadedTeam = loadedPlayer.getPlayerTeam();
-                if (loadedTeam == null) {
-                    removeInternalRequest(loadedPlayer);
-                    return;
-                }
-
-                callEventCatchingExceptions(new PlayerLoadingCompletedEvent(player, loadedTeam.getTeamProgression()));
-
-                // No need to call addInternalRequest here since the request can be reused and removed later
-                processUnredeemed(loadedPlayer, player);
+            if (closed.get()) {
+                return;
             }
+
+            if (!player.isOnline()) {
+                removeInternalRequest(loadedPlayer);
+                return;
+            }
+
+            LoadedTeam loadedTeam = loadedPlayer.getPlayerTeam();
+            if (loadedTeam == null) {
+                removeInternalRequest(loadedPlayer);
+                return;
+            }
+
+            callEventCatchingExceptions(new PlayerLoadingCompletedEvent(player, loadedTeam.getTeamProgression()));
+
+            // No need to call addInternalRequest here since the request can be reused and removed later
+            processUnredeemed(loadedPlayer, player);
+
             main.updateAdvancementsToTeam(player);
         }, () -> {
             // On cancel remove the internal request since the task didn't run
@@ -434,15 +455,13 @@ public final class DatabaseManager implements Closeable {
             updatePlayerName(uuid, name);
         }
 
-        synchronized (DatabaseManager.this) {
-            final LoadedTeam loadedTeam = addTeamToCache(progression);
-            if (fireRegisteredEvent) {
-                pendingUpdatesManager.registerPlayerRegisteredUpdate(loadedPlayer, loadedTeam, () -> callback.accept(progression));
-            } else {
-                loadedTeam.addInternalRequest();
-                loadedPlayer.setPlayerTeam(loadedTeam);
-                callback.accept(progression);
-            }
+        // addTeamToCache already adds an internal request for the team
+        final LoadedTeam loadedTeam = addTeamToCache(progression);
+        if (fireRegisteredEvent) {
+            pendingUpdatesManager.registerPlayerRegisteredUpdate(loadedPlayer, loadedTeam, () -> callback.accept(progression));
+        } else {
+            loadedPlayer.setPlayerTeam(loadedTeam);
+            callback.accept(progression);
         }
     }
 
@@ -457,12 +476,8 @@ public final class DatabaseManager implements Closeable {
         // addInternalRequest is not needed here since the caller must "pass" one to us
 
         // Used to keep track of whether removing the team internal request is needed
-        // (the array is a hack to avoid "Variable used in lambda expression should be final or effectively final")
-        //
-        // To be sure, the array is accessed while synchronizing on DatabaseManager.this. Doing this doesn't affect
-        // performance, since we're already synchronizing when setting the team and the removeInternalRequest(...)
-        // method does synchronize on DatabaseManager.this
-        final LoadedTeam[] teamToWhichRemoveInternalRequest = {null};
+        // (the AtomicReference is needed to avoid "Variable used in lambda expression should be final or effectively final")
+        final AtomicReference<LoadedTeam> teamToWhichRemoveInternalRequest = new AtomicReference<>();
 
         runAsyncOnExecutor(() -> {
             final LoadedTeam loadedTeam;
@@ -473,7 +488,7 @@ public final class DatabaseManager implements Closeable {
                     return;
                 }
                 loadedTeam.addInternalRequest(); // Keep the team loaded
-                teamToWhichRemoveInternalRequest[0] = loadedTeam; // Make sure the internal request will be removed
+                teamToWhichRemoveInternalRequest.set(loadedTeam); // Make sure the internal request will be removed
             }
 
             // Do all the computation in one go on the executor thread. This avoids granting the advancements more than
@@ -553,21 +568,18 @@ public final class DatabaseManager implements Closeable {
                         }
                     }
                 } finally {
-                    synchronized (DatabaseManager.this) {
-                        removeInternalRequest(loadedPlayer);
-                        removeInternalRequest(loadedTeam);
-                    }
+                    removeInternalRequest(loadedPlayer);
+                    removeInternalRequest(loadedTeam);
                 }
             });
         }).whenComplete((r, e) -> {
-            synchronized (DatabaseManager.this) {
-                removeInternalRequest(loadedPlayer);
+            removeInternalRequest(loadedPlayer);
 
-                // Remove the request to the team only if it has been added before,
-                // in which case the team has been put into teamToWhichRemoveInternalRequest[0]
-                if (teamToWhichRemoveInternalRequest[0] != null) {
-                    removeInternalRequest(teamToWhichRemoveInternalRequest[0]);
-                }
+            // Remove the request to the team only if it has been added before,
+            // in which case the team has been put into teamToWhichRemoveInternalRequest
+            var team = teamToWhichRemoveInternalRequest.get();
+            if (team != null) {
+                removeInternalRequest(team);
             }
         });
     }
@@ -706,10 +718,8 @@ public final class DatabaseManager implements Closeable {
 
             registerTeamUpdate(loadedPlayer, ptm, loadedNewTeam, true /*processUnredeemed*/, completableFuture, null /*completingObj*/);
         }).whenComplete((v, t) -> {
-            synchronized (DatabaseManager.this) {
-                removeInternalRequest(loadedPlayer);
-                removeInternalRequest(loadedNewTeam);
-            }
+            removeInternalRequest(loadedPlayer);
+            removeInternalRequest(loadedNewTeam);
         });
 
         return completableFuture;
@@ -767,9 +777,12 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
 
-            synchronized (DatabaseManager.this) {
-                final LoadedTeam loadedTeam = addTeamToCache(newPro);
+            final LoadedTeam loadedTeam = addTeamToCache(newPro);
+            try {
                 registerTeamUpdate(loadedPlayer, ptr, loadedTeam, false /*processUnredeemed*/, completableFuture, newPro /*completingObj*/);
+            } finally {
+                // Remove the internal request added by addTeamToCache
+                removeInternalRequest(loadedTeam);
             }
         }).whenComplete((v, t) -> {
             removeInternalRequest(loadedPlayer);
@@ -807,21 +820,27 @@ public final class DatabaseManager implements Closeable {
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
         runAsyncOnExecutor(completableFuture, () -> {
+            IllegalStateException exception = null;
             synchronized (DatabaseManager.this) {
                 LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
                 if (loadedPlayer != null) {
                     if (loadedPlayer.isOnline()) {
-                        completableFuture.completeExceptionally(new IllegalStateException("Player " + uuid + " is online."));
+                        exception = new IllegalStateException("Player " + uuid + " is online.");
                     } else {
-                        completableFuture.completeExceptionally(new IllegalStateException("Player " + uuid + " is loaded."));
+                        exception = new IllegalStateException("Player " + uuid + " is loaded.");
                     }
-                    return;
-                }
-                LoadedTeam team = searchPlayerTeam(uuid);
-                if (team != null) {
-                    completableFuture.completeExceptionally(new IllegalStateException("Player " + uuid + "'s team (id " + team.getTeamProgression().getTeamId() + ") is loaded."));
+                } else {
+                    LoadedTeam team = searchPlayerTeam(uuid);
+                    if (team != null) {
+                        exception = new IllegalStateException("Player " + uuid + "'s team (id " + team.getTeamProgression().getTeamId() + ") is loaded.");
+                    }
                 }
             }
+
+            if (exception != null) {
+                completableFuture.completeExceptionally(exception);
+            }
+
             try {
                 database.unregisterPlayer(uuid);
             } catch (Exception e) {
@@ -1414,52 +1433,56 @@ public final class DatabaseManager implements Closeable {
         CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
 
         runAsyncOnExecutor(completableFuture, () -> {
-            synchronized (DatabaseManager.this) {
-                if (!requester.isEnabled()) {
-                    completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
-                    return;
-                }
+            if (!requester.isEnabled()) {
+                completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
+                return;
+            }
 
-                // Re-do the "already loaded" check now that we're on the async executor
-                if (loadedPlayer.getPlayerTeam() != null) {
-                    loadedPlayer.addPluginRequest(requester);
-                    completableFuture.complete(loadedPlayer.getPlayerTeam().getTeamProgression());
-                    return;
-                }
+            // Re-do the "already loaded" check now that we're on the async executor
+            if (loadedPlayer.getPlayerTeam() != null) {
+                loadedPlayer.addPluginRequest(requester);
+                completableFuture.complete(loadedPlayer.getPlayerTeam().getTeamProgression());
+                return;
+            }
 
-                CompletableFuture<TeamProgression> registeringCF = loadedPlayer.getRegisteringCF();
-                if (registeringCF != null) {
-                    // Wait for PlayerRegisteredEvent
-                    loadedPlayer.addInternalRequest(); // Keep in cache while waiting for event
-                    registeringCF.whenComplete((team, err) -> {
-                        try {
-                            if (err != null) {
-                                completableFuture.completeExceptionally(err);
-                            } else if (!requester.isEnabled()) {
-                                completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
-                            } else {
-                                loadedPlayer.addPluginRequest(requester);
-                                completableFuture.complete(team);
-                            }
-                        } finally {
-                            removeInternalRequest(loadedPlayer);
+            CompletableFuture<TeamProgression> registeringCF = loadedPlayer.getRegisteringCF();
+            if (registeringCF != null) {
+                // Wait for PlayerRegisteredEvent
+                loadedPlayer.addInternalRequest(); // Keep in cache while waiting for event
+                registeringCF.whenComplete((team, err) -> {
+                    try {
+                        if (err != null) {
+                            completableFuture.completeExceptionally(err);
+                        } else if (!requester.isEnabled()) {
+                            completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
+                        } else {
+                            loadedPlayer.addPluginRequest(requester);
+                            completableFuture.complete(team);
                         }
-                    });
-                    return;
-                }
+                    } finally {
+                        removeInternalRequest(loadedPlayer);
+                    }
+                });
+                return;
+            }
 
-                // Search the player in already loaded teams to see if it's there
-                // The searching is done here since more players from the same team may be loaded at the same moment
-                // and running the searching on the executor's thread improves the possibility of a cache hit
-                LoadedTeam loadedTeam = searchPlayerTeam(uuid);
+            // Search the player in already loaded teams to see if it's there
+            // The searching is done here since more players from the same team may be loaded at the same moment
+            // and running the searching on the executor's thread improves the possibility of a cache hit
+            LoadedTeam loadedTeam;
+            synchronized (DatabaseManager.this) {
+                loadedTeam = searchPlayerTeam(uuid);
                 if (loadedTeam != null) {
                     // Player team is already loaded
                     loadedPlayer.addPluginRequest(requester);
                     loadedPlayer.setPlayerTeam(loadedTeam);
                     loadedTeam.addInternalRequest(); // Add the request for the player
-                    completableFuture.complete(loadedTeam.getTeamProgression());
-                    return;
                 }
+            }
+            if (loadedTeam != null) {
+                // Keep this outside the synchronized block
+                completableFuture.complete(loadedTeam.getTeamProgression());
+                return;
             }
 
             try {
@@ -1504,13 +1527,15 @@ public final class DatabaseManager implements Closeable {
         checkClosed();
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
+
+        LoadedPlayer loadedPlayer;
         synchronized (DatabaseManager.this) {
             Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
 
-            LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
-            if (loadedPlayer != null)
-                removePluginRequest(loadedPlayer, requester);
+            loadedPlayer = playersLoaded.get(uuid);
         }
+        if (loadedPlayer != null)
+            removePluginRequest(loadedPlayer, requester);
     }
 
     /**
@@ -1550,15 +1575,18 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
 
-            synchronized (DatabaseManager.this) {
-                // Check again if the plugin is enabled
-                if (!requester.isEnabled()) {
-                    completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
-                    return;
-                }
+            // Check again if the plugin is enabled
+            if (!requester.isEnabled()) {
+                completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
+                return;
+            }
 
-                LoadedTeam loadedTeam = addTeamToCache(team);
+            LoadedTeam loadedTeam = addTeamToCache(team);
+            try {
                 loadedTeam.addPluginRequest(requester);
+            } finally {
+                // Remove the internal request added by addTeamToCache
+                removeInternalRequest(loadedTeam);
             }
 
             completableFuture.complete(team);
@@ -1607,19 +1635,23 @@ public final class DatabaseManager implements Closeable {
         CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
 
         runAsyncOnExecutor(completableFuture, () -> {
-            synchronized (DatabaseManager.this) {
-                if (!requester.isEnabled()) {
-                    completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
-                    return;
-                }
+            if (!requester.isEnabled()) {
+                completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
+                return;
+            }
 
-                // Check in case the team was loaded in the meantime
-                LoadedTeam team = teamsLoaded.get(teamId);
-                if (team != null) {
-                    team.addPluginRequest(requester);
-                    completableFuture.complete(team.getTeamProgression());
-                    return;
+            // Check in case the team was loaded in the meantime
+            LoadedTeam loadedTeam;
+            synchronized (DatabaseManager.this) {
+                loadedTeam = teamsLoaded.get(teamId);
+                if (loadedTeam != null) {
+                    loadedTeam.addPluginRequest(requester);
                 }
+            }
+            if (loadedTeam != null) {
+                // Keep this outside the synchronized block
+                completableFuture.complete(loadedTeam.getTeamProgression());
+                return;
             }
 
             TeamProgression team;
@@ -1631,15 +1663,18 @@ public final class DatabaseManager implements Closeable {
                 return;
             }
 
-            synchronized (DatabaseManager.this) {
-                // Check again if the plugin is enabled
-                if (!requester.isEnabled()) {
-                    completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
-                    return;
-                }
+            // Check again if the plugin is enabled
+            if (!requester.isEnabled()) {
+                completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
+                return;
+            }
 
-                LoadedTeam loadedTeam = addTeamToCache(team);
+            loadedTeam = addTeamToCache(team);
+            try {
                 loadedTeam.addPluginRequest(requester);
+            } finally {
+                // Remove the internal request added by addTeamToCache
+                removeInternalRequest(loadedTeam);
             }
 
             completableFuture.complete(team);
@@ -1703,13 +1738,14 @@ public final class DatabaseManager implements Closeable {
         Preconditions.checkNotNull(teamProgression, "TeamProgression is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
 
+        LoadedTeam team;
         synchronized (DatabaseManager.this) {
             Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
 
-            LoadedTeam team = teamsLoaded.get(teamProgression.getTeamId());
-            if (team != null)
-                removePluginRequest(team, requester);
+            team = teamsLoaded.get(teamProgression.getTeamId());
         }
+        if (team != null)
+            removePluginRequest(team, requester);
     }
 
     /**
@@ -1871,8 +1907,12 @@ public final class DatabaseManager implements Closeable {
     }
 
     @NotNull
-    private synchronized LoadedTeam addTeamToCache(TeamProgression progression) {
-        LoadedTeam loadedTeam = teamsLoaded.computeIfAbsent(progression.getTeamId(), id -> new LoadedTeam(progression));
+    private LoadedTeam addTeamToCache(TeamProgression progression) {
+        LoadedTeam loadedTeam;
+        synchronized (DatabaseManager.this) {
+            loadedTeam = teamsLoaded.computeIfAbsent(progression.getTeamId(), id -> new LoadedTeam(progression));
+            loadedTeam.addInternalRequest();
+        }
         if (!progression.inCache.getAndSet(true)) {
             callEventCatchingExceptions(new AsyncTeamLoadEvent(progression));
         }
@@ -1889,40 +1929,65 @@ public final class DatabaseManager implements Closeable {
         return loadedPlayer;
     }
 
-    private synchronized void removeInternalRequest(@NotNull LoadedTeam loadedTeam) {
-        if (loadedTeam.__removeInternalRequest() == 0 && loadedTeam.canBeUnloaded()) {
+    private void removeInternalRequest(@NotNull LoadedTeam loadedTeam) {
+        boolean condition;
+        synchronized (DatabaseManager.this) {
+            condition = loadedTeam.__removeInternalRequest() == 0 && loadedTeam.canBeUnloaded();
+        }
+        if (condition) {
             unloadTeam(loadedTeam);
         }
     }
 
-    private synchronized void removeInternalRequest(@NotNull LoadedPlayer loadedPlayer) {
-        if (loadedPlayer.__removeInternalRequest() == 0 && loadedPlayer.canBeUnloaded()) {
+    private void removeInternalRequest(@NotNull LoadedPlayer loadedPlayer) {
+        boolean condition;
+        synchronized (DatabaseManager.this) {
+            condition = loadedPlayer.__removeInternalRequest() == 0 && loadedPlayer.canBeUnloaded();
+        }
+        if (condition) {
             unloadPlayer(loadedPlayer);
         }
     }
 
-    private synchronized void removePluginRequest(@NotNull LoadedTeam loadedTeam, @NotNull Plugin plugin) {
-        if (loadedTeam.__removePluginRequest(plugin) == 0 && loadedTeam.canBeUnloaded()) {
+    private void removePluginRequest(@NotNull LoadedTeam loadedTeam, @NotNull Plugin plugin) {
+        boolean condition;
+        synchronized (DatabaseManager.this) {
+            condition = loadedTeam.__removePluginRequest(plugin) == 0 && loadedTeam.canBeUnloaded();
+        }
+        if (condition) {
             unloadTeam(loadedTeam);
         }
     }
 
-    private synchronized void removePluginRequest(@NotNull LoadedPlayer loadedPlayer, @NotNull Plugin plugin) {
-        if (loadedPlayer.__removePluginRequest(plugin) == 0 && loadedPlayer.canBeUnloaded()) {
+    private void removePluginRequest(@NotNull LoadedPlayer loadedPlayer, @NotNull Plugin plugin) {
+        boolean condition;
+        synchronized (DatabaseManager.this) {
+            condition = loadedPlayer.__removePluginRequest(plugin) == 0 && loadedPlayer.canBeUnloaded();
+        }
+        if (condition) {
             unloadPlayer(loadedPlayer);
         }
     }
 
-    private synchronized void unloadTeam(@NotNull LoadedTeam loadedTeam) {
+    private void unloadTeam(@NotNull LoadedTeam loadedTeam) {
+        checkDontHoldsLock("unload team");
+
         final TeamProgression teamProgression = loadedTeam.getTeamProgression();
         teamProgression.inCache.set(false);
-        teamsLoaded.remove(teamProgression.getTeamId());
+        synchronized (DatabaseManager.this) {
+            teamsLoaded.remove(teamProgression.getTeamId());
+        }
         callEventCatchingExceptions(new AsyncTeamUnloadEvent(teamProgression));
     }
 
-    private synchronized void unloadPlayer(@NotNull LoadedPlayer loadedPlayer) {
-        playersLoaded.remove(loadedPlayer.getUuid());
-        @Nullable final LoadedTeam loadedTeam = loadedPlayer.getPlayerTeam();
+    private void unloadPlayer(@NotNull LoadedPlayer loadedPlayer) {
+        checkDontHoldsLock("unload player");
+
+        @Nullable final LoadedTeam loadedTeam;
+        synchronized (DatabaseManager.this) {
+            playersLoaded.remove(loadedPlayer.getUuid());
+            loadedTeam = loadedPlayer.getPlayerTeam();
+        }
         loadedPlayer.setPlayerTeam(null);
         if (loadedTeam != null) {
             removeInternalRequest(loadedTeam);
@@ -1937,18 +2002,21 @@ public final class DatabaseManager implements Closeable {
         }
     }
 
-    private synchronized void updateLoadedPlayerTeam(@NotNull LoadedPlayer player, @NotNull LoadedTeam newTeam) {
+    private void updateLoadedPlayerTeam(@NotNull LoadedPlayer player, @NotNull LoadedTeam newTeam) {
         // If this method will ever be modified to be called concurrently, see the comment inside TeamProgression#movePlayer
         checkSync(); // Must be called sync since it calls TeamUpdateEvents
 
-        LoadedTeam oldTeam = player.getPlayerTeam();
-        Preconditions.checkArgument(oldTeam != null, "Player " + player.getUuid() + " was being moved but isn't part of a team.");
+        LoadedTeam oldTeam;
+        synchronized (DatabaseManager.this) {
+            oldTeam = player.getPlayerTeam();
+            Preconditions.checkArgument(oldTeam != null, "Player " + player.getUuid() + " was being moved but isn't part of a team.");
 
-        // If this method will ever be modified to be called concurrently, see the comment inside TeamProgression#movePlayer
-        oldTeam.getTeamProgression().movePlayer(newTeam.getTeamProgression(), player.getUuid());
+            // If this method will ever be modified to be called concurrently, see the comment inside TeamProgression#movePlayer
+            oldTeam.getTeamProgression().movePlayer(newTeam.getTeamProgression(), player.getUuid());
 
-        newTeam.addInternalRequest();
-        player.setPlayerTeam(newTeam);
+            newTeam.addInternalRequest();
+            player.setPlayerTeam(newTeam);
+        }
 
         callEventCatchingExceptions(new TeamUpdateEvent(player.getUuid(), oldTeam.getTeamProgression(), newTeam.getTeamProgression()));
         removeInternalRequest(oldTeam);
@@ -1964,7 +2032,7 @@ public final class DatabaseManager implements Closeable {
      * @param newProgr The new progression.
      * @param completableFuture The {@link CompletableFuture} to complete after the update ends.
      */
-    private synchronized void registerProgressionUpdate(@NotNull LoadedTeam team, @NotNull AdvancementKey key, int oldProgr, int newProgr, @NotNull CompletableFuture<ProgressionUpdateResult> completableFuture) {
+    private void registerProgressionUpdate(@NotNull LoadedTeam team, @NotNull AdvancementKey key, int oldProgr, int newProgr, @NotNull CompletableFuture<ProgressionUpdateResult> completableFuture) {
         pendingUpdatesManager.registerProgressionUpdate(team, key, oldProgr, newProgr, () -> {
             try {
                 callEventCatchingExceptions(new ProgressionUpdateEvent(key, team.getTeamProgression(), oldProgr, newProgr, completableFuture));
@@ -1985,7 +2053,7 @@ public final class DatabaseManager implements Closeable {
      * @param completableFuture The {@link CompletableFuture} to complete after the update ends.
      * @param completingObj The object that will be used to complete the completableFuture.
      */
-    private synchronized <T> void registerTeamUpdate(@NotNull LoadedPlayer player, @Nullable Player playerToMove, @NotNull LoadedTeam team, boolean processUnredeemed, CompletableFuture<T> completableFuture, T completingObj) {
+    private <T> void registerTeamUpdate(@NotNull LoadedPlayer player, @Nullable Player playerToMove, @NotNull LoadedTeam team, boolean processUnredeemed, CompletableFuture<T> completableFuture, T completingObj) {
         pendingUpdatesManager.registerTeamUpdate(player, team, () -> {
             completableFuture.complete(completingObj);
 
@@ -2036,6 +2104,7 @@ public final class DatabaseManager implements Closeable {
             if (!closed.get()) {
                 uncompletedCompletableFutures.remove(key);
             }
+            checkDontHoldsLock("complete future");
         });
         return CompletableFuture.runAsync(() -> {
             if (!closed.get()) {
@@ -2045,10 +2114,18 @@ public final class DatabaseManager implements Closeable {
     }
 
     private <E extends Event> void callEventCatchingExceptions(@NotNull E event) {
+        checkDontHoldsLock("call event");
         try {
             Bukkit.getPluginManager().callEvent(event);
         } catch (Exception exception) {
             logger.log(Level.SEVERE, "An exception occurred while calling event " + event.getClass().getSimpleName(), exception);
+        }
+    }
+
+    private void checkDontHoldsLock(String msg) {
+        if (Thread.holdsLock(DatabaseManager.this)) {
+            String error = "Cannot " + msg + " while holding DatabaseManager lock (please report to https://github.com/frengor/UltimateAdvancementAPI/issues)";
+            logger.log(Level.WARNING, error, new IllegalCallerException(error));
         }
     }
 
@@ -2181,8 +2258,9 @@ public final class DatabaseManager implements Closeable {
     }
 
     private final class PendingUpdatesManager {
-        private final List<Update> progressionUpdates = new ArrayList<>(10);
-        private final Map<Integer, Map<AdvancementKey, Integer>> realProgressions = new HashMap<>(); // Used to calculate increments
+        // All these fields must be accessed inside a `synchronized (DatabaseManager.this) {...}` block
+        private List<Update> progressionUpdates = new ArrayList<>(4);
+        private final Map<Integer, Map<AdvancementKey, RealProgression>> realProgressions = new HashMap<>(); // Used to calculate increments
 
         // All these fields must be accessed inside a `synchronized (PendingUpdatesManager.this) {...}` block
         private boolean updaterTaskIsRegistered = false;
@@ -2190,7 +2268,7 @@ public final class DatabaseManager implements Closeable {
 
         /**
          * Registers a team update to execute on the main thread.
-         * <p>An internal request is added to both the player and the team until the callback returns.
+         * <p>An internal request is added to both the player and the team until the completableFuture is completed.
          *
          * @param player The player to move.
          * @param team The team in which the player will be moved.
@@ -2209,7 +2287,8 @@ public final class DatabaseManager implements Closeable {
 
         /**
          * Registers a player registered update to execute on the main thread.
-         * <p>An internal request is added to both the player and the team until the callback returns.
+         * <p>An internal request is added to the player until the callback returns.
+         * <p>The team should have an internal request already added to it that will be removed when the callback returns.
          *
          * @param player The player which has been registered.
          * @param team The (brand new) team of the player.
@@ -2219,7 +2298,6 @@ public final class DatabaseManager implements Closeable {
             synchronized (DatabaseManager.this) {
                 // Keep in cache, removes are done after the callback returns
                 player.addInternalRequest();
-                team.addInternalRequest();
 
                 player.setRegistering();
                 progressionUpdates.add(new Update(UpdateType.PLAYER_REGISTERED_UPDATE, player, team, null, 0, 0, callback));
@@ -2242,8 +2320,9 @@ public final class DatabaseManager implements Closeable {
                 // Keep in cache, removes are done after the callback returns
                 team.addInternalRequest();
 
+                // Make sure the real progressions and the update are added while keeping the lock on DatabaseManager.this
                 var map = realProgressions.computeIfAbsent(team.getTeamProgression().getTeamId(), HashMap::new);
-                map.put(key, newProgr);
+                map.put(key, new RealProgression(newProgr, false));
                 progressionUpdates.add(new Update(UpdateType.PROGRESSION_UPDATE, null, team, key, oldProgr, newProgr, callback));
             }
             registerUpdaterTask();
@@ -2304,14 +2383,15 @@ public final class DatabaseManager implements Closeable {
                 if (map == null) {
                     return team.getRawProgression(key);
                 }
-                Integer progr = map.get(key);
-                return progr == null ? team.getRawProgression(key) : progr;
+                RealProgression progr = map.get(key);
+                return progr == null ? team.getRawProgression(key) : progr.realProgr;
             }
         }
 
         void applyUpdates() {
             checkSync(); // To catch bugs
 
+            List<Update> updateList;
             synchronized (DatabaseManager.this) {
                 if (closed.get()) {
                     progressionUpdates.clear();
@@ -2319,51 +2399,82 @@ public final class DatabaseManager implements Closeable {
                     return;
                 }
 
-                for (Update update : progressionUpdates) {
-                    switch (update.type) {
-                        case TEAM_UPDATE -> {
-                            updateLoadedPlayerTeam(update.player, update.team);
-                        }
-                        case PLAYER_REGISTERED_UPDATE -> {
-                            if (update.player.getPlayerTeam() != null) {
-                                // Player was already in a team, probably a bug
-                                logger.severe("Player " + update.player.getUuid() + " was already loaded: " + update + ". This is a UltimateAdvancementAPI bug, please report it here: https://github.com/frengor/UltimateAdvancementAPI/issues");
-                            } else {
+                updateList = progressionUpdates;
+                progressionUpdates = new ArrayList<>(4);
+
+                // Mark entries as stale
+                for (var teamRealProgrs : realProgressions.values()) {
+                    for (RealProgression advRealProgr : teamRealProgrs.values()) {
+                        advRealProgr.stale = true;
+                    }
+                }
+            }
+
+            for (Update update : updateList) {
+                switch (update.type) {
+                    case TEAM_UPDATE -> {
+                        updateLoadedPlayerTeam(update.player, update.team);
+                    }
+                    case PLAYER_REGISTERED_UPDATE -> {
+                        if (update.player.getPlayerTeam() != null) {
+                            // Player was already in a team, probably a bug
+                            logger.severe("Player " + update.player.getUuid() + " was already loaded: " + update + ". This is a UltimateAdvancementAPI bug, please report it here: https://github.com/frengor/UltimateAdvancementAPI/issues");
+                        } else {
+                            synchronized (DatabaseManager.this) {
                                 update.team.getTeamProgression().addMember(update.player.getUuid());
                                 update.team.addInternalRequest();
                                 update.player.setPlayerTeam(update.team);
-
-                                callEventCatchingExceptions(new PlayerRegisteredEvent(update.team.getTeamProgression(), update.player.getUuid()));
                             }
 
-                            // Process possible loading requests waiting for the PlayerRegisteredEvent
-                            @Nullable CompletableFuture<TeamProgression> cf = update.player.getRegisteringCF();
-                            update.player.unsetRegistering();
-                            if (cf != null) {
-                                // No need to add internal requests since they have already been added before calling cf.whenComplete
-                                cf.complete(update.player.getPlayerTeam().getTeamProgression());
-                            }
+                            callEventCatchingExceptions(new PlayerRegisteredEvent(update.team.getTeamProgression(), update.player.getUuid()));
                         }
-                        case PROGRESSION_UPDATE -> {
-                            update.team.getTeamProgression().updateProgression(update.key, update.newProgr);
+
+                        // Process possible loading requests waiting for the PlayerRegisteredEvent
+                        @Nullable CompletableFuture<TeamProgression> cf = update.player.getRegisteringCF();
+                        update.player.unsetRegistering();
+                        if (cf != null) {
+                            // No need to add internal requests since they have already been added before calling cf.whenComplete
+                            cf.complete(update.team.getTeamProgression());
                         }
                     }
-
-                    try {
-                        update.callback.run();
-                    } catch (Exception e) {
-                        logger.log(Level.SEVERE, "An exception occurred while executing the callback for update " + update, e);
+                    case PROGRESSION_UPDATE -> {
+                        update.team.getTeamProgression().updateProgression(update.key, update.newProgr);
                     }
-
-                    // Remove request since the callback returned
-                    if (update.type == UpdateType.TEAM_UPDATE || update.type == UpdateType.PLAYER_REGISTERED_UPDATE) {
-                        // In this case a request was added also to the player
-                        removeInternalRequest(update.player);
-                    }
-                    removeInternalRequest(update.team);
                 }
-                progressionUpdates.clear();
-                realProgressions.clear();
+
+                try {
+                    update.callback.run();
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, "An exception occurred while executing the callback for update " + update, e);
+                }
+
+                // Remove request since the callback returned
+                if (update.type == UpdateType.TEAM_UPDATE || update.type == UpdateType.PLAYER_REGISTERED_UPDATE) {
+                    // In this case a request was added also to the player
+                    removeInternalRequest(update.player);
+                }
+                removeInternalRequest(update.team);
+            }
+
+            // Remove stale entries (as per values() docs, Collection.removeIf() cannot be used with Iterator.remove())
+            synchronized (DatabaseManager.this) {
+                var realProgrIt = realProgressions.values().iterator();
+                while (realProgrIt.hasNext()) {
+                    Map<AdvancementKey, RealProgression> teamRealProgrs = realProgrIt.next();
+                    boolean hasRemovedAll = true;
+                    var teamRealProgrsIt = teamRealProgrs.values().iterator();
+                    while (teamRealProgrsIt.hasNext()) {
+                        RealProgression progr = teamRealProgrsIt.next();
+                        if (progr.stale) {
+                            teamRealProgrsIt.remove();
+                        } else {
+                            hasRemovedAll = false;
+                        }
+                    }
+                    if (hasRemovedAll) {
+                        realProgrIt.remove();
+                    }
+                }
             }
         }
 
@@ -2393,6 +2504,40 @@ public final class DatabaseManager implements Closeable {
                         ", newProgr=" + newProgr +
                         '}';
                 };
+            }
+        }
+
+        // Would have loved to use a record, but stale needs to be mutable
+        private static final class RealProgression {
+            private final int realProgr;
+            private boolean stale;
+
+            private RealProgression(int realProgr, boolean stale) {
+                this.realProgr = realProgr;
+                this.stale = stale;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (obj == this) return true;
+                if (obj == null || obj.getClass() != this.getClass()) return false;
+                var that = (RealProgression) obj;
+                return this.realProgr == that.realProgr &&
+                    this.stale == that.stale;
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(realProgr, stale);
+            }
+
+            @Override
+            @NotNull
+            public String toString() {
+                return "RealProgression{" +
+                    "realProgr=" + realProgr +
+                    ", stale=" + stale +
+                    '}';
             }
         }
     }
