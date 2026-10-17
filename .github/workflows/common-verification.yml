@@ -1,4 +1,4 @@
-name: Common verification
+name: API verification
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   verify-common:
-    name: Common and NMS Common (not full plugin)
+    name: API package, tests and Javadocs (not server plugin)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -20,8 +20,8 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
-      - name: Verify Common modules without private server build dependencies
-        run: mvn -B -ntp -pl Common -am -Dmaven.javadoc.skip=true clean verify
+      - name: Build API library with tests and Javadocs using public dependencies
+        run: mvn -B -ntp -pl Distribution/API -am clean verify
       - name: Preserve test evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -29,3 +29,9 @@ jobs:
           name: common-test-reports
           path: '**/target/surefire-reports/*.xml'
           if-no-files-found: warn
+      - name: Preserve API library only (not an installable server plugin)
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-library-not-server-plugin
+          path: 'Distribution/API/target/UltimateAdvancementAPI-*.jar'
+          if-no-files-found: error
