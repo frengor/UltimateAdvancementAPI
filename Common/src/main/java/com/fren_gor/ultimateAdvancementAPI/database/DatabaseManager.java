@@ -367,7 +367,14 @@ public final class DatabaseManager {
         Entry<TeamProgression, Boolean> entry = loadOrRegisterPlayer(uuid, name);
         final TeamProgression pro = entry.getKey();
         registerForJoinEvent(uuid, player -> {
+            if (!isCurrentLoadingPlayer(player, pro)) {
+                return;
+            }
             callEventCatchingExceptions(new PlayerLoadingCompletedEvent(player, pro));
+            // A listener may unload the player or replace their cached progression.
+            if (!isCurrentLoadingPlayer(player, pro)) {
+                return;
+            }
             if (entry.getValue()) {
                 callEventCatchingExceptions(new AsyncTeamUpdateEvent(pro, uuid, Action.JOIN));
                 callEventCatchingExceptions(new TeamUpdateEvent(pro, uuid, TeamUpdateEvent.Action.JOIN));
@@ -375,6 +382,13 @@ public final class DatabaseManager {
             main.updatePlayer(player);
             CompletableFuture.runAsync(() -> processUnredeemed(player, pro));
         });
+    }
+
+    synchronized boolean isCurrentLoadingPlayer(Player player, TeamProgression progression) {
+        return player.isOnline()
+            && Bukkit.getPlayer(player.getUniqueId()) == player
+            && progressionCache.get(player.getUniqueId()) == progression
+            && progression.isValid();
     }
 
     /**
