@@ -14,3 +14,5 @@ Engine: cache successfully sent wrapper snapshots per player. Use a progress-onl
 
 Refine: five actual runnable tests cover progression, unchanged refresh, replaced definitions, hide/reshow and packet-factory failure/retry. Java 25 canonical `mvn -B -ntp clean verify` passes 46 tests, 0 failures, 0 errors, 0 skips, Javadocs, both distributions and all 24 native adapters. Test evidence stays separate from a real client holding another tab open during refresh. No project-local EARS/state tool exists.
 
+
+Upstream PR121 adaptation: cherry-picked only the selected-tab fix onto the existing removal-fix branch, excluding the separately reviewed loading-callback PR122. Exact upstream branch API-only clean verify passed 32 tests and Javadocs. The full 46-test/all-adapter result above belongs to the owner-fork integration.
