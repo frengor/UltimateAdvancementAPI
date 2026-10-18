@@ -29,12 +29,18 @@ public class PacketPlayOutAdvancementsWrapper_v26_3_R1 extends PacketPlayOutAdva
 
     @SuppressWarnings("unchecked")
     public PacketPlayOutAdvancementsWrapper_v26_3_R1(@NotNull Map<AdvancementWrapper, Integer> toSend) {
+        this(toSend, true);
+    }
+
+    /** Builds either a full definition update or a progress-only update. */
+    @SuppressWarnings("unchecked")
+    public PacketPlayOutAdvancementsWrapper_v26_3_R1(@NotNull Map<AdvancementWrapper, Integer> toSend, boolean includeDefinitions) {
         Map<Identifier, AdvancementProgress> map = Maps.newHashMapWithExpectedSize(toSend.size());
         for (Entry<AdvancementWrapper, Integer> e : toSend.entrySet()) {
             AdvancementWrapper adv = e.getKey();
             map.put((Identifier) adv.getKey().toNMS(), Util.getAdvancementProgress((PositionedAdvancement) adv.toNMS(), e.getValue()));
         }
-        this.packet = new ClientboundUpdateAdvancementsPacket(false, (List<PositionedAdvancement>) ListSet.fromWrapperSet(toSend.keySet()).toList(), Collections.emptySet(), map, true);
+        this.packet = new ClientboundUpdateAdvancementsPacket(false, includeDefinitions ? (List<PositionedAdvancement>) ListSet.fromWrapperSet(toSend.keySet()).toList() : Collections.emptyList(), Collections.emptySet(), map, true);
     }
 
     @SuppressWarnings("unchecked")

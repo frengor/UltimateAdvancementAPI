@@ -69,6 +69,7 @@ public final class AdvancementTab {
     private final DatabaseManager databaseManager;
     private final Map<AdvancementKey, Advancement> advancements = new HashMap<>();
     private final Map<Player, Set<MinecraftKeyWrapper>> players = new HashMap<>();
+    private final Map<Player, Set<AdvancementWrapper>> sentDefinitions = new HashMap<>();
     private final AdvsUpdateRunnable updateManager;
 
     private RootAdvancement rootAdvancement;
@@ -85,7 +86,10 @@ public final class AdvancementTab {
         this.eventManager = new EventManager(owningPlugin);
         this.databaseManager = Objects.requireNonNull(databaseManager);
         this.updateManager = new AdvsUpdateRunnable();
-        eventManager.register(this, PlayerQuitEvent.class, e -> players.remove(e.getPlayer()));
+        eventManager.register(this, PlayerQuitEvent.class, e -> {
+            players.remove(e.getPlayer());
+            sentDefinitions.remove(e.getPlayer());
+        });
     }
 
     /**
@@ -539,11 +543,13 @@ public final class AdvancementTab {
         checkInitialisation();
         Preconditions.checkNotNull(player, "Player is null.");
 
-        if (isShownTo(player))
+        if (isShownTo(player)) {
             removePlayer(player, players.remove(player));
+        }
     }
 
     private void removePlayer(@NotNull Player player, Set<MinecraftKeyWrapper> keys) {
+        sentDefinitions.remove(player);
         if (keys == null || keys.isEmpty())
             return;
         try {
@@ -855,9 +861,10 @@ public final class AdvancementTab {
                 final Set<MinecraftKeyWrapper> keys = RemovalRoots.select(
                         advs.keySet(), AdvancementWrapper::getKey, AdvancementWrapper::getParent);
 
-                ISendable sendPacket, noTab, thisTab;
+                ISendable sendPacket, progressPacket, noTab, thisTab;
                 try {
                     sendPacket = PacketPlayOutAdvancementsWrapper.craftSendPacket(advs);
+                    progressPacket = PacketPlayOutAdvancementsWrapper.craftProgressPacket(advs);
                     noTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelectNone();
                     thisTab = PacketPlayOutSelectAdvancementTabWrapper.craftSelect(rootAdvancement.getKey().getNMSWrapper());
                 } catch (ReflectiveOperationException e) {
@@ -868,6 +875,13 @@ public final class AdvancementTab {
                 pro.forEachMember(u -> {
                     Player player = Bukkit.getPlayer(u);
                     if (player != null) {
+                        // Routine progress must not remove a root or steal another tab's focus.
+                        // Wrapper identity/equality also detects display/definition changes,
+                        // even when the namespaced keys are unchanged.
+                        if (players.containsKey(player) && advs.keySet().equals(sentDefinitions.get(player))) {
+                            progressPacket.sendTo(player);
+                            return;
+                        }
                         noTab.sendTo(player);
 
                         @Nullable Set<MinecraftKeyWrapper> set = players.put(player, keys);
@@ -883,6 +897,7 @@ public final class AdvancementTab {
                         }
 
                         sendPacket.sendTo(player);
+                        sentDefinitions.put(player, Set.copyOf(advs.keySet()));
                         thisTab.sendTo(player);
                     }
                 });
