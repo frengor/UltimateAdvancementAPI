@@ -14,7 +14,7 @@ import java.util.Set;
  */
 public abstract class PacketPlayOutAdvancementsWrapper implements ISendable {
 
-    private static Constructor<? extends PacketPlayOutAdvancementsWrapper> resetConstructor, sendConstructor, removeConstructor;
+    private static Constructor<? extends PacketPlayOutAdvancementsWrapper> resetConstructor, sendConstructor, removeConstructor, progressConstructor;
 
     static {
         var clazz = ReflectionUtil.getWrapperClass(PacketPlayOutAdvancementsWrapper.class);
@@ -26,6 +26,11 @@ public abstract class PacketPlayOutAdvancementsWrapper implements ISendable {
         }
         try {
             sendConstructor = clazz.getDeclaredConstructor(Map.class);
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+        try {
+            progressConstructor = clazz.getDeclaredConstructor(Map.class, boolean.class);
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
@@ -57,6 +62,19 @@ public abstract class PacketPlayOutAdvancementsWrapper implements ISendable {
     @NotNull
     public static PacketPlayOutAdvancementsWrapper craftSendPacket(@NotNull Map<AdvancementWrapper, Integer> toSend) throws ReflectiveOperationException {
         return sendConstructor.newInstance(toSend);
+    }
+
+    /**
+     * Updates progress for definitions the client already knows, without replacing
+     * roots or changing the client's selected advancement tab.
+     *
+     * @param progress Known advancements and their new progression values.
+     * @return A packet with no added or removed definitions.
+     * @throws ReflectiveOperationException If the adapter cannot construct the packet.
+     */
+    @NotNull
+    public static PacketPlayOutAdvancementsWrapper craftProgressPacket(@NotNull Map<AdvancementWrapper, Integer> progress) throws ReflectiveOperationException {
+        return progressConstructor.newInstance(progress, false);
     }
 
     /**
