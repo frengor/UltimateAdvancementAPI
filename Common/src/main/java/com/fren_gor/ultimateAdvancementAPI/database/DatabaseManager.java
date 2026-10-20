@@ -59,6 +59,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -99,7 +100,12 @@ public final class DatabaseManager implements Closeable {
         && !ReflectionUtil.classExists("org.mockbukkit.mockbukkit.MockBukkit"); // Workaround: MockBukkit doesn't call PlayerConnectionInitialConfigureEvent
 
     // A single-thread executor is used to maintain executed queries sequential
-    private final ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("DatabaseManager Thread - %d").build());
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(
+        new ThreadFactoryBuilder()
+            .setThreadFactory(DbManagerThread::new)
+            .setNameFormat("DatabaseManager Thread - %d")
+            .build()
+    );
 
     private final AdvancementMain main;
     private final Logger logger;
@@ -1908,6 +1914,8 @@ public final class DatabaseManager implements Closeable {
 
     @NotNull
     private LoadedTeam addTeamToCache(TeamProgression progression) {
+        checkIsOnDbManagerThread("Adding a team to the cache");
+
         LoadedTeam loadedTeam;
         synchronized (DatabaseManager.this) {
             loadedTeam = teamsLoaded.computeIfAbsent(progression.getTeamId(), id -> new LoadedTeam(progression));
@@ -1930,65 +1938,58 @@ public final class DatabaseManager implements Closeable {
     }
 
     private void removeInternalRequest(@NotNull LoadedTeam loadedTeam) {
-        boolean condition;
-        synchronized (DatabaseManager.this) {
-            condition = loadedTeam.__removeInternalRequest() == 0 && loadedTeam.canBeUnloaded();
-        }
-        if (condition) {
-            unloadTeam(loadedTeam);
-        }
+        unloadTeam(loadedTeam, () -> loadedTeam.__removeInternalRequest() == 0);
     }
 
     private void removeInternalRequest(@NotNull LoadedPlayer loadedPlayer) {
-        boolean condition;
-        synchronized (DatabaseManager.this) {
-            condition = loadedPlayer.__removeInternalRequest() == 0 && loadedPlayer.canBeUnloaded();
-        }
-        if (condition) {
-            unloadPlayer(loadedPlayer);
-        }
+        unloadPlayer(loadedPlayer, () -> loadedPlayer.__removeInternalRequest() == 0);
     }
 
     private void removePluginRequest(@NotNull LoadedTeam loadedTeam, @NotNull Plugin plugin) {
-        boolean condition;
-        synchronized (DatabaseManager.this) {
-            condition = loadedTeam.__removePluginRequest(plugin) == 0 && loadedTeam.canBeUnloaded();
-        }
-        if (condition) {
-            unloadTeam(loadedTeam);
-        }
+        unloadTeam(loadedTeam, () -> loadedTeam.__removePluginRequest(plugin) == 0);
     }
 
     private void removePluginRequest(@NotNull LoadedPlayer loadedPlayer, @NotNull Plugin plugin) {
-        boolean condition;
-        synchronized (DatabaseManager.this) {
-            condition = loadedPlayer.__removePluginRequest(plugin) == 0 && loadedPlayer.canBeUnloaded();
-        }
-        if (condition) {
-            unloadPlayer(loadedPlayer);
+        unloadPlayer(loadedPlayer, () -> loadedPlayer.__removePluginRequest(plugin) == 0);
+    }
+
+    private void unloadTeam(@NotNull LoadedTeam loadedTeam, @NotNull BooleanSupplier condition) {
+        checkDontHoldsLock("unload team");
+
+        if (Thread.currentThread() instanceof DbManagerThread) {
+            // Already on executor thread
+            __unloadTeam(loadedTeam, condition);
+        } else {
+            runAsyncOnExecutor(() -> __unloadTeam(loadedTeam, condition));
         }
     }
 
-    private void unloadTeam(@NotNull LoadedTeam loadedTeam) {
-        checkDontHoldsLock("unload team");
+    private void __unloadTeam(@NotNull LoadedTeam loadedTeam, @NotNull BooleanSupplier condition) {
+        checkIsOnDbManagerThread("Unloading a team");
 
         final TeamProgression teamProgression = loadedTeam.getTeamProgression();
-        teamProgression.inCache.set(false);
         synchronized (DatabaseManager.this) {
+            if (!condition.getAsBoolean() || !loadedTeam.canBeUnloaded()) {
+                return;
+            }
+            teamProgression.inCache.set(false);
             teamsLoaded.remove(teamProgression.getTeamId());
         }
         callEventCatchingExceptions(new AsyncTeamUnloadEvent(teamProgression));
     }
 
-    private void unloadPlayer(@NotNull LoadedPlayer loadedPlayer) {
+    private void unloadPlayer(@NotNull LoadedPlayer loadedPlayer, @NotNull BooleanSupplier condition) {
         checkDontHoldsLock("unload player");
 
         @Nullable final LoadedTeam loadedTeam;
         synchronized (DatabaseManager.this) {
+            if (!condition.getAsBoolean() || !loadedPlayer.canBeUnloaded()) {
+                return;
+            }
             playersLoaded.remove(loadedPlayer.getUuid());
             loadedTeam = loadedPlayer.getPlayerTeam();
+            loadedPlayer.setPlayerTeam(null);
         }
-        loadedPlayer.setPlayerTeam(null);
         if (loadedTeam != null) {
             removeInternalRequest(loadedTeam);
         }
@@ -2114,18 +2115,29 @@ public final class DatabaseManager implements Closeable {
     }
 
     private <E extends Event> void callEventCatchingExceptions(@NotNull E event) {
-        checkDontHoldsLock("call event");
         try {
+            checkDontHoldsLock("call event");
             Bukkit.getPluginManager().callEvent(event);
         } catch (Exception exception) {
             logger.log(Level.SEVERE, "An exception occurred while calling event " + event.getClass().getSimpleName(), exception);
         }
     }
 
-    private void checkDontHoldsLock(String msg) {
+    private void checkIsOnDbManagerThread(@NotNull String msg) {
+        if (!(Thread.currentThread() instanceof DbManagerThread)) {
+            String error = msg + " can only be done on the DatabaseManager thread (please report to https://github.com/frengor/UltimateAdvancementAPI/issues)";
+            var ex = new IllegalCallerException(error);
+            logger.log(Level.WARNING, error, ex);
+            throw ex;
+        }
+    }
+
+    private void checkDontHoldsLock(@NotNull String msg) {
         if (Thread.holdsLock(DatabaseManager.this)) {
             String error = "Cannot " + msg + " while holding DatabaseManager lock (please report to https://github.com/frengor/UltimateAdvancementAPI/issues)";
+            var ex = new IllegalCallerException(error);
             logger.log(Level.WARNING, error, new IllegalCallerException(error));
+            throw ex;
         }
     }
 
@@ -2539,6 +2551,15 @@ public final class DatabaseManager implements Closeable {
                     ", stale=" + stale +
                     '}';
             }
+        }
+    }
+
+    /**
+     * Used to identify the {@link #executor} thread.
+     */
+    private static final class DbManagerThread extends Thread {
+        public DbManagerThread(Runnable task) {
+            super(task);
         }
     }
 }

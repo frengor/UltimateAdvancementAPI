@@ -644,6 +644,7 @@ public class DatabaseManagerTest {
         assertNotEquals(team.getTeamId(), t2.getTeamId());
 
         dbManager.removeLoadingRequest(team, plugin);
+        dbManagerUtils.waitForPendingTasks(); // Necessary to wait for team unloading
         assertFalse(team.isValid());
     }
 
@@ -663,6 +664,7 @@ public class DatabaseManagerTest {
         assertFalse(t1.isValid());
 
         dbManager.removeLoadingRequest(team, plugin);
+        dbManagerUtils.waitForPendingTasks(); // Necessary to wait for team unloading
         assertTrue(team.isValid());
         assertEquals(0, dbManager.getLoadingRequestsAmount(team, plugin));
 
@@ -724,10 +726,12 @@ public class DatabaseManagerTest {
         assertEquals(2, dbManager.getLoadingRequestsAmount(team, plugin));
 
         dbManager.removeLoadingRequest(team, plugin);
+        dbManagerUtils.waitForPendingTasks(); // Necessary to wait for team unloading
         assertTrue(team.isValid());
         assertEquals(1, dbManager.getLoadingRequestsAmount(team, plugin));
 
         dbManager.removeLoadingRequest(team, plugin);
+        dbManagerUtils.waitForPendingTasks(); // Necessary to wait for team unloading
         assertFalse(team.isValid());
         assertEquals(0, dbManager.getLoadingRequestsAmount(team, plugin));
     }
