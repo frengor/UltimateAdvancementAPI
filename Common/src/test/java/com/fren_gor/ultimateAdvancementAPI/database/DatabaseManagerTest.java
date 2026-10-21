@@ -22,6 +22,7 @@ import com.fren_gor.ultimateAdvancementAPI.tests.database.DatabaseImpls;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockbukkit.mockbukkit.MockBukkit;
@@ -334,6 +335,25 @@ public class DatabaseManagerTest {
         assertTrue(pro.contains(p));
 
         p.disconnect();
+    }
+
+    @Test
+    void loadPlayerInSameTeamAsAlreadyLoadedTest() {
+        PluginMock plugin = MockBukkit.createMockPlugin();
+        PlayerMock pl1 = loadPlayer();
+        PlayerMock pl2 = loadPlayer();
+
+        TeamProgression t = dbManager.getTeamProgression(pl1);
+
+        assertFalse(waitCompletion(dbManager.updatePlayerTeam(pl1, pl2)).isCompletedExceptionally());
+
+        pl1.disconnect();
+        // Correct since pl1 has disconnected
+        disconnectPlayer(pl2, false, null);
+
+        var cf = dbManager.loadAndAddLoadingRequest(pl1.getUniqueId(), plugin);
+        loadPlayer(pl2);
+        assertFalse(waitCompletion(cf).isCompletedExceptionally());
     }
 
     @Test
@@ -748,6 +768,10 @@ public class DatabaseManagerTest {
     }
 
     private PlayerMock loadPlayer() {
+        return loadPlayer(null);
+    }
+
+    private PlayerMock loadPlayer(@Nullable PlayerMock player) {
         CompletableFuture<Void> finished = new CompletableFuture<>();
         AtomicBoolean skip = new AtomicBoolean(false);
         AtomicBoolean hadSuccess = new AtomicBoolean(false);
@@ -755,7 +779,13 @@ public class DatabaseManagerTest {
         final Object listener = new Object();
         final EventManager manager = advancementMain.getEventManager();
 
-        final PlayerMock p = server.addPlayer();
+        final PlayerMock p;
+        if (player == null) {
+            p = server.addPlayer();
+        } else {
+            server.addPlayer(player);
+            p = player;
+        }
 
         try {
             // These events should run after a few ticks, so there shouldn't be any problem having them registered
