@@ -122,6 +122,14 @@ public class SQLite implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    public boolean supportsConcurrentQueries() {
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public int getTeamId(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         try (PreparedStatement ps = openConnection().prepareStatement("SELECT `TeamID` FROM `Players` WHERE `UUID`=?;")) {
             ps.setString(1, uuid.toString());

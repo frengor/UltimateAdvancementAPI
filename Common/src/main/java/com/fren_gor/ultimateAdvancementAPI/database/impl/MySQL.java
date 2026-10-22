@@ -162,6 +162,14 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    public boolean supportsConcurrentQueries() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public int getTeamId(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `TeamID` FROM `Players` WHERE `UUID`=?;")) {
             ps.setString(1, uuid.toString());

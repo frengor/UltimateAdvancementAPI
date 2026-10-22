@@ -20,6 +20,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -53,8 +54,10 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -99,7 +102,10 @@ public final class DatabaseManager implements Closeable {
     private static final boolean IS_PAPER = ReflectionUtil.classExists("io.papermc.paper.advancement.AdvancementDisplay")
         && !ReflectionUtil.classExists("org.mockbukkit.mockbukkit.MockBukkit"); // Workaround: MockBukkit doesn't call PlayerConnectionInitialConfigureEvent
 
-    // A single-thread executor is used to maintain executed queries sequential
+    // A single-thread executor is used to maintain executed queries sequential.
+    // When possible (see supportsConcurrentProgressionUpdates), progression updates are run concurrently
+    // between teams, i.e. each team can run progression updates independently of each other, but update
+    // queries are still sequential for each team (see LoadedTeam.getProgressionUpdateExecutor()).
     private final ExecutorService executor = Executors.newSingleThreadExecutor(
         new ThreadFactoryBuilder()
             .setThreadFactory(DbManagerThread::new)
@@ -113,6 +119,7 @@ public final class DatabaseManager implements Closeable {
     private final IDatabase database; // Calls to the database must be done using the `executor` thread
     private final JoinEventWaiter joinEventWaiter;
     private final AtomicBoolean closed = new AtomicBoolean(false);
+    private final boolean supportsConcurrentProgressionUpdates;
 
     // Used inside DatabaseManager#close() to not leave uncompleted CompletableFutures
     private final Map<Integer, CompletableFuture<?>> uncompletedCompletableFutures = Collections.synchronizedMap(new HashMap<>());
@@ -151,6 +158,9 @@ public final class DatabaseManager implements Closeable {
         this.eventManager = main.getEventManager();
         this.database = database;
         this.joinEventWaiter = new JoinEventWaiter(main.getOwningPlugin());
+        // MoreExecutors.newSequentialExecutor(...) is present since around MC 1.18
+        this.supportsConcurrentProgressionUpdates = database.supportsConcurrentQueries()
+            && ReflectionUtil.hasMethod(MoreExecutors.class, "newSequentialExecutor", Executor.class);
         commonSetUp();
     }
 
@@ -921,7 +931,7 @@ public final class DatabaseManager implements Closeable {
 
         CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
 
-        runAsyncOnExecutor(completableFuture, () -> {
+        runAsyncOnExecutor(completableFuture, loadedNewTeam.getProgressionUpdateExecutor(), () -> {
             int old = pendingUpdatesManager.getCurrentValue(progression, key);
             if (newProgression != old) { // Don't update the db if the saved progression won't change
                 try {
@@ -1005,7 +1015,7 @@ public final class DatabaseManager implements Closeable {
 
         CompletableFuture<ProgressionUpdateResult> completableFuture = new CompletableFuture<>();
 
-        runAsyncOnExecutor(completableFuture, () -> {
+        runAsyncOnExecutor(completableFuture, loadedNewTeam.getProgressionUpdateExecutor(), () -> {
             final int old = pendingUpdatesManager.getCurrentValue(loadedNewTeam.getTeamProgression(), key);
             int incremented = Math.min(Math.max(old + increment, 0), maxProgression);
             if (incremented != old) { // Don't update the db if the saved progression won't change
@@ -2074,7 +2084,7 @@ public final class DatabaseManager implements Closeable {
     }
 
     /**
-     * Runs the provided runnable into the {@link DatabaseManager#executor} thread if the {@code DatabaseManager} isn't closed.
+     * Runs the provided runnable on the {@link DatabaseManager#executor} thread if the {@code DatabaseManager} isn't closed.
      *
      * @param runnable The {@link Runnable} to run.
      * @return A {@link CompletableFuture} which will complete once the runnable has been executed (or skipped if
@@ -2085,11 +2095,11 @@ public final class DatabaseManager implements Closeable {
             if (!closed.get()) {
                 runnable.run();
             }
-        }, executor);
+        }, this.executor);
     }
 
     /**
-     * Runs the provided runnable into the {@link DatabaseManager#executor} thread if the {@code DatabaseManager} isn't closed.
+     * Runs the provided runnable on the {@link DatabaseManager#executor} thread if the {@code DatabaseManager} isn't closed.
      *
      * @param returnedCompletableFuture The {@link CompletableFuture} that is completed by the provided runnable when
      *     the operation ends or errors. It will be completed with a {@link DatabaseManagerClosedException} if the
@@ -2099,6 +2109,21 @@ public final class DatabaseManager implements Closeable {
      *     {@link DatabaseManager} gets closed).
      */
     private CompletableFuture<Void> runAsyncOnExecutor(CompletableFuture<?> returnedCompletableFuture, Runnable runnable) {
+        return runAsyncOnExecutor(returnedCompletableFuture, this.executor, runnable);
+    }
+
+    /**
+     * Runs the provided runnable on the provided {@code executor} if the {@code DatabaseManager} isn't closed.
+     *
+     * @param returnedCompletableFuture The {@link CompletableFuture} that is completed by the provided runnable when
+     *     the operation ends or errors. It will be completed with a {@link DatabaseManagerClosedException} if the
+     *     {@link DatabaseManager} gets closed.
+     * @param executor The {@link Executor} on which the {@code runnable} will be run.
+     * @param runnable The {@link Runnable} to run.
+     * @return A {@link CompletableFuture} which will complete once the runnable has been executed (or skipped if
+     *     {@link DatabaseManager} gets closed).
+     */
+    private CompletableFuture<Void> runAsyncOnExecutor(CompletableFuture<?> returnedCompletableFuture, Executor executor, Runnable runnable) {
         final Integer key = keysOfUncompletedCFs.incrementAndGet();
         uncompletedCompletableFutures.put(key, returnedCompletableFuture);
         returnedCompletableFuture.whenComplete((res, err) -> {
@@ -2147,8 +2172,11 @@ public final class DatabaseManager implements Closeable {
         }
     }
 
-    private static final class LoadedTeam extends CacheableEntry {
+    private final class LoadedTeam extends CacheableEntry {
         private final TeamProgression teamProgression;
+
+        // Not every team will get a progression update, init lazily on first use
+        private final AtomicReference<Executor> progressionUpdateExecutor = new AtomicReference<>();
 
         public LoadedTeam(@NotNull TeamProgression progression) {
             this.teamProgression = progression;
@@ -2157,6 +2185,25 @@ public final class DatabaseManager implements Closeable {
         @NotNull
         public TeamProgression getTeamProgression() {
             return teamProgression;
+        }
+
+        @NotNull
+        public Executor getProgressionUpdateExecutor() {
+            if (!DatabaseManager.this.supportsConcurrentProgressionUpdates) {
+                // DB does not support concurrent queries, return the single threaded executor
+                return DatabaseManager.this.executor;
+            }
+
+            var current = progressionUpdateExecutor.get();
+            if (current != null) {
+                // Already initialized
+                return current;
+            }
+
+            // Atomically initialize progressionUpdateExecutor
+            var executor = MoreExecutors.newSequentialExecutor(ForkJoinPool.commonPool());
+            var old = progressionUpdateExecutor.compareAndExchange(null, executor);
+            return old != null ? old : executor;
         }
     }
 

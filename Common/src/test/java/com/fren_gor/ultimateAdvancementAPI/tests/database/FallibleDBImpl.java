@@ -77,6 +77,11 @@ public class FallibleDBImpl implements IDatabase {
     }
 
     @Override
+    public boolean supportsConcurrentQueries() {
+        return inner.supportsConcurrentQueries();
+    }
+
+    @Override
     public int getTeamId(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         checkPlanning(DBOperation.GET_TEAM_ID);
         return inner.getTeamId(uuid);

@@ -54,6 +54,15 @@ public interface IDatabase {
     void close() throws SQLException;
 
     /**
+     * Returns whether the database supports more than one query at a time.
+     * <p>This should return {@code true} for databases like MySQL or PostgreSQL,
+     * while it should return {@code false} for databases like SQLite.
+     *
+     * @return Whether the database connection supports concurrent queries.
+     */
+    boolean supportsConcurrentQueries();
+
+    /**
      * Gets the team id of the provided player.
      *
      * @param player The player.
