@@ -137,6 +137,7 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public Connection openConnection() throws SQLException {
         return dataSource.getConnection();
     }
@@ -186,12 +187,14 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public List<UUID> getTeamMembers(int teamId) throws SQLException {
         try (Connection conn = openConnection()) {
             return getTeamMembers(conn, teamId);
         }
     }
 
+    @NotNull
     private List<UUID> getTeamMembers(Connection connection, int teamId) throws SQLException {
         try (PreparedStatement ps = connection.prepareStatement("SELECT `UUID` FROM `Players` WHERE `TeamID`=?;")) {
             ps.setInt(1, teamId);
@@ -208,12 +211,14 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public Map<AdvancementKey, Integer> getTeamAdvancements(int teamId) throws SQLException {
         try (Connection conn = openConnection()) {
             return getTeamAdvancements(conn, teamId);
         }
     }
 
+    @NotNull
     private Map<AdvancementKey, Integer> getTeamAdvancements(Connection connection, int teamId) throws SQLException {
         try (PreparedStatement ps = connection.prepareStatement("SELECT `Namespace`,`Key`,`Progression` FROM `Advancements` WHERE `TeamID`=?;")) {
             ps.setInt(1, teamId);
@@ -237,6 +242,7 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @NotNull String name) throws SQLException {
         int teamId;
         ResultSet r;
@@ -273,6 +279,7 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public TeamProgression loadUUID(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         int teamId = Integer.MIN_VALUE;
         List<UUID> list = new LinkedList<>();
@@ -313,12 +320,14 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public TeamProgression createNewTeam() throws SQLException {
         try (Connection conn = openConnection()) {
             return createNewTeam(conn);
         }
     }
 
+    @NotNull
     private TeamProgression createNewTeam(Connection conn) throws SQLException {
         try (PreparedStatement psInsert = conn.prepareStatement("INSERT INTO `Teams` () VALUES ();", Statement.RETURN_GENERATED_KEYS)) {
             psInsert.executeUpdate();
@@ -335,6 +344,7 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public TeamProgression loadTeam(int teamId) throws SQLException, TeamNotRegisteredException {
         try (Connection conn = openConnection()) {
             try (PreparedStatement ps = conn.prepareStatement("SELECT `ID` FROM `Teams` WHERE `ID` = ?;")) {
@@ -380,6 +390,7 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public LinkedList<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `Namespace`, `Key`, `GiveRewards` FROM `Unredeemed` WHERE `TeamID`=?;")) {
             ps.setInt(1, teamId);
@@ -498,6 +509,7 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public TeamProgression movePlayerInNewTeam(@NotNull UUID uuid) throws SQLException {
         try (Connection conn = openConnection()) {
             TeamProgression team = createNewTeam(conn);
@@ -510,6 +522,7 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public List<UUID> getPlayersByName(@NotNull String name) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `UUID` FROM `Players` WHERE `Name`=?;")) {
             ps.setString(1, name);
@@ -526,6 +539,7 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public String getPlayerName(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `Name` FROM `Players` WHERE `UUID`=? LIMIT 1;")) {
             ps.setString(1, uuid.toString());
@@ -583,6 +597,7 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
+    @NotNull
     public List<Integer> getPermanentTeams() throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `ID` FROM `Teams` WHERE `Permanent`!=0;")) {
             ResultSet r = ps.executeQuery();

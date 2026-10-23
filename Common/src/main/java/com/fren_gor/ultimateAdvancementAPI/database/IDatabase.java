@@ -44,6 +44,7 @@ public interface IDatabase {
      * @return The opened connection.
      * @throws SQLException If an SQL exception occurs.
      */
+    @NotNull
     Connection openConnection() throws SQLException;
 
     /**
@@ -91,6 +92,7 @@ public interface IDatabase {
      * @return The team members.
      * @throws SQLException If an SQL exception occurs.
      */
+    @NotNull
     List<UUID> getTeamMembers(int teamId) throws SQLException;
 
     /**
@@ -101,6 +103,7 @@ public interface IDatabase {
      * @return The team advancements mapped with their respective progressions.
      * @throws SQLException If an SQL exception occurs.
      */
+    @NotNull
     Map<AdvancementKey, Integer> getTeamAdvancements(int teamId) throws SQLException;
 
     /**
@@ -114,6 +117,7 @@ public interface IDatabase {
      *     database the player is already in the team (this allows an easier implementation of PlayerRegisteredEvent).
      * @throws SQLException If an SQL exception occurs.
      */
+    @NotNull
     Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @NotNull String name) throws SQLException;
 
     /**
@@ -126,6 +130,7 @@ public interface IDatabase {
      * @throws UserNotRegisteredException If the provided player could not be found in the database.
      * @see #loadOrRegisterPlayer(UUID, String)
      */
+    @NotNull
     TeamProgression loadUUID(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException;
 
     /**
@@ -134,6 +139,7 @@ public interface IDatabase {
      * @return The team's {@link TeamProgression}.
      * @throws SQLException If an SQL exception occurs.
      */
+    @NotNull
     TeamProgression createNewTeam() throws SQLException;
 
     /**
@@ -143,6 +149,7 @@ public interface IDatabase {
      * @throws SQLException If an SQL exception occurs.
      * @throws TeamNotRegisteredException If a team with the provided id could not be found in the database.
      */
+    @NotNull
     TeamProgression loadTeam(int teamId) throws SQLException, TeamNotRegisteredException;
 
     /**
@@ -163,6 +170,7 @@ public interface IDatabase {
      *     (see {@link #setUnredeemed(AdvancementKey, int, boolean)}).
      * @throws SQLException If an SQL exception occurs.
      */
+    @NotNull
     LinkedList<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException;
 
     /**
@@ -241,6 +249,7 @@ public interface IDatabase {
      * @return The {@link TeamProgression} of the new team.
      * @throws SQLException If an SQL exception occurs.
      */
+    @NotNull
     default TeamProgression movePlayerInNewTeam(@NotNull Player player) throws SQLException {
         return movePlayerInNewTeam(uuidFromPlayer(player));
     }
@@ -254,6 +263,7 @@ public interface IDatabase {
      * @return The {@link TeamProgression} of the new team.
      * @throws SQLException If an SQL exception occurs.
      */
+    @NotNull
     TeamProgression movePlayerInNewTeam(@NotNull UUID uuid) throws SQLException;
 
     /**
@@ -267,6 +277,7 @@ public interface IDatabase {
      * @throws SQLException If an SQL exception occurs.
      * @throws NotRegisteredException If the provided player name could not be found in the database.
      */
+    @NotNull
     default UUID getPlayerByName(@NotNull String name) throws SQLException, NotRegisteredException {
         List<UUID> l = getPlayersByName(name);
         if (l.isEmpty()) {
@@ -285,6 +296,7 @@ public interface IDatabase {
      * @return A list of the {@link UUID}s of the players with the specified name.
      * @throws SQLException If an SQL exception occurs.
      */
+    @NotNull
     List<UUID> getPlayersByName(@NotNull String name) throws SQLException;
 
     /**
@@ -295,6 +307,7 @@ public interface IDatabase {
      * @throws SQLException If an SQL exception occurs.
      * @throws UserNotRegisteredException If the provided player could not be found in the database.
      */
+    @NotNull
     String getPlayerName(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException;
 
     /**
@@ -333,6 +346,7 @@ public interface IDatabase {
      * @return A list containing all the permanent teams.
      * @throws SQLException If an SQL exception occurs.
      */
+    @NotNull
     List<Integer> getPermanentTeams() throws SQLException;
 
     /**

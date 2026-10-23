@@ -67,6 +67,7 @@ public class FallibleDBImpl implements IDatabase {
     }
 
     @Override
+    @NotNull
     public Connection openConnection() throws SQLException {
         return inner.openConnection();
     }
@@ -88,36 +89,42 @@ public class FallibleDBImpl implements IDatabase {
     }
 
     @Override
+    @NotNull
     public List<UUID> getTeamMembers(int teamId) throws SQLException {
         checkPlanning(DBOperation.GET_TEAM_MEMBERS);
         return inner.getTeamMembers(teamId);
     }
 
     @Override
+    @NotNull
     public Map<AdvancementKey, Integer> getTeamAdvancements(int teamId) throws SQLException {
         checkPlanning(DBOperation.GET_TEAM_ADVANCEMENTS);
         return inner.getTeamAdvancements(teamId);
     }
 
     @Override
+    @NotNull
     public Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @NotNull String name) throws SQLException {
         checkPlanning(DBOperation.LOAD_OR_REGISTER_PLAYER);
         return inner.loadOrRegisterPlayer(uuid, name);
     }
 
     @Override
+    @NotNull
     public TeamProgression loadUUID(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         checkPlanning(DBOperation.LOAD_UUID);
         return inner.loadUUID(uuid);
     }
 
     @Override
+    @NotNull
     public TeamProgression createNewTeam() throws SQLException {
         checkPlanning(DBOperation.CREATE_NEW_TEAM);
         return inner.createNewTeam();
     }
 
     @Override
+    @NotNull
     public TeamProgression loadTeam(int teamId) throws SQLException, TeamNotRegisteredException {
         checkPlanning(DBOperation.LOAD_TEAM);
         return inner.loadTeam(teamId);
@@ -130,6 +137,7 @@ public class FallibleDBImpl implements IDatabase {
     }
 
     @Override
+    @NotNull
     public LinkedList<Entry<AdvancementKey, Boolean>> getUnredeemed(int teamId) throws SQLException {
         checkPlanning(DBOperation.GET_UNREDEEMED);
         return inner.getUnredeemed(teamId);
@@ -172,18 +180,21 @@ public class FallibleDBImpl implements IDatabase {
     }
 
     @Override
+    @NotNull
     public TeamProgression movePlayerInNewTeam(@NotNull UUID uuid) throws SQLException {
         checkPlanning(DBOperation.MOVE_PLAYER_IN_NEW_TEAM);
         return inner.movePlayerInNewTeam(uuid);
     }
 
     @Override
+    @NotNull
     public List<UUID> getPlayersByName(@NotNull String name) throws SQLException {
         checkPlanning(DBOperation.GET_PLAYERS_BY_NAME);
         return inner.getPlayersByName(name);
     }
 
     @Override
+    @NotNull
     public String getPlayerName(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         checkPlanning(DBOperation.GET_PLAYER_NAME);
         return inner.getPlayerName(uuid);
@@ -208,6 +219,7 @@ public class FallibleDBImpl implements IDatabase {
     }
 
     @Override
+    @NotNull
     public List<Integer> getPermanentTeams() throws SQLException {
         checkPlanning(DBOperation.GET_PERMANENT_TEAMS);
         return inner.getPermanentTeams();
