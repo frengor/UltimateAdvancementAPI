@@ -9,6 +9,7 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteConfig.Encoding;
@@ -84,10 +85,11 @@ public class SQLite implements IDatabase {
      */
     @Override
     public void setUp() throws SQLException {
+        String playersColumnsDef;
         try (Statement statement = openConnection().createStatement()) {
-            //statement.addBatch("PRAGMA foreign_keys = ON;");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Teams` (`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `Permanent` INTEGER NOT NULL DEFAULT 0);");
-            statement.addBatch("CREATE TABLE IF NOT EXISTS `Players` (`UUID` TEXT NOT NULL PRIMARY KEY, `Name` TEXT NOT NULL, `TeamID` INTEGER NOT NULL, FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE);");
+            playersColumnsDef = "`UUID` TEXT NOT NULL PRIMARY KEY, `Name` TEXT NULL, `TeamID` INTEGER NOT NULL, FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE";
+            statement.addBatch("CREATE TABLE IF NOT EXISTS `Players` (" + playersColumnsDef + ");");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Advancements` (`Namespace` TEXT NOT NULL, `Key` TEXT NOT NULL, `TeamID` INTEGER NOT NULL, `Progression` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE);");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Unredeemed` (`Namespace` TEXT NOT NULL, `Key` TEXT NOT NULL, `TeamID` INTEGER NOT NULL, `GiveRewards` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`Namespace`, `Key`,`TeamID`) REFERENCES `Advancements`(`Namespace`, `Key`,`TeamID`) ON DELETE CASCADE ON UPDATE CASCADE);");
             statement.addBatch("VACUUM;"); // Vacuum the db periodically at startup
@@ -97,8 +99,13 @@ public class SQLite implements IDatabase {
                 // If the following select errors, we can assume the column doesn't exist
                 statement.executeQuery("SELECT `Permanent` FROM `Teams` LIMIT 1;");
             } catch (SQLException e) {
-                statement.execute("ALTER TABLE `Teams` ADD COLUMN `Permanent` INTEGER NOT NULL DEFAULT 0");
+                statement.execute("ALTER TABLE `Teams` ADD COLUMN `Permanent` INTEGER NOT NULL DEFAULT 0;");
             }
+        }
+        // Players.Name is nullable since 3.0.0, migrate old tables
+        if (getStoredTableDef("Players").contains("`Name` TEXT NOT NULL")) {
+            // Name is NOT NULL, update
+            alterTable("Players", playersColumnsDef);
         }
     }
 
@@ -189,7 +196,7 @@ public class SQLite implements IDatabase {
      */
     @Override
     @NotNull
-    public Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @NotNull String name) throws SQLException {
+    public Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @Nullable String name) throws SQLException {
         int teamId;
         ResultSet r;
         try (PreparedStatement psTeamId = openConnection().prepareStatement("SELECT `TeamID` FROM `Players` WHERE `UUID`=?;")) {
@@ -449,8 +456,8 @@ public class SQLite implements IDatabase {
      */
     @Override
     @NotNull
-    public List<UUID> getPlayersByName(@NotNull String name) throws SQLException {
-        try (PreparedStatement ps = openConnection().prepareStatement("SELECT `UUID` FROM `Players` WHERE `Name`=?;")) {
+    public List<UUID> getPlayersByName(@Nullable String name) throws SQLException {
+        try (PreparedStatement ps = openConnection().prepareStatement("SELECT `UUID` FROM `Players` WHERE `Name` IS ?;")) {
             ps.setString(1, name);
             ResultSet r = ps.executeQuery();
             List<UUID> list = new LinkedList<>();
@@ -465,7 +472,7 @@ public class SQLite implements IDatabase {
      * {@inheritDoc}
      */
     @Override
-    @NotNull
+    @Nullable
     public String getPlayerName(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         try (PreparedStatement ps = openConnection().prepareStatement("SELECT `Name` FROM `Players` WHERE `UUID`=? LIMIT 1;")) {
             ps.setString(1, uuid.toString());
@@ -481,7 +488,7 @@ public class SQLite implements IDatabase {
      * {@inheritDoc}
      */
     @Override
-    public void updatePlayerName(@NotNull UUID uuid, @NotNull String name) throws SQLException {
+    public void updatePlayerName(@NotNull UUID uuid, @Nullable String name) throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("UPDATE `Players` SET `Name`=? WHERE `UUID`=?;")) {
             ps.setString(1, name);
             ps.setString(2, uuid.toString());
@@ -542,6 +549,45 @@ public class SQLite implements IDatabase {
     public void clearUpTeams() throws SQLException {
         try (PreparedStatement ps = openConnection().prepareStatement("DELETE FROM `Teams` WHERE `Permanent`=0 AND `ID` NOT IN (SELECT `TeamID` FROM `Players` GROUP BY `TeamID`);")) {
             ps.execute();
+        }
+    }
+
+    private String getStoredTableDef(String tableName) throws SQLException {
+        // See https://sqlite.org/schematab.html
+        try (PreparedStatement ps = openConnection().prepareStatement("SELECT `sql` FROM `sqlite_master` WHERE `type`='table' AND `name`=?;")) {
+            ps.setString(1, tableName);
+            ResultSet r = ps.executeQuery();
+            if (!r.next()) {
+                throw new SQLException("Couldn't find table " + tableName);
+            }
+            return r.getString(1);
+        }
+    }
+
+    private void alterTable(String tableName, String newColumnsDefinition) throws SQLException {
+        // See https://sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes
+        Connection conn = openConnection();
+        try {
+            conn.setAutoCommit(false); // Make the transaction atomic
+
+            // No need to disable foreign keys
+
+            try (Statement statement = conn.createStatement()) {
+                statement.addBatch("CREATE TABLE `" + tableName + "_new` (" + newColumnsDefinition + ");");
+                statement.addBatch("INSERT INTO `" + tableName + "_new` SELECT * FROM `" + tableName + "`;");
+                statement.addBatch("DROP TABLE `" + tableName + "`;");
+                statement.addBatch("ALTER TABLE `" + tableName + "_new` RENAME TO `" + tableName + "`;");
+                statement.executeBatch();
+            }
+
+            // Foreign keys were not disabled, no need to run PRAGMA foreign_key_check
+
+            conn.commit();
+        } catch (Throwable t) {
+            conn.rollback();
+            throw t;
+        } finally {
+            conn.setAutoCommit(true);
         }
     }
 }

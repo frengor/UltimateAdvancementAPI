@@ -12,6 +12,7 @@ import net.byteflux.libby.Library;
 import net.byteflux.libby.LibraryManager;
 import net.byteflux.libby.classloader.IsolatedClassLoader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import javax.sql.DataSource;
@@ -118,18 +119,20 @@ public class MySQL implements IDatabase {
     public void setUp() throws SQLException {
         try (Connection conn = openConnection(); Statement statement = conn.createStatement()) {
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Teams` (`ID` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, `Permanent` INTEGER NOT NULL DEFAULT 0) DEFAULT CHARSET = utf8mb4;");
-            statement.addBatch("CREATE TABLE IF NOT EXISTS `Players` (`UUID` VARCHAR(36) NOT NULL, `Name` VARCHAR(16) NOT NULL, `TeamID` INTEGER NOT NULL, PRIMARY KEY(`UUID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
+            statement.addBatch("CREATE TABLE IF NOT EXISTS `Players` (`UUID` VARCHAR(36) NOT NULL, `Name` VARCHAR(16) NULL, `TeamID` INTEGER NOT NULL, PRIMARY KEY(`UUID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Advancements` (`Namespace` VARCHAR(127) NOT NULL, `Key` VARCHAR(127) NOT NULL, `TeamID` INTEGER NOT NULL, `Progression` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Unredeemed` (`Namespace` VARCHAR(127) NOT NULL, `Key` VARCHAR(127) NOT NULL, `TeamID` INTEGER NOT NULL, `GiveRewards` INTEGER NOT NULL, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`Namespace`, `Key`, `TeamID`) REFERENCES `Advancements`(`Namespace`, `Key`, `TeamID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
             statement.executeBatch();
             try {
                 // Permanent column was added in 3.0.0, migrate old tables (ignoring error if it already exists)
-                statement.execute("ALTER TABLE `Teams` ADD COLUMN `Permanent` INTEGER NOT NULL DEFAULT 0 AFTER `ID`");
+                statement.execute("ALTER TABLE `Teams` ADD COLUMN `Permanent` INTEGER NOT NULL DEFAULT 0 AFTER `ID`;");
             } catch (SQLException e) {
                 if (e.getErrorCode() != DUPLICATED_COLUMN_ERROR_CODE) {
                     throw e;
                 }
             }
+            // Players.Name is nullable since 3.0.0, migrate old tables
+            statement.execute("ALTER TABLE `Players` MODIFY COLUMN `Name` VARCHAR(16) NULL;");
         }
     }
 
@@ -243,7 +246,7 @@ public class MySQL implements IDatabase {
      */
     @Override
     @NotNull
-    public Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @NotNull String name) throws SQLException {
+    public Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @Nullable String name) throws SQLException {
         int teamId;
         ResultSet r;
         try (Connection conn = openConnection()) {
@@ -523,8 +526,8 @@ public class MySQL implements IDatabase {
      */
     @Override
     @NotNull
-    public List<UUID> getPlayersByName(@NotNull String name) throws SQLException {
-        try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `UUID` FROM `Players` WHERE `Name`=?;")) {
+    public List<UUID> getPlayersByName(@Nullable String name) throws SQLException {
+        try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `UUID` FROM `Players` WHERE `Name`<=>?;")) {
             ps.setString(1, name);
             ResultSet r = ps.executeQuery();
             List<UUID> list = new LinkedList<>();
@@ -539,7 +542,7 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
-    @NotNull
+    @Nullable
     public String getPlayerName(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("SELECT `Name` FROM `Players` WHERE `UUID`=? LIMIT 1;")) {
             ps.setString(1, uuid.toString());
@@ -555,7 +558,7 @@ public class MySQL implements IDatabase {
      * {@inheritDoc}
      */
     @Override
-    public void updatePlayerName(@NotNull UUID uuid, @NotNull String name) throws SQLException {
+    public void updatePlayerName(@NotNull UUID uuid, @Nullable String name) throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("UPDATE `Players` SET `Name`=? WHERE `UUID`=?;")) {
             ps.setString(1, name);
             ps.setString(2, uuid.toString());
