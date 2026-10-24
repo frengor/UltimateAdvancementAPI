@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.TeamNotRegisteredException
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.io.PrintStream;
@@ -104,7 +105,7 @@ public class FallibleDBImpl implements IDatabase {
 
     @Override
     @NotNull
-    public Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @NotNull String name) throws SQLException {
+    public Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @Nullable String name) throws SQLException {
         checkPlanning(DBOperation.LOAD_OR_REGISTER_PLAYER);
         return inner.loadOrRegisterPlayer(uuid, name);
     }
@@ -188,20 +189,20 @@ public class FallibleDBImpl implements IDatabase {
 
     @Override
     @NotNull
-    public List<UUID> getPlayersByName(@NotNull String name) throws SQLException {
+    public List<UUID> getPlayersByName(@Nullable String name) throws SQLException {
         checkPlanning(DBOperation.GET_PLAYERS_BY_NAME);
         return inner.getPlayersByName(name);
     }
 
     @Override
-    @NotNull
+    @Nullable
     public String getPlayerName(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException {
         checkPlanning(DBOperation.GET_PLAYER_NAME);
         return inner.getPlayerName(uuid);
     }
 
     @Override
-    public void updatePlayerName(@NotNull UUID uuid, @NotNull String name) throws SQLException {
+    public void updatePlayerName(@NotNull UUID uuid, @Nullable String name) throws SQLException {
         checkPlanning(DBOperation.UPDATE_PLAYER_NAME);
         inner.updatePlayerName(uuid, name);
     }

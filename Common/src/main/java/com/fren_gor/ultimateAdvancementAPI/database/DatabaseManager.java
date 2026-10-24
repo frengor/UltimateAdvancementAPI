@@ -16,6 +16,7 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseManagerClosedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.SyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
+import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
@@ -449,25 +450,28 @@ public final class DatabaseManager implements Closeable {
      * <p><strong>Should be called async.</strong>
      *
      * @param uuid The UUID of the player to be loaded or registered.
-     * @param name The name of the player to be loaded or registered. May be {@code null} when {@code loadOnly} is {@code true}.
+     * @param name The name of the player to be loaded or registered. May be {@code null}.
      * @param loadedPlayer The {@link LoadedPlayer} object associated with player.
      * @param loadOnly Weather to only load the player and fail if not present in the database.
      * @param callback Callback called when the load/registration process ends. May be called either sync or async.
      * @throws SQLException If anything goes wrong.
+     * @throws UserNotRegisteredException If {@code loadOnly} is {@code true} and the player is not found.
      */
-    private void loadOrRegisterPlayerTeam(@NotNull UUID uuid, @Nullable String name, @NotNull LoadedPlayer loadedPlayer, boolean loadOnly, @NotNull Consumer<TeamProgression> callback) throws SQLException {
+    private void loadOrRegisterPlayerTeam(@NotNull UUID uuid, @Nullable String name, @NotNull LoadedPlayer loadedPlayer, boolean loadOnly, @NotNull Consumer<TeamProgression> callback) throws SQLException, UserNotRegisteredException {
         final TeamProgression progression;
         final boolean fireRegisteredEvent;
         if (loadOnly) {
             progression = database.loadUUID(uuid);
             fireRegisteredEvent = false;
         } else {
-            // The player here is always online when called
-            Entry<TeamProgression, Boolean> e = database.loadOrRegisterPlayer(uuid, Objects.requireNonNull(name, "Player name is null."));
+            Entry<TeamProgression, Boolean> e = database.loadOrRegisterPlayer(uuid, name);
             progression = e.getKey();
             fireRegisteredEvent = e.getValue();
+            if (fireRegisteredEvent && progression.getSize() != 0) {
+                throw new IllegalArgumentException(database.getClass().getName() + ".loadOrRegisterPlayer(...) returned a TeamProgression containing some members when registering player " + uuid);
+            }
         }
-        if (!fireRegisteredEvent && name != null) {
+        if (!fireRegisteredEvent && name != null) { // Don't update name if it's null
             updatePlayerName(uuid, name);
         }
 
@@ -608,15 +612,15 @@ public final class DatabaseManager implements Closeable {
      * @see UltimateAdvancementAPI#updatePlayerName(Player)
      */
     @NotNull
-    public CompletableFuture<Void> updatePlayerName(@NotNull Player player) {
+    public CompletableFuture<Void> updatePlayerName(@NotNull OfflinePlayer player) {
         checkClosed();
-        Preconditions.checkNotNull(player, "Player cannot be null.");
+        Preconditions.checkNotNull(player, "OfflinePlayer cannot be null.");
 
         return updatePlayerName(player.getUniqueId(), player.getName());
     }
 
     @NotNull
-    private CompletableFuture<Void> updatePlayerName(@NotNull UUID uuid, @NotNull String name) {
+    private CompletableFuture<Void> updatePlayerName(@NotNull UUID uuid, @Nullable String name) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(name, "Name is null.");
 
@@ -626,7 +630,7 @@ public final class DatabaseManager implements Closeable {
             try {
                 database.updatePlayerName(uuid, name);
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Couldn't update player " + name + " name", e);
+                logger.log(Level.SEVERE, "Couldn't update player " + uuid + " name to " + name, e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
                 return;
             }
@@ -1379,7 +1383,7 @@ public final class DatabaseManager implements Closeable {
      * @see UltimateAdvancementAPI#getStoredPlayerName(UUID)
      */
     @NotNull
-    public CompletableFuture<String> getStoredPlayerName(@NotNull UUID uuid) {
+    public CompletableFuture<@Nullable String> getStoredPlayerName(@NotNull UUID uuid) {
         checkClosed();
         Preconditions.checkNotNull(uuid, "UUID is null.");
 
@@ -1503,7 +1507,7 @@ public final class DatabaseManager implements Closeable {
 
             try {
                 // Player team isn't loaded yet
-                loadOrRegisterPlayerTeam(uuid, null /*fine since loadOnly is true*/, loadedPlayer, true /*loadOnly*/, pro -> {
+                loadOrRegisterPlayerTeam(uuid, null, loadedPlayer, true /*loadOnly*/, pro -> {
                     if (!requester.isEnabled()) {
                         completableFuture.completeExceptionally(new IllegalStateException("Plugin is not enabled."));
                         return;

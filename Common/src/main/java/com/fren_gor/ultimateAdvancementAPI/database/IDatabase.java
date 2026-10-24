@@ -1,11 +1,13 @@
 package com.fren_gor.ultimateAdvancementAPI.database;
 
+import com.fren_gor.ultimateAdvancementAPI.events.team.PlayerRegisteredEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.NotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.TeamNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.sql.Connection;
@@ -107,18 +109,18 @@ public interface IDatabase {
     Map<AdvancementKey, Integer> getTeamAdvancements(int teamId) throws SQLException;
 
     /**
-     * Loads the provided player or registers they if they are new.
+     * Loads the provided player or registers them in a new team if they are new.
      *
      * @param uuid The player {@link UUID}.
-     * @param name The player name.
-     * @return A pair containing a (always new) {@link TeamProgression} with the player's team information and
+     * @param name The player name. May be {@code null}.
+     * @return A pair containing a new {@link TeamProgression} instance with the player's team information and
      *     whether the player has been registered (so whether it wasn't already in the database).
-     *     In the latter case, the returned {@link TeamProgression} doesn't contain the player although in the
-     *     database the player is already in the team (this allows an easier implementation of PlayerRegisteredEvent).
+     *     If the player has been registered, the returned {@link TeamProgression} must not contain any member, even though in the
+     *     database the player is already in the team (this allows an easier implementation of {@link PlayerRegisteredEvent}).
      * @throws SQLException If an SQL exception occurs.
      */
     @NotNull
-    Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @NotNull String name) throws SQLException;
+    Entry<TeamProgression, Boolean> loadOrRegisterPlayer(@NotNull UUID uuid, @Nullable String name) throws SQLException;
 
     /**
      * Loads the provided player from the database.
@@ -272,13 +274,13 @@ public interface IDatabase {
      * name without updating it in the database and another player with that name joins the server), this method
      * returns the {@link UUID} of the first player found with the specified name.
      *
-     * @param name The player name.
+     * @param name The player name. May be {@code null}.
      * @return The {@link UUID} of the first player found with the provided name.
      * @throws SQLException If an SQL exception occurs.
      * @throws NotRegisteredException If the provided player name could not be found in the database.
      */
     @NotNull
-    default UUID getPlayerByName(@NotNull String name) throws SQLException, NotRegisteredException {
+    default UUID getPlayerByName(@Nullable String name) throws SQLException, NotRegisteredException {
         List<UUID> l = getPlayersByName(name);
         if (l.isEmpty()) {
             throw new NotRegisteredException("Couldn't find any player with name '" + name + '\'');
@@ -292,32 +294,32 @@ public interface IDatabase {
      * name without updating it in the database and another player with that name joins the server), this method
      * could return a list with more than one {@link UUID}.
      *
-     * @param name The player name.
+     * @param name The player name. May be {@code null}.
      * @return A list of the {@link UUID}s of the players with the specified name.
      * @throws SQLException If an SQL exception occurs.
      */
     @NotNull
-    List<UUID> getPlayersByName(@NotNull String name) throws SQLException;
+    List<UUID> getPlayersByName(@Nullable String name) throws SQLException;
 
     /**
      * Gets the stored name for the specified player.
      *
      * @param uuid The player {@link UUID}.
-     * @return The stored name.
+     * @return The stored name. May be {@code null}.
      * @throws SQLException If an SQL exception occurs.
      * @throws UserNotRegisteredException If the provided player could not be found in the database.
      */
-    @NotNull
+    @Nullable
     String getPlayerName(@NotNull UUID uuid) throws SQLException, UserNotRegisteredException;
 
     /**
      * Updates the player name in the database.
      *
      * @param uuid The {@link UUID} of the player to be updated.
-     * @param name The new player name.
+     * @param name The new player name. May be {@code null}.
      * @throws SQLException If an SQL exception occurs.
      */
-    void updatePlayerName(@NotNull UUID uuid, @NotNull String name) throws SQLException;
+    void updatePlayerName(@NotNull UUID uuid, @Nullable String name) throws SQLException;
 
     /**
      * Sets the provided team as permanent.
