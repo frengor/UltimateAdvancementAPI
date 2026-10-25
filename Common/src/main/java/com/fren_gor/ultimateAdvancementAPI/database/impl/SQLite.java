@@ -92,7 +92,6 @@ public class SQLite implements IDatabase {
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Players` (" + playersColumnsDef + ");");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Advancements` (`Namespace` TEXT NOT NULL, `Key` TEXT NOT NULL, `TeamID` INTEGER NOT NULL, `Progression` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE);");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Unredeemed` (`Namespace` TEXT NOT NULL, `Key` TEXT NOT NULL, `TeamID` INTEGER NOT NULL, `GiveRewards` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`Namespace`, `Key`,`TeamID`) REFERENCES `Advancements`(`Namespace`, `Key`,`TeamID`) ON DELETE CASCADE ON UPDATE CASCADE);");
-            statement.addBatch("VACUUM;"); // Vacuum the db periodically at startup
             statement.executeBatch();
             try {
                 // Permanent column was added in 3.0.0, migrate old tables
@@ -106,6 +105,10 @@ public class SQLite implements IDatabase {
         if (getStoredTableDef("Players").contains("`Name` TEXT NOT NULL")) {
             // Name is NOT NULL, update
             alterTable("Players", playersColumnsDef);
+        }
+        // Vacuum at the end
+        try (Statement statement = openConnection().createStatement()) {
+            statement.execute("VACUUM;"); // Vacuum the db at startup
         }
     }
 
