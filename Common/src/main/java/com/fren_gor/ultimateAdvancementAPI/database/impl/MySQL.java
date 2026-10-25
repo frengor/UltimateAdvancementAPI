@@ -31,8 +31,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Class used to establish a connection to a MySQL database.
@@ -40,6 +44,9 @@ import java.util.logging.Logger;
 public class MySQL implements IDatabase {
 
     private static final int DUPLICATED_COLUMN_ERROR_CODE = 1060;
+
+    // Matches "CONSTRAINT `group1` FOREIGN KEY (`group2`, `group3`, `group4`)" regardless of whitespaces and backticks
+    private static final Pattern FOREIGN_KEY_EXTRACTOR = Pattern.compile("CONSTRAINT(?:`|\\s+`?)([\\S&&[^`]]+)(?:`|`?\\s+)FOREIGN\\s+KEY\\s*\\(\\s*`?([a-zA-Z]+)`?\\s*,\\s*`?([a-zA-Z]+)`?\\s*,\\s*`?([a-zA-Z]+)`?\\s*\\)", Pattern.CASE_INSENSITIVE);
 
     private final Logger logger;
     private final IsolatedClassLoader classLoader;
@@ -121,7 +128,7 @@ public class MySQL implements IDatabase {
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Teams` (`ID` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, `Permanent` INTEGER NOT NULL DEFAULT 0) DEFAULT CHARSET = utf8mb4;");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Players` (`UUID` VARCHAR(36) NOT NULL, `Name` VARCHAR(16) NULL, `TeamID` INTEGER NOT NULL, PRIMARY KEY(`UUID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Advancements` (`Namespace` VARCHAR(127) NOT NULL, `Key` VARCHAR(127) NOT NULL, `TeamID` INTEGER NOT NULL, `Progression` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
-            statement.addBatch("CREATE TABLE IF NOT EXISTS `Unredeemed` (`Namespace` VARCHAR(127) NOT NULL, `Key` VARCHAR(127) NOT NULL, `TeamID` INTEGER NOT NULL, `GiveRewards` INTEGER NOT NULL, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`Namespace`, `Key`, `TeamID`) REFERENCES `Advancements`(`Namespace`, `Key`, `TeamID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
+            statement.addBatch("CREATE TABLE IF NOT EXISTS `Unredeemed` (`Namespace` VARCHAR(127) NOT NULL, `Key` VARCHAR(127) NOT NULL, `TeamID` INTEGER NOT NULL, `GiveRewards` INTEGER NOT NULL, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE) DEFAULT CHARSET = utf8mb4;");
             statement.executeBatch();
             try {
                 // Permanent column was added in 3.0.0, migrate old tables (ignoring error if it already exists)
@@ -133,6 +140,8 @@ public class MySQL implements IDatabase {
             }
             // Players.Name is nullable since 3.0.0, migrate old tables
             statement.execute("ALTER TABLE `Players` MODIFY COLUMN `Name` VARCHAR(16) NULL;");
+            // Namespace and Key are not part of the foreign key of Unredeemed since 3.0.0, migrate old tables
+            migrateUnredeemedOldFK(statement);
         }
     }
 
@@ -619,6 +628,33 @@ public class MySQL implements IDatabase {
     public void clearUpTeams() throws SQLException {
         try (Connection conn = openConnection(); PreparedStatement ps = conn.prepareStatement("DELETE FROM `Teams` WHERE `Permanent`=0 AND `ID` NOT IN (SELECT `TeamID` FROM `Players` GROUP BY `TeamID`);")) {
             ps.execute();
+        }
+    }
+
+    private String getTableDef(Statement statement, String tableName) throws SQLException {
+        ResultSet r = statement.executeQuery("SHOW CREATE TABLE `" + tableName + "`;");
+        if (!r.next()) {
+            throw new SQLException("Couldn't find table " + tableName);
+        }
+        return r.getString(2);
+    }
+
+    private void migrateUnredeemedOldFK(Statement statement) throws SQLException {
+        Matcher unredeemedFK = FOREIGN_KEY_EXTRACTOR.matcher(getTableDef(statement, "Unredeemed"));
+        if (unredeemedFK.find()) {
+            var keys = Set.of(unredeemedFK.group(2), unredeemedFK.group(3), unredeemedFK.group(4));
+            if (keys.contains("Namespace") && keys.contains("Key") && keys.contains("TeamID")) {
+                // Old foreign key found, update
+                try {
+                    statement.addBatch("ALTER TABLE `Unredeemed` DROP FOREIGN KEY `" + unredeemedFK.group(1) + "`;");
+                    statement.addBatch("ALTER TABLE `Unredeemed` ADD FOREIGN KEY (`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE;");
+                    statement.executeBatch();
+                } catch (Throwable t) {
+                    // ALTER TABLE cannot be rolled back, print a helpful message for server admins
+                    this.logger.log(Level.SEVERE, "Could not migrate foreign key of table Unredeemed. YOUR DATABASE MAY BE IN AN INCONSISTENT STATE! A possible fix is to delete the Unredeemed table and restart your server", t);
+                    throw t;
+                }
+            }
         }
     }
 }

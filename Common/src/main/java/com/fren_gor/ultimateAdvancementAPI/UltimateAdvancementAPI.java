@@ -8,7 +8,6 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.APINotInstantiatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
-import com.fren_gor.ultimateAdvancementAPI.exceptions.NotGrantedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
@@ -577,16 +576,7 @@ public final class UltimateAdvancementAPI {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkNotNull(uuid, "UUID is null.");
 
-        final int maxProgression = advancement.getMaxProgression();
-        final AdvancementKey key = advancement.getKey();
-        return callAfterLoad(uuid, ds -> {
-            TeamProgression pro = ds.getTeamProgression(uuid);
-            // Don't call update if advancement isn't granted
-            if (pro.getRawProgression(key) != maxProgression) {
-                throw new NotGrantedException(key, pro.getTeamId());
-            }
-            return ds.setUnredeemed(advancement.getKey(), uuid, giveRewards);
-        });
+        return callAfterLoad(uuid, ds -> ds.setUnredeemed(advancement.getKey(), uuid, giveRewards));
     }
 
     /**
@@ -613,15 +603,7 @@ public final class UltimateAdvancementAPI {
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkNotNull(teamProgression, "TeamProgression is null.");
 
-        final int maxProgression = advancement.getMaxProgression();
-        final AdvancementKey key = advancement.getKey();
-        return callAfterLoad(teamProgression, ds -> {
-            // Don't call update if advancement isn't granted
-            if (teamProgression.getRawProgression(key) != maxProgression) {
-                throw new NotGrantedException(key, teamProgression.getTeamId());
-            }
-            return ds.setUnredeemed(advancement.getKey(), teamProgression, giveRewards);
-        });
+        return callAfterLoad(teamProgression, ds -> ds.setUnredeemed(advancement.getKey(), teamProgression, giveRewards));
     }
 
     /**

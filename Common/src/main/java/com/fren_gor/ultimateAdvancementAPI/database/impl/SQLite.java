@@ -85,13 +85,14 @@ public class SQLite implements IDatabase {
      */
     @Override
     public void setUp() throws SQLException {
-        String playersColumnsDef;
+        String playersColumnsDef, unredeemedColumnsDef;
         try (Statement statement = openConnection().createStatement()) {
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Teams` (`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `Permanent` INTEGER NOT NULL DEFAULT 0);");
             playersColumnsDef = "`UUID` TEXT NOT NULL PRIMARY KEY, `Name` TEXT NULL, `TeamID` INTEGER NOT NULL, FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE";
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Players` (" + playersColumnsDef + ");");
             statement.addBatch("CREATE TABLE IF NOT EXISTS `Advancements` (`Namespace` TEXT NOT NULL, `Key` TEXT NOT NULL, `TeamID` INTEGER NOT NULL, `Progression` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE);");
-            statement.addBatch("CREATE TABLE IF NOT EXISTS `Unredeemed` (`Namespace` TEXT NOT NULL, `Key` TEXT NOT NULL, `TeamID` INTEGER NOT NULL, `GiveRewards` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`Namespace`, `Key`,`TeamID`) REFERENCES `Advancements`(`Namespace`, `Key`,`TeamID`) ON DELETE CASCADE ON UPDATE CASCADE);");
+            unredeemedColumnsDef = "`Namespace` TEXT NOT NULL, `Key` TEXT NOT NULL, `TeamID` INTEGER NOT NULL, `GiveRewards` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`Namespace`,`Key`,`TeamID`), FOREIGN KEY(`TeamID`) REFERENCES `Teams`(`ID`) ON DELETE CASCADE ON UPDATE CASCADE";
+            statement.addBatch("CREATE TABLE IF NOT EXISTS `Unredeemed` (" + unredeemedColumnsDef + ");");
             statement.executeBatch();
             try {
                 // Permanent column was added in 3.0.0, migrate old tables
@@ -105,6 +106,11 @@ public class SQLite implements IDatabase {
         if (getStoredTableDef("Players").contains("`Name` TEXT NOT NULL")) {
             // Name is NOT NULL, update
             alterTable("Players", playersColumnsDef);
+        }
+        // Namespace and Key are not part of the foreign key of Unredeemed since 3.0.0, migrate old tables
+        if (getStoredTableDef("Unredeemed").contains("FOREIGN KEY(`Namespace`")) {
+            // Old foreign key found, update
+            alterTable("Unredeemed", unredeemedColumnsDef);
         }
         // Vacuum at the end
         try (Statement statement = openConnection().createStatement()) {
