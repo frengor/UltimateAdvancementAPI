@@ -2034,6 +2034,14 @@ public final class DatabaseManager implements Closeable {
         }
 
         callEventCatchingExceptions(new TeamUpdateEvent(player.getUuid(), oldTeam.getTeamProgression(), newTeam.getTeamProgression()));
+
+        try {
+            main.updateAdvancementsToTeam(newTeam.getTeamProgression());
+            main.updateAdvancementsToTeam(oldTeam.getTeamProgression());
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "An exception occurred while scheduling tab updates", e);
+        }
+
         removeInternalRequest(oldTeam);
     }
 
@@ -2074,15 +2082,10 @@ public final class DatabaseManager implements Closeable {
 
             checkSync(); // To catch bugs, done after completing the completable future to avoid not completing it
 
-            if (playerToMove != null && playerToMove.isOnline()) {
-                // We are already on main thread here since we are in the callback
-                main.updateAdvancementsToTeam(playerToMove);
-
-                if (processUnredeemed) {
-                    // processUnredeemed expects to have an internal request "passed" to it
-                    player.addInternalRequest();
-                    processUnredeemed(player, playerToMove);
-                }
+            if (processUnredeemed && playerToMove != null && playerToMove.isOnline()) {
+                // processUnredeemed expects to have an internal request "passed" to it
+                player.addInternalRequest();
+                processUnredeemed(player, playerToMove);
             }
         });
     }
