@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.jetbrains.annotations.UnmodifiableView;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -86,7 +87,7 @@ public final class AdvancementMain {
      * Creates a new {@code AdvancementMain}.
      *
      * @param owningPlugin The plugin instantiating the API.
-     * @param libFolder The name of the folder when additional libraries will be stored into.
+     * @param libFolder The name of the folder where additional libraries will be stored into.
      *     The folder is created into the plugin directory.
      */
     public AdvancementMain(@NotNull Plugin owningPlugin, String libFolder) {
@@ -220,9 +221,6 @@ public final class AdvancementMain {
             throw new InvalidVersionException("Incorrect minecraft version. Couldn't disable UltimateAdvancementAPI.");
         }
         if (!LOADED.compareAndSet(true, false)) {
-            // Old code
-            // throw new IllegalStateException("UltimateAdvancementAPI is not loaded.");
-
             return; // Don't do anything if API is already disabled
         }
 
@@ -331,6 +329,9 @@ public final class AdvancementMain {
         if (tabs.containsKey(namespace)) {
             throw new DuplicatedException("An AdvancementTab with '" + namespace + "' namespace already exists.");
         }
+        if (!plugin.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled.");
+        }
 
         AdvancementTab tab = new AdvancementTab(plugin, databaseManager, namespace, tabDisplay);
         tabs.put(namespace, tab);
@@ -380,6 +381,9 @@ public final class AdvancementMain {
     public Collection<@NotNull AdvancementTab> getPluginAdvancementTabs(@NotNull Plugin plugin) {
         checkInitialisation();
         Preconditions.checkNotNull(plugin, "Plugin is null.");
+        if (!plugin.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled.");
+        }
         return Collections.unmodifiableCollection(pluginMap.getOrDefault(plugin, Collections.emptyList()));
     }
 
@@ -408,6 +412,9 @@ public final class AdvancementMain {
     public void unregisterAdvancementTabs(@NotNull Plugin plugin) {
         checkInitialisation();
         Preconditions.checkNotNull(plugin, "Plugin is null.");
+        if (!plugin.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled.");
+        }
         List<AdvancementTab> tabs = pluginMap.remove(plugin);
         if (tabs != null) {
             for (AdvancementTab t : tabs)
@@ -498,7 +505,7 @@ public final class AdvancementMain {
     @Contract(pure = true, value = "_ -> new")
     public List<@NotNull String> filterNamespaces(@Nullable String input) {
         checkInitialisation();
-        List<String> l = new LinkedList<>();
+        List<String> l = new ArrayList<>();
         synchronized (tabs) {
             if (input == null || input.isEmpty()) {
                 for (Entry<String, AdvancementTab> e : tabs.entrySet()) {

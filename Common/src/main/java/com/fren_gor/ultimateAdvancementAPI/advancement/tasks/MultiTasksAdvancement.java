@@ -19,6 +19,7 @@ import org.bukkit.event.EventPriority;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.jetbrains.annotations.Unmodifiable;
 import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.Collections;
@@ -46,7 +47,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     private final Set<TaskAdvancement> tasks = new HashSet<>();
 
     // Initialized with values in registerTasks(...)
-    // Must always be immutable
+    @Unmodifiable
     private Set<AdvancementKey> tasksKeys = Collections.emptySet();
 
     // Team id -> progression

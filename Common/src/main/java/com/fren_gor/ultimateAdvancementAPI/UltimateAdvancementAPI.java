@@ -61,7 +61,9 @@ public final class UltimateAdvancementAPI {
     @NotNull
     public static UltimateAdvancementAPI getInstance(@NotNull Plugin plugin) throws APINotInstantiatedException {
         Preconditions.checkNotNull(plugin, "Plugin is null.");
-        Preconditions.checkArgument(plugin.isEnabled(), "Plugin is not enabled.");
+        if (!plugin.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled.");
+        }
         if (main == null) {
             throw new APINotInstantiatedException();
         }
@@ -327,7 +329,7 @@ public final class UltimateAdvancementAPI {
         try {
             AdvancementUtils.disableVanillaAdvancements();
         } catch (Exception e) {
-            throw new RuntimeException("Couldn't disable minecraft advancements.", e);
+            throw new RuntimeException("Couldn't disable vanilla advancements.", e);
         }
     }
 
@@ -340,7 +342,7 @@ public final class UltimateAdvancementAPI {
         try {
             AdvancementUtils.disableVanillaRecipeAdvancements();
         } catch (Exception e) {
-            throw new RuntimeException("Couldn't disable minecraft recipe advancements.", e);
+            throw new RuntimeException("Couldn't disable vanilla recipe advancements.", e);
         }
     }
 

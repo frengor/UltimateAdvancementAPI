@@ -129,7 +129,7 @@ public class TaskAdvancement extends BaseAdvancement {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
 
-            // Use try-finally to make sure to call reloadTasks, since not doing so will leak memory
+            // Use try-finally to make sure to call onTaskProgressionChange
             try {
                 handleAdvancementGranting(pro, player, result.newProgression(), result.oldProgression(), giveRewards);
             } finally {
@@ -166,7 +166,7 @@ public class TaskAdvancement extends BaseAdvancement {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
             }
 
-            // Use try-finally to make sure to call reloadTasks, since not doing so will leak memory
+            // Use try-finally to make sure to call onTaskProgressionChange
             try {
                 handleAdvancementGranting(pro, player, result.newProgression(), result.oldProgression(), giveRewards);
             } finally {

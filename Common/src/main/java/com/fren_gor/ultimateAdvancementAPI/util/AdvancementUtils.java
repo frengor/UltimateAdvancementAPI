@@ -109,6 +109,7 @@ public final class AdvancementUtils {
         Preconditions.checkNotNull(title, "Title is null.");
         Preconditions.checkNotNull(frame, "AdvancementFrameType is null.");
         Preconditions.checkArgument(icon.getType() != Material.AIR, "ItemStack is air.");
+        Preconditions.checkArgument(player.isOnline(), "Player is not online.");
 
         try {
             MinecraftKeyWrapper notification_key = MinecraftKeyWrapper.craft(NOTIFICATION_NAMESPACE, AdvancementKey.RESERVED_KEY_PREFIX + "notification-" + NOTIFICATION_KEY_NUMBER.getAndIncrement());
@@ -128,6 +129,7 @@ public final class AdvancementUtils {
         Preconditions.checkNotNull(player, "Player is null.");
         Preconditions.checkNotNull(advancement, "Advancement is null.");
         Preconditions.checkArgument(advancement.isValid(), "Advancement isn't valid.");
+        Preconditions.checkArgument(player.isOnline(), "Player is not online.");
 
         final AbstractAdvancementDisplay display = advancement.getDisplay();
         final TeamProgression pro = advancement.getAdvancementTab().getDatabaseManager().getTeamProgression(player);

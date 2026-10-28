@@ -487,10 +487,11 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
         AdvancementUtils.checkSync();
         validateTeamProgression(pro);
         if (newProgression >= this.maxProgression && oldProgression < this.maxProgression) {
-            if (player != null) {
+            DatabaseManager ds = advancementTab.getDatabaseManager();
+            // Check that the player is still online and in the same team
+            if (player != null && ds.isLoadedAndOnline(player) && pro.contains(player)) {
                 onGrant(player, giveRewards);
             } else {
-                DatabaseManager ds = advancementTab.getDatabaseManager();
                 player = pro.getAnOnlineMember(ds);
                 if (player != null) {
                     onGrant(player, giveRewards);

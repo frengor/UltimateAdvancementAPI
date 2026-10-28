@@ -19,7 +19,6 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotRegisteredException;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -291,6 +290,7 @@ public final class DatabaseManager implements Closeable {
         }
     }
 
+    // This method may be called async
     private void loadPlayerOnConnect(@NotNull UUID uuid, @NotNull String name) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(name, "Name is null.");
@@ -371,6 +371,7 @@ public final class DatabaseManager implements Closeable {
         });
     }
 
+    // This method may be called async
     private void unloadPlayerOnDisconnect(@NotNull UUID uuid) {
         Preconditions.checkNotNull(uuid, "UUID is null.");
 
@@ -1429,13 +1430,12 @@ public final class DatabaseManager implements Closeable {
         checkClosed();
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
+        if (!requester.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled.");
+        }
 
         final LoadedPlayer loadedPlayer;
         synchronized (DatabaseManager.this) {
-            if (!requester.isEnabled()) {
-                throw new IllegalStateException("Plugin is not enabled.");
-            }
-
             // addPlayerToCache(...) already adds 1 internal request to the player
             loadedPlayer = addPlayerToCache(uuid, false);
 
@@ -1519,7 +1519,6 @@ public final class DatabaseManager implements Closeable {
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Couldn't load offline player " + uuid, e);
                 completableFuture.completeExceptionally(new DatabaseException(e));
-                return;
             }
         }).whenComplete((v, t) -> {
             removeInternalRequest(loadedPlayer);
@@ -1539,23 +1538,27 @@ public final class DatabaseManager implements Closeable {
      *
      * @param uuid The {@link UUID} of the player.
      * @param requester The plugin which requested the loading.
+     * @throws UserNotLoadedException If the provided player is not loaded into the caching system.
      * @see UltimateAdvancementAPI#removeLoadingRequest(UUID)
      * @see #loadAndAddLoadingRequest(UUID, Plugin)
      * @see #getLoadingRequestsAmount(UUID, Plugin)
      */
-    public void removeLoadingRequest(@NotNull UUID uuid, @NotNull Plugin requester) {
+    public void removeLoadingRequest(@NotNull UUID uuid, @NotNull Plugin requester) throws UserNotLoadedException {
         checkClosed();
         Preconditions.checkNotNull(uuid, "UUID is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
+        if (!requester.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled.");
+        }
 
         LoadedPlayer loadedPlayer;
         synchronized (DatabaseManager.this) {
-            Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
-
             loadedPlayer = playersLoaded.get(uuid);
         }
-        if (loadedPlayer != null)
-            removePluginRequest(loadedPlayer, requester);
+        if (loadedPlayer == null) {
+            throw new UserNotLoadedException(uuid);
+        }
+        removePluginRequest(loadedPlayer, requester);
     }
 
     /**
@@ -1576,11 +1579,8 @@ public final class DatabaseManager implements Closeable {
     public CompletableFuture<TeamProgression> createNewTeamWithOneLoadingRequest(@NotNull Plugin requester) {
         checkClosed();
         Preconditions.checkNotNull(requester, "Plugin is null.");
-
-        synchronized (DatabaseManager.this) {
-            if (!requester.isEnabled()) {
-                throw new IllegalStateException("Plugin is not enabled.");
-            }
+        if (!requester.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled.");
         }
 
         CompletableFuture<TeamProgression> completableFuture = new CompletableFuture<>();
@@ -1638,13 +1638,11 @@ public final class DatabaseManager implements Closeable {
     public CompletableFuture<TeamProgression> loadAndAddLoadingRequest(int teamId, @NotNull Plugin requester) {
         checkClosed();
         Preconditions.checkNotNull(requester, "Plugin is null.");
+        if (!requester.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled.");
+        }
 
         synchronized (DatabaseManager.this) {
-            if (!requester.isEnabled()) {
-                throw new IllegalStateException("Plugin is not enabled.");
-            }
-
-            // Fast path
             LoadedTeam team = teamsLoaded.get(teamId);
             if (team != null) {
                 team.addPluginRequest(requester);
@@ -1715,7 +1713,7 @@ public final class DatabaseManager implements Closeable {
      * <p>Also, a plugin should only use its own instance as requester to not interfere with other plugins.
      *
      * @param teamProgression The team to keep loaded.
-     * @param requester The plugin which requested to keep the team loaded.
+     * @param requester The plugin which requests to keep the team loaded.
      * @throws IllegalArgumentException If the provided {@link TeamProgression} is invalid (see {@link TeamProgression#isValid()}).
      * @see UltimateAdvancementAPI#addLoadingRequest(TeamProgression)
      * @see #removeLoadingRequest(TeamProgression, Plugin)
@@ -1724,12 +1722,12 @@ public final class DatabaseManager implements Closeable {
     public void addLoadingRequest(@NotNull TeamProgression teamProgression, @NotNull Plugin requester) throws IllegalArgumentException {
         checkClosed();
         Preconditions.checkNotNull(requester, "Plugin is null.");
+        if (!requester.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled.");
+        }
 
         synchronized (DatabaseManager.this) {
-            if (!requester.isEnabled()) {
-                throw new IllegalStateException("Plugin is not enabled.");
-            }
-            AdvancementUtils.validateTeamProgression(teamProgression);
+            validateTeamProgression(teamProgression);
 
             LoadedTeam team = teamsLoaded.get(teamProgression.getTeamId());
             Preconditions.checkArgument(team != null, "Team " + teamProgression.getTeamId() + " isn't loaded.");
@@ -1747,21 +1745,23 @@ public final class DatabaseManager implements Closeable {
      * unloaded if some of its members are loaded).
      * <p>Also, a plugin should only use its own instance as requester to not interfere with other plugins.
      *
-     * @param teamProgression The team to keep loaded.
+     * @param teamProgression The team.
      * @param requester The plugin which requested to keep the team loaded.
+     * @throws IllegalArgumentException If the provided {@link TeamProgression} is invalid (see {@link TeamProgression#isValid()}).
      * @see UltimateAdvancementAPI#removeLoadingRequest(TeamProgression)
      * @see #addLoadingRequest(TeamProgression, Plugin)
      * @see #getLoadingRequestsAmount(TeamProgression, Plugin)
      */
-    public void removeLoadingRequest(@NotNull TeamProgression teamProgression, @NotNull Plugin requester) {
+    public void removeLoadingRequest(@NotNull TeamProgression teamProgression, @NotNull Plugin requester) throws IllegalArgumentException {
         checkClosed();
-        Preconditions.checkNotNull(teamProgression, "TeamProgression is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
+        if (!requester.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled.");
+        }
 
         LoadedTeam team;
         synchronized (DatabaseManager.this) {
-            Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
-
+            validateTeamProgression(teamProgression);
             team = teamsLoaded.get(teamProgression.getTeamId());
         }
         if (team != null)
@@ -1888,9 +1888,11 @@ public final class DatabaseManager implements Closeable {
         checkClosed();
         Preconditions.checkNotNull(requester, "Plugin is null.");
         Preconditions.checkNotNull(uuid, "UUID is null.");
+        if (!requester.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled.");
+        }
 
         synchronized (DatabaseManager.this) {
-            Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
             LoadedPlayer loadedPlayer = playersLoaded.get(uuid);
             if (loadedPlayer == null) {
                 return 0;
@@ -1912,12 +1914,12 @@ public final class DatabaseManager implements Closeable {
     @Contract(pure = true)
     public int getLoadingRequestsAmount(@NotNull TeamProgression teamProgression, @NotNull Plugin requester) {
         checkClosed();
-        Preconditions.checkNotNull(teamProgression, "TeamProgression is null.");
         Preconditions.checkNotNull(requester, "Plugin is null.");
+        if (!requester.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled.");
+        }
 
         synchronized (DatabaseManager.this) {
-            Preconditions.checkArgument(requester.isEnabled(), "Plugin isn't enabled.");
-
             LoadedTeam team = teamsLoaded.get(teamProgression.getTeamId());
             if (team == null) {
                 return 0;
