@@ -308,6 +308,8 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
 
         var task = tasks.iterator().next();
         var res = task.incrementProgression(progression, player, 0, giveRewards);
+        advancementTab.getDatabaseManager().addLoadingRequest(progression, advancementTab.getOwningPlugin()); // Keep the team loaded during the update
+
         runSync(res, getAdvancementTab().getOwningPlugin(), (result, err) -> {
             if (err != null) {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while incrementing the progression of multi-task " + key, err);
@@ -324,6 +326,8 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             } finally {
                 completableFuture.complete(new ProgressionUpdateResult(progr, progr));
             }
+        }).whenComplete((result, err) -> {
+            advancementTab.getDatabaseManager().removeLoadingRequest(progression, advancementTab.getOwningPlugin());
         });
 
         return completableFuture;

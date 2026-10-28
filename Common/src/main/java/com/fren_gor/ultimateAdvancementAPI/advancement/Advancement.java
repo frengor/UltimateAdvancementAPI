@@ -345,6 +345,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
         var completableFuture = ds.incrementProgression(key, pro, increment, maxProgression);
+        ds.addLoadingRequest(pro, advancementTab.getOwningPlugin()); // Keep the team loaded during the update, needed especially for unredeemed advs
 
         runSync(completableFuture, advancementTab.getOwningPlugin(), (result, err) -> {
             if (err != null) {
@@ -360,6 +361,8 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
 
             handleAdvancementGranting(pro, player, result.newProgression(), result.oldProgression(), giveRewards);
             handleAdvancementUpdatingToTeam(pro, result.newProgression(), result.oldProgression());
+        }).whenComplete((result, err) -> {
+            ds.removeLoadingRequest(pro, advancementTab.getOwningPlugin());
         });
 
         return completableFuture;
@@ -448,6 +451,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
         var completableFuture = ds.setProgression(key, pro, progression);
+        ds.addLoadingRequest(pro, advancementTab.getOwningPlugin()); // Keep the team loaded during the update, needed especially for unredeemed advs
 
         runSync(completableFuture, advancementTab.getOwningPlugin(), (result, err) -> {
             if (err != null) {
@@ -463,6 +467,8 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
 
             handleAdvancementGranting(pro, player, result.newProgression(), result.oldProgression(), giveRewards);
             handleAdvancementUpdatingToTeam(pro, result.newProgression(), result.oldProgression());
+        }).whenComplete((result, err) -> {
+            ds.removeLoadingRequest(pro, advancementTab.getOwningPlugin());
         });
 
         return completableFuture;
@@ -486,7 +492,11 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
     protected void handleAdvancementGranting(@NotNull TeamProgression pro, @Nullable Player player, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, boolean giveRewards) {
         AdvancementUtils.checkSync();
         validateTeamProgression(pro);
-        if (newProgression >= this.maxProgression && oldProgression < this.maxProgression) {
+        if (!(newProgression >= this.maxProgression && oldProgression < this.maxProgression)) {
+            return;
+        }
+
+        try {
             DatabaseManager ds = advancementTab.getDatabaseManager();
             // Check that the player is still online and in the same team
             if (player != null && ds.isLoadedAndOnline(player) && pro.contains(player)) {
@@ -499,6 +509,8 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
                     ds.setUnredeemed(key, pro, giveRewards);
                 }
             }
+        } catch (Exception e) {
+            advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred granting advancement " + key + " to team " + pro.getTeamId(), e);
         }
     }
 

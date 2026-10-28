@@ -234,7 +234,7 @@ public final class AdvancementUtils {
      *         return;
      *     }
      *
-     *     // Code which handle the result
+     *     // Code which handles the result
      * });}</pre>
      *
      * @param completableFuture The {@link CompletableFuture} which will complete in the future.
@@ -242,12 +242,12 @@ public final class AdvancementUtils {
      * @param consumer The {@link BiConsumer} to execute. It is called with the result (or {@code null} if none) and the
      *     exception (or {@code null} if none) of the provided {@link CompletableFuture}.
      * @param <T> The value returned by the {@link CompletableFuture}.
-     * @return A {@link CompletableFuture} with the same result or exception as the provided one.
+     * @return A {@link CompletableFuture} completed after the consumer runs.
      * @see BukkitScheduler
      * @since 3.0.0
      */
     @NotNull
-    public static <T> CompletableFuture<T> runSync(@NotNull CompletableFuture<T> completableFuture, @NotNull Plugin plugin, @NotNull BiConsumer<T, Throwable> consumer) {
+    public static <T> CompletableFuture<Void> runSync(@NotNull CompletableFuture<T> completableFuture, @NotNull Plugin plugin, @NotNull BiConsumer<T, Throwable> consumer) {
         return runSync(completableFuture, 0, plugin, consumer);
     }
 
@@ -261,7 +261,7 @@ public final class AdvancementUtils {
      *         return;
      *     }
      *
-     *     // Code which handle the result
+     *     // Code which handles the result
      * });}</pre>
      *
      * @param completableFuture The {@link CompletableFuture} which will complete in the future.
@@ -271,27 +271,39 @@ public final class AdvancementUtils {
      * @param consumer The {@link BiConsumer} to execute. It is called with the result (or {@code null} if none) and the
      *     exception (or {@code null} if none) of the provided {@link CompletableFuture}.
      * @param <T> The value returned by the {@link CompletableFuture}.
-     * @return A {@link CompletableFuture} with the same result or exception as the provided one.
+     * @return A {@link CompletableFuture} completed after the consumer runs.
      * @see BukkitScheduler
      * @since 3.0.0
      */
     @NotNull
-    public static <T> CompletableFuture<T> runSync(@NotNull CompletableFuture<T> completableFuture, long delay, @NotNull Plugin plugin, @NotNull BiConsumer<T, Throwable> consumer) {
+    public static <T> CompletableFuture<Void> runSync(@NotNull CompletableFuture<T> completableFuture, long delay, @NotNull Plugin plugin, @NotNull BiConsumer<T, Throwable> consumer) {
         Preconditions.checkNotNull(completableFuture, "CompletableFuture is null.");
         Preconditions.checkNotNull(plugin, "Plugin is null.");
         Preconditions.checkNotNull(consumer, "BiConsumer is null.");
+        if (!plugin.isEnabled()) {
+            throw new IllegalStateException("Plugin is not enabled.");
+        }
 
-        return completableFuture.whenComplete((result, err) -> {
+        CompletableFuture<Void> toReturn = new CompletableFuture<>();
+        BiConsumer<T, Throwable> wrapped = (result, err) -> {
+            try {
+                consumer.accept(result, err);
+            } catch (Exception e) {
+                plugin.getLogger().log(Level.WARNING, "An exception occurred while executing runSync's consumer of " + plugin.getDescription().getFullName(), e);
+            } finally {
+                toReturn.complete(null);
+            }
+        };
+
+        completableFuture.whenComplete((result, err) -> {
             if (delay == 0 && Bukkit.isPrimaryThread()) {
-                try {
-                    consumer.accept(result, err);
-                } catch (Exception e) {
-                    plugin.getLogger().log(Level.WARNING, "An exception occurred while executing runSync's consumer of " + plugin.getDescription().getFullName(), e);
-                }
+                wrapped.accept(result, err);
             } else {
-                Bukkit.getScheduler().runTaskLater(plugin, () -> consumer.accept(result, err), delay);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> wrapped.accept(result, err), delay);
             }
         });
+
+        return toReturn;
     }
 
     @NotNull

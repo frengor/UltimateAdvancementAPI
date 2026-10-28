@@ -116,6 +116,7 @@ public class TaskAdvancement extends BaseAdvancement {
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
         var completableFuture = ds.incrementProgression(key, pro, increment, maxProgression);
+        ds.addLoadingRequest(pro, advancementTab.getOwningPlugin()); // Keep the team loaded during the update, needed especially for unredeemed advs
 
         runSync(completableFuture, advancementTab.getOwningPlugin(), (result, err) -> {
             if (err != null) {
@@ -138,6 +139,8 @@ public class TaskAdvancement extends BaseAdvancement {
                     getMultiTasksAdvancement().onTaskProgressionChange(this, pro, player, result, multiTaskProgression, giveRewards);
                 }
             }
+        }).whenComplete((result, err) -> {
+            ds.removeLoadingRequest(pro, advancementTab.getOwningPlugin());
         });
 
         return completableFuture;
@@ -153,6 +156,7 @@ public class TaskAdvancement extends BaseAdvancement {
 
         final DatabaseManager ds = advancementTab.getDatabaseManager();
         var completableFuture = ds.setProgression(key, pro, progression);
+        ds.addLoadingRequest(pro, advancementTab.getOwningPlugin()); // Keep the team loaded during the update, needed especially for unredeemed advs
 
         runSync(completableFuture, advancementTab.getOwningPlugin(), (result, err) -> {
             if (err != null) {
@@ -175,6 +179,8 @@ public class TaskAdvancement extends BaseAdvancement {
                     getMultiTasksAdvancement().onTaskProgressionChange(this, pro, player, result, multiTaskProgression, giveRewards);
                 }
             }
+        }).whenComplete((result, err) -> {
+            ds.removeLoadingRequest(pro, advancementTab.getOwningPlugin());
         });
 
         return completableFuture;
