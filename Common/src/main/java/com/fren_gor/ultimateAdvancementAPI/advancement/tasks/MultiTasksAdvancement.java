@@ -157,18 +157,21 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
     public int getProgression(@NotNull TeamProgression progression) {
         checkInitialisation();
         validateTeamProgression(progression);
-        synchronized (progressionsCache) {
-            Integer progr = progressionsCache.get(progression.getTeamId());
-            if (progr == null) {
-                int c = 0;
-                for (TaskAdvancement t : tasks) {
-                    c += progression.getProgression(t);
-                }
-                progressionsCache.put(progression.getTeamId(), c);
-                return c;
-            } else {
-                return progr;
+        Integer progr = progressionsCache.get(progression.getTeamId());
+        if (progr == null) {
+            int c = 0;
+            for (TaskAdvancement t : tasks) {
+                c += t.getProgression(progression);
             }
+            if (Bukkit.isPrimaryThread()) {
+                // The ProgressionUpdateEvent listener that resets the cache runs on the main thread,
+                // so cache the value only there to avoid saving inaccurate values (for example, a
+                // value computed by an async thread while ProgressionUpdateEvent is being called)
+                progressionsCache.put(progression.getTeamId(), c);
+            }
+            return c;
+        } else {
+            return progr;
         }
     }
 

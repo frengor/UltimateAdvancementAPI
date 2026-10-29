@@ -32,8 +32,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -66,7 +64,8 @@ public final class AdvancementMain {
     private DatabaseManager databaseManager;
     private BukkitLibraryManager libbyManager;
     private final String libFolder;
-    private final Map<String, AdvancementTab> tabs = Collections.synchronizedMap(new HashMap<>());
+    @Unmodifiable
+    private volatile Map<String, AdvancementTab> tabs = Map.of();
     private final Map<Plugin, List<AdvancementTab>> pluginMap = new HashMap<>();
 
     /**
@@ -230,18 +229,15 @@ public final class AdvancementMain {
             if (eventManager != null)
                 eventManager.disable();
             pluginMap.clear();
-            synchronized (tabs) {
-                Iterator<AdvancementTab> it = tabs.values().iterator();
-                while (it.hasNext()) {
-                    AdvancementTab tab = it.next();
-                    try {
-                        if (tab.isActive()) {
-                            tab.dispose();
-                        }
-                        it.remove();
-                    } catch (Exception t) {
-                        owningPlugin.getLogger().log(Level.SEVERE, "Couldn't disable tab " + tab.getNamespace(), t);
+            var oldTabs = this.tabs;
+            this.tabs = Map.of();
+            for (var tab : oldTabs.values()) {
+                try {
+                    if (!tab.isDisposed()) {
+                        tab.dispose();
                     }
+                } catch (Exception e) {
+                    owningPlugin.getLogger().log(Level.SEVERE, "Could not dispose tab " + tab.getNamespace(), e);
                 }
             }
             if (databaseManager != null)
@@ -326,6 +322,7 @@ public final class AdvancementMain {
         checkInitialisation();
         Preconditions.checkNotNull(plugin, "Plugin is null.");
         Preconditions.checkNotNull(namespace, "Namespace is null.");
+        var tabs = this.tabs; // Read volatile field once
         if (tabs.containsKey(namespace)) {
             throw new DuplicatedException("An AdvancementTab with '" + namespace + "' namespace already exists.");
         }
@@ -334,8 +331,10 @@ public final class AdvancementMain {
         }
 
         AdvancementTab tab = new AdvancementTab(plugin, databaseManager, namespace, tabDisplay);
-        tabs.put(namespace, tab);
-        pluginMap.computeIfAbsent(plugin, p -> new LinkedList<>()).add(tab);
+        var copy = new HashMap<>(tabs);
+        copy.put(namespace, tab);
+        this.tabs = Collections.unmodifiableMap(copy);
+        pluginMap.computeIfAbsent(plugin, p -> new ArrayList<>()).add(tab);
         return tab;
     }
 
@@ -397,9 +396,17 @@ public final class AdvancementMain {
     public void unregisterAdvancementTab(@NotNull String namespace) {
         checkInitialisation();
         Preconditions.checkNotNull(namespace, "Namespace is null.");
-        AdvancementTab tab = tabs.remove(namespace);
-        if (tab != null)
+        var tabs = this.tabs; // Read volatile field once
+        if (!tabs.containsKey(namespace)) {
+            return;
+        }
+
+        var copy = new HashMap<>(tabs);
+        AdvancementTab tab = copy.remove(namespace);
+        this.tabs = Collections.unmodifiableMap(copy);
+        if (tab != null && !tab.isDisposed()) {
             tab.dispose();
+        }
     }
 
     /**
@@ -490,7 +497,7 @@ public final class AdvancementMain {
     @Contract(pure = true)
     public Set<@NotNull String> getAdvancementTabNamespaces() {
         checkInitialisation();
-        return Set.copyOf(tabs.keySet());
+        return tabs.keySet();
     }
 
     /**
@@ -506,30 +513,28 @@ public final class AdvancementMain {
     public List<@NotNull String> filterNamespaces(@Nullable String input) {
         checkInitialisation();
         List<String> l = new ArrayList<>();
-        synchronized (tabs) {
-            if (input == null || input.isEmpty()) {
+        if (input == null || input.isEmpty()) {
+            for (Entry<String, AdvancementTab> e : tabs.entrySet()) {
+                if (e.getValue().isActive()) {
+                    l.addAll(e.getValue().getAdvancementsAsStrings());
+                }
+            }
+        } else {
+            int index = input.indexOf(':');
+            if (index != -1) {
+                String sub = input.substring(0, index);
                 for (Entry<String, AdvancementTab> e : tabs.entrySet()) {
-                    if (e.getValue().isActive()) {
-                        l.addAll(e.getValue().getAdvancementsAsStrings());
+                    if (e.getValue().isActive() && e.getKey().equals(sub)) {
+                        for (String s : e.getValue().getAdvancementsAsStrings()) {
+                            if (s.startsWith(input))
+                                l.add(s);
+                        }
                     }
                 }
             } else {
-                int index = input.indexOf(':');
-                if (index != -1) {
-                    String sub = input.substring(0, index);
-                    for (Entry<String, AdvancementTab> e : tabs.entrySet()) {
-                        if (e.getValue().isActive() && e.getKey().equals(sub)) {
-                            for (String s : e.getValue().getAdvancementsAsStrings()) {
-                                if (s.startsWith(input))
-                                    l.add(s);
-                            }
-                        }
-                    }
-                } else {
-                    for (Entry<String, AdvancementTab> e : tabs.entrySet()) {
-                        if (e.getValue().isActive() && e.getKey().startsWith(input)) {
-                            l.addAll(e.getValue().getAdvancementsAsStrings());
-                        }
+                for (Entry<String, AdvancementTab> e : tabs.entrySet()) {
+                    if (e.getValue().isActive() && e.getKey().startsWith(input)) {
+                        l.addAll(e.getValue().getAdvancementsAsStrings());
                     }
                 }
             }
@@ -548,7 +553,7 @@ public final class AdvancementMain {
     @NotNull
     public Collection<@NotNull AdvancementTab> getTabs() {
         checkInitialisation();
-        return List.copyOf(tabs.values());
+        return tabs.values();
     }
 
     /**
@@ -586,11 +591,9 @@ public final class AdvancementMain {
         checkInitialisation();
         validateTeamProgression(teamProgression);
 
-        synchronized (tabs) {
-            for (AdvancementTab tab : tabs.values()) {
-                if (tab.isActive()) {
-                    tab.updateAdvancementsToTeam(teamProgression);
-                }
+        for (AdvancementTab tab : tabs.values()) {
+            if (tab.isActive()) {
+                tab.updateAdvancementsToTeam(teamProgression);
             }
         }
     }
