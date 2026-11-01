@@ -8,8 +8,8 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDispla
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdatedEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdatedEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
@@ -45,7 +45,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
  */
 public class TaskAdvancement extends BaseAdvancement {
 
-    // CompletableFuture -> MultiTask's progression at time of ProgressionUpdateEvent
+    // CompletableFuture -> MultiTask's progression at time of ProgressionUpdatedEvent
     private final Map<CompletableFuture<ProgressionUpdateResult>, Integer> pendingUpdates = new MapMaker()
         .concurrencyLevel(1)
         .weakKeys() // This makes the map use identity comparison (==) for keys
@@ -98,7 +98,7 @@ public class TaskAdvancement extends BaseAdvancement {
     public TaskAdvancement(@NotNull AbstractMultiTasksAdvancement multitask, @NotNull String key, @Range(from = 1, to = Integer.MAX_VALUE) int maxProgression, @NotNull AbstractAdvancementDisplay display) {
         super(Objects.requireNonNull(multitask, "AbstractMultiTasksAdvancement is null."), key, maxProgression, display);
 
-        registerEvent(ProgressionUpdateEvent.class, EventPriority.HIGHEST, e -> {
+        registerEvent(ProgressionUpdatedEvent.class, EventPriority.HIGHEST, e -> {
             if (!this.getKey().equals(e.getAdvancementKey())) {
                 return;
             }
@@ -125,9 +125,9 @@ public class TaskAdvancement extends BaseAdvancement {
             }
 
             try {
-                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(this, pro, result.oldProgression(), result.newProgression()));
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdatedEvent(this, pro, result.oldProgression(), result.newProgression()));
             } catch (Exception e) {
-                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdatedEvent for " + key, e);
             }
 
             // Use try-finally to make sure to call onTaskProgressionChange
@@ -165,9 +165,9 @@ public class TaskAdvancement extends BaseAdvancement {
             }
 
             try {
-                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(this, pro, result.oldProgression(), result.newProgression()));
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdatedEvent(this, pro, result.oldProgression(), result.newProgression()));
             } catch (Exception e) {
-                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdatedEvent for " + key, e);
             }
 
             // Use try-finally to make sure to call onTaskProgressionChange

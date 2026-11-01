@@ -15,10 +15,10 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 
 /**
  * Called synchronously when a team's progression of an advancement changes.
- * <p>This event differs from {@link ProgressionUpdateEvent} because it is called by {@link Advancement#setProgression(TeamProgression, Player, int, boolean)}
+ * <p>This event differs from {@link ProgressionUpdatedEvent} because it is called by {@link Advancement#setProgression(TeamProgression, Player, int, boolean)}
  * and {@link Advancement#incrementProgression(TeamProgression, Player, int, boolean)}.
  */
-public class AdvancementProgressionUpdateEvent extends Event {
+public class AdvancementProgressionUpdatedEvent extends Event {
 
     private final TeamProgression team;
 
@@ -28,14 +28,14 @@ public class AdvancementProgressionUpdateEvent extends Event {
     private final Advancement advancement;
 
     /**
-     * Creates a new {@code AdvancementProgressionUpdateEvent}.
+     * Creates a new {@code AdvancementProgressionUpdatedEvent}.
      *
      * @param advancement The updated {@link Advancement}.
      * @param team The {@link TeamProgression} of the updated team.
      * @param oldProgression The old progression prior to the update.
      * @param newProgression The new progression after the update.
      */
-    public AdvancementProgressionUpdateEvent(@NotNull Advancement advancement, @NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
+    public AdvancementProgressionUpdatedEvent(@NotNull Advancement advancement, @NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression) {
         this.team = validateTeamProgression(team);
         this.oldProgression = validateProgressionValue(oldProgression);
         this.newProgression = validateProgressionValue(newProgression);
@@ -94,7 +94,7 @@ public class AdvancementProgressionUpdateEvent extends Event {
 
     @Override
     public String toString() {
-        return "AdvancementProgressionUpdateEvent{" +
+        return "AdvancementProgressionUpdatedEvent{" +
             "team=" + team +
             ", oldProgression=" + oldProgression +
             ", newProgression=" + newProgression +
@@ -107,7 +107,7 @@ public class AdvancementProgressionUpdateEvent extends Event {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        AdvancementProgressionUpdateEvent that = (AdvancementProgressionUpdateEvent) o;
+        AdvancementProgressionUpdatedEvent that = (AdvancementProgressionUpdatedEvent) o;
 
         if (oldProgression != that.oldProgression) return false;
         if (newProgression != that.newProgression) return false;

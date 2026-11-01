@@ -6,12 +6,12 @@ import com.fren_gor.ultimateAdvancementAPI.UltimateAdvancementAPI;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdatedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncPlayerUnregisteredEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.PlayerRegisteredEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.team.TeamUpdatedEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DatabaseManagerClosedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.SyncExecutionException;
@@ -2035,7 +2035,7 @@ public final class DatabaseManager implements Closeable {
             player.setPlayerTeam(newTeam);
         }
 
-        callEventCatchingExceptions(new TeamUpdateEvent(player.getUuid(), oldTeam.getTeamProgression(), newTeam.getTeamProgression()));
+        callEventCatchingExceptions(new TeamUpdatedEvent(player.getUuid(), oldTeam.getTeamProgression(), newTeam.getTeamProgression()));
 
         try {
             main.updateAdvancementsToTeam(newTeam.getTeamProgression());
@@ -2060,7 +2060,7 @@ public final class DatabaseManager implements Closeable {
     private void registerProgressionUpdate(@NotNull LoadedTeam team, @NotNull AdvancementKey key, int oldProgr, int newProgr, @NotNull CompletableFuture<ProgressionUpdateResult> completableFuture) {
         pendingUpdatesManager.registerProgressionUpdate(team, key, oldProgr, newProgr, () -> {
             try {
-                callEventCatchingExceptions(new ProgressionUpdateEvent(key, team.getTeamProgression(), oldProgr, newProgr, completableFuture));
+                callEventCatchingExceptions(new ProgressionUpdatedEvent(key, team.getTeamProgression(), oldProgr, newProgr, completableFuture));
             } finally {
                 completableFuture.complete(new ProgressionUpdateResult(oldProgr, newProgr));
             }

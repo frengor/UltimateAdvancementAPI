@@ -7,7 +7,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDispla
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementGrantEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdatedEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.tests.AutoInject;
 import com.fren_gor.ultimateAdvancementAPI.tests.UAAPIExtension;
@@ -180,7 +180,7 @@ public class MultiTasksAdvancementTest {
     }
 
     private void assertProgressionEventFired(Advancement adv, TeamProgression progression, Integer oldProgr, Integer newProgr) {
-        server.getPluginManager().assertEventFired(AdvancementProgressionUpdateEvent.class, e -> {
+        server.getPluginManager().assertEventFired(AdvancementProgressionUpdatedEvent.class, e -> {
             return e.getAdvancement().equals(adv) &&
                 progression.equals(e.getTeamProgression()) &&
                 (oldProgr == null || e.getOldProgression() == oldProgr) &&

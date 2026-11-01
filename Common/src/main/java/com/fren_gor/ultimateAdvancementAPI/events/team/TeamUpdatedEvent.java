@@ -16,7 +16,7 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
  *
  * @since 3.0.0
  */
-public class TeamUpdateEvent extends Event {
+public class TeamUpdatedEvent extends Event {
 
     private final TeamProgression oldTeam, newTeam;
     private final UUID playerUUID;
@@ -29,7 +29,7 @@ public class TeamUpdateEvent extends Event {
      * @param newTeam The {@link TeamProgression} of the new player's team. It must be valid (see {@link TeamProgression#isValid()}).
      */
     @Internal
-    public TeamUpdateEvent(@NotNull UUID playerUUID, @NotNull TeamProgression oldTeam, @NotNull TeamProgression newTeam) {
+    public TeamUpdatedEvent(@NotNull UUID playerUUID, @NotNull TeamProgression oldTeam, @NotNull TeamProgression newTeam) {
         this.oldTeam = validateTeamProgression(Objects.requireNonNull(oldTeam, "OldTeam is null."));
         this.newTeam = validateTeamProgression(Objects.requireNonNull(newTeam, "NewTeam is null."));
         this.playerUUID = Objects.requireNonNull(playerUUID, "UUID is null.");
@@ -79,7 +79,7 @@ public class TeamUpdateEvent extends Event {
 
     @Override
     public String toString() {
-        return "TeamUpdateEvent{" +
+        return "TeamUpdatedEvent{" +
             "oldTeam=" + oldTeam +
             ", newTeam=" + newTeam +
             ", playerUUID=" + playerUUID +
@@ -91,7 +91,7 @@ public class TeamUpdateEvent extends Event {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        TeamUpdateEvent that = (TeamUpdateEvent) o;
+        TeamUpdatedEvent that = (TeamUpdatedEvent) o;
 
         if (!oldTeam.equals(that.oldTeam)) return false;
         if (!newTeam.equals(that.newTeam)) return false;

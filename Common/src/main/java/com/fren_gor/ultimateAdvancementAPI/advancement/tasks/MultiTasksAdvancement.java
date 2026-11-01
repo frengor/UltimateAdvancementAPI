@@ -4,8 +4,8 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdatedEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdatedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.ArbitraryMultiTaskProgressionUpdateException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
@@ -124,7 +124,7 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
             progressionsCache.remove(e.getTeamProgression().getTeamId());
         });
 
-        registerEvent(ProgressionUpdateEvent.class, EventPriority.LOW, e -> {
+        registerEvent(ProgressionUpdatedEvent.class, EventPriority.LOW, e -> {
             if (!tasksKeys.contains(e.getAdvancementKey())) {
                 return;
             }
@@ -164,9 +164,9 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
                 c += t.getProgression(progression);
             }
             if (Bukkit.isPrimaryThread()) {
-                // The ProgressionUpdateEvent listener that resets the cache runs on the main thread,
+                // The ProgressionUpdatedEvent listener that resets the cache runs on the main thread,
                 // so cache the value only there to avoid saving inaccurate values (for example, a
-                // value computed by an async thread while ProgressionUpdateEvent is being called)
+                // value computed by an async thread while ProgressionUpdatedEvent is being called)
                 progressionsCache.put(progression.getTeamId(), c);
             }
             return c;
@@ -472,9 +472,9 @@ public class MultiTasksAdvancement extends AbstractMultiTasksAdvancement {
         validateProgressionValueStrict(oldMultiTaskProgression, this.maxProgression);
 
         try {
-            Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(this, progression, oldMultiTaskProgression, multiTaskProgression));
+            Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdatedEvent(this, progression, oldMultiTaskProgression, multiTaskProgression));
         } catch (Exception e) {
-            advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
+            advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdatedEvent for " + key, e);
         }
 
         handleAdvancementGranting(progression, player, multiTaskProgression, oldMultiTaskProgression, giveRewards);

@@ -9,7 +9,7 @@ import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementGrantEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.AdvancementProgressionUpdatedEvent;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.IllegalOperationException;
@@ -354,9 +354,9 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
             }
 
             try {
-                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(Advancement.this, pro, result.oldProgression(), result.newProgression()));
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdatedEvent(Advancement.this, pro, result.oldProgression(), result.newProgression()));
             } catch (Exception e) {
-                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdatedEvent for " + key, e);
             }
 
             handleAdvancementGranting(pro, player, result.newProgression(), result.oldProgression(), giveRewards);
@@ -460,9 +460,9 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
             }
 
             try {
-                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdateEvent(Advancement.this, pro, result.oldProgression(), result.newProgression()));
+                Bukkit.getPluginManager().callEvent(new AdvancementProgressionUpdatedEvent(Advancement.this, pro, result.oldProgression(), result.newProgression()));
             } catch (Exception e) {
-                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdateEvent for " + key, e);
+                advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred while calling AdvancementProgressionUpdatedEvent for " + key, e);
             }
 
             handleAdvancementGranting(pro, player, result.newProgression(), result.oldProgression(), giveRewards);

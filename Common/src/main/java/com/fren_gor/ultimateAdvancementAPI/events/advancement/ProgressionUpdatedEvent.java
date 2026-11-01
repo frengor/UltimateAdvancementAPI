@@ -21,13 +21,13 @@ import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils.validate
 
 /**
  * Called synchronously when a team's progression of an advancement changes.
- * <p>This event differs from {@link AdvancementProgressionUpdateEvent} because it is called by {@link DatabaseManager}.
+ * <p>This event differs from {@link AdvancementProgressionUpdatedEvent} because it is called by {@link DatabaseManager}.
  * As such, it is only called for advancements saved in the database (notably, this excludes multi-task advancements
  * like {@link MultiTasksAdvancement}).
  *
  * @since 3.0.0
  */
-public class ProgressionUpdateEvent extends Event {
+public class ProgressionUpdatedEvent extends Event {
 
     private final TeamProgression team;
 
@@ -39,7 +39,7 @@ public class ProgressionUpdateEvent extends Event {
     private final CompletableFuture<ProgressionUpdateResult> updateCompletableFuture;
 
     /**
-     * Creates a new {@code ProgressionUpdateEvent}.
+     * Creates a new {@code ProgressionUpdatedEvent}.
      *
      * @param advancementKey The {@link AdvancementKey} of the updated {@link Advancement}.
      * @param team The {@link TeamProgression} of the updated team.
@@ -48,7 +48,7 @@ public class ProgressionUpdateEvent extends Event {
      * @param updateCompletableFuture The {@link CompletableFuture} associated with this update (see {@link #getUpdateCompletableFuture()}).
      */
     @Internal
-    public ProgressionUpdateEvent(@NotNull AdvancementKey advancementKey, @NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, @NotNull CompletableFuture<ProgressionUpdateResult> updateCompletableFuture) {
+    public ProgressionUpdatedEvent(@NotNull AdvancementKey advancementKey, @NotNull TeamProgression team, @Range(from = 0, to = Integer.MAX_VALUE) int oldProgression, @Range(from = 0, to = Integer.MAX_VALUE) int newProgression, @NotNull CompletableFuture<ProgressionUpdateResult> updateCompletableFuture) {
         this.team = validateTeamProgression(team);
         this.oldProgression = validateProgressionValue(oldProgression);
         this.newProgression = validateProgressionValue(newProgression);
@@ -101,7 +101,7 @@ public class ProgressionUpdateEvent extends Event {
      * or {@link DatabaseManager#incrementProgression(AdvancementKey, TeamProgression, int, int) incrementProgression(...)}
      * that produced this update).
      * <p>The returned {@link CompletableFuture} will be completed only after this event has finished being called
-     * (i.e. for listeners of {@code ProgressionUpdateEvent}, calling {@link CompletableFuture#isDone() isDone()} returns {@code false}).
+     * (i.e. for listeners of {@code ProgressionUpdatedEvent}, calling {@link CompletableFuture#isDone() isDone()} returns {@code false}).
      *
      * @return The {@link CompletableFuture} associated with this update.
      */
@@ -124,7 +124,7 @@ public class ProgressionUpdateEvent extends Event {
 
     @Override
     public String toString() {
-        return "ProgressionUpdateEvent{" +
+        return "ProgressionUpdatedEvent{" +
             "team=" + team +
             ", oldProgression=" + oldProgression +
             ", newProgression=" + newProgression +
@@ -137,7 +137,7 @@ public class ProgressionUpdateEvent extends Event {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ProgressionUpdateEvent that = (ProgressionUpdateEvent) o;
+        ProgressionUpdatedEvent that = (ProgressionUpdatedEvent) o;
 
         if (oldProgression != that.oldProgression) return false;
         if (newProgression != that.newProgression) return false;

@@ -4,7 +4,7 @@ import com.fren_gor.eventManagerAPI.EventManager;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementMain;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingFailedEvent;
-import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdateEvent;
+import com.fren_gor.ultimateAdvancementAPI.events.advancement.ProgressionUpdatedEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamLoadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.AsyncTeamUnloadEvent;
 import com.fren_gor.ultimateAdvancementAPI.events.team.PlayerRegisteredEvent;
@@ -506,9 +506,9 @@ public class DatabaseManagerTest {
         final AtomicReference<String> failed = new AtomicReference<>(null);
 
         try {
-            manager.register(listener, ProgressionUpdateEvent.class, event -> {
+            manager.register(listener, ProgressionUpdatedEvent.class, event -> {
                 if (!Bukkit.isPrimaryThread()) {
-                    failed.set("ProgressionUpdateEvent called not synchronously");
+                    failed.set("ProgressionUpdatedEvent called not synchronously");
                     return;
                 }
 
@@ -528,7 +528,7 @@ public class DatabaseManagerTest {
                 }
 
                 if (completableFutures.stream().filter(cf -> cf == event.getUpdateCompletableFuture()).count() != 1) {
-                    failed.set("ProgressionUpdateEvent's update CompletableFuture was not found");
+                    failed.set("ProgressionUpdatedEvent's update CompletableFuture was not found");
                     return;
                 }
 
@@ -592,17 +592,17 @@ public class DatabaseManagerTest {
 
         for (int i = 0; i < 100; i++) {
             assertFalse(cf.isDone());
-            server.getPluginManager().assertEventNotFired(ProgressionUpdateEvent.class);
+            server.getPluginManager().assertEventNotFired(ProgressionUpdatedEvent.class);
             server.getScheduler().performOneTick();
         }
 
         assertFalse(cf.isDone());
-        server.getPluginManager().assertEventNotFired(ProgressionUpdateEvent.class);
+        server.getPluginManager().assertEventNotFired(ProgressionUpdatedEvent.class);
 
         releaseLock.complete(null);
         ProgressionUpdateResult res = waitCompletion(cf).get();
 
-        server.getPluginManager().assertEventFired(ProgressionUpdateEvent.class);
+        server.getPluginManager().assertEventFired(ProgressionUpdatedEvent.class);
         assertEquals(0, res.oldProgression());
         assertEquals(10, res.newProgression());
 
