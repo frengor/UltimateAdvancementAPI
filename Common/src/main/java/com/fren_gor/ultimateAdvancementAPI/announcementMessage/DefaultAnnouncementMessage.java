@@ -1,8 +1,8 @@
 package com.fren_gor.ultimateAdvancementAPI.announcementMessage;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
+import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,8 +23,8 @@ public interface DefaultAnnouncementMessage extends IAnnouncementMessage {
      * @see IAnnouncementMessage#getAnnouncementMessage(Advancement, Player)
      */
     @Override
-    default Function<Player, BaseComponent> getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
-        BaseComponent announcementMsg = AdvancementUtils.getAnnouncementMessage(advancement, advancementCompleter);
+    default Function<Player, IComponent> getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+        IComponent announcementMsg = AdvancementUtils.getAnnouncementMessage(advancement, advancementCompleter);
         return player -> announcementMsg;
     }
 }

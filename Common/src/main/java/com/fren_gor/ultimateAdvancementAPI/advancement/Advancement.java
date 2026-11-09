@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.AdvancementUpdater;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.announcementMessage.IAnnouncementMessage;
+import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
@@ -19,7 +20,6 @@ import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.visibilities.IVisibility;
 import com.google.common.base.Preconditions;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -615,18 +615,18 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
      */
     @Nullable
     @SuppressWarnings("unchecked")
-    public Function<@NotNull Player, @Nullable BaseComponent> getAnnouncementMessage(@NotNull Player advancementCompleter) {
+    public Function<@NotNull Player, @Nullable IComponent> getAnnouncementMessage(@NotNull Player advancementCompleter) {
         Preconditions.checkNotNull(advancementCompleter, "Player is null.");
         // Advancement announcement message system
         if (iAnnouncementMessageMethod != null) {
             try {
-                return (Function<Player, BaseComponent>) iAnnouncementMessageMethod.invokeWithArguments(this, advancementCompleter);
+                return (Function<Player, IComponent>) iAnnouncementMessageMethod.invokeWithArguments(this, advancementCompleter);
             } catch (Throwable e) {
                 advancementTab.getOwningPlugin().getLogger().log(Level.SEVERE, "An exception occurred evaluating the announcement message of " + key, e);
             }
         }
         // Default message, same for every player
-        BaseComponent announcementMsg = AdvancementUtils.getAnnouncementMessage(this, advancementCompleter);
+        IComponent announcementMsg = AdvancementUtils.getAnnouncementMessage(this, advancementCompleter);
         return player -> announcementMsg;
     }
 
@@ -669,7 +669,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
 
         Boolean gameRule = advancementCompleter.getWorld().getGameRuleValue(AdvancementUtils.SHOW_ADVANCEMENT_MESSAGES_GAMERULE);
         if ((gameRule == null || gameRule) && display.dispatchDoesAnnounceToChat(advancementCompleter, progression)) {
-            @Nullable Function<Player, @Nullable BaseComponent> perPlayerMsgGetter = getAnnouncementMessage(advancementCompleter);
+            @Nullable Function<Player, @Nullable IComponent> perPlayerMsgGetter = getAnnouncementMessage(advancementCompleter);
             if (perPlayerMsgGetter != null) {
                 Stream<? extends Player> players;
                 if (advancementTab.doesSendAnnouncementMessageOnlyToTeam()) {
@@ -678,9 +678,9 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
                     players = Bukkit.getOnlinePlayers().stream();
                 }
                 players.forEach(p -> {
-                    @Nullable BaseComponent msg = perPlayerMsgGetter.apply(p);
+                    @Nullable IComponent msg = perPlayerMsgGetter.apply(p);
                     if (msg != null) {
-                        p.spigot().sendMessage(msg);
+                        msg.sendTo(p);
                     }
                 });
             }
@@ -964,7 +964,7 @@ public abstract sealed class Advancement permits BaseAdvancement, RootAdvancemen
     @Internal
     @Nullable
     @Contract("_, _ -> fail")
-    public final Function<@NotNull Player, @Nullable BaseComponent> getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
+    public final Function<@NotNull Player, @Nullable IComponent> getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter) {
         throw new IllegalOperationException("This method cannot be called. Use Advancement#getAnnouncementMessage(Player).");
     }
 }

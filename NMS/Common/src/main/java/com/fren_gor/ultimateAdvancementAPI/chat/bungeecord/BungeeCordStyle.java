@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.util.display;
+package com.fren_gor.ultimateAdvancementAPI.chat.bungeecord;
 
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.google.common.base.Preconditions;
@@ -13,22 +13,13 @@ import java.awt.Color;
 import java.util.Objects;
 import java.util.StringJoiner;
 
-/**
- * Class representing the default style of a {@link BaseComponent}.
- * <p>If a property is {@code null}, then Minecraft's default should be used instead.
- */
-public final class DefaultStyle {
+// FIXME: Update javadoc
+public final class BungeeCordStyle {
 
     private static final boolean CHAT_COLOR_HAS_GET_COLOR = ReflectionUtil.hasMethod(ChatColor.class, "getColor");
     private static final boolean BASE_COMPONENT_HAS_FONT = ReflectionUtil.hasMethod(BaseComponent.class, "setFont");
     private static final boolean COMPONENT_STYLE_CLASS_EXISTS = ReflectionUtil.classExists("net.md_5.bungee.api.chat.ComponentStyle");
     private static final boolean COMPONENT_STYLE_HAS_SHADOW_COLOR = COMPONENT_STYLE_CLASS_EXISTS && ReflectionUtil.hasMethod(ComponentStyle.class, "getShadowColor");
-
-    /**
-     * A {@code DefaultStyle} which makes no modification to the default Minecraft style.
-     */
-    @NotNull
-    public static final DefaultStyle MINECRAFT_DEFAULTS = new DefaultStyle();
 
     @Nullable
     private final ChatColor color;
@@ -50,7 +41,7 @@ public final class DefaultStyle {
     /**
      * Creates a {@code DefaultStyle} which makes no modification to the default Minecraft style.
      */
-    public DefaultStyle() {
+    public BungeeCordStyle() {
         this(null, null, null, null, null, null, null, null);
     }
 
@@ -60,7 +51,7 @@ public final class DefaultStyle {
      *
      * @param color The color of the text. Must represent a color and not a formatting option.
      */
-    public DefaultStyle(@NotNull ChatColor color) {
+    public BungeeCordStyle(@NotNull ChatColor color) {
         this(validateColor(Objects.requireNonNull(color, "ChatColor is null.")), null, null, null, null, null, null, null);
     }
 
@@ -70,7 +61,7 @@ public final class DefaultStyle {
      *
      * @param style The {@link ComponentStyle}.
      */
-    public DefaultStyle(@NotNull ComponentStyle style) {
+    public BungeeCordStyle(@NotNull ComponentStyle style) {
         this(
             validateColor(Objects.requireNonNull(style, "ComponentStyle is null.").getColor()),
             COMPONENT_STYLE_HAS_SHADOW_COLOR ? style.getShadowColor() : null,
@@ -85,7 +76,7 @@ public final class DefaultStyle {
     }
 
     // Assumes color has already been validated
-    private DefaultStyle(
+    private BungeeCordStyle(
         @Nullable ChatColor color,
         @Nullable Color shadowColor,
         @Nullable String font,
@@ -113,8 +104,8 @@ public final class DefaultStyle {
      * @return A copy of this {@code DefaultStyle} with the specified color.
      */
     @NotNull
-    public DefaultStyle color(@Nullable ChatColor color) {
-        return new DefaultStyle(validateColor(color), shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordStyle color(@Nullable ChatColor color) {
+        return new BungeeCordStyle(validateColor(color), shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -124,8 +115,8 @@ public final class DefaultStyle {
      * @return A copy of this {@code DefaultStyle} with the specified shadow color.
      */
     @NotNull
-    public DefaultStyle shadowColor(@Nullable Color shadowColor) {
-        return new DefaultStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordStyle shadowColor(@Nullable Color shadowColor) {
+        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -135,8 +126,8 @@ public final class DefaultStyle {
      * @return A copy of this {@code DefaultStyle} with the specified font.
      */
     @NotNull
-    public DefaultStyle font(@Nullable String font) {
-        return new DefaultStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordStyle font(@Nullable String font) {
+        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -146,8 +137,8 @@ public final class DefaultStyle {
      * @return A copy of this {@code DefaultStyle} with the specified bold value.
      */
     @NotNull
-    public DefaultStyle bold(@Nullable Boolean bold) {
-        return new DefaultStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordStyle bold(@Nullable Boolean bold) {
+        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -157,8 +148,8 @@ public final class DefaultStyle {
      * @return A copy of this {@code DefaultStyle} with the specified italic value.
      */
     @NotNull
-    public DefaultStyle italic(@Nullable Boolean italic) {
-        return new DefaultStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordStyle italic(@Nullable Boolean italic) {
+        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -168,8 +159,8 @@ public final class DefaultStyle {
      * @return A copy of this {@code DefaultStyle} with the specified underlined value.
      */
     @NotNull
-    public DefaultStyle underlined(@Nullable Boolean underlined) {
-        return new DefaultStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordStyle underlined(@Nullable Boolean underlined) {
+        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -179,8 +170,8 @@ public final class DefaultStyle {
      * @return A copy of this {@code DefaultStyle} with the specified strikethrough value.
      */
     @NotNull
-    public DefaultStyle strikethrough(@Nullable Boolean strikethrough) {
-        return new DefaultStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordStyle strikethrough(@Nullable Boolean strikethrough) {
+        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -190,32 +181,22 @@ public final class DefaultStyle {
      * @return A copy of this {@code DefaultStyle} with the specified obfuscated value.
      */
     @NotNull
-    public DefaultStyle obfuscated(@Nullable Boolean obfuscated) {
-        return new DefaultStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordStyle obfuscated(@Nullable Boolean obfuscated) {
+        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
-    /**
-     * Merges two default styles into a new {@code DefaultStyle}, applying the modifications of this style
-     * on top of the provided base style.
-     *
-     * @param baseStyle The base {@code DefaultStyle}.
-     */
     @NotNull
-    public DefaultStyle mergeWith(@NotNull DefaultStyle baseStyle) {
-        Preconditions.checkNotNull(baseStyle, "DefaultStyle is null.");
-        if (this == MINECRAFT_DEFAULTS) {
-            // Common case, no need for baseStyle since it almost always won't be MINECRAFT_DEFAULTS
-            return baseStyle;
-        }
-        return new DefaultStyle(
-            this.color != null ? this.color : baseStyle.color,
-            this.shadowColor != null ? this.shadowColor : baseStyle.shadowColor,
-            this.font != null ? this.font : baseStyle.font,
-            this.bold != null ? this.bold : baseStyle.bold,
-            this.italic != null ? this.italic : baseStyle.italic,
-            this.underlined != null ? this.underlined : baseStyle.underlined,
-            this.strikethrough != null ? this.strikethrough : baseStyle.strikethrough,
-            this.obfuscated != null ? this.obfuscated : baseStyle.obfuscated
+    public BungeeCordStyle merge(@NotNull BungeeCordStyle that) {
+        Preconditions.checkNotNull(that, "BungeeCordStyle is null.");
+        return new BungeeCordStyle(
+            that.color != null ? that.color : this.color,
+            that.shadowColor != null ? that.shadowColor : this.shadowColor,
+            that.font != null ? that.font : this.font,
+            that.bold != null ? that.bold : this.bold,
+            that.italic != null ? that.italic : this.italic,
+            that.underlined != null ? that.underlined : this.underlined,
+            that.strikethrough != null ? that.strikethrough : this.strikethrough,
+            that.obfuscated != null ? that.obfuscated : this.obfuscated
         );
     }
 
@@ -226,9 +207,6 @@ public final class DefaultStyle {
      */
     public void applyTo(@NotNull BaseComponent component) {
         Preconditions.checkNotNull(component, "BaseComponent is null.");
-        if (this == MINECRAFT_DEFAULTS) {
-            return; // Common case
-        }
         if (this.color != null) {
             component.setColor(this.color);
         }
@@ -262,9 +240,6 @@ public final class DefaultStyle {
      */
     public void applyTo(@NotNull ComponentBuilder builder) {
         Preconditions.checkNotNull(builder, "ComponentBuilder is null.");
-        if (this == MINECRAFT_DEFAULTS) {
-            return; // Common case
-        }
         if (COMPONENT_STYLE_HAS_SHADOW_COLOR && this.shadowColor != null) {
             // Shadow color has no way to be set except for style(...)
             builder.style(this.toComponentStyle());
@@ -303,7 +278,7 @@ public final class DefaultStyle {
     public ComponentStyle toComponentStyle() {
         var builder = ComponentStyle.builder()
             .color(color)
-            // No need to check for BASE_COMPONENT_HAS_FONT, font was added in 1.16, but ComponentStyle was added in 1.18
+            // No need to check for BASE_COMPONENT_HAS_FONT, font was added before ComponentStyle
             .font(font)
             .bold(bold)
             .italic(italic)
@@ -398,10 +373,21 @@ public final class DefaultStyle {
         return obfuscated;
     }
 
+    public boolean isEmpty() {
+        return color == null &&
+            shadowColor == null &&
+            font == null &&
+            bold == null &&
+            italic == null &&
+            underlined == null &&
+            strikethrough == null &&
+            obfuscated == null;
+    }
+
     @Override
     public String toString() {
-        StringJoiner joiner = new StringJoiner(", ", "DefaultStyle{", "}");
-        joiner.setEmptyValue("DefaultStyle{minecraft defaults}");
+        StringJoiner joiner = new StringJoiner(", ", "BungeeCordStyle{", "}");
+        joiner.setEmptyValue("BungeeCordStyle{minecraft defaults}");
 
         if (this.color != null) {
             joiner.add("color=" + this.color.toString().replace(ChatColor.COLOR_CHAR, '&'));
@@ -433,7 +419,7 @@ public final class DefaultStyle {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof DefaultStyle that)) return false;
+        if (!(o instanceof BungeeCordStyle that)) return false;
 
         return Objects.equals(color, that.color) &&
             Objects.equals(shadowColor, that.shadowColor) &&

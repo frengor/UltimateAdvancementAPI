@@ -1,11 +1,11 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
+import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
-import com.fren_gor.ultimateAdvancementAPI.util.display.DefaultStyle;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -237,7 +237,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final BaseComponent dispatchGetTitle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IComponent dispatchGetTitle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetTitle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -250,7 +250,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract BaseComponent dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    public abstract IComponent dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getTitle(...).
@@ -261,7 +261,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final BaseComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetTitle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -274,7 +274,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract BaseComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    public abstract IComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getDefaultTitleStyle(...).
@@ -282,11 +282,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final DefaultStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IDefaultStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDefaultTitleStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -296,11 +296,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract DefaultStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    public abstract IDefaultStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getDefaultTitleStyle(...).
@@ -308,11 +308,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final DefaultStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IDefaultStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDefaultTitleStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -322,11 +322,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract DefaultStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    public abstract IDefaultStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getAnnouncementMessageDefaultTitleStyle(...).
@@ -334,11 +334,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the title in the advancement's announcement message.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetAnnouncementMessageDefaultTitleStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -348,11 +348,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the title in the advancement's announcement message.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    public abstract IDefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getAnnouncementMessageDefaultTitleStyle(...).
@@ -360,11 +360,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the title in the advancement's announcement message.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetAnnouncementMessageDefaultTitleStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -374,11 +374,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the title in the advancement's announcement message.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    public abstract IDefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getLegacyDescription(...).
@@ -442,7 +442,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      */
     @NotNull
     @Unmodifiable
-    public final List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final List<IComponent> dispatchGetDescription(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -456,7 +456,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      */
     @NotNull
     @Unmodifiable
-    public abstract List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    public abstract List<IComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getDescription(...).
@@ -468,7 +468,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      */
     @NotNull
     @Unmodifiable
-    public final List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final List<IComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDescription(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -482,7 +482,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      */
     @NotNull
     @Unmodifiable
-    public abstract List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    public abstract List<IComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getDefaultDescriptionStyle(...).
@@ -490,11 +490,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IDefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDefaultDescriptionStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -504,11 +504,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    public abstract IDefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getDefaultDescriptionStyle(...).
@@ -516,11 +516,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IDefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDefaultDescriptionStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -530,11 +530,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the title when displayed in the advancement GUI.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    public abstract IDefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getAnnouncementMessageDefaultDescriptionStyle(...).
@@ -542,11 +542,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the description in the advancement's announcement message.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetAnnouncementMessageDefaultDescriptionStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -556,11 +556,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the description in the advancement's announcement message.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    public abstract IDefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getAnnouncementMessageDefaultDescriptionStyle(...).
@@ -568,11 +568,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param advancementTab The advancement tab used to dispatch the call.
      * @return The default style of the description in the advancement's announcement message.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetAnnouncementMessageDefaultDescriptionStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -582,11 +582,11 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @param player The player used to dispatch the call.
      * @param teamProgression The team used to dispatch the call.
      * @return The default style of the description in the advancement's announcement message.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    public abstract IDefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getFrame(...).

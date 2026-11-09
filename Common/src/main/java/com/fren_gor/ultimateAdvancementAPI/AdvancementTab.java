@@ -7,6 +7,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.RootAdvancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractImmutableAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayerAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAdvancementDisplay;
+import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
@@ -17,6 +18,7 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
+import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
@@ -33,8 +35,6 @@ import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -1010,7 +1010,7 @@ public final class AdvancementTab {
             final AdvancementDisplayWrapper internalRootDisplay; // Null if the root display or displayData is per-player
             final boolean tabDisplayAndRootAreImmutableOrPerTeam = rootDisplay != null && displayData != null;
             if (tabDisplayAndRootAreImmutableOrPerTeam) {
-                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, rootDisplay::getTitle);
+                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, () -> IComponent.of(rootDisplay.getTitle()).toJson());
                 perTeamToSend.put(this.internalRoot.toAdvancementWrapper(internalRootDisplay), 0);
             } else {
                 internalRootDisplay = null;
@@ -1056,7 +1056,8 @@ public final class AdvancementTab {
             // Handle internal root display
             AdvancementDisplayWrapper internalRootDisplay = update.internalRootDisplay;
             if (internalRootDisplay == null) {
-                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, rootDisplay::getTitle);
+                var r = rootDisplay;
+                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, () -> IComponent.of(r.getTitle()).toJson());
             }
 
             if (!update.internalRootAlreadyAddedToMap) {
@@ -1100,19 +1101,19 @@ public final class AdvancementTab {
         private record TabDisplayData(
             @NotNull String backgroundTexture,
             @NotNull Optional<ItemStack> icon,
-            @NotNull Optional<BaseComponent> title
+            @NotNull Optional<IComponent> title
         ) {
             @NotNull
             public AdvancementDisplayWrapper toRootDisplayWrapper(
                 float rootX,
                 float rootY,
                 Supplier<? extends ItemStack> rootIcon,
-                Supplier<? extends BaseComponent> rootTitle
+                Supplier<? extends JsonString> rootTitle
             ) throws ReflectiveOperationException {
                 ItemStack icon = this.icon.orElseGet(rootIcon);
-                BaseComponent title = this.title.orElseGet(rootTitle);
+                JsonString title = this.title.map(IComponent::toJson).orElseGet(rootTitle);
                 return AdvancementDisplayWrapper.craft(
-                    icon, title, new TextComponent(""), AdvancementFrameTypeWrapper.TASK, rootX - 0.2f, rootY, false, false, true, this.backgroundTexture
+                    icon, title, IComponent.empty().toJson(), AdvancementFrameTypeWrapper.TASK, rootX - 0.2f, rootY, false, false, true, this.backgroundTexture
                 );
             }
         }
@@ -1164,7 +1165,7 @@ public final class AdvancementTab {
          * @return The title of the tab in the advancement GUI.
          */
         @NotNull
-        default Optional<BaseComponent> getTitle() {
+        default Optional<IComponent> getTitle() {
             return Optional.empty();
         }
     }
@@ -1201,7 +1202,7 @@ public final class AdvancementTab {
          * @return The title of the tab in the advancement GUI.
          */
         @NotNull
-        default Optional<BaseComponent> getTitle(@NotNull TeamProgression teamProgression) {
+        default Optional<IComponent> getTitle(@NotNull TeamProgression teamProgression) {
             return Optional.empty();
         }
     }
@@ -1238,7 +1239,7 @@ public final class AdvancementTab {
          * @return The title of the tab in the advancement GUI.
          */
         @NotNull
-        default Optional<BaseComponent> getTitle(@NotNull Player player) {
+        default Optional<IComponent> getTitle(@NotNull Player player) {
             return Optional.empty();
         }
     }

@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
+import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.APINotInstantiatedException;
@@ -305,7 +306,7 @@ public final class UltimateAdvancementAPI {
      */
     public void displayCustomToast(@NotNull Player player, @NotNull AbstractAdvancementDisplay display) {
         TeamProgression pro = main.getDatabaseManager().getTeamProgression(player);
-        displayCustomToast(player, display.dispatchGetIcon(player, pro), display.dispatchGetLegacyTitle(player, pro), display.dispatchGetFrame(player, pro));
+        displayCustomToast(player, display.dispatchGetIcon(player, pro), display.dispatchGetTitle(player, pro), display.dispatchGetFrame(player, pro));
     }
 
     /**
@@ -317,6 +318,18 @@ public final class UltimateAdvancementAPI {
      * @param frame The shape of the toast notification frame.
      */
     public void displayCustomToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame) {
+        AdvancementUtils.displayToast(player, icon, title, frame);
+    }
+
+    /**
+     * Displays a custom toast notification to a player.
+     *
+     * @param player The player the toast notification will be shown to.
+     * @param icon The item of the toast notification.
+     * @param title The title of the toast notification.
+     * @param frame The shape of the toast notification frame.
+     */
+    public void displayCustomToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull IComponent title, @NotNull AdvancementFrameType frame) {
         AdvancementUtils.displayToast(player, icon, title, frame);
     }
 

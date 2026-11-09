@@ -1,8 +1,8 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
-import com.fren_gor.ultimateAdvancementAPI.util.display.DefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
 import com.google.common.base.Preconditions;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -27,37 +27,37 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      * The title of the advancement.
      */
     @NotNull
-    protected final BaseComponent title;
+    protected final IComponent title;
 
     /**
      * The default style of the title when displayed in the advancement GUI.
      */
     @NotNull
-    protected final DefaultStyle defaultTitleStyle;
+    protected final IDefaultStyle defaultTitleStyle;
 
     /**
      * The default style of the title in the advancement's announcement message.
      */
     @NotNull
-    protected final DefaultStyle announcementMessageDefaultTitleStyle;
+    protected final IDefaultStyle announcementMessageDefaultTitleStyle;
 
     /**
      * The description of the advancement.
      */
     @Unmodifiable
-    protected final List<BaseComponent> description;
+    protected final List<IComponent> description;
 
     /**
      * The default style of the description when displayed in the advancement GUI.
      */
     @NotNull
-    protected final DefaultStyle defaultDescriptionStyle;
+    protected final IDefaultStyle defaultDescriptionStyle;
 
     /**
      * The default style of the description in the advancement's announcement message.
      */
     @NotNull
-    protected final DefaultStyle announcementMessageDefaultDescriptionStyle;
+    protected final IDefaultStyle announcementMessageDefaultDescriptionStyle;
 
     /**
      * The shape of the advancement frame in the advancement GUI.
@@ -104,7 +104,7 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      * @param amDefaultDescStyle The default style of the description in the advancement's announcement message.
      * @param description The description of the advancement.
      */
-    protected AdvancementDisplay(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull List<BaseComponent> description, @NotNull DefaultStyle defaultTitleStyle, @NotNull DefaultStyle amDefaultTitleStyle, @NotNull DefaultStyle defaultDescStyle, @NotNull DefaultStyle amDefaultDescStyle, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y) {
+    protected AdvancementDisplay(@NotNull ItemStack icon, @NotNull IComponent title, @NotNull List<IComponent> description, @NotNull IDefaultStyle defaultTitleStyle, @NotNull IDefaultStyle amDefaultTitleStyle, @NotNull IDefaultStyle defaultDescStyle, @NotNull IDefaultStyle amDefaultDescStyle, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y) {
         Preconditions.checkNotNull(icon, "Icon is null.");
         Preconditions.checkNotNull(title, "Title is null.");
         Preconditions.checkNotNull(frame, "Frame is null.");
@@ -119,10 +119,10 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
         Preconditions.checkArgument(y >= 0, "y is not zero or positive.");
 
         this.icon = icon.clone();
-        this.title = title.duplicate();
+        this.title = title;
         this.defaultTitleStyle = defaultTitleStyle;
         this.announcementMessageDefaultTitleStyle = amDefaultTitleStyle;
-        this.description = description.stream().map(BaseComponent::duplicate).toList();
+        this.description = description;
         this.defaultDescriptionStyle = defaultDescStyle;
         this.announcementMessageDefaultDescriptionStyle = amDefaultDescStyle;
         this.frame = frame;
@@ -162,8 +162,8 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      */
     @Override
     @NotNull
-    public BaseComponent getTitle() {
-        return title.duplicate();
+    public IComponent getTitle() {
+        return title;
     }
 
     /**
@@ -171,7 +171,7 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      */
     @Override
     @NotNull
-    public DefaultStyle getDefaultTitleStyle() {
+    public IDefaultStyle getDefaultTitleStyle() {
         return defaultTitleStyle;
     }
 
@@ -180,7 +180,7 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      */
     @Override
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultTitleStyle() {
+    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle() {
         return announcementMessageDefaultTitleStyle;
     }
 
@@ -190,8 +190,8 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
     @Override
     @NotNull
     @Unmodifiable
-    public List<BaseComponent> getDescription() {
-        return description.stream().map(BaseComponent::duplicate).toList();
+    public List<IComponent> getDescription() {
+        return description;
     }
 
     /**
@@ -199,7 +199,7 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      */
     @Override
     @NotNull
-    public DefaultStyle getDefaultDescriptionStyle() {
+    public IDefaultStyle getDefaultDescriptionStyle() {
         return defaultDescriptionStyle;
     }
 
@@ -208,7 +208,7 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      */
     @Override
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle() {
+    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle() {
         return announcementMessageDefaultDescriptionStyle;
     }
 

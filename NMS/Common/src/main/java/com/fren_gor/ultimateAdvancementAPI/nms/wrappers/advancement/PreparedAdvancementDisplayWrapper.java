@@ -43,6 +43,7 @@ public abstract class PreparedAdvancementDisplayWrapper {
      * @throws ReflectiveOperationException If reflections go wrong.
      */
     @NotNull
+    @Deprecated(forRemoval = true)
     public static PreparedAdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull BaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y) throws ReflectiveOperationException {
         return craft(icon, title, description, frameType, x, y, false, false, false);
     }
@@ -63,6 +64,7 @@ public abstract class PreparedAdvancementDisplayWrapper {
      * @throws ReflectiveOperationException If reflections go wrong.
      */
     @NotNull
+    @Deprecated(forRemoval = true)
     public static PreparedAdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull BaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) throws ReflectiveOperationException {
         Preconditions.checkNotNull(icon, "Icon is null.");
         Preconditions.checkNotNull(title, "Title is null.");
@@ -133,6 +135,7 @@ public abstract class PreparedAdvancementDisplayWrapper {
      * @return The title of the advancement.
      */
     @NotNull
+    @Deprecated(forRemoval = true)
     public abstract BaseComponent getTitle();
 
     /**
@@ -141,6 +144,7 @@ public abstract class PreparedAdvancementDisplayWrapper {
      * @return The description of the advancement.
      */
     @NotNull
+    @Deprecated(forRemoval = true)
     public abstract BaseComponent getDescription();
 
     /**

@@ -2,9 +2,10 @@ package com.fren_gor.ultimateAdvancementAPI.util.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
+import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,7 +72,7 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public BaseComponent getTitle(@NotNull TeamProgression progression) {
+    public IComponent getTitle(@NotNull TeamProgression progression) {
         return wrapped.getTitle(progression);
     }
 
@@ -80,8 +81,8 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public DefaultStyle getDefaultTitleStyle(@NotNull TeamProgression progression) {
-        return super.getDefaultTitleStyle(progression);
+    public IDefaultStyle getDefaultTitleStyle(@NotNull TeamProgression progression) {
+        return wrapped.getDefaultTitleStyle(progression);
     }
 
     /**
@@ -89,8 +90,8 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull TeamProgression progression) {
-        return super.getAnnouncementMessageDefaultTitleStyle(progression);
+    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull TeamProgression progression) {
+        return wrapped.getAnnouncementMessageDefaultTitleStyle(progression);
     }
 
     /**
@@ -107,7 +108,7 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public List<BaseComponent> getDescription(@NotNull TeamProgression progression) {
+    public List<IComponent> getDescription(@NotNull TeamProgression progression) {
         return wrapped.getDescription(progression);
     }
 
@@ -116,8 +117,8 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public DefaultStyle getDefaultDescriptionStyle(@NotNull TeamProgression progression) {
-        return super.getDefaultDescriptionStyle(progression);
+    public IDefaultStyle getDefaultDescriptionStyle(@NotNull TeamProgression progression) {
+        return wrapped.getDefaultDescriptionStyle(progression);
     }
 
     /**
@@ -125,8 +126,8 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull TeamProgression progression) {
-        return super.getAnnouncementMessageDefaultDescriptionStyle(progression);
+    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull TeamProgression progression) {
+        return wrapped.getAnnouncementMessageDefaultDescriptionStyle(progression);
     }
 
     /**

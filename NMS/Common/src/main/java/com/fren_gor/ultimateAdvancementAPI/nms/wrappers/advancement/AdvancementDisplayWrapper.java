@@ -45,6 +45,7 @@ public abstract class AdvancementDisplayWrapper extends AbstractWrapper {
      * @throws ReflectiveOperationException If reflections go wrong.
      */
     @NotNull
+    @Deprecated(forRemoval = true)
     public static AdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull BaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y) throws ReflectiveOperationException {
         return craft(icon, title, description, frameType, x, y, null);
     }
@@ -64,6 +65,7 @@ public abstract class AdvancementDisplayWrapper extends AbstractWrapper {
      * @throws ReflectiveOperationException If reflections go wrong.
      */
     @NotNull
+    @Deprecated(forRemoval = true)
     public static AdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull BaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, @Nullable String backgroundTexture) throws ReflectiveOperationException {
         return craft(icon, title, description, frameType, x, y, false, false, false, backgroundTexture);
     }
@@ -85,6 +87,7 @@ public abstract class AdvancementDisplayWrapper extends AbstractWrapper {
      * @throws ReflectiveOperationException If reflections go wrong.
      */
     @NotNull
+    @Deprecated(forRemoval = true)
     public static AdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull BaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) throws ReflectiveOperationException {
         return craft(icon, title, description, frameType, x, y, showToast, announceChat, hidden, null);
     }
@@ -106,6 +109,7 @@ public abstract class AdvancementDisplayWrapper extends AbstractWrapper {
      * @throws ReflectiveOperationException If reflections go wrong.
      */
     @NotNull
+    @Deprecated(forRemoval = true)
     public static AdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull BaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden, @Nullable String backgroundTexture) throws ReflectiveOperationException {
         Preconditions.checkNotNull(icon, "Icon is null.");
         Preconditions.checkNotNull(title, "Title is null.");
@@ -220,6 +224,7 @@ public abstract class AdvancementDisplayWrapper extends AbstractWrapper {
      * @return The title of the advancement.
      */
     @NotNull
+    @Deprecated(forRemoval = true)
     public abstract BaseComponent getTitle();
 
     /**
@@ -228,6 +233,7 @@ public abstract class AdvancementDisplayWrapper extends AbstractWrapper {
      * @return The description of the advancement.
      */
     @NotNull
+    @Deprecated(forRemoval = true)
     public abstract BaseComponent getDescription();
 
     /**

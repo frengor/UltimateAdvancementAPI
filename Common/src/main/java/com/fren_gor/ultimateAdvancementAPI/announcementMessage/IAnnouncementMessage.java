@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.announcementMessage;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
-import net.md_5.bungee.api.chat.BaseComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,5 +39,5 @@ public interface IAnnouncementMessage {
      *     {@code null} can be returned instead if no message should be displayed to any player.
      */
     @Nullable
-    Function<@NotNull Player, @Nullable BaseComponent> getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter);
+    Function<@NotNull Player, @Nullable IComponent> getAnnouncementMessage(@NotNull Advancement advancement, @NotNull Player advancementCompleter);
 }

@@ -2,12 +2,11 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.announcementMessage.IAnnouncementMessage;
+import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
-import com.fren_gor.ultimateAdvancementAPI.util.display.DefaultStyle;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -55,7 +54,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      */
     @NotNull
     public String getLegacyTitle(@NotNull TeamProgression progression) {
-        return TextComponent.toLegacyText(getTitle(progression));
+        return getTitle(progression).toLegacy();
     }
 
     /**
@@ -65,19 +64,19 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      * @return The title of the advancement.
      */
     @NotNull
-    public abstract BaseComponent getTitle(@NotNull TeamProgression progression);
+    public abstract IComponent getTitle(@NotNull TeamProgression progression);
 
     /**
      * Returns the default style of the title when displayed in the advancement GUI.
      *
      * @param progression The {@link TeamProgression} of the team.
      * @return The default style of the title when displayed in the advancement GUI.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link IDefaultStyle#empty()}.
      */
     @NotNull
-    public DefaultStyle getDefaultTitleStyle(@NotNull TeamProgression progression) {
-        return DefaultStyle.MINECRAFT_DEFAULTS;
+    public IDefaultStyle getDefaultTitleStyle(@NotNull TeamProgression progression) {
+        return IDefaultStyle.empty();
     }
 
     /**
@@ -85,14 +84,14 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      *
      * @param progression The {@link TeamProgression} of the team.
      * @return The default style of the title in the advancement's announcement message.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link IDefaultStyle#empty()}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull TeamProgression progression) {
-        return DefaultStyle.MINECRAFT_DEFAULTS;
+    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull TeamProgression progression) {
+        return IDefaultStyle.empty();
     }
 
     /**
@@ -105,7 +104,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
     @NotNull
     @Unmodifiable
     public List<String> getLegacyDescription(@NotNull TeamProgression progression) {
-        return getDescription(progression).stream().map(TextComponent::toLegacyText).toList();
+        return getDescription(progression).stream().map(IComponent::toLegacy).toList();
     }
 
     /**
@@ -116,19 +115,19 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      */
     @NotNull
     @Unmodifiable
-    public abstract List<BaseComponent> getDescription(@NotNull TeamProgression progression);
+    public abstract List<IComponent> getDescription(@NotNull TeamProgression progression);
 
     /**
      * Returns the default style of the description when displayed in the advancement GUI.
      *
      * @param progression The {@link TeamProgression} of the team.
      * @return The default style of the description when displayed in the advancement GUI.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link IDefaultStyle#empty()}.
      */
     @NotNull
-    public DefaultStyle getDefaultDescriptionStyle(@NotNull TeamProgression progression) {
-        return DefaultStyle.MINECRAFT_DEFAULTS;
+    public IDefaultStyle getDefaultDescriptionStyle(@NotNull TeamProgression progression) {
+        return IDefaultStyle.empty();
     }
 
     /**
@@ -136,14 +135,14 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      *
      * @param progression The {@link TeamProgression} of the team.
      * @return The default style of the description in the advancement's announcement message.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link DefaultStyle#MINECRAFT_DEFAULTS}.
+     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link IDefaultStyle#empty()}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull TeamProgression progression) {
-        return DefaultStyle.MINECRAFT_DEFAULTS;
+    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull TeamProgression progression) {
+        return IDefaultStyle.empty();
     }
 
     /**
@@ -180,9 +179,11 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      */
     @NotNull
     public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull TeamProgression progression) throws ReflectiveOperationException {
-        BaseComponent title = AdvancementUtils.applyDefaultStyle(getTitle(progression), getDefaultTitleStyle(progression));
-        BaseComponent description = AdvancementUtils.joinBaseComponents(new TextComponent("\n"), getDefaultDescriptionStyle(progression), getDescription(progression));
-        return PreparedAdvancementDisplayWrapper.craft(getIcon(progression), title, description, getFrame(progression).getNMSWrapper(), getX(progression), getY(progression));
+        IComponent title = getTitle(progression).applyDefaultStyle(getDefaultTitleStyle(progression));
+        IComponent description = IComponent.empty()
+            .applyDefaultStyle(getDefaultDescriptionStyle(progression))
+            .setChildren(AdvancementUtils.intersperse(getDescription(progression), IComponent.newLine()));
+        return PreparedAdvancementDisplayWrapper.craft(getIcon(progression), title.toJson(), description.toJson(), getFrame(progression).getNMSWrapper(), getX(progression), getY(progression));
     }
 
     /**
@@ -258,7 +259,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      */
     @Override
     @NotNull
-    public final BaseComponent dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public final IComponent dispatchGetTitle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getTitle(teamProgression);
     }
 
@@ -267,7 +268,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      */
     @Override
     @NotNull
-    public final BaseComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    public final IComponent dispatchGetTitle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getTitle(teamProgression);
     }
 
@@ -276,7 +277,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      */
     @Override
     @NotNull
-    public final DefaultStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public final IDefaultStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getDefaultTitleStyle(teamProgression);
     }
 
@@ -285,7 +286,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      */
     @Override
     @NotNull
-    public final DefaultStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    public final IDefaultStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getDefaultTitleStyle(teamProgression);
     }
 
@@ -294,7 +295,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      */
     @Override
     @NotNull
-    public final DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getAnnouncementMessageDefaultTitleStyle(teamProgression);
     }
 
@@ -303,7 +304,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      */
     @Override
     @NotNull
-    public final DefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getAnnouncementMessageDefaultTitleStyle(teamProgression);
     }
 
@@ -333,7 +334,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
     @Override
     @NotNull
     @Unmodifiable
-    public final List<BaseComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public final List<IComponent> dispatchGetDescription(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getDescription(teamProgression);
     }
 
@@ -343,7 +344,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
     @Override
     @NotNull
     @Unmodifiable
-    public final List<BaseComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    public final List<IComponent> dispatchGetDescription(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getDescription(teamProgression);
     }
 
@@ -352,7 +353,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      */
     @Override
     @NotNull
-    public final DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public final IDefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getDefaultDescriptionStyle(teamProgression);
     }
 
@@ -361,7 +362,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      */
     @Override
     @NotNull
-    public final DefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    public final IDefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getDefaultDescriptionStyle(teamProgression);
     }
 
@@ -370,7 +371,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      */
     @Override
     @NotNull
-    public final DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getAnnouncementMessageDefaultDescriptionStyle(teamProgression);
     }
 
@@ -379,7 +380,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      */
     @Override
     @NotNull
-    public final DefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getAnnouncementMessageDefaultDescriptionStyle(teamProgression);
     }
 

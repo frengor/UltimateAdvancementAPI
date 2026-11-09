@@ -2,8 +2,9 @@ package com.fren_gor.ultimateAdvancementAPI.util.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractImmutableAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
+import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -70,7 +71,7 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public BaseComponent getTitle() {
+    public IComponent getTitle() {
         return wrapped.getTitle();
     }
 
@@ -79,7 +80,7 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public DefaultStyle getDefaultTitleStyle() {
+    public IDefaultStyle getDefaultTitleStyle() {
         return wrapped.getDefaultTitleStyle();
     }
 
@@ -88,7 +89,7 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultTitleStyle() {
+    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle() {
         return wrapped.getAnnouncementMessageDefaultTitleStyle();
     }
 
@@ -106,7 +107,7 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public List<BaseComponent> getDescription() {
+    public List<IComponent> getDescription() {
         return wrapped.getDescription();
     }
 
@@ -115,7 +116,7 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public DefaultStyle getDefaultDescriptionStyle() {
+    public IDefaultStyle getDefaultDescriptionStyle() {
         return wrapped.getDefaultDescriptionStyle();
     }
 
@@ -124,7 +125,7 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle() {
+    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle() {
         return wrapped.getAnnouncementMessageDefaultDescriptionStyle();
     }
 

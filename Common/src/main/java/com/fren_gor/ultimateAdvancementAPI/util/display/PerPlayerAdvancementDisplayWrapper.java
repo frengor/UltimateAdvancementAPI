@@ -2,8 +2,9 @@ package com.fren_gor.ultimateAdvancementAPI.util.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayerAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
+import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -106,7 +107,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public BaseComponent getTitle(@NotNull Player player) {
+    public IComponent getTitle(@NotNull Player player) {
         return wrapped.getTitle(player);
     }
 
@@ -115,7 +116,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public BaseComponent getTitle(@NotNull OfflinePlayer player) {
+    public IComponent getTitle(@NotNull OfflinePlayer player) {
         return wrapped.getTitle(player);
     }
 
@@ -124,7 +125,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public DefaultStyle getDefaultTitleStyle(@NotNull Player player) {
+    public IDefaultStyle getDefaultTitleStyle(@NotNull Player player) {
         return wrapped.getDefaultTitleStyle(player);
     }
 
@@ -133,7 +134,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public DefaultStyle getDefaultTitleStyle(@NotNull OfflinePlayer player) {
+    public IDefaultStyle getDefaultTitleStyle(@NotNull OfflinePlayer player) {
         return wrapped.getDefaultTitleStyle(player);
     }
 
@@ -142,7 +143,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull Player player) {
+    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull Player player) {
         return wrapped.getAnnouncementMessageDefaultTitleStyle(player);
     }
 
@@ -151,7 +152,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player) {
+    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player) {
         return wrapped.getAnnouncementMessageDefaultTitleStyle(player);
     }
 
@@ -178,7 +179,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public List<BaseComponent> getDescription(@NotNull Player player) {
+    public List<IComponent> getDescription(@NotNull Player player) {
         return wrapped.getDescription(player);
     }
 
@@ -187,7 +188,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public List<BaseComponent> getDescription(@NotNull OfflinePlayer player) {
+    public List<IComponent> getDescription(@NotNull OfflinePlayer player) {
         return wrapped.getDescription(player);
     }
 
@@ -196,7 +197,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public DefaultStyle getDefaultDescriptionStyle(@NotNull Player player) {
+    public IDefaultStyle getDefaultDescriptionStyle(@NotNull Player player) {
         return wrapped.getDefaultDescriptionStyle(player);
     }
 
@@ -205,7 +206,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public DefaultStyle getDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
+    public IDefaultStyle getDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
         return wrapped.getDefaultDescriptionStyle(player);
     }
 
@@ -214,7 +215,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player) {
+    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player) {
         return wrapped.getAnnouncementMessageDefaultDescriptionStyle(player);
     }
 
@@ -223,7 +224,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
+    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
         return wrapped.getAnnouncementMessageDefaultDescriptionStyle(player);
     }
 

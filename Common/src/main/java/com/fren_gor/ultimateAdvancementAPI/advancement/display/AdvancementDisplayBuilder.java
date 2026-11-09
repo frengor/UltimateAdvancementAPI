@@ -2,14 +2,12 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.announcementMessage.IAnnouncementMessage;
+import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
-import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter.Coord;
-import com.fren_gor.ultimateAdvancementAPI.util.display.DefaultStyle;
 import com.google.common.base.Preconditions;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -37,42 +35,42 @@ public class AdvancementDisplayBuilder {
      * The title of the advancement.
      */
     @NotNull
-    protected BaseComponent title;
+    protected IComponent title;
 
     /**
      * The default style of the title when displayed in the advancement GUI.
-     * <p>{@link DefaultStyle#MINECRAFT_DEFAULTS} can be utilized if Minecraft's default style should be used.
+     * <p>{@link IDefaultStyle#empty()} can be utilized if Minecraft's default style should be used.
      */
     @NotNull
-    protected DefaultStyle defaultTitleStyle = DefaultStyle.MINECRAFT_DEFAULTS;
+    protected IDefaultStyle defaultTitleStyle = IDefaultStyle.empty();
 
     /**
      * The default style of the title in the advancement's announcement message.
-     * <p>{@link DefaultStyle#MINECRAFT_DEFAULTS} can be utilized if Minecraft's default style should be used.
+     * <p>{@link IDefaultStyle#empty()} can be utilized if Minecraft's default style should be used.
      */
     @NotNull
-    protected DefaultStyle announcementMessageDefaultTitleStyle = DefaultStyle.MINECRAFT_DEFAULTS;
+    protected IDefaultStyle announcementMessageDefaultTitleStyle = IDefaultStyle.empty();
 
     /**
      * The description of the advancement.
      */
     @NotNull
     @Unmodifiable
-    protected List<BaseComponent> description = List.of();
+    protected List<IComponent> description = List.of();
 
     /**
      * The default style of the description.
-     * <p>{@link DefaultStyle#MINECRAFT_DEFAULTS} can be utilized if Minecraft's default style should be used.
+     * <p>{@link IDefaultStyle#empty()} can be utilized if Minecraft's default style should be used.
      */
     @NotNull
-    protected DefaultStyle defaultDescriptionStyle = DefaultStyle.MINECRAFT_DEFAULTS;
+    protected IDefaultStyle defaultDescriptionStyle = IDefaultStyle.empty();
 
     /**
      * The default style of the description in the advancement's announcement message.
-     * <p>{@link DefaultStyle#MINECRAFT_DEFAULTS} can be utilized if Minecraft's default style should be used.
+     * <p>{@link IDefaultStyle#empty()} can be utilized if Minecraft's default style should be used.
      */
     @NotNull
-    protected DefaultStyle announcementMessageDefaultDescriptionStyle = DefaultStyle.MINECRAFT_DEFAULTS;
+    protected IDefaultStyle announcementMessageDefaultDescriptionStyle = IDefaultStyle.empty();
 
     /**
      * The shape of the advancement frame in the advancement GUI.
@@ -110,7 +108,7 @@ public class AdvancementDisplayBuilder {
      * @param legacyTitle The title of the advancement as a legacy string.
      */
     public AdvancementDisplayBuilder(@NotNull Material icon, @NotNull String legacyTitle) {
-        this(icon, AdvancementUtils.fromLegacy(Objects.requireNonNull(legacyTitle, "Title is null.")));
+        this(icon, IComponent.fromLegacy(Objects.requireNonNull(legacyTitle, "Title is null.")));
     }
 
     /**
@@ -123,7 +121,7 @@ public class AdvancementDisplayBuilder {
      * @param legacyTitle The title of the advancement as a legacy string.
      */
     public AdvancementDisplayBuilder(@NotNull ItemStack icon, @NotNull String legacyTitle) {
-        this(icon, AdvancementUtils.fromLegacy(Objects.requireNonNull(legacyTitle, "Title is null.")));
+        this(icon, IComponent.fromLegacy(Objects.requireNonNull(legacyTitle, "Title is null.")));
     }
 
     /**
@@ -135,9 +133,9 @@ public class AdvancementDisplayBuilder {
      * @param icon The material of the advancement's icon in the advancement GUI.
      * @param title The title of the advancement.
      */
-    public AdvancementDisplayBuilder(@NotNull Material icon, @NotNull BaseComponent title) {
+    public AdvancementDisplayBuilder(@NotNull Material icon, @NotNull IComponent title) {
         this.icon = new ItemStack(Objects.requireNonNull(icon, "Icon is null."));
-        this.title = Objects.requireNonNull(title, "Title is null.").duplicate();
+        this.title = Objects.requireNonNull(title, "Title is null.");
     }
 
     /**
@@ -149,9 +147,9 @@ public class AdvancementDisplayBuilder {
      * @param icon The advancement's icon in the advancement GUI.
      * @param title The title of the advancement.
      */
-    public AdvancementDisplayBuilder(@NotNull ItemStack icon, @NotNull BaseComponent title) {
+    public AdvancementDisplayBuilder(@NotNull ItemStack icon, @NotNull IComponent title) {
         this.icon = Objects.requireNonNull(icon, "Icon is null.").clone();
-        this.title = Objects.requireNonNull(title, "Title is null.").duplicate();
+        this.title = Objects.requireNonNull(title, "Title is null.");
     }
 
     /**
@@ -247,7 +245,7 @@ public class AdvancementDisplayBuilder {
      */
     @NotNull
     public AdvancementDisplayBuilder title(@NotNull String legacyTitle) {
-        this.title = AdvancementUtils.fromLegacy(Objects.requireNonNull(legacyTitle, "Title is null."));
+        this.title = IComponent.fromLegacy(Objects.requireNonNull(legacyTitle, "Title is null."));
         return this;
     }
 
@@ -258,8 +256,8 @@ public class AdvancementDisplayBuilder {
      * @return This builder.
      */
     @NotNull
-    public AdvancementDisplayBuilder title(@NotNull BaseComponent title) {
-        this.title = Objects.requireNonNull(title, "Title is null.").duplicate();
+    public AdvancementDisplayBuilder title(@NotNull IComponent title) {
+        this.title = Objects.requireNonNull(title, "Title is null.");
         return this;
     }
 
@@ -272,7 +270,7 @@ public class AdvancementDisplayBuilder {
     @NotNull
     public AdvancementDisplayBuilder description(@NotNull String... legacyDescription) {
         Preconditions.checkNotNull(legacyDescription, "Description is null.");
-        this.description = Arrays.stream(legacyDescription).map(AdvancementUtils::fromLegacy).toList();
+        this.description = Arrays.stream(legacyDescription).map(IComponent::fromLegacy).toList();
         return this;
     }
 
@@ -283,9 +281,9 @@ public class AdvancementDisplayBuilder {
      * @return This builder.
      */
     @NotNull
-    public AdvancementDisplayBuilder description(@NotNull BaseComponent... description) {
+    public AdvancementDisplayBuilder description(@NotNull IComponent... description) {
         Preconditions.checkNotNull(description, "Description is null.");
-        this.description = Arrays.stream(description).map(BaseComponent::duplicate).toList();
+        this.description = List.of(description);
         return this;
     }
 
@@ -296,9 +294,9 @@ public class AdvancementDisplayBuilder {
      * @return This builder.
      */
     @NotNull
-    public AdvancementDisplayBuilder description(@NotNull List<BaseComponent> description) {
+    public AdvancementDisplayBuilder description(@NotNull List<IComponent> description) {
         Preconditions.checkNotNull(description, "Description is null.");
-        this.description = description.stream().map(BaseComponent::duplicate).toList();
+        this.description = List.copyOf(description);
         return this;
     }
 
@@ -391,11 +389,11 @@ public class AdvancementDisplayBuilder {
      * Sets the default style of the title when displayed in the advancement GUI.
      *
      * @param defaultStyle The default style of the title when displayed in the advancement GUI.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be provided if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be provided if Minecraft's default style should be used.
      * @return This builder.
      */
     @NotNull
-    public AdvancementDisplayBuilder defaultTitleStyle(@NotNull DefaultStyle defaultStyle) {
+    public AdvancementDisplayBuilder defaultTitleStyle(@NotNull IDefaultStyle defaultStyle) {
         this.defaultTitleStyle = Objects.requireNonNull(defaultStyle, "DefaultStyle is null.");
         return this;
     }
@@ -404,13 +402,13 @@ public class AdvancementDisplayBuilder {
      * Sets the default style of the title in the advancement's announcement message.
      *
      * @param defaultStyle The default style of the title in the advancement's announcement message.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be provided if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be provided if Minecraft's default style should be used.
      * @return This builder.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
-    public AdvancementDisplayBuilder announcementMessageDefaultTitleStyle(@NotNull DefaultStyle defaultStyle) {
+    public AdvancementDisplayBuilder announcementMessageDefaultTitleStyle(@NotNull IDefaultStyle defaultStyle) {
         this.announcementMessageDefaultTitleStyle = Objects.requireNonNull(defaultStyle, "DefaultStyle is null.");
         return this;
     }
@@ -419,11 +417,11 @@ public class AdvancementDisplayBuilder {
      * Sets the default style of the description when displayed in the advancement GUI.
      *
      * @param defaultStyle The default style of the description when displayed in the advancement GUI.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be provided if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be provided if Minecraft's default style should be used.
      * @return This builder.
      */
     @NotNull
-    public AdvancementDisplayBuilder defaultDescriptionStyle(@NotNull DefaultStyle defaultStyle) {
+    public AdvancementDisplayBuilder defaultDescriptionStyle(@NotNull IDefaultStyle defaultStyle) {
         this.defaultDescriptionStyle = Objects.requireNonNull(defaultStyle, "DefaultStyle is null.");
         return this;
     }
@@ -432,13 +430,13 @@ public class AdvancementDisplayBuilder {
      * Sets the default style of the description in the advancement's announcement message.
      *
      * @param defaultStyle The default style of the description in the advancement's announcement message.
-     *     {@link DefaultStyle#MINECRAFT_DEFAULTS} can be provided if Minecraft's default style should be used.
+     *     {@link IDefaultStyle#empty()} can be provided if Minecraft's default style should be used.
      * @return This builder.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
-    public AdvancementDisplayBuilder announcementMessageDefaultDescriptionStyle(@NotNull DefaultStyle defaultStyle) {
+    public AdvancementDisplayBuilder announcementMessageDefaultDescriptionStyle(@NotNull IDefaultStyle defaultStyle) {
         this.announcementMessageDefaultDescriptionStyle = Objects.requireNonNull(defaultStyle, "DefaultStyle is null.");
         return this;
     }
@@ -470,7 +468,7 @@ public class AdvancementDisplayBuilder {
      */
     @NotNull
     public String getLegacyTitle() {
-        return TextComponent.toLegacyText(title);
+        return title.toLegacy();
     }
 
     /**
@@ -479,8 +477,8 @@ public class AdvancementDisplayBuilder {
      * @return The title of the advancement.
      */
     @NotNull
-    public BaseComponent getTitle() {
-        return title.duplicate();
+    public IComponent getTitle() {
+        return title;
     }
 
     /**
@@ -491,7 +489,7 @@ public class AdvancementDisplayBuilder {
     @NotNull
     @Unmodifiable
     public List<String> getLegacyDescription() {
-        return description.stream().map(TextComponent::toLegacyText).toList();
+        return description.stream().map(IComponent::toLegacy).toList();
     }
 
     /**
@@ -501,8 +499,8 @@ public class AdvancementDisplayBuilder {
      */
     @NotNull
     @Unmodifiable
-    public List<BaseComponent> getDescription() {
-        return description.stream().map(BaseComponent::duplicate).toList();
+    public List<IComponent> getDescription() {
+        return description;
     }
 
     /**
@@ -557,7 +555,7 @@ public class AdvancementDisplayBuilder {
      * @return The default style of the title when displayed in the advancement GUI.
      */
     @NotNull
-    public DefaultStyle getDefaultTitleStyle() {
+    public IDefaultStyle getDefaultTitleStyle() {
         return defaultTitleStyle;
     }
 
@@ -569,7 +567,7 @@ public class AdvancementDisplayBuilder {
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultTitleStyle() {
+    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle() {
         return announcementMessageDefaultTitleStyle;
     }
 
@@ -579,7 +577,7 @@ public class AdvancementDisplayBuilder {
      * @return The default style of the description when displayed in the advancement GUI.
      */
     @NotNull
-    public DefaultStyle getDefaultDescriptionStyle() {
+    public IDefaultStyle getDefaultDescriptionStyle() {
         return defaultDescriptionStyle;
     }
 
@@ -591,7 +589,7 @@ public class AdvancementDisplayBuilder {
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
-    public DefaultStyle getAnnouncementMessageDefaultDescriptionStyle() {
+    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle() {
         return announcementMessageDefaultDescriptionStyle;
     }
 }

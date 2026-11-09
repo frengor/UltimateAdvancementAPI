@@ -6,6 +6,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayer
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplayBuilder;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
+import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
@@ -15,7 +16,6 @@ import com.fren_gor.ultimateAdvancementAPI.util.display.ImmutableAdvancementDisp
 import com.fren_gor.ultimateAdvancementAPI.util.display.PerPlayerAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.display.PerTeamAdvancementDisplayWrapper;
 import com.google.common.base.Preconditions;
-import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -174,7 +174,7 @@ public class FakeAdvancement extends BaseAdvancement {
     @Override
     @Nullable
     @Contract("_ -> null")
-    public Function<@NotNull Player, @Nullable BaseComponent> getAnnouncementMessage(@NotNull Player advancementCompleter) {
+    public Function<@NotNull Player, @Nullable IComponent> getAnnouncementMessage(@NotNull Player advancementCompleter) {
         return null;
     }
 

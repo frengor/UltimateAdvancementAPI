@@ -131,6 +131,39 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <additionalDependencies>
+                        <additionalDependency>
+                            <groupId>net.kyori</groupId>
+                            <artifactId>adventure-api</artifactId>
+                            <version>${kyoriAdventureVersion}</version>
+                        </additionalDependency>
+
+                        <additionalDependency>
+                            <groupId>net.kyori</groupId>
+                            <artifactId>adventure-key</artifactId>
+                            <version>${kyoriAdventureVersion}</version>
+                        </additionalDependency>
+
+                        <additionalDependency>
+                            <groupId>net.kyori</groupId>
+                            <artifactId>adventure-text-serializer-gson</artifactId>
+                            <version>${kyoriAdventureVersion}</version>
+                        </additionalDependency>
+
+                        <additionalDependency>
+                            <groupId>net.kyori</groupId>
+                            <artifactId>adventure-text-serializer-legacy</artifactId>
+                            <version>${kyoriAdventureVersion}</version>
+                        </additionalDependency>
+
+                        <additionalDependency>
+                            <groupId>net.kyori</groupId>
+                            <artifactId>adventure-text-serializer-plain</artifactId>
+                            <version>${kyoriAdventureVersion}</version>
+                        </additionalDependency>
+                    </additionalDependencies>
+                </configuration>
             </plugin>
         </plugins>
     </build>

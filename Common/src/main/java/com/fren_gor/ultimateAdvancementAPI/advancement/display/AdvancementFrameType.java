@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
+import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
-import com.fren_gor.ultimateAdvancementAPI.util.display.DefaultStyle;
 import net.md_5.bungee.api.ChatColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,15 +16,15 @@ public enum AdvancementFrameType {
     /**
      * A frame with squared shape. The default style has color {@link ChatColor#GREEN}.
      */
-    TASK(AdvancementFrameTypeWrapper.TASK, new DefaultStyle(ChatColor.GREEN), "has made the advancement"),
+    TASK(AdvancementFrameTypeWrapper.TASK, IDefaultStyle.of(ChatColor.GREEN), "has made the advancement"),
     /**
      * A frame with rounded top and bottom. The default style has color {@link ChatColor#GREEN}.
      */
-    GOAL(AdvancementFrameTypeWrapper.GOAL, new DefaultStyle(ChatColor.GREEN), "has reached the goal"),
+    GOAL(AdvancementFrameTypeWrapper.GOAL, IDefaultStyle.of(ChatColor.GREEN), "has reached the goal"),
     /**
      * A frame with thorns at the corners. The default style has color {@link ChatColor#DARK_PURPLE}.
      */
-    CHALLENGE(AdvancementFrameTypeWrapper.CHALLENGE, new DefaultStyle(ChatColor.DARK_PURPLE), "has completed the challenge");
+    CHALLENGE(AdvancementFrameTypeWrapper.CHALLENGE, IDefaultStyle.of(ChatColor.DARK_PURPLE), "has completed the challenge");
 
     /**
      * The {@code AdvancementFrameType} NMS wrapper.
@@ -34,7 +34,7 @@ public enum AdvancementFrameType {
     /**
      * The default title and description styles for announcement messages.
      */
-    private final DefaultStyle style;
+    private final IDefaultStyle style;
 
     /**
      * The message that should be sent when the advancement is granted.
@@ -42,7 +42,7 @@ public enum AdvancementFrameType {
      */
     private final String chatText;
 
-    AdvancementFrameType(@NotNull AdvancementFrameTypeWrapper wrapper, @NotNull DefaultStyle style, @NotNull String chatText) {
+    AdvancementFrameType(@NotNull AdvancementFrameTypeWrapper wrapper, @NotNull IDefaultStyle style, @NotNull String chatText) {
         this.wrapper = Objects.requireNonNull(wrapper);
         this.style = Objects.requireNonNull(style);
         this.chatText = Objects.requireNonNull(chatText);
@@ -82,7 +82,7 @@ public enum AdvancementFrameType {
      * @return The default title and description styles for announcement messages.
      */
     @NotNull
-    public DefaultStyle getStyle() {
+    public IDefaultStyle getStyle() {
         return style;
     }
 
