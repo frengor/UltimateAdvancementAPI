@@ -220,6 +220,7 @@ public class DatabaseManagerTest {
         TeamProgression newTpl2 = dbManager.getTeamProgression(pl2);
         TeamProgression newTpl3 = dbManager.getTeamProgression(pl3);
 
+        dbManagerUtils.waitForPendingTasks(); // Necessary to wait for team unloading
         assertFalse(tpl1.isValid());
         assertTrue(tpl2.isValid());
         assertTrue(tpl3.isValid());
@@ -681,6 +682,7 @@ public class DatabaseManagerTest {
 
         waitCompletion(dbManager.updatePlayerTeam(p1, team)).get();
 
+        dbManagerUtils.waitForPendingTasks(); // Necessary to wait for team unloading
         assertFalse(t1.isValid());
 
         dbManager.removeLoadingRequest(team, plugin);
