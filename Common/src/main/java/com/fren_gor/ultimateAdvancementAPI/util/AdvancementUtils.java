@@ -13,6 +13,7 @@ import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordDefaultStyl
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
+import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.VanillaAdvancementDisablerWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
@@ -58,6 +59,7 @@ public final class AdvancementUtils {
     private static final PreparedAdvancementWrapper PREPARED_ROOT;
     private static final AdvancementWrapper ROOT;
     private static final IDefaultStyle WHITE_DEFAULT_STYLE = BungeeCordDefaultStyle.of(ChatColor.WHITE);
+    private static final boolean PLAYER_HAS_ADVENTURE_DISPLAY_NAME = ReflectionUtil.hasMethod(Player.class, "displayName");
 
     static {
         NOTIFICATION_NAMESPACE = AdvancementKey.RESERVED_NAMESPACE_PREFIX + "notification-" + UUID.randomUUID();
@@ -400,10 +402,14 @@ public final class AdvancementUtils {
             ))
             .addHoverEvent(title.empty().setChildren(hoverText));
 
+        IComponent playerName = PLAYER_HAS_ADVENTURE_DISPLAY_NAME ?
+            PaperUtils.getDisplayName(advancementCompleter) :
+            title.fromLegacy(advancementCompleter.getDisplayName());
+
         IComponent msgComponent = title.empty()
             .applyDefaultStyle(WHITE_DEFAULT_STYLE)
             .setChildren(List.of(
-                title.fromPlain(advancementCompleter.getName()),
+                playerName,
                 title.space(),
                 chatText,
                 title.space()
