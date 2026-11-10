@@ -88,4 +88,24 @@ public class AdventureDefaultStyle implements IDefaultStyle {
             return ChatColor.valueOf(NamedTextColor.nearestTo(color).toString().toUpperCase(Locale.ROOT));
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AdventureDefaultStyle that = (AdventureDefaultStyle) o;
+        return Objects.equals(style, that.style);
+    }
+
+    @Override
+    public int hashCode() {
+        return style.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "AdventureDefaultStyle{" +
+            "style=" + style +
+            '}';
+    }
 }

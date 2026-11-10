@@ -62,4 +62,24 @@ public class BungeeCordDefaultStyle implements IDefaultStyle {
     public IDefaultStyle merge(@NotNull IDefaultStyle style) {
         return new BungeeCordDefaultStyle(this.style.merge(style.toBungeeCordStyle()));
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+
+        BungeeCordDefaultStyle that = (BungeeCordDefaultStyle) o;
+        return Objects.equals(style, that.style);
+    }
+
+    @Override
+    public int hashCode() {
+        return style.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "BungeeCordDefaultStyle{" +
+            "style=" + style +
+            '}';
+    }
 }

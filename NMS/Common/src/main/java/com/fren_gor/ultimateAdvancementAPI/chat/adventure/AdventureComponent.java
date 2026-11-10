@@ -212,4 +212,24 @@ public class AdventureComponent implements IComponent {
         Preconditions.checkNotNull(player, "Player is null.");
         ((Audience) player).sendMessage(component);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AdventureComponent that = (AdventureComponent) o;
+        return Objects.equals(component, that.component);
+    }
+
+    @Override
+    public int hashCode() {
+        return component.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "AdventureComponent{" +
+            "component=" + component +
+            '}';
+    }
 }

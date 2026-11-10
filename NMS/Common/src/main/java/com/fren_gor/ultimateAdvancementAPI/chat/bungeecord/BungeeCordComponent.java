@@ -198,4 +198,24 @@ public class BungeeCordComponent implements IComponent {
         Preconditions.checkNotNull(player, "Player is null.");
         player.spigot().sendMessage(component);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+
+        BungeeCordComponent that = (BungeeCordComponent) o;
+        return Objects.equals(component, that.component);
+    }
+
+    @Override
+    public int hashCode() {
+        return component.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "BungeeCordComponent{" +
+            "component=" + component +
+            '}';
+    }
 }
