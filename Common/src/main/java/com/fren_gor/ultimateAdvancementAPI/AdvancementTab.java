@@ -19,7 +19,7 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
-import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
+import com.fren_gor.ultimateAdvancementAPI.chat.JsonString;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
@@ -1011,7 +1011,7 @@ public final class AdvancementTab {
             final AdvancementDisplayWrapper internalRootDisplay; // Null if the root display or displayData is per-player
             final boolean tabDisplayAndRootAreImmutableOrPerTeam = rootDisplay != null && displayData != null;
             if (tabDisplayAndRootAreImmutableOrPerTeam) {
-                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, () -> BungeeCordComponent.of(rootDisplay.getTitle()).toJson());
+                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, rootDisplay::getTitle);
                 perTeamToSend.put(this.internalRoot.toAdvancementWrapper(internalRootDisplay), 0);
             } else {
                 internalRootDisplay = null;
@@ -1057,8 +1057,7 @@ public final class AdvancementTab {
             // Handle internal root display
             AdvancementDisplayWrapper internalRootDisplay = update.internalRootDisplay;
             if (internalRootDisplay == null) {
-                var r = rootDisplay;
-                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, () -> BungeeCordComponent.of(r.getTitle()).toJson());
+                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, rootDisplay::getTitle);
             }
 
             if (!update.internalRootAlreadyAddedToMap) {

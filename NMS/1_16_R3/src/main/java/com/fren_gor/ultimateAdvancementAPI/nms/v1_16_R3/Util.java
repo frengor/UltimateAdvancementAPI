@@ -1,11 +1,10 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v1_16_R3;
 
+import com.fren_gor.ultimateAdvancementAPI.chat.JsonString;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonParseException;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.chat.ComponentSerializer;
+import net.minecraft.server.v1_16_R3.Advancement;
 import net.minecraft.server.v1_16_R3.AdvancementProgress;
 import net.minecraft.server.v1_16_R3.ChatComponentText;
 import net.minecraft.server.v1_16_R3.Criterion;
@@ -49,7 +48,7 @@ public final class Util {
     }
 
     @NotNull
-    public static net.minecraft.server.v1_16_R3.AdvancementProgress getAdvancementProgress(@NotNull net.minecraft.server.v1_16_R3.Advancement mcAdv, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
+    public static AdvancementProgress getAdvancementProgress(@NotNull Advancement mcAdv, @Range(from = 0, to = Integer.MAX_VALUE) int progression) {
         Preconditions.checkNotNull(mcAdv, "NMS Advancement is null.");
         Preconditions.checkArgument(progression >= 0, "Progression must be >= 0.");
 
@@ -67,36 +66,19 @@ public final class Util {
     }
 
     @NotNull
-    public static IChatBaseComponent fromString(@NotNull String string) {
-        if (string == null || string.isEmpty()) {
-            return ChatComponentText.d;
-        }
-        return CraftChatMessage.fromStringOrNull(string, true);
-    }
-
-    @NotNull
-    public static IChatBaseComponent fromComponent(@NotNull BaseComponent component) {
-        if (component == null) {
-            return ChatComponentText.d;
-        }
-        return fromJSON(ComponentSerializer.toString(component)); // Should never throw JsonParseException
-    }
-
-    @NotNull
-    public static IChatBaseComponent fromJSON(@NotNull String json) throws JsonParseException {
+    public static IChatBaseComponent fromJSON(@NotNull JsonString json) throws JsonParseException {
         if (json == null) {
             return ChatComponentText.d;
         }
-        return CraftChatMessage.fromJSON(json);
+        return CraftChatMessage.fromJSON(json.jsonString());
     }
 
     @NotNull
-    public static BaseComponent toComponent(@NotNull IChatBaseComponent component) {
+    public static JsonString toJSON(@NotNull IChatBaseComponent component) {
         if (component == null) {
-            return new TextComponent("");
+            component = ChatComponentText.d;
         }
-        BaseComponent[] parsed = ComponentSerializer.parse(CraftChatMessage.toJSON(component));
-        return parsed.length == 1 ? parsed[0] : new TextComponent(parsed);
+        return new JsonString(CraftChatMessage.toJSON(component));
     }
 
     public static void sendTo(@NotNull Player player, @NotNull Packet<?> packet) {

@@ -1,4 +1,4 @@
-package com.fren_gor.ultimateAdvancementAPI.nms.util;
+package com.fren_gor.ultimateAdvancementAPI.chat;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;

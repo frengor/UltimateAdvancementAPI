@@ -1,11 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.v26_3_R1;
 
+import com.fren_gor.ultimateAdvancementAPI.chat.JsonString;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonParseException;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.CriterionProgress;
@@ -98,35 +96,19 @@ public class Util {
     }
 
     @NotNull
-    public static Component fromString(@NotNull String string) {
-        if (string == null || string.isEmpty()) {
-            return CommonComponents.EMPTY;
-        }
-        return CraftChatMessage.fromStringOrNull(string, true);
-    }
-
-    @NotNull
-    public static Component fromComponent(@NotNull BaseComponent component) {
-        if (component == null) {
-            return CommonComponents.EMPTY;
-        }
-        return fromJSON(ComponentSerializer.toString(component)); // Should never throw JsonParseException
-    }
-
-    @NotNull
-    public static Component fromJSON(@NotNull String json) throws JsonParseException {
+    public static Component fromJSON(@NotNull JsonString json) throws JsonParseException {
         if (json == null) {
             return CommonComponents.EMPTY;
         }
-        return CraftChatMessage.fromJSON(json);
+        return CraftChatMessage.fromJSON(json.jsonString());
     }
 
     @NotNull
-    public static BaseComponent toComponent(@NotNull Component component) {
+    public static JsonString toJSON(@NotNull Component component) {
         if (component == null) {
-            return new TextComponent("");
+            component = CommonComponents.EMPTY;
         }
-        return ComponentSerializer.deserialize(CraftChatMessage.toJSON(component));
+        return new JsonString(CraftChatMessage.toJSON(component));
     }
 
     @Nullable

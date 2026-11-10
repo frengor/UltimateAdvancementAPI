@@ -4,7 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
 import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.chat.TextUtil;
 import com.fren_gor.ultimateAdvancementAPI.chat.TextUtil.SearchResult;
-import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
+import com.fren_gor.ultimateAdvancementAPI.chat.JsonString;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.base.Preconditions;

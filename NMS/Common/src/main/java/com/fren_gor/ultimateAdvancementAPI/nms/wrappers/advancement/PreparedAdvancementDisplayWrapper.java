@@ -1,10 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement;
 
-import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
+import com.fren_gor.ultimateAdvancementAPI.chat.JsonString;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonParseException;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,63 +15,16 @@ import java.lang.reflect.Constructor;
  */
 public abstract class PreparedAdvancementDisplayWrapper {
 
-    private static final Constructor<? extends PreparedAdvancementDisplayWrapper> constructorJSONs, constructorBaseComponents;
+    private static final Constructor<? extends PreparedAdvancementDisplayWrapper> constructor;
 
     static {
         var clazz = ReflectionUtil.getWrapperClass(PreparedAdvancementDisplayWrapper.class);
         Preconditions.checkNotNull(clazz, "PreparedAdvancementDisplayWrapper implementation not found.");
         try {
-            constructorJSONs = clazz.getDeclaredConstructor(ItemStack.class, JsonString.class, JsonString.class, AdvancementFrameTypeWrapper.class, float.class, float.class, boolean.class, boolean.class, boolean.class);
-            constructorBaseComponents = clazz.getDeclaredConstructor(ItemStack.class, BaseComponent.class, BaseComponent.class, AdvancementFrameTypeWrapper.class, float.class, float.class, boolean.class, boolean.class, boolean.class);
+            constructor = clazz.getDeclaredConstructor(ItemStack.class, JsonString.class, JsonString.class, AdvancementFrameTypeWrapper.class, float.class, float.class, boolean.class, boolean.class, boolean.class);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Couldn't initialize PreparedAdvancementDisplayWrapper.", e);
         }
-    }
-
-    /**
-     * Creates a new {@code PreparedAdvancementDisplayWrapper}.
-     * <p>The returned {@code PreparedAdvancementDisplayWrapper} is not hidden, doesn't show toast, doesn't announce to chat.
-     *
-     * @param icon The icon of the advancement.
-     * @param title The title of the advancement.
-     * @param description The description of the advancement.
-     * @param frameType The frame type of the advancement.
-     * @param x The x coordinate in the advancement GUI.
-     * @param y The y coordinate in the advancement GUI.
-     * @return A new {@code PreparedAdvancementDisplayWrapper}.
-     * @throws ReflectiveOperationException If reflections go wrong.
-     */
-    @NotNull
-    @Deprecated(forRemoval = true)
-    public static PreparedAdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull BaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y) throws ReflectiveOperationException {
-        return craft(icon, title, description, frameType, x, y, false, false, false);
-    }
-
-    /**
-     * Creates a new {@code PreparedAdvancementDisplayWrapper}.
-     *
-     * @param icon The icon of the advancement.
-     * @param title The title of the advancement.
-     * @param description The description of the advancement.
-     * @param frameType The frame type of the advancement.
-     * @param x The x coordinate in the advancement GUI.
-     * @param y The y coordinate in the advancement GUI.
-     * @param showToast Whether to show toast on grant.
-     * @param announceChat Whether to announce grants to chat.
-     * @param hidden Whether the advancement shouldn't be visible in the advancement GUI. Connections to other advancements are always displayed.
-     * @return A new {@code PreparedAdvancementDisplayWrapper}.
-     * @throws ReflectiveOperationException If reflections go wrong.
-     */
-    @NotNull
-    @Deprecated(forRemoval = true)
-    public static PreparedAdvancementDisplayWrapper craft(@NotNull ItemStack icon, @NotNull BaseComponent title, @NotNull BaseComponent description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) throws ReflectiveOperationException {
-        Preconditions.checkNotNull(icon, "Icon is null.");
-        Preconditions.checkNotNull(title, "Title is null.");
-        Preconditions.checkNotNull(description, "Description is null.");
-        Preconditions.checkNotNull(frameType, "Frame type is null.");
-        Preconditions.checkArgument(Float.isFinite(x), "x is not finite.");
-        Preconditions.checkArgument(Float.isFinite(y), "y is not finite.");
-        return constructorBaseComponents.newInstance(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
     }
 
     /**
@@ -118,7 +70,7 @@ public abstract class PreparedAdvancementDisplayWrapper {
         Preconditions.checkNotNull(frameType, "Frame type is null.");
         Preconditions.checkArgument(Float.isFinite(x), "x is not finite.");
         Preconditions.checkArgument(Float.isFinite(y), "y is not finite.");
-        return constructorJSONs.newInstance(icon, jsonTitle, jsonDescription, frameType, x, y, showToast, announceChat, hidden);
+        return constructor.newInstance(icon, jsonTitle, jsonDescription, frameType, x, y, showToast, announceChat, hidden);
     }
 
     /**
@@ -135,8 +87,7 @@ public abstract class PreparedAdvancementDisplayWrapper {
      * @return The title of the advancement.
      */
     @NotNull
-    @Deprecated(forRemoval = true)
-    public abstract BaseComponent getTitle();
+    public abstract JsonString getTitle();
 
     /**
      * Gets the description of the advancement.
@@ -144,8 +95,7 @@ public abstract class PreparedAdvancementDisplayWrapper {
      * @return The description of the advancement.
      */
     @NotNull
-    @Deprecated(forRemoval = true)
-    public abstract BaseComponent getDescription();
+    public abstract JsonString getDescription();
 
     /**
      * Gets the frame type of the advancement.
