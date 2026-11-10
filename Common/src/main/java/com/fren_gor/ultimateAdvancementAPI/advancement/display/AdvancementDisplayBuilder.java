@@ -4,6 +4,8 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.announcementMessage.IAnnouncementMessage;
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
 import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter;
 import com.fren_gor.ultimateAdvancementAPI.util.CoordAdapter.Coord;
@@ -39,17 +41,17 @@ public class AdvancementDisplayBuilder {
 
     /**
      * The default style of the title when displayed in the advancement GUI.
-     * <p>{@link IDefaultStyle#empty()} can be utilized if Minecraft's default style should be used.
+     * <p>An empty style can be utilized if Minecraft's default style should be used.
      */
     @NotNull
-    protected IDefaultStyle defaultTitleStyle = IDefaultStyle.empty();
+    protected IDefaultStyle defaultTitleStyle = BungeeCordDefaultStyle.EMPTY;
 
     /**
      * The default style of the title in the advancement's announcement message.
-     * <p>{@link IDefaultStyle#empty()} can be utilized if Minecraft's default style should be used.
+     * <p>An empty style can be utilized if Minecraft's default style should be used.
      */
     @NotNull
-    protected IDefaultStyle announcementMessageDefaultTitleStyle = IDefaultStyle.empty();
+    protected IDefaultStyle announcementMessageDefaultTitleStyle = BungeeCordDefaultStyle.EMPTY;
 
     /**
      * The description of the advancement.
@@ -60,17 +62,17 @@ public class AdvancementDisplayBuilder {
 
     /**
      * The default style of the description.
-     * <p>{@link IDefaultStyle#empty()} can be utilized if Minecraft's default style should be used.
+     * <p>An empty style can be utilized if Minecraft's default style should be used.
      */
     @NotNull
-    protected IDefaultStyle defaultDescriptionStyle = IDefaultStyle.empty();
+    protected IDefaultStyle defaultDescriptionStyle = BungeeCordDefaultStyle.EMPTY;
 
     /**
      * The default style of the description in the advancement's announcement message.
-     * <p>{@link IDefaultStyle#empty()} can be utilized if Minecraft's default style should be used.
+     * <p>An empty style can be utilized if Minecraft's default style should be used.
      */
     @NotNull
-    protected IDefaultStyle announcementMessageDefaultDescriptionStyle = IDefaultStyle.empty();
+    protected IDefaultStyle announcementMessageDefaultDescriptionStyle = BungeeCordDefaultStyle.EMPTY;
 
     /**
      * The shape of the advancement frame in the advancement GUI.
@@ -108,7 +110,7 @@ public class AdvancementDisplayBuilder {
      * @param legacyTitle The title of the advancement as a legacy string.
      */
     public AdvancementDisplayBuilder(@NotNull Material icon, @NotNull String legacyTitle) {
-        this(icon, IComponent.fromLegacy(Objects.requireNonNull(legacyTitle, "Title is null.")));
+        this(icon, BungeeCordComponent.ofLegacy(Objects.requireNonNull(legacyTitle, "Title is null.")));
     }
 
     /**
@@ -121,7 +123,7 @@ public class AdvancementDisplayBuilder {
      * @param legacyTitle The title of the advancement as a legacy string.
      */
     public AdvancementDisplayBuilder(@NotNull ItemStack icon, @NotNull String legacyTitle) {
-        this(icon, IComponent.fromLegacy(Objects.requireNonNull(legacyTitle, "Title is null.")));
+        this(icon, BungeeCordComponent.ofLegacy(Objects.requireNonNull(legacyTitle, "Title is null.")));
     }
 
     /**
@@ -245,7 +247,7 @@ public class AdvancementDisplayBuilder {
      */
     @NotNull
     public AdvancementDisplayBuilder title(@NotNull String legacyTitle) {
-        this.title = IComponent.fromLegacy(Objects.requireNonNull(legacyTitle, "Title is null."));
+        this.title = BungeeCordComponent.ofLegacy(Objects.requireNonNull(legacyTitle, "Title is null."));
         return this;
     }
 
@@ -270,7 +272,7 @@ public class AdvancementDisplayBuilder {
     @NotNull
     public AdvancementDisplayBuilder description(@NotNull String... legacyDescription) {
         Preconditions.checkNotNull(legacyDescription, "Description is null.");
-        this.description = Arrays.stream(legacyDescription).map(IComponent::fromLegacy).toList();
+        this.description = Arrays.stream(legacyDescription).map(BungeeCordComponent::ofLegacy).toList();
         return this;
     }
 
@@ -389,7 +391,7 @@ public class AdvancementDisplayBuilder {
      * Sets the default style of the title when displayed in the advancement GUI.
      *
      * @param defaultStyle The default style of the title when displayed in the advancement GUI.
-     *     {@link IDefaultStyle#empty()} can be provided if Minecraft's default style should be used.
+     *     An empty style can be provided if Minecraft's default style should be used.
      * @return This builder.
      */
     @NotNull
@@ -402,7 +404,7 @@ public class AdvancementDisplayBuilder {
      * Sets the default style of the title in the advancement's announcement message.
      *
      * @param defaultStyle The default style of the title in the advancement's announcement message.
-     *     {@link IDefaultStyle#empty()} can be provided if Minecraft's default style should be used.
+     *     An empty style can be provided if Minecraft's default style should be used.
      * @return This builder.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
@@ -417,7 +419,7 @@ public class AdvancementDisplayBuilder {
      * Sets the default style of the description when displayed in the advancement GUI.
      *
      * @param defaultStyle The default style of the description when displayed in the advancement GUI.
-     *     {@link IDefaultStyle#empty()} can be provided if Minecraft's default style should be used.
+     *     An empty style can be provided if Minecraft's default style should be used.
      * @return This builder.
      */
     @NotNull
@@ -430,7 +432,7 @@ public class AdvancementDisplayBuilder {
      * Sets the default style of the description in the advancement's announcement message.
      *
      * @param defaultStyle The default style of the description in the advancement's announcement message.
-     *     {@link IDefaultStyle#empty()} can be provided if Minecraft's default style should be used.
+     *     An empty style can be provided if Minecraft's default style should be used.
      * @return This builder.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)

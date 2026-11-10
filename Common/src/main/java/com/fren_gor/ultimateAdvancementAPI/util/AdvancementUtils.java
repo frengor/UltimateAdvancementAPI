@@ -8,6 +8,8 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvanceme
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
 import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
@@ -20,7 +22,6 @@ import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdva
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.packets.PacketPlayOutAdvancementsWrapper;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.Material;
@@ -56,17 +57,23 @@ public final class AdvancementUtils {
     private static final JsonString ADV_DESCRIPTION;
     private static final PreparedAdvancementWrapper PREPARED_ROOT;
     private static final AdvancementWrapper ROOT;
+    private static final IDefaultStyle WHITE_DEFAULT_STYLE = BungeeCordDefaultStyle.of(ChatColor.WHITE);
 
     static {
         NOTIFICATION_NAMESPACE = AdvancementKey.RESERVED_NAMESPACE_PREFIX + "notification-" + UUID.randomUUID();
 
-        ADV_DESCRIPTION = IComponent.of(new TextComponent("A toast notification.\n\nClose and reopen advancements to hide."))
-            .applyDefaultStyle(IDefaultStyle.of(ChatColor.GRAY))
+        ADV_DESCRIPTION = BungeeCordComponent.of("A toast notification.\n\nClose and reopen advancements to hide.")
+            .applyDefaultStyle(BungeeCordDefaultStyle.of(ChatColor.GRAY))
             .toJson();
 
         try {
             NOTIFICATION_ROOT_KEY = MinecraftKeyWrapper.craft(NOTIFICATION_NAMESPACE, "root");
-            AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(new ItemStack(Material.BARRIER), IComponent.of(new TextComponent("Notification")).toJson(), IComponent.empty().toJson(), AdvancementFrameTypeWrapper.TASK, 0, 0, false, false, true, "textures/block/stone.png");
+            AdvancementDisplayWrapper display = AdvancementDisplayWrapper.craft(
+                new ItemStack(Material.BARRIER),
+                BungeeCordComponent.of("Notification").toJson(),
+                BungeeCordComponent.EMPTY.toJson(),
+                AdvancementFrameTypeWrapper.TASK,
+                0, 0, false, false, true, "textures/block/stone.png");
             PREPARED_ROOT = PreparedAdvancementWrapper.craft(NOTIFICATION_ROOT_KEY, 1);
             ROOT = PREPARED_ROOT.toAdvancementWrapper(display);
         } catch (ReflectiveOperationException e) {
@@ -84,7 +91,7 @@ public final class AdvancementUtils {
      * @see UltimateAdvancementAPI#displayCustomToast(Player, ItemStack, String, AdvancementFrameType)
      */
     public static void displayToast(@NotNull Player player, @NotNull ItemStack icon, @NotNull String title, @NotNull AdvancementFrameType frame) {
-        displayToast(player, icon, IComponent.fromLegacy(title), frame);
+        displayToast(player, icon, BungeeCordComponent.ofLegacy(title), frame);
     }
 
     /**
@@ -349,7 +356,7 @@ public final class AdvancementUtils {
         List<IComponent> description = display.dispatchGetDescription(advancementCompleter, progression);
         IDefaultStyle defaultAMTitleStyle = display.dispatchGetAnnouncementMessageDefaultTitleStyle(advancementCompleter, progression);
         IDefaultStyle defaultAMDescriptionStyle = display.dispatchGetAnnouncementMessageDefaultDescriptionStyle(advancementCompleter, progression);
-        String chatText = frame.getChatText();
+        IComponent chatText = frame.getChatText();
         IDefaultStyle frameStyle = frame.getStyle();
 
         Preconditions.checkNotNull(frame, "Display returned a null frame.");
@@ -373,28 +380,37 @@ public final class AdvancementUtils {
         hoverText.add(title);
 
         if (!description.isEmpty()) {
-            hoverText.add(IComponent.newLine());
-            if (fancy && !description.get(0).isEmptyOrStartsWithNewLine()) {
-                hoverText.add(IComponent.newLine());
+            IComponent firstLine = description.get(0);
+            hoverText.add(firstLine.newLine());
+            if (fancy && !firstLine.isEmptyOrStartsWithNewLine()) {
+                hoverText.add(firstLine.newLine());
             }
 
-            IComponent hoverDesc = IComponent.empty()
+            IComponent hoverDesc = firstLine.empty()
                 .applyDefaultStyle(descriptionStyle)
-                .setChildren(intersperse(description, IComponent.newLine()));
+                .setChildren(intersperse(description, firstLine.newLine()));
             hoverText.add(hoverDesc);
         }
 
-        IComponent hoverComponent = IComponent.empty()
+        IComponent hoverComponent = title.empty()
             .setChildren(List.of(
-                IComponent.of(new TextComponent("[")).applyDefaultStyle(parenthesesStyle),
+                title.fromPlain("[").applyDefaultStyle(parenthesesStyle),
                 title,
-                IComponent.of(new TextComponent("]")).applyDefaultStyle(parenthesesStyle)
+                title.fromPlain("]").applyDefaultStyle(parenthesesStyle)
             ))
-            .addHoverEvent(IComponent.empty().setChildren(hoverText));
+            .addHoverEvent(title.empty().setChildren(hoverText));
 
-        return IComponent.empty().setChildren(List.of(
-            IComponent.of(new TextComponent(advancementCompleter.getName() + ' ' + frame.getChatText() + ' '))
-                .applyDefaultStyle(IDefaultStyle.of(ChatColor.WHITE)),
+        IComponent msgComponent = title.empty()
+            .applyDefaultStyle(WHITE_DEFAULT_STYLE)
+            .setChildren(List.of(
+                title.fromPlain(advancementCompleter.getName()),
+                title.space(),
+                chatText,
+                title.space()
+            ));
+
+        return title.empty().setChildren(List.of(
+            msgComponent,
             hoverComponent
         ));
     }

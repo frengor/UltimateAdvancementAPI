@@ -4,6 +4,8 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.announcementMessage.IAnnouncementMessage;
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
 import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
@@ -76,26 +78,26 @@ public abstract non-sealed class AbstractImmutableAdvancementDisplay extends Abs
      * Returns the default style of the title when displayed in the advancement GUI.
      *
      * @return The default style of the title when displayed in the advancement GUI.
-     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link IDefaultStyle#empty()}.
+     *     An empty style can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link BungeeCordDefaultStyle#EMPTY}.
      */
     @NotNull
     public IDefaultStyle getDefaultTitleStyle() {
-        return IDefaultStyle.empty();
+        return BungeeCordDefaultStyle.EMPTY;
     }
 
     /**
      * Returns the default style of the title in the advancement's announcement message.
      *
      * @return The default style of the title in the advancement's announcement message.
-     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link IDefaultStyle#empty()}.
+     *     An empty style can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link BungeeCordDefaultStyle#EMPTY}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
     public IDefaultStyle getAnnouncementMessageDefaultTitleStyle() {
-        return IDefaultStyle.empty();
+        return BungeeCordDefaultStyle.EMPTY;
     }
 
     /**
@@ -123,26 +125,26 @@ public abstract non-sealed class AbstractImmutableAdvancementDisplay extends Abs
      * Returns the default style of the description when displayed in the advancement GUI.
      *
      * @return The default style of the description when displayed in the advancement GUI.
-     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link IDefaultStyle#empty()}.
+     *     An empty style can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link BungeeCordDefaultStyle#EMPTY}.
      */
     @NotNull
     public IDefaultStyle getDefaultDescriptionStyle() {
-        return IDefaultStyle.empty();
+        return BungeeCordDefaultStyle.EMPTY;
     }
 
     /**
      * Returns the default style of the description in the advancement's announcement message.
      *
      * @return The default style of the description in the advancement's announcement message.
-     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link IDefaultStyle#empty()}.
+     *     An empty style can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link BungeeCordDefaultStyle#EMPTY}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
     public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle() {
-        return IDefaultStyle.empty();
+        return BungeeCordDefaultStyle.EMPTY;
     }
 
     /**
@@ -180,10 +182,11 @@ public abstract non-sealed class AbstractImmutableAdvancementDisplay extends Abs
         }
 
         IComponent title = getTitle().applyDefaultStyle(getDefaultTitleStyle());
-        IComponent description = IComponent.empty()
+        List<IComponent> description = getDescription();
+        IComponent descriptionComponent = description.isEmpty() ? BungeeCordComponent.EMPTY : title.empty()
             .applyDefaultStyle(getDefaultDescriptionStyle())
-            .setChildren(AdvancementUtils.intersperse(getDescription(), IComponent.newLine()));
-        return wrapper = PreparedAdvancementDisplayWrapper.craft(getIcon(), title.toJson(), description.toJson(), getFrame().getNMSWrapper(), getX(), getY());
+            .setChildren(AdvancementUtils.intersperse(description, title.newLine()));
+        return wrapper = PreparedAdvancementDisplayWrapper.craft(getIcon(), title.toJson(), descriptionComponent.toJson(), getFrame().getNMSWrapper(), getX(), getY());
     }
 
     /**

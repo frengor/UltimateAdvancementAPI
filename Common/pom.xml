@@ -91,6 +91,32 @@
             <artifactId>ultimateadvancementapi-nms-common</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope> <!-- ultimateadvancementapi-nms-distribution will be shaded into ultimateadvancementapi-shadeable module -->
+            <exclusions>
+                <exclusion>
+                    <groupId>net.kyori</groupId>
+                    <artifactId>adventure-api</artifactId>
+                </exclusion>
+
+                <exclusion>
+                    <groupId>net.kyori</groupId>
+                    <artifactId>adventure-key</artifactId>
+                </exclusion>
+
+                <exclusion>
+                    <groupId>net.kyori</groupId>
+                    <artifactId>adventure-text-serializer-gson</artifactId>
+                </exclusion>
+
+                <exclusion>
+                    <groupId>net.kyori</groupId>
+                    <artifactId>adventure-text-serializer-legacy</artifactId>
+                </exclusion>
+
+                <exclusion>
+                    <groupId>net.kyori</groupId>
+                    <artifactId>adventure-text-serializer-plain</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- SQLite is already bundled with Spigot, but not with SpigotAPI -->

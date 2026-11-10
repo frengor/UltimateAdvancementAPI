@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.chat.TextUtil;
 import com.fren_gor.ultimateAdvancementAPI.chat.TextUtil.SearchResult;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -24,17 +25,49 @@ import java.util.Objects;
 
 public class AdventureComponent implements IComponent {
 
+    public static final IComponent EMPTY = of("");
+
+    public static final IComponent SPACE = of(" ");
+
+    public static final IComponent NEW_LINE = of("\n");
+
     private final Component component;
 
-    public AdventureComponent(@NotNull Component component) {
+    @LazyValue
+    private BaseComponent baseComponent;
+    @LazyValue
+    private JsonString jsonString;
+    @LazyValue
+    private Boolean emptyOrStartsWithNewLine;
+
+    private AdventureComponent(@NotNull Component component) {
         this.component = Objects.requireNonNull(component, "Component is null.");
     }
 
-    public AdventureComponent(@NotNull JsonString jsonString) {
-        Preconditions.checkNotNull(jsonString, "JsonString is null.");
+    @NotNull
+    public static IComponent of(@NotNull Component component) {
+        return new AdventureComponent(component);
+    }
 
+    @NotNull
+    public static IComponent of(@NotNull JsonString jsonString) {
+        Preconditions.checkNotNull(jsonString, "JsonString is null.");
         // TODO: check old versions compatibility
-        this.component = GsonComponentSerializer.gson().deserialize(jsonString.jsonString());
+        var component = new AdventureComponent(GsonComponentSerializer.gson().deserialize(jsonString.jsonString()));
+        component.jsonString = jsonString;
+        return component;
+    }
+
+    @NotNull
+    public static IComponent of(@NotNull String plainText) {
+        Preconditions.checkNotNull(plainText, "String is null.");
+        return new AdventureComponent(Component.text(plainText));
+    }
+
+    @NotNull
+    public static IComponent ofLegacy(@NotNull String legacy) {
+        Preconditions.checkNotNull(legacy, "Legacy string is null.");
+        return new AdventureComponent(LegacyComponentSerializer.legacySection().deserialize(legacy));
     }
 
     @Override
@@ -46,8 +79,11 @@ public class AdventureComponent implements IComponent {
     @Override
     @NotNull
     public BaseComponent toBungeeCordComponent() {
+        if (baseComponent != null) {
+            return baseComponent.duplicate();
+        }
         // TODO: check old versions compatibility
-        return ComponentSerializer.deserialize(GsonComponentSerializer.gson().serializeToTree(component));
+        return (baseComponent = ComponentSerializer.deserialize(GsonComponentSerializer.gson().serializeToTree(component))).duplicate();
     }
 
     @NotNull
@@ -60,6 +96,9 @@ public class AdventureComponent implements IComponent {
     @NotNull
     public IComponent setChildren(@NotNull Collection<? extends IComponent> children) {
         Preconditions.checkNotNull(children, "Children components are null.");
+        if (children.isEmpty()) {
+            return this;
+        }
         return new AdventureComponent(component.children(children
             .stream()
             .map(c -> Objects.requireNonNull(c, "A child component is null.").toAdventureComponent())
@@ -76,11 +115,18 @@ public class AdventureComponent implements IComponent {
     @NotNull
     public IComponent applyDefaultStyle(@NotNull IDefaultStyle defaultStyle) {
         Preconditions.checkNotNull(defaultStyle, "IDefaultStyle is null.");
+        if (defaultStyle.isEmpty()) {
+            return this;
+        }
         return new AdventureComponent(component.applyFallbackStyle(defaultStyle.toAdventureStyle()));
     }
 
     @Override
     public boolean isEmptyOrStartsWithNewLine() {
+        if (emptyOrStartsWithNewLine != null) {
+            return emptyOrStartsWithNewLine;
+        }
+
         // Workaround for "Variable is accessed from within inner class, needs to be final or effectively final"
         final SearchResult[] result = {SearchResult.EMPTY};
 
@@ -107,13 +153,16 @@ public class AdventureComponent implements IComponent {
             }
         });
 
-        return result[0] == SearchResult.FOUND || result[0] == SearchResult.EMPTY;
+        return emptyOrStartsWithNewLine = (result[0] == SearchResult.FOUND || result[0] == SearchResult.EMPTY);
     }
 
     @Override
     @NotNull
     public JsonString toJson() {
-        return new JsonString(GsonComponentSerializer.gson().serialize(component));
+        if (jsonString != null) {
+            return jsonString;
+        }
+        return jsonString = new JsonString(GsonComponentSerializer.gson().serialize(component));
     }
 
     @Override
@@ -126,6 +175,36 @@ public class AdventureComponent implements IComponent {
     @NotNull
     public String toPlain() {
         return PlainTextComponentSerializer.plainText().serialize(component);
+    }
+
+    @Override
+    @NotNull
+    public IComponent fromPlain(@NotNull String plainText) {
+        return of(plainText);
+    }
+
+    @Override
+    @NotNull
+    public IComponent fromLegacy(@NotNull String legacy) {
+        return ofLegacy(legacy);
+    }
+
+    @Override
+    @NotNull
+    public IComponent empty() {
+        return EMPTY;
+    }
+
+    @Override
+    @NotNull
+    public IComponent space() {
+        return SPACE;
+    }
+
+    @Override
+    @NotNull
+    public IComponent newLine() {
+        return NEW_LINE;
     }
 
     @Override

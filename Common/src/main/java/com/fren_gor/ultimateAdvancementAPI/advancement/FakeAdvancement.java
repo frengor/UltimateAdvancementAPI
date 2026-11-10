@@ -7,6 +7,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAd
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementDisplayBuilder;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponent;
 import com.fren_gor.ultimateAdvancementAPI.database.ProgressionUpdateResult;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
@@ -16,7 +17,6 @@ import com.fren_gor.ultimateAdvancementAPI.util.display.ImmutableAdvancementDisp
 import com.fren_gor.ultimateAdvancementAPI.util.display.PerPlayerAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.display.PerTeamAdvancementDisplayWrapper;
 import com.google.common.base.Preconditions;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -40,6 +40,7 @@ import java.util.function.Function;
 public class FakeAdvancement extends BaseAdvancement {
 
     private static final AtomicInteger FAKE_NUMBER = new AtomicInteger(0);
+    private static final IComponent TITLE = BungeeCordComponent.of("FakeAdvancement");
 
     @NotNull
     private static String generateKey() {
@@ -69,7 +70,7 @@ public class FakeAdvancement extends BaseAdvancement {
      * @param y The y coordinate of the advancement.
      */
     public FakeAdvancement(@NotNull Advancement parent, @NotNull String key, float x, float y) {
-        this(parent, key, new AdvancementDisplayBuilder(Material.GRASS_BLOCK, "FakeAdvancement").x(x).y(y).build());
+        this(parent, key, new AdvancementDisplayBuilder(Material.GRASS_BLOCK, TITLE).x(x).y(y).build());
     }
 
     /**
@@ -195,7 +196,7 @@ public class FakeAdvancement extends BaseAdvancement {
                     }
 
                     // Only x and y matters here, since FakeAdvancements are invisible
-                    return wrapper = PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), new TextComponent("FakeAdvancement"), new TextComponent(""), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(), wrapped.getY(), false, false, true);
+                    return wrapper = PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), TITLE.toJson(), BungeeCordComponent.EMPTY.toJson(), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(), wrapped.getY(), false, false, true);
                 }
             };
         } else if (display instanceof AbstractPerTeamAdvancementDisplay perTeam) {
@@ -204,7 +205,7 @@ public class FakeAdvancement extends BaseAdvancement {
                 @NotNull
                 public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull TeamProgression progression) throws ReflectiveOperationException {
                     // Only x and y matters here, since FakeAdvancements are invisible
-                    return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), new TextComponent("FakeAdvancement"), new TextComponent(""), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(progression), wrapped.getY(progression), false, false, true);
+                    return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), TITLE.toJson(), BungeeCordComponent.EMPTY.toJson(), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(progression), wrapped.getY(progression), false, false, true);
                 }
             };
         } else if (display instanceof AbstractPerPlayerAdvancementDisplay perPlayer) {
@@ -212,7 +213,7 @@ public class FakeAdvancement extends BaseAdvancement {
                 @Override
                 public @NotNull PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull Player player) throws ReflectiveOperationException {
                     // Only x and y matters here, since FakeAdvancements are invisible
-                    return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), new TextComponent("FakeAdvancement"), new TextComponent(""), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(player), wrapped.getY(player), false, false, true);
+                    return PreparedAdvancementDisplayWrapper.craft(new ItemStack(Material.GRASS_BLOCK), TITLE.toJson(), BungeeCordComponent.EMPTY.toJson(), AdvancementFrameType.GOAL.getNMSWrapper(), wrapped.getX(player), wrapped.getY(player), false, false, true);
                 }
             };
         } else {

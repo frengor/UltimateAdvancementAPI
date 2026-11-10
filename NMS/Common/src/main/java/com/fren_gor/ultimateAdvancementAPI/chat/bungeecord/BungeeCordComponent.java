@@ -6,9 +6,9 @@ import com.fren_gor.ultimateAdvancementAPI.chat.TextUtil;
 import com.fren_gor.ultimateAdvancementAPI.chat.TextUtil.SearchResult;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.HoverEvent.Action;
@@ -22,26 +22,65 @@ import java.util.Objects;
 
 public class BungeeCordComponent implements IComponent {
 
+    public static final IComponent EMPTY = of("");
+
+    public static final IComponent SPACE = of(" ");
+
+    public static final IComponent NEW_LINE = of("\n");
+
     private static final boolean TEXT_COMPONENT_HAS_FROM_LEGACY = ReflectionUtil.hasMethod(TextComponent.class, "fromLegacy");
 
     private final BaseComponent component;
 
-    public BungeeCordComponent(@NotNull BaseComponent component) {
-        this.component = Objects.requireNonNull(component, "BaseComponent is null.").duplicate();
+    @LazyValue
+    private Object adventureComponent; // Use Object to avoid loading issues on Spigot
+    @LazyValue
+    private JsonString jsonString;
+    @LazyValue
+    private Boolean emptyOrStartsWithNewLine;
+
+    private BungeeCordComponent(@NotNull BaseComponent component) {
+        // No need to duplicate here, the constructor is private and the provided component is never modified
+        this.component = Objects.requireNonNull(component, "BaseComponent is null.");
     }
 
-    public BungeeCordComponent(@NotNull JsonString jsonString) {
-        Preconditions.checkNotNull(jsonString, "JsonString is null.");
+    @NotNull
+    public static IComponent of(@NotNull BaseComponent component) {
+        Preconditions.checkNotNull(component, "BaseComponent is null.");
+        return new BungeeCordComponent(component.duplicate());
+    }
 
+    @NotNull
+    public static IComponent of(@NotNull JsonString jsonString) {
+        Preconditions.checkNotNull(jsonString, "JsonString is null.");
         // TODO: check old versions compatibility
-        this.component = ComponentSerializer.deserialize(jsonString.jsonString());
+        var component = new BungeeCordComponent(ComponentSerializer.deserialize(jsonString.jsonString()));
+        component.jsonString = jsonString;
+        return component;
+    }
+
+    @NotNull
+    public static IComponent of(@NotNull String plainText) {
+        Preconditions.checkNotNull(plainText, "String is null.");
+        return new BungeeCordComponent(new TextComponent(plainText));
+    }
+
+    @NotNull
+    public static IComponent ofLegacy(@NotNull String legacy) {
+        Preconditions.checkNotNull(legacy, "Legacy string is null.");
+        if (TEXT_COMPONENT_HAS_FROM_LEGACY) {
+            return new BungeeCordComponent(TextComponent.fromLegacy(legacy));
+        }
+        return new BungeeCordComponent(new TextComponent(TextComponent.fromLegacyText(legacy)));
     }
 
     @Override
     @NotNull
     public Component toAdventureComponent() {
-        // TODO: check old versions compatibility
-        return GsonComponentSerializer.gson().deserializeFromTree(ComponentSerializer.toJson(component));
+        if (adventureComponent != null) {
+            return (Component) adventureComponent;
+        }
+        return (Component) (adventureComponent = AdventureConverter.toAdventureComponent(component));
     }
 
     @Override
@@ -62,6 +101,9 @@ public class BungeeCordComponent implements IComponent {
     @NotNull
     public IComponent setChildren(@NotNull Collection<? extends IComponent> children) {
         Preconditions.checkNotNull(children, "Children components are null.");
+        if (children.isEmpty()) {
+            return this;
+        }
         var toReturn = component.duplicate();
         toReturn.setExtra(children
             .stream()
@@ -92,14 +134,21 @@ public class BungeeCordComponent implements IComponent {
 
     @Override
     public boolean isEmptyOrStartsWithNewLine() {
+        if (emptyOrStartsWithNewLine != null) {
+            return emptyOrStartsWithNewLine;
+        }
+
         var res = TextUtil.startsWithNewLine(component, TextUtil.MAX_DEPTH);
-        return res == SearchResult.FOUND || res == SearchResult.EMPTY;
+        return emptyOrStartsWithNewLine = (res == SearchResult.FOUND || res == SearchResult.EMPTY);
     }
 
     @Override
     @NotNull
     public JsonString toJson() {
-        return new JsonString(ComponentSerializer.toString(component));
+        if (jsonString != null) {
+            return jsonString;
+        }
+        return jsonString = new JsonString(ComponentSerializer.toString(component));
     }
 
     @Override
@@ -115,25 +164,38 @@ public class BungeeCordComponent implements IComponent {
     }
 
     @Override
+    @NotNull
+    public IComponent fromPlain(@NotNull String plainText) {
+        return of(plainText);
+    }
+
+    @Override
+    @NotNull
+    public IComponent fromLegacy(@NotNull String legacy) {
+        return ofLegacy(legacy);
+    }
+
+    @Override
+    @NotNull
+    public IComponent empty() {
+        return EMPTY;
+    }
+
+    @Override
+    @NotNull
+    public IComponent space() {
+        return SPACE;
+    }
+
+    @Override
+    @NotNull
+    public IComponent newLine() {
+        return NEW_LINE;
+    }
+
+    @Override
     public void sendTo(@NotNull Player player) {
         Preconditions.checkNotNull(player, "Player is null.");
         player.spigot().sendMessage(component);
-    }
-
-    /**
-     * Equivalent of {@link TextComponent#fromLegacy(String)}. Present for compatibility with old versions.
-     *
-     * @param legacy The legacy string to convert.
-     * @return The resulting {@link BaseComponent}.
-     * @see TextComponent#fromLegacy(String)
-     * @see TextComponent#fromLegacyText(String)
-     */
-    @NotNull
-    public static BaseComponent fromLegacy(@NotNull String legacy) {
-        Preconditions.checkNotNull(legacy, "Legacy string is null.");
-        if (TEXT_COMPONENT_HAS_FROM_LEGACY) {
-            return TextComponent.fromLegacy(legacy);
-        }
-        return new TextComponent(TextComponent.fromLegacyText(legacy));
     }
 }

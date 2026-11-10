@@ -4,6 +4,8 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.announcementMessage.IAnnouncementMessage;
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
 import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
@@ -71,12 +73,12 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      *
      * @param progression The {@link TeamProgression} of the team.
      * @return The default style of the title when displayed in the advancement GUI.
-     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link IDefaultStyle#empty()}.
+     *     An empty style can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link BungeeCordDefaultStyle#EMPTY}.
      */
     @NotNull
     public IDefaultStyle getDefaultTitleStyle(@NotNull TeamProgression progression) {
-        return IDefaultStyle.empty();
+        return BungeeCordDefaultStyle.EMPTY;
     }
 
     /**
@@ -84,14 +86,14 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      *
      * @param progression The {@link TeamProgression} of the team.
      * @return The default style of the title in the advancement's announcement message.
-     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link IDefaultStyle#empty()}.
+     *     An empty style can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link BungeeCordDefaultStyle#EMPTY}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
     public IDefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull TeamProgression progression) {
-        return IDefaultStyle.empty();
+        return BungeeCordDefaultStyle.EMPTY;
     }
 
     /**
@@ -122,12 +124,12 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      *
      * @param progression The {@link TeamProgression} of the team.
      * @return The default style of the description when displayed in the advancement GUI.
-     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link IDefaultStyle#empty()}.
+     *     An empty style can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link BungeeCordDefaultStyle#EMPTY}.
      */
     @NotNull
     public IDefaultStyle getDefaultDescriptionStyle(@NotNull TeamProgression progression) {
-        return IDefaultStyle.empty();
+        return BungeeCordDefaultStyle.EMPTY;
     }
 
     /**
@@ -135,14 +137,14 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
      *
      * @param progression The {@link TeamProgression} of the team.
      * @return The default style of the description in the advancement's announcement message.
-     *     {@link IDefaultStyle#empty()} can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link IDefaultStyle#empty()}.
+     *     An empty style can be returned if Minecraft's default style should be used.
+     * @implSpec The default implementation returns {@link BungeeCordDefaultStyle#EMPTY}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
     public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull TeamProgression progression) {
-        return IDefaultStyle.empty();
+        return BungeeCordDefaultStyle.EMPTY;
     }
 
     /**
@@ -180,10 +182,11 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
     @NotNull
     public PreparedAdvancementDisplayWrapper getNMSWrapper(@NotNull TeamProgression progression) throws ReflectiveOperationException {
         IComponent title = getTitle(progression).applyDefaultStyle(getDefaultTitleStyle(progression));
-        IComponent description = IComponent.empty()
+        List<IComponent> description = getDescription(progression);
+        IComponent descriptionComponent = description.isEmpty() ? BungeeCordComponent.EMPTY : title.empty()
             .applyDefaultStyle(getDefaultDescriptionStyle(progression))
-            .setChildren(AdvancementUtils.intersperse(getDescription(progression), IComponent.newLine()));
-        return PreparedAdvancementDisplayWrapper.craft(getIcon(progression), title.toJson(), description.toJson(), getFrame(progression).getNMSWrapper(), getX(progression), getY(progression));
+            .setChildren(AdvancementUtils.intersperse(description, title.newLine()));
+        return PreparedAdvancementDisplayWrapper.craft(getIcon(progression), title.toJson(), descriptionComponent.toJson(), getFrame(progression).getNMSWrapper(), getX(progression), getY(progression));
     }
 
     /**

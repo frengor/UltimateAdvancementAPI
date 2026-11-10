@@ -3,6 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.chat.adventure;
 import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordStyle;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
+import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
@@ -17,12 +18,28 @@ import java.util.Objects;
 
 public class AdventureDefaultStyle implements IDefaultStyle {
 
+    public static IDefaultStyle EMPTY = of(Style.empty());
+
     private static final boolean CHAT_COLOR_HAS_GET_COLOR = ReflectionUtil.hasMethod(ChatColor.class, "getColor");
+    private static final boolean STYLE_HAS_SHADOW_COLOR = ReflectionUtil.hasMethod(Style.class, "shadowColor");
 
     private final Style style;
 
-    public AdventureDefaultStyle(@NotNull Style style) {
+    @LazyValue
+    private BungeeCordStyle bungeeCordStyle;
+
+    private AdventureDefaultStyle(@NotNull Style style) {
         this.style = Objects.requireNonNull(style, "Style is null.");
+    }
+
+    @NotNull
+    public static IDefaultStyle of(@NotNull TextColor color) {
+        return of(Style.style(color));
+    }
+
+    @NotNull
+    public static IDefaultStyle of(@NotNull Style style) {
+        return new AdventureDefaultStyle(style);
     }
 
     @Override
@@ -40,9 +57,12 @@ public class AdventureDefaultStyle implements IDefaultStyle {
     @Override
     @NotNull
     public BungeeCordStyle toBungeeCordStyle() {
-        var shadowColor = style.shadowColor();
+        if (bungeeCordStyle != null) {
+            return bungeeCordStyle;
+        }
+        var shadowColor = STYLE_HAS_SHADOW_COLOR ? style.shadowColor() : null;
         var font = style.font();
-        return new BungeeCordStyle()
+        return bungeeCordStyle = new BungeeCordStyle()
             .color(fromTextColor(style.color()))
             .shadowColor(shadowColor == null ? null : new Color(shadowColor.value(), true))
             .font(font == null ? null : font.asString())

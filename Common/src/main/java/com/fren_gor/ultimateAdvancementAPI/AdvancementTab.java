@@ -8,6 +8,7 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractImmutable
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayerAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponent;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
@@ -1010,7 +1011,7 @@ public final class AdvancementTab {
             final AdvancementDisplayWrapper internalRootDisplay; // Null if the root display or displayData is per-player
             final boolean tabDisplayAndRootAreImmutableOrPerTeam = rootDisplay != null && displayData != null;
             if (tabDisplayAndRootAreImmutableOrPerTeam) {
-                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, () -> IComponent.of(rootDisplay.getTitle()).toJson());
+                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, () -> BungeeCordComponent.of(rootDisplay.getTitle()).toJson());
                 perTeamToSend.put(this.internalRoot.toAdvancementWrapper(internalRootDisplay), 0);
             } else {
                 internalRootDisplay = null;
@@ -1057,7 +1058,7 @@ public final class AdvancementTab {
             AdvancementDisplayWrapper internalRootDisplay = update.internalRootDisplay;
             if (internalRootDisplay == null) {
                 var r = rootDisplay;
-                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, () -> IComponent.of(r.getTitle()).toJson());
+                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, () -> BungeeCordComponent.of(r.getTitle()).toJson());
             }
 
             if (!update.internalRootAlreadyAddedToMap) {
@@ -1113,7 +1114,7 @@ public final class AdvancementTab {
                 ItemStack icon = this.icon.orElseGet(rootIcon);
                 JsonString title = this.title.map(IComponent::toJson).orElseGet(rootTitle);
                 return AdvancementDisplayWrapper.craft(
-                    icon, title, IComponent.empty().toJson(), AdvancementFrameTypeWrapper.TASK, rootX - 0.2f, rootY, false, false, true, this.backgroundTexture
+                    icon, title, BungeeCordComponent.EMPTY.toJson(), AdvancementFrameTypeWrapper.TASK, rootX - 0.2f, rootY, false, false, true, this.backgroundTexture
                 );
             }
         }

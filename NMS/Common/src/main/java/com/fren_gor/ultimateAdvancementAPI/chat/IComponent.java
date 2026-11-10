@@ -1,11 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.chat;
 
 import com.fren_gor.ultimateAdvancementAPI.chat.TextUtil.SearchResult;
-import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponent;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.JsonString;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,41 +14,11 @@ import java.util.Collection;
  */
 public interface IComponent {
 
-    // TODO: Make a (static) method
     @NotNull
-    static IComponent empty() {
-        return of(new TextComponent(""));
-    }
+    BaseComponent toBungeeCordComponent();
 
     @NotNull
-    static IComponent newLine() {
-        return of(new TextComponent("\n"));
-    }
-
-    @NotNull
-    static IComponent of(@NotNull BaseComponent component) {
-        return new BungeeCordComponent(component);
-    }
-
-    /*@NotNull
-    static IComponent of(@NotNull Component component) {
-        return new AdventureComponent(component);
-    }*/
-
-    @NotNull
-    static IComponent fromLegacy(@NotNull String legacy) {
-        return of(BungeeCordComponent.fromLegacy(legacy));
-    }
-
-    @NotNull
-    default BaseComponent toBungeeCordComponent() {
-        throw new UnsupportedOperationException();
-    }
-
-    @NotNull
-    default Component toAdventureComponent() {
-        throw new UnsupportedOperationException();
-    }
+    Component toAdventureComponent();
 
     @NotNull
     IComponent append(@NotNull IComponent component);
@@ -77,6 +45,21 @@ public interface IComponent {
 
     @NotNull
     String toPlain();
+
+    @NotNull
+    IComponent fromPlain(@NotNull String plainText);
+
+    @NotNull
+    IComponent fromLegacy(@NotNull String legacy);
+
+    @NotNull
+    IComponent empty();
+
+    @NotNull
+    IComponent space();
+
+    @NotNull
+    IComponent newLine();
 
     void sendTo(@NotNull Player player);
 }
