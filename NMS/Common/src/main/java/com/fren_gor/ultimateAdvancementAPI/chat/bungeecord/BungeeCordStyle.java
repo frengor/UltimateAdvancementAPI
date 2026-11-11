@@ -17,7 +17,7 @@ import java.util.StringJoiner;
 public final class BungeeCordStyle {
 
     private static final boolean CHAT_COLOR_HAS_GET_COLOR = ReflectionUtil.hasMethod(ChatColor.class, "getColor");
-    private static final boolean BASE_COMPONENT_HAS_FONT = ReflectionUtil.hasMethod(BaseComponent.class, "setFont");
+    private static final boolean BASE_COMPONENT_HAS_FONT = ReflectionUtil.hasMethod(BaseComponent.class, "setFont", String.class);
     private static final boolean COMPONENT_STYLE_CLASS_EXISTS = ReflectionUtil.classExists("net.md_5.bungee.api.chat.ComponentStyle");
     private static final boolean COMPONENT_STYLE_HAS_SHADOW_COLOR = COMPONENT_STYLE_CLASS_EXISTS && ReflectionUtil.hasMethod(ComponentStyle.class, "getShadowColor");
 
@@ -266,6 +266,39 @@ public final class BungeeCordStyle {
         }
         if (this.obfuscated != null) {
             builder.obfuscated(this.obfuscated);
+        }
+    }
+
+    /**
+     * Applies this {@code DefaultStyle} to the provided {@link BaseComponent}.
+     *
+     * @param component The component to which the default style will be applied to.
+     */
+    public void applyDefaultsTo(@NotNull BaseComponent component) {
+        Preconditions.checkNotNull(component, "BaseComponent is null.");
+        if (this.color != null && component.getColorRaw() == null) {
+            component.setColor(this.color);
+        }
+        if (COMPONENT_STYLE_HAS_SHADOW_COLOR && this.shadowColor != null && component.getShadowColorRaw() == null) {
+            component.setShadowColor(this.shadowColor);
+        }
+        if (BASE_COMPONENT_HAS_FONT && this.font != null && component.getFontRaw() == null) {
+            component.setFont(this.font);
+        }
+        if (this.bold != null && component.isBoldRaw() == null) {
+            component.setBold(this.bold);
+        }
+        if (this.italic != null && component.isItalicRaw() == null) {
+            component.setItalic(this.italic);
+        }
+        if (this.underlined != null && component.isUnderlinedRaw() == null) {
+            component.setUnderlined(this.underlined);
+        }
+        if (this.strikethrough != null && component.isStrikethroughRaw() == null) {
+            component.setStrikethrough(this.strikethrough);
+        }
+        if (this.obfuscated != null && component.isObfuscatedRaw() == null) {
+            component.setObfuscated(this.obfuscated);
         }
     }
 

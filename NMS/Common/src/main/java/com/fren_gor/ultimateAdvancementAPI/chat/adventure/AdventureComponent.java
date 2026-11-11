@@ -5,13 +5,17 @@ import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
 import com.fren_gor.ultimateAdvancementAPI.chat.TextUtil;
 import com.fren_gor.ultimateAdvancementAPI.chat.TextUtil.SearchResult;
 import com.fren_gor.ultimateAdvancementAPI.chat.JsonString;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponent;
+import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import com.google.common.base.Preconditions;
+import com.google.gson.JsonElement;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.flattener.FlattenerListener;
+import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -30,6 +34,10 @@ public class AdventureComponent implements IComponent {
     public static final IComponent SPACE = of(" ");
 
     public static final IComponent NEW_LINE = of("\n");
+
+    private static final String OLD_PLAIN_SERIALIZER_CLASS = "net.kyori.adventure.text.serializer.plain.PlainComponentSerializer";
+    private static final boolean IS_OLD_PLAIN_SERIALIZER = ReflectionUtil.classExists(OLD_PLAIN_SERIALIZER_CLASS);
+    private static final boolean COMPONENT_SERIALIZER_HAS_DESERIALIZE = ReflectionUtil.hasMethod(ComponentSerializer.class, "deserialize", JsonElement.class);
 
     private final Component component;
 
@@ -52,7 +60,6 @@ public class AdventureComponent implements IComponent {
     @NotNull
     public static IComponent of(@NotNull JsonString jsonString) {
         Preconditions.checkNotNull(jsonString, "JsonString is null.");
-        // TODO: check old versions compatibility
         var component = new AdventureComponent(GsonComponentSerializer.gson().deserialize(jsonString.jsonString()));
         component.jsonString = jsonString;
         return component;
@@ -82,8 +89,12 @@ public class AdventureComponent implements IComponent {
         if (baseComponent != null) {
             return baseComponent.duplicate();
         }
-        // TODO: check old versions compatibility
-        return (baseComponent = ComponentSerializer.deserialize(GsonComponentSerializer.gson().serializeToTree(component))).duplicate();
+        if (COMPONENT_SERIALIZER_HAS_DESERIALIZE) {
+            baseComponent = ComponentSerializer.deserialize(GsonComponentSerializer.gson().serializeToTree(component));
+        } else {
+            baseComponent = BungeeCordComponent.of(toJson()).toBungeeCordComponent();
+        }
+        return baseComponent.duplicate();
     }
 
     @NotNull
@@ -118,7 +129,8 @@ public class AdventureComponent implements IComponent {
         if (defaultStyle.isEmpty()) {
             return this;
         }
-        return new AdventureComponent(component.applyFallbackStyle(defaultStyle.toAdventureStyle()));
+        // applyFallbackStyle(...) is present only on 1.18.2+
+        return new AdventureComponent(component.style(component.style().merge(defaultStyle.toAdventureStyle(), Style.Merge.Strategy.IF_ABSENT_ON_TARGET)));
     }
 
     @Override
@@ -173,8 +185,20 @@ public class AdventureComponent implements IComponent {
 
     @Override
     @NotNull
+    @SuppressWarnings("unchecked")
     public String toPlain() {
-        return PlainTextComponentSerializer.plainText().serialize(component);
+        net.kyori.adventure.text.serializer.ComponentSerializer<Component, ?, String> serializer;
+        if (IS_OLD_PLAIN_SERIALIZER) {
+            try {
+                serializer = (net.kyori.adventure.text.serializer.ComponentSerializer<Component, ?, String>)
+                    Class.forName(OLD_PLAIN_SERIALIZER_CLASS).getDeclaredMethod("plain").invoke(null);
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            serializer = PlainTextComponentSerializer.plainText();
+        }
+        return serializer.serialize(component);
     }
 
     @Override

@@ -28,6 +28,7 @@ public class BungeeCordComponent implements IComponent {
 
     public static final IComponent NEW_LINE = of("\n");
 
+    private static final boolean COMPONENT_SERIALIZER_HAS_DESERIALIZE = ReflectionUtil.hasMethod(ComponentSerializer.class, "deserialize", String.class);
     private static final boolean TEXT_COMPONENT_HAS_FROM_LEGACY = ReflectionUtil.hasMethod(TextComponent.class, "fromLegacy");
 
     private final BaseComponent component;
@@ -53,8 +54,14 @@ public class BungeeCordComponent implements IComponent {
     @NotNull
     public static IComponent of(@NotNull JsonString jsonString) {
         Preconditions.checkNotNull(jsonString, "JsonString is null.");
-        // TODO: check old versions compatibility
-        var component = new BungeeCordComponent(ComponentSerializer.deserialize(jsonString.jsonString()));
+        BaseComponent deserialized;
+        if (COMPONENT_SERIALIZER_HAS_DESERIALIZE) {
+            deserialized = ComponentSerializer.deserialize(jsonString.jsonString());
+        } else {
+            BaseComponent[] parsed = ComponentSerializer.parse(jsonString.jsonString());
+            deserialized = parsed.length == 1 ? parsed[0] : new TextComponent(parsed);
+        }
+        var component = new BungeeCordComponent(deserialized);
         component.jsonString = jsonString;
         return component;
     }
@@ -80,7 +87,7 @@ public class BungeeCordComponent implements IComponent {
         if (adventureComponent != null) {
             return (Component) adventureComponent;
         }
-        return (Component) (adventureComponent = AdventureConverter.toAdventureComponent(component));
+        return (Component) (adventureComponent = AdventureConverter.toAdventureComponent(this));
     }
 
     @Override
@@ -128,7 +135,7 @@ public class BungeeCordComponent implements IComponent {
             return this;
         }
         BaseComponent component = this.component.duplicate();
-        defaultStyle.toBungeeCordStyle().applyTo(component);
+        defaultStyle.toBungeeCordStyle().applyDefaultsTo(component);
         return new BungeeCordComponent(component);
     }
 
