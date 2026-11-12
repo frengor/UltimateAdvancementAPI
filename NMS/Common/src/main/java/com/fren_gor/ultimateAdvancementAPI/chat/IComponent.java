@@ -1,6 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.chat;
 
 import com.fren_gor.ultimateAdvancementAPI.chat.TextUtil.SearchResult;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponent;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.entity.Player;
@@ -17,7 +18,9 @@ public interface IComponent {
     BaseComponent toBungeeCordComponent();
 
     @NotNull
-    Component toAdventureComponent();
+    default Component toAdventureComponent() {
+        return BungeeCordComponent.of(toBungeeCordComponent()).toAdventureComponent();
+    }
 
     @NotNull
     IComponent append(@NotNull IComponent component);
