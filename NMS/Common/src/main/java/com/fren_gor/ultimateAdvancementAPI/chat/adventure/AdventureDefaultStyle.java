@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.chat.adventure;
 
 import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
-import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponentStyle;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -35,7 +35,7 @@ public class AdventureDefaultStyle implements IDefaultStyle {
     private final Style style;
 
     @LazyValue
-    private BungeeCordStyle bungeeCordStyle;
+    private BungeeCordComponentStyle bungeeCordComponentStyle;
 
     private AdventureDefaultStyle(@NotNull Style style) {
         this.style = Objects.requireNonNull(style, "Style is null.");
@@ -82,13 +82,13 @@ public class AdventureDefaultStyle implements IDefaultStyle {
      */
     @Override
     @NotNull
-    public BungeeCordStyle toBungeeCordStyle() {
-        if (bungeeCordStyle != null) {
-            return bungeeCordStyle;
+    public BungeeCordComponentStyle toBungeeCordStyle() {
+        if (bungeeCordComponentStyle != null) {
+            return bungeeCordComponentStyle;
         }
         var shadowColor = STYLE_HAS_SHADOW_COLOR ? style.shadowColor() : null;
         var font = style.font();
-        return bungeeCordStyle = new BungeeCordStyle()
+        return bungeeCordComponentStyle = new BungeeCordComponentStyle()
             .color(fromTextColor(style.color()))
             .shadowColor(shadowColor == null ? null : new Color(shadowColor.value(), true))
             .font(font == null ? null : font.asString())

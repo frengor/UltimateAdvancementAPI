@@ -37,7 +37,7 @@ final class AdventureConverter {
     }
 
     @NotNull
-    public static Style toAdventureStyle(@NotNull BungeeCordStyle style) {
+    public static Style toAdventureStyle(@NotNull BungeeCordComponentStyle style) {
         var builder = Style.style();
         if (style.getColor() != null) {
             TextColor color;

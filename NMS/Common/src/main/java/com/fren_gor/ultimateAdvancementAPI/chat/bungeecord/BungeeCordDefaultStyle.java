@@ -12,7 +12,7 @@ import java.util.Objects;
 /**
  * Implementation of {@link IDefaultStyle} for BungeeCord chat components.
  *
- * @see BungeeCordStyle
+ * @see BungeeCordComponentStyle
  * @see ComponentStyle
  * @see BungeeCordComponent
  */
@@ -21,15 +21,15 @@ public class BungeeCordDefaultStyle implements IDefaultStyle {
     /**
      * An empty style.
      */
-    public static IDefaultStyle EMPTY = of(new BungeeCordStyle());
+    public static IDefaultStyle EMPTY = of(new BungeeCordComponentStyle());
 
-    private final BungeeCordStyle style;
+    private final BungeeCordComponentStyle style;
 
     @LazyValue
     private Object adventureStyle; // Use Object to avoid loading issues on Spigot
 
-    private BungeeCordDefaultStyle(@NotNull BungeeCordStyle style) {
-        this.style = Objects.requireNonNull(style, "BungeeCordStyle is null.");
+    private BungeeCordDefaultStyle(@NotNull BungeeCordComponentStyle style) {
+        this.style = Objects.requireNonNull(style, "BungeeCordComponentStyle is null.");
     }
 
     /**
@@ -40,7 +40,7 @@ public class BungeeCordDefaultStyle implements IDefaultStyle {
      */
     @NotNull
     public static IDefaultStyle of(@NotNull ChatColor color) {
-        return of(new BungeeCordStyle(color));
+        return of(new BungeeCordComponentStyle(color));
     }
 
     /**
@@ -51,17 +51,17 @@ public class BungeeCordDefaultStyle implements IDefaultStyle {
      */
     @NotNull
     public static IDefaultStyle of(@NotNull ComponentStyle style) {
-        return of(new BungeeCordStyle(style));
+        return of(new BungeeCordComponentStyle(style));
     }
 
     /**
-     * Creates a new {@code BungeeCordDefaultStyle} with the provided {@link BungeeCordStyle}.
+     * Creates a new {@code BungeeCordDefaultStyle} with the provided {@link BungeeCordComponentStyle}.
      *
      * @param style The style.
-     * @return A new {@code BungeeCordDefaultStyle} with the provided {@link BungeeCordStyle}.
+     * @return A new {@code BungeeCordDefaultStyle} with the provided {@link BungeeCordComponentStyle}.
      */
     @NotNull
-    public static IDefaultStyle of(@NotNull BungeeCordStyle style) {
+    public static IDefaultStyle of(@NotNull BungeeCordComponentStyle style) {
         return new BungeeCordDefaultStyle(style);
     }
 
@@ -87,7 +87,7 @@ public class BungeeCordDefaultStyle implements IDefaultStyle {
      */
     @Override
     @NotNull
-    public BungeeCordStyle toBungeeCordStyle() {
+    public BungeeCordComponentStyle toBungeeCordStyle() {
         return this.style;
     }
 

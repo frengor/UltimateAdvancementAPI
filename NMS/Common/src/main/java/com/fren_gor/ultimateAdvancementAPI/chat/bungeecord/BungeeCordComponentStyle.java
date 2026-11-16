@@ -21,7 +21,7 @@ import java.util.StringJoiner;
  * @see ComponentStyle
  * @see BaseComponent
  */
-public final class BungeeCordStyle {
+public final class BungeeCordComponentStyle {
 
     private static final boolean CHAT_COLOR_HAS_GET_COLOR = ReflectionUtil.hasMethod(ChatColor.class, "getColor");
     private static final boolean BASE_COMPONENT_HAS_FONT = ReflectionUtil.hasMethod(BaseComponent.class, "setFont", String.class);
@@ -46,27 +46,27 @@ public final class BungeeCordStyle {
     private final Boolean obfuscated;
 
     /**
-     * Creates an empty {@code BungeeCordStyle}.
+     * Creates an empty {@code BungeeCordComponentStyle}.
      */
-    public BungeeCordStyle() {
+    public BungeeCordComponentStyle() {
         this(null, null, null, null, null, null, null, null);
     }
 
     /**
-     * Creates a {@code BungeeCordStyle} with the provided color.
+     * Creates a {@code BungeeCordComponentStyle} with the provided color.
      *
      * @param color The color. Must <i>not</i> be a formatting option.
      */
-    public BungeeCordStyle(@NotNull ChatColor color) {
+    public BungeeCordComponentStyle(@NotNull ChatColor color) {
         this(validateColor(Objects.requireNonNull(color, "ChatColor is null.")), null, null, null, null, null, null, null);
     }
 
     /**
-     * Converts the provided {@link ComponentStyle} into a {@code BungeeCordStyle}.
+     * Converts the provided {@link ComponentStyle} into a {@code BungeeCordComponentStyle}.
      *
      * @param style The {@link ComponentStyle}.
      */
-    public BungeeCordStyle(@NotNull ComponentStyle style) {
+    public BungeeCordComponentStyle(@NotNull ComponentStyle style) {
         this(
             validateColor(Objects.requireNonNull(style, "ComponentStyle is null.").getColor()),
             COMPONENT_STYLE_HAS_SHADOW_COLOR ? style.getShadowColor() : null,
@@ -81,7 +81,7 @@ public final class BungeeCordStyle {
     }
 
     // Assumes color has already been validated
-    private BungeeCordStyle(
+    private BungeeCordComponentStyle(
         @Nullable ChatColor color,
         @Nullable Color shadowColor,
         @Nullable String font,
@@ -108,8 +108,8 @@ public final class BungeeCordStyle {
      * @return This style with the specified color.
      */
     @NotNull
-    public BungeeCordStyle color(@Nullable ChatColor color) {
-        return new BungeeCordStyle(validateColor(color), shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordComponentStyle color(@Nullable ChatColor color) {
+        return new BungeeCordComponentStyle(validateColor(color), shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -119,8 +119,8 @@ public final class BungeeCordStyle {
      * @return This style with the specified shadow color.
      */
     @NotNull
-    public BungeeCordStyle shadowColor(@Nullable Color shadowColor) {
-        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordComponentStyle shadowColor(@Nullable Color shadowColor) {
+        return new BungeeCordComponentStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -130,8 +130,8 @@ public final class BungeeCordStyle {
      * @return This style with the specified font.
      */
     @NotNull
-    public BungeeCordStyle font(@Nullable String font) {
-        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordComponentStyle font(@Nullable String font) {
+        return new BungeeCordComponentStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -141,8 +141,8 @@ public final class BungeeCordStyle {
      * @return This style with the specified bold state.
      */
     @NotNull
-    public BungeeCordStyle bold(@Nullable Boolean bold) {
-        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordComponentStyle bold(@Nullable Boolean bold) {
+        return new BungeeCordComponentStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -152,8 +152,8 @@ public final class BungeeCordStyle {
      * @return This style with the specified italic state.
      */
     @NotNull
-    public BungeeCordStyle italic(@Nullable Boolean italic) {
-        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordComponentStyle italic(@Nullable Boolean italic) {
+        return new BungeeCordComponentStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -163,8 +163,8 @@ public final class BungeeCordStyle {
      * @return This style with the specified underlined state.
      */
     @NotNull
-    public BungeeCordStyle underlined(@Nullable Boolean underlined) {
-        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordComponentStyle underlined(@Nullable Boolean underlined) {
+        return new BungeeCordComponentStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -174,8 +174,8 @@ public final class BungeeCordStyle {
      * @return This style with the specified strikethrough state.
      */
     @NotNull
-    public BungeeCordStyle strikethrough(@Nullable Boolean strikethrough) {
-        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordComponentStyle strikethrough(@Nullable Boolean strikethrough) {
+        return new BungeeCordComponentStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -185,8 +185,8 @@ public final class BungeeCordStyle {
      * @return This style with the specified obfuscated state.
      */
     @NotNull
-    public BungeeCordStyle obfuscated(@Nullable Boolean obfuscated) {
-        return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
+    public BungeeCordComponentStyle obfuscated(@Nullable Boolean obfuscated) {
+        return new BungeeCordComponentStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
     /**
@@ -196,9 +196,9 @@ public final class BungeeCordStyle {
      * @return This style with the provided style merged on top.
      */
     @NotNull
-    public BungeeCordStyle merge(@NotNull BungeeCordStyle that) {
-        Preconditions.checkNotNull(that, "BungeeCordStyle is null.");
-        return new BungeeCordStyle(
+    public BungeeCordComponentStyle merge(@NotNull BungeeCordComponentStyle that) {
+        Preconditions.checkNotNull(that, "BungeeCordComponentStyle is null.");
+        return new BungeeCordComponentStyle(
             that.color != null ? that.color : this.color,
             that.shadowColor != null ? that.shadowColor : this.shadowColor,
             that.font != null ? that.font : this.font,
@@ -386,8 +386,8 @@ public final class BungeeCordStyle {
 
     @Override
     public String toString() {
-        StringJoiner joiner = new StringJoiner(", ", "BungeeCordStyle{", "}");
-        joiner.setEmptyValue("BungeeCordStyle{empty}");
+        StringJoiner joiner = new StringJoiner(", ", "BungeeCordComponentStyle{", "}");
+        joiner.setEmptyValue("BungeeCordComponentStyle{empty}");
 
         if (this.color != null) {
             joiner.add("color=" + this.color.toString().replace(ChatColor.COLOR_CHAR, '&'));
@@ -419,7 +419,7 @@ public final class BungeeCordStyle {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof BungeeCordStyle that)) return false;
+        if (!(o instanceof BungeeCordComponentStyle that)) return false;
 
         return Objects.equals(color, that.color) &&
             Objects.equals(shadowColor, that.shadowColor) &&
