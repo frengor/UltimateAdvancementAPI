@@ -7,8 +7,8 @@ import java.lang.annotation.Target;
 
 /**
  * A field annotated with {@code LazyValue} should not be assigned until it is used for the first time.
- * Then, its real value should be calculated and assigned back in order to be used henceforth.
- * {@code LazyValue} is useful for fields that are expensive to construct.
+ * Then, its value should be calculated and assigned back in order to be used henceforth.
+ * <p>{@code LazyValue} is useful for fields that are expensive to construct.
  * <p>This annotation only applies to fields.
  */
 @Retention(RetentionPolicy.CLASS)

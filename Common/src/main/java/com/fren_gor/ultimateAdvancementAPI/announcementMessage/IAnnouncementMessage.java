@@ -28,8 +28,8 @@ public interface IAnnouncementMessage {
      * to send them, or {@code null} if no message should be shown to that player.
      * <p>If the same message should be displayed to every player, it is suggested to create it once and
      * return it for all the players, like in the following example:
-     * <pre> {@code default Function<Player, BaseComponent> getAnnouncementMessage(Advancement advancement, Player advancementCompleter) {
-     *   BaseComponent announcementMsg = ...; // Your announcement message
+     * <pre> {@code default Function<Player, IComponent> getAnnouncementMessage(Advancement advancement, Player advancementCompleter) {
+     *   IComponent announcementMsg = ...; // Your announcement message
      *   return player -> announcementMsg; // The same message will be displayed to every player
      * }}</pre>
      *

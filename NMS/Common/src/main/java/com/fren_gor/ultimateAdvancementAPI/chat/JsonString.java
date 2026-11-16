@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * A wrapper for JSON strings.
- * <p>Use in formal parameters instead of a plain {@link String} to avoid accidentally passing a non-JSON string where one is expected.
+ * <p>Use instead of a plain {@link String} to avoid accidentally passing a non-JSON string where one is expected.
  *
  * @param jsonString The JSON string.
  */

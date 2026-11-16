@@ -4,7 +4,6 @@ import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.ComponentStyle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,7 +12,15 @@ import java.awt.Color;
 import java.util.Objects;
 import java.util.StringJoiner;
 
-// FIXME: Update javadoc
+/**
+ * A representation of the style of a {@link BaseComponent}.
+ * <p>Present for cross-version compatibility, since {@link ComponentStyle} has been added in 1.20.3.
+ * <p>Instances are <i>immutable</i>. Mutator methods do not modify the instance on which they are called,
+ * instead they return a new instance with the necessary modifications applied.
+ *
+ * @see ComponentStyle
+ * @see BaseComponent
+ */
 public final class BungeeCordStyle {
 
     private static final boolean CHAT_COLOR_HAS_GET_COLOR = ReflectionUtil.hasMethod(ChatColor.class, "getColor");
@@ -39,25 +46,23 @@ public final class BungeeCordStyle {
     private final Boolean obfuscated;
 
     /**
-     * Creates a {@code DefaultStyle} which makes no modification to the default Minecraft style.
+     * Creates an empty {@code BungeeCordStyle}.
      */
     public BungeeCordStyle() {
         this(null, null, null, null, null, null, null, null);
     }
 
     /**
-     * Creates a {@code DefaultStyle} which makes no modification to the default Minecraft style
-     * except for the color of the text.
+     * Creates a {@code BungeeCordStyle} with the provided color.
      *
-     * @param color The color of the text. Must represent a color and not a formatting option.
+     * @param color The color. Must <i>not</i> be a formatting option.
      */
     public BungeeCordStyle(@NotNull ChatColor color) {
         this(validateColor(Objects.requireNonNull(color, "ChatColor is null.")), null, null, null, null, null, null, null);
     }
 
     /**
-     * Creates a {@code DefaultStyle} which makes no modification to the default Minecraft style
-     * except for the modifications present in the provided {@link ComponentStyle}.
+     * Converts the provided {@link ComponentStyle} into a {@code BungeeCordStyle}.
      *
      * @param style The {@link ComponentStyle}.
      */
@@ -97,11 +102,10 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Returns a copy of this {@code DefaultStyle} with the specified color.
+     * Returns this style with the specified color.
      *
-     * @param color The color, or {@code null} to use Minecraft's default.
-     *     Must represent a color and not a formatting option.
-     * @return A copy of this {@code DefaultStyle} with the specified color.
+     * @param color The color, or {@code null} to unset. Must <i>not</i> be a formatting option.
+     * @return This style with the specified color.
      */
     @NotNull
     public BungeeCordStyle color(@Nullable ChatColor color) {
@@ -109,10 +113,10 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Returns a copy of this {@code DefaultStyle} with the specified shadow color.
+     * Returns this style with the specified shadow color.
      *
-     * @param shadowColor The shadow color, or {@code null} to use Minecraft's default.
-     * @return A copy of this {@code DefaultStyle} with the specified shadow color.
+     * @param shadowColor The shadow color, or {@code null} to unset.
+     * @return This style with the specified shadow color.
      */
     @NotNull
     public BungeeCordStyle shadowColor(@Nullable Color shadowColor) {
@@ -120,10 +124,10 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Returns a copy of this {@code DefaultStyle} with the specified font.
+     * Returns this style with the specified font.
      *
-     * @param font The font, or {@code null} to use Minecraft's default.
-     * @return A copy of this {@code DefaultStyle} with the specified font.
+     * @param font The font, or {@code null} to unset.
+     * @return This style with the specified font.
      */
     @NotNull
     public BungeeCordStyle font(@Nullable String font) {
@@ -131,10 +135,10 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Returns a copy of this {@code DefaultStyle} with the specified bold value.
+     * Returns this style with the specified bold state.
      *
-     * @param bold The bold value, or {@code null} to use Minecraft's default.
-     * @return A copy of this {@code DefaultStyle} with the specified bold value.
+     * @param bold The state to set, or {@code null} to unset.
+     * @return This style with the specified bold state.
      */
     @NotNull
     public BungeeCordStyle bold(@Nullable Boolean bold) {
@@ -142,10 +146,10 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Returns a copy of this {@code DefaultStyle} with the specified italic value.
+     * Returns this style with the specified italic state.
      *
-     * @param italic The italic value, or {@code null} to use Minecraft's default.
-     * @return A copy of this {@code DefaultStyle} with the specified italic value.
+     * @param italic The state to set, or {@code null} to unset.
+     * @return This style with the specified italic state.
      */
     @NotNull
     public BungeeCordStyle italic(@Nullable Boolean italic) {
@@ -153,10 +157,10 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Returns a copy of this {@code DefaultStyle} with the specified underlined value.
+     * Returns this style with the specified underlined state.
      *
-     * @param underlined The underlined value, or {@code null} to use Minecraft's default.
-     * @return A copy of this {@code DefaultStyle} with the specified underlined value.
+     * @param underlined The state to set, or {@code null} to unset.
+     * @return This style with the specified underlined state.
      */
     @NotNull
     public BungeeCordStyle underlined(@Nullable Boolean underlined) {
@@ -164,10 +168,10 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Returns a copy of this {@code DefaultStyle} with the specified strikethrough value.
+     * Returns this style with the specified strikethrough state.
      *
-     * @param strikethrough The strikethrough value, or {@code null} to use Minecraft's default.
-     * @return A copy of this {@code DefaultStyle} with the specified strikethrough value.
+     * @param strikethrough The state to set, or {@code null} to unset.
+     * @return This style with the specified strikethrough state.
      */
     @NotNull
     public BungeeCordStyle strikethrough(@Nullable Boolean strikethrough) {
@@ -175,16 +179,22 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Returns a copy of this {@code DefaultStyle} with the specified obfuscated value.
+     * Returns this style with the specified obfuscated state.
      *
-     * @param obfuscated The obfuscated value, or {@code null} to use Minecraft's default.
-     * @return A copy of this {@code DefaultStyle} with the specified obfuscated value.
+     * @param obfuscated The state to set, or {@code null} to unset.
+     * @return This style with the specified obfuscated state.
      */
     @NotNull
     public BungeeCordStyle obfuscated(@Nullable Boolean obfuscated) {
         return new BungeeCordStyle(color, shadowColor, font, bold, italic, underlined, strikethrough, obfuscated);
     }
 
+    /**
+     * Merges the provided style on top of this style.
+     *
+     * @param that The style to merge.
+     * @return This style with the provided style merged on top.
+     */
     @NotNull
     public BungeeCordStyle merge(@NotNull BungeeCordStyle that) {
         Preconditions.checkNotNull(that, "BungeeCordStyle is null.");
@@ -201,80 +211,32 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Applies this {@code DefaultStyle} to the provided {@link BaseComponent}.
+     * Applies this style to the provided {@link BaseComponent}.
      *
-     * @param component The component to which the default style will be applied to.
+     * @param component The component to be styled.
      */
-    public void applyTo(@NotNull BaseComponent component) {
+    public void applyStyleTo(@NotNull BaseComponent component) {
         Preconditions.checkNotNull(component, "BaseComponent is null.");
-        if (this.color != null) {
-            component.setColor(this.color);
-        }
-        if (COMPONENT_STYLE_HAS_SHADOW_COLOR && this.shadowColor != null) {
+        component.setColor(this.color);
+        if (COMPONENT_STYLE_HAS_SHADOW_COLOR) {
             component.setShadowColor(this.shadowColor);
         }
-        if (BASE_COMPONENT_HAS_FONT && this.font != null) {
+        if (BASE_COMPONENT_HAS_FONT) {
             component.setFont(this.font);
         }
-        if (this.bold != null) {
-            component.setBold(this.bold);
-        }
-        if (this.italic != null) {
-            component.setItalic(this.italic);
-        }
-        if (this.underlined != null) {
-            component.setUnderlined(this.underlined);
-        }
-        if (this.strikethrough != null) {
-            component.setStrikethrough(this.strikethrough);
-        }
-        if (this.obfuscated != null) {
-            component.setObfuscated(this.obfuscated);
-        }
+        component.setBold(this.bold);
+        component.setItalic(this.italic);
+        component.setUnderlined(this.underlined);
+        component.setStrikethrough(this.strikethrough);
+        component.setObfuscated(this.obfuscated);
     }
 
     /**
-     * Applies this {@code DefaultStyle} to the provided {@link ComponentBuilder}.
+     * Applies this style to the provided {@link BaseComponent} without overriding the already present style.
      *
-     * @param builder The component builder to which the default style will be applied to.
+     * @param component The component to be styled.
      */
-    public void applyTo(@NotNull ComponentBuilder builder) {
-        Preconditions.checkNotNull(builder, "ComponentBuilder is null.");
-        if (COMPONENT_STYLE_HAS_SHADOW_COLOR && this.shadowColor != null) {
-            // Shadow color has no way to be set except for style(...)
-            builder.style(this.toComponentStyle());
-            return;
-        }
-
-        if (this.color != null) {
-            builder.color(this.color);
-        }
-        if (BASE_COMPONENT_HAS_FONT && this.font != null) {
-            builder.font(this.font);
-        }
-        if (this.bold != null) {
-            builder.bold(this.bold);
-        }
-        if (this.italic != null) {
-            builder.italic(this.italic);
-        }
-        if (this.underlined != null) {
-            builder.underlined(this.underlined);
-        }
-        if (this.strikethrough != null) {
-            builder.strikethrough(this.strikethrough);
-        }
-        if (this.obfuscated != null) {
-            builder.obfuscated(this.obfuscated);
-        }
-    }
-
-    /**
-     * Applies this {@code DefaultStyle} to the provided {@link BaseComponent}.
-     *
-     * @param component The component to which the default style will be applied to.
-     */
-    public void applyDefaultsTo(@NotNull BaseComponent component) {
+    public void applyDefaultStyleTo(@NotNull BaseComponent component) {
         Preconditions.checkNotNull(component, "BaseComponent is null.");
         if (this.color != null && component.getColorRaw() == null) {
             component.setColor(this.color);
@@ -303,9 +265,9 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Converts this {@code DefaultStyle} in a {@link ComponentStyle}.
+     * Converts this style into a {@link ComponentStyle}.
      *
-     * @return This {@code DefaultStyle} converted into a {@link ComponentStyle}.
+     * @return This style converted into a {@link ComponentStyle}.
      */
     @NotNull
     public ComponentStyle toComponentStyle() {
@@ -327,9 +289,9 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Gets the color of the text.
+     * Gets the color.
      *
-     * @return The color of the text, or {@code null} if Minecraft's default should be used.
+     * @return The color, or {@code null} if not set.
      */
     @Nullable
     public ChatColor getColor() {
@@ -337,9 +299,9 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Gets the shadow color of the text.
+     * Gets the shadow color.
      *
-     * @return The shadow color of the text, or {@code null} if Minecraft's default should be used.
+     * @return The shadow color, or {@code null} if not set.
      */
     @Nullable
     public Color getShadowColor() {
@@ -347,9 +309,9 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Gets the font of the text.
+     * Gets the font.
      *
-     * @return The font of the text, or {@code null} if Minecraft's default should be used.
+     * @return The font, or {@code null} if not set.
      */
     @Nullable
     public String getFont() {
@@ -357,9 +319,9 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Gets whether to make the text bold.
+     * Gets the bold state.
      *
-     * @return Whether to make the text bold, or {@code null} if Minecraft's default should be used.
+     * @return The bold state, or {@code null} if not set.
      */
     @Nullable
     public Boolean isBold() {
@@ -367,9 +329,9 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Gets whether to make the text italic.
+     * Gets the italic state.
      *
-     * @return Whether to make the text italic, or {@code null} if Minecraft's default should be used.
+     * @return The italic state, or {@code null} if not set.
      */
     @Nullable
     public Boolean isItalic() {
@@ -377,9 +339,9 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Gets whether to make the text underlined.
+     * Gets the underlined state.
      *
-     * @return Whether to make the text underlined, or {@code null} if Minecraft's default should be used.
+     * @return The underlined state, or {@code null} if not set.
      */
     @Nullable
     public Boolean isUnderlined() {
@@ -387,9 +349,9 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Gets whether to make the text strikethrough.
+     * Gets the strikethrough state.
      *
-     * @return Whether to make the text strikethrough, or {@code null} if Minecraft's default should be used.
+     * @return The strikethrough state, or {@code null} if not set.
      */
     @Nullable
     public Boolean isStrikethrough() {
@@ -397,15 +359,20 @@ public final class BungeeCordStyle {
     }
 
     /**
-     * Gets whether to make the text obfuscated.
+     * Gets the obfuscated state.
      *
-     * @return Whether to make the text obfuscated, or {@code null} if Minecraft's default should be used.
+     * @return The obfuscated state, or {@code null} if not set.
      */
     @Nullable
     public Boolean isObfuscated() {
         return obfuscated;
     }
 
+    /**
+     * Returns whether this style is empty.
+     *
+     * @return Whether this style is empty.
+     */
     public boolean isEmpty() {
         return color == null &&
             shadowColor == null &&
@@ -420,7 +387,7 @@ public final class BungeeCordStyle {
     @Override
     public String toString() {
         StringJoiner joiner = new StringJoiner(", ", "BungeeCordStyle{", "}");
-        joiner.setEmptyValue("BungeeCordStyle{minecraft defaults}");
+        joiner.setEmptyValue("BungeeCordStyle{empty}");
 
         if (this.color != null) {
             joiner.add("color=" + this.color.toString().replace(ChatColor.COLOR_CHAR, '&'));

@@ -20,12 +20,27 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Objects;
 
+/**
+ * Implementation of {@link IComponent} for BungeeCord chat components.
+ *
+ * @see BaseComponent
+ * @see BungeeCordDefaultStyle
+ */
 public class BungeeCordComponent implements IComponent {
 
+    /**
+     * An empty component.
+     */
     public static final IComponent EMPTY = of("");
 
+    /**
+     * A component containing a single space character.
+     */
     public static final IComponent SPACE = of(" ");
 
+    /**
+     * A component containing a single new line character (\n).
+     */
     public static final IComponent NEW_LINE = of("\n");
 
     private static final boolean COMPONENT_SERIALIZER_HAS_DESERIALIZE = ReflectionUtil.hasMethod(ComponentSerializer.class, "deserialize", String.class);
@@ -45,12 +60,24 @@ public class BungeeCordComponent implements IComponent {
         this.component = Objects.requireNonNull(component, "BaseComponent is null.");
     }
 
+    /**
+     * Creates a new {@code BungeeCordComponent} with the provided {@link BaseComponent}.
+     *
+     * @param component The component.
+     * @return A new {@code BungeeCordComponent} with the provided {@link BaseComponent}.
+     */
     @NotNull
     public static IComponent of(@NotNull BaseComponent component) {
         Preconditions.checkNotNull(component, "BaseComponent is null.");
         return new BungeeCordComponent(component.duplicate());
     }
 
+    /**
+     * Creates a new {@code BungeeCordComponent} from the provided {@link JsonString}.
+     *
+     * @param jsonString The JSON string.
+     * @return A new {@code BungeeCordComponent} from the provided {@link JsonString}.
+     */
     @NotNull
     public static IComponent of(@NotNull JsonString jsonString) {
         Preconditions.checkNotNull(jsonString, "JsonString is null.");
@@ -66,12 +93,24 @@ public class BungeeCordComponent implements IComponent {
         return component;
     }
 
+    /**
+     * Creates a new {@code BungeeCordComponent} with the provided plain text.
+     *
+     * @param plainText The plain text.
+     * @return A new {@code BungeeCordComponent} with the provided plain text.
+     */
     @NotNull
     public static IComponent of(@NotNull String plainText) {
         Preconditions.checkNotNull(plainText, "String is null.");
         return new BungeeCordComponent(new TextComponent(plainText));
     }
 
+    /**
+     * Creates a new {@code BungeeCordComponent} from the provided legacy string.
+     *
+     * @param legacy The legacy string. May contain legacy color codes.
+     * @return A new {@code BungeeCordComponent} from the provided legacy string.
+     */
     @NotNull
     public static IComponent ofLegacy(@NotNull String legacy) {
         Preconditions.checkNotNull(legacy, "Legacy string is null.");
@@ -81,6 +120,23 @@ public class BungeeCordComponent implements IComponent {
         return new BungeeCordComponent(new TextComponent(TextComponent.fromLegacyText(legacy)));
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote This method requires no conversion and simply returns the wrapped value.
+     */
+    @Override
+    @NotNull
+    public BaseComponent toBungeeCordComponent() {
+        return component.duplicate();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote The returned value is <a href="https://en.wikipedia.org/wiki/Memoization">memoized</a>,
+     *     i.e. it is computed on the first call and cached for subsequent ones.
+     */
     @Override
     @NotNull
     public Component toAdventureComponent() {
@@ -90,12 +146,10 @@ public class BungeeCordComponent implements IComponent {
         return (Component) (adventureComponent = AdventureConverter.toAdventureComponent(this));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    @NotNull
-    public BaseComponent toBungeeCordComponent() {
-        return component.duplicate();
-    }
-
     @NotNull
     public IComponent append(@NotNull IComponent component) {
         Preconditions.checkNotNull(component, "IComponent is null.");
@@ -104,6 +158,9 @@ public class BungeeCordComponent implements IComponent {
         return new BungeeCordComponent(toReturn);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent setChildren(@NotNull Collection<? extends IComponent> children) {
@@ -119,6 +176,10 @@ public class BungeeCordComponent implements IComponent {
         return new BungeeCordComponent(toReturn);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @NotNull
     public IComponent addHoverEvent(@NotNull IComponent hoverMsg) {
         Preconditions.checkNotNull(hoverMsg, "IComponent is null.");
@@ -127,6 +188,9 @@ public class BungeeCordComponent implements IComponent {
         return new BungeeCordComponent(toReturn);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent applyDefaultStyle(@NotNull IDefaultStyle defaultStyle) {
@@ -135,10 +199,16 @@ public class BungeeCordComponent implements IComponent {
             return this;
         }
         BaseComponent component = this.component.duplicate();
-        defaultStyle.toBungeeCordStyle().applyDefaultsTo(component);
+        defaultStyle.toBungeeCordStyle().applyDefaultStyleTo(component);
         return new BungeeCordComponent(component);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote The returned value is <a href="https://en.wikipedia.org/wiki/Memoization">memoized</a>,
+     *     i.e. it is computed on the first call and cached for subsequent ones.
+     */
     @Override
     public boolean isEmptyOrStartsWithNewLine() {
         if (emptyOrStartsWithNewLine != null) {
@@ -149,6 +219,12 @@ public class BungeeCordComponent implements IComponent {
         return emptyOrStartsWithNewLine = (res == SearchResult.FOUND || res == SearchResult.EMPTY);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote The returned value is <a href="https://en.wikipedia.org/wiki/Memoization">memoized</a>,
+     *     i.e. it is computed on the first call and cached for subsequent ones.
+     */
     @Override
     @NotNull
     public JsonString toJson() {
@@ -158,48 +234,72 @@ public class BungeeCordComponent implements IComponent {
         return jsonString = new JsonString(ComponentSerializer.toString(component));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public String toLegacy() {
         return component.toLegacyText();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public String toPlain() {
         return component.toPlainText();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent fromPlain(@NotNull String plainText) {
         return of(plainText);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent fromLegacy(@NotNull String legacy) {
         return ofLegacy(legacy);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent empty() {
         return EMPTY;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent space() {
         return SPACE;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent newLine() {
         return NEW_LINE;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void sendTo(@NotNull Player player) {
         Preconditions.checkNotNull(player, "Player is null.");

@@ -27,12 +27,27 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Objects;
 
+/**
+ * Implementation of {@link IComponent} for Adventure chat components.
+ *
+ * @see Component
+ * @see AdventureDefaultStyle
+ */
 public class AdventureComponent implements IComponent {
 
+    /**
+     * An empty component.
+     */
     public static final IComponent EMPTY = of("");
 
+    /**
+     * A component containing a single space character.
+     */
     public static final IComponent SPACE = of(" ");
 
+    /**
+     * A component containing a single new line character (\n).
+     */
     public static final IComponent NEW_LINE = of("\n");
 
     private static final String OLD_PLAIN_SERIALIZER_CLASS = "net.kyori.adventure.text.serializer.plain.PlainComponentSerializer";
@@ -52,11 +67,23 @@ public class AdventureComponent implements IComponent {
         this.component = Objects.requireNonNull(component, "Component is null.");
     }
 
+    /**
+     * Creates a new {@code AdventureComponent} with the provided {@link Component}.
+     *
+     * @param component The component.
+     * @return A new {@code AdventureComponent} with the provided {@link Component}.
+     */
     @NotNull
     public static IComponent of(@NotNull Component component) {
         return new AdventureComponent(component);
     }
 
+    /**
+     * Creates a new {@code AdventureComponent} from the provided {@link JsonString}.
+     *
+     * @param jsonString The JSON string.
+     * @return A new {@code AdventureComponent} from the provided {@link JsonString}.
+     */
     @NotNull
     public static IComponent of(@NotNull JsonString jsonString) {
         Preconditions.checkNotNull(jsonString, "JsonString is null.");
@@ -65,24 +92,36 @@ public class AdventureComponent implements IComponent {
         return component;
     }
 
+    /**
+     * Creates a new {@code AdventureComponent} with the provided plain text.
+     *
+     * @param plainText The plain text.
+     * @return A new {@code AdventureComponent} with the provided plain text.
+     */
     @NotNull
     public static IComponent of(@NotNull String plainText) {
         Preconditions.checkNotNull(plainText, "String is null.");
         return new AdventureComponent(Component.text(plainText));
     }
 
+    /**
+     * Creates a new {@code AdventureComponent} from the provided legacy string.
+     *
+     * @param legacy The legacy string. May contain legacy color codes.
+     * @return A new {@code AdventureComponent} from the provided legacy string.
+     */
     @NotNull
     public static IComponent ofLegacy(@NotNull String legacy) {
         Preconditions.checkNotNull(legacy, "Legacy string is null.");
         return new AdventureComponent(LegacyComponentSerializer.legacySection().deserialize(legacy));
     }
 
-    @Override
-    @NotNull
-    public Component toAdventureComponent() {
-        return component;
-    }
-
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote The returned value is <a href="https://en.wikipedia.org/wiki/Memoization">memoized</a>,
+     *     i.e. it is computed on the first call and cached for subsequent ones.
+     */
     @Override
     @NotNull
     public BaseComponent toBungeeCordComponent() {
@@ -97,12 +136,30 @@ public class AdventureComponent implements IComponent {
         return baseComponent.duplicate();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote This method requires no conversion and simply returns the wrapped value.
+     */
+    @Override
+    @NotNull
+    public Component toAdventureComponent() {
+        return component;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @NotNull
     public IComponent append(@NotNull IComponent component) {
         Preconditions.checkNotNull(component, "IComponent is null.");
         return new AdventureComponent(this.component.append(component.toAdventureComponent()));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent setChildren(@NotNull Collection<? extends IComponent> children) {
@@ -116,12 +173,19 @@ public class AdventureComponent implements IComponent {
             .toList()));
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @NotNull
     public IComponent addHoverEvent(@NotNull IComponent hoverMsg) {
         Preconditions.checkNotNull(hoverMsg, "IComponent is null.");
         return new AdventureComponent(this.component.hoverEvent(HoverEvent.showText(hoverMsg.toAdventureComponent())));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent applyDefaultStyle(@NotNull IDefaultStyle defaultStyle) {
@@ -133,6 +197,12 @@ public class AdventureComponent implements IComponent {
         return new AdventureComponent(component.style(component.style().merge(defaultStyle.toAdventureStyle(), Style.Merge.Strategy.IF_ABSENT_ON_TARGET)));
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote The returned value is <a href="https://en.wikipedia.org/wiki/Memoization">memoized</a>,
+     *     i.e. it is computed on the first call and cached for subsequent ones.
+     */
     @Override
     public boolean isEmptyOrStartsWithNewLine() {
         if (emptyOrStartsWithNewLine != null) {
@@ -168,6 +238,12 @@ public class AdventureComponent implements IComponent {
         return emptyOrStartsWithNewLine = (result[0] == SearchResult.FOUND || result[0] == SearchResult.EMPTY);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote The returned value is <a href="https://en.wikipedia.org/wiki/Memoization">memoized</a>,
+     *     i.e. it is computed on the first call and cached for subsequent ones.
+     */
     @Override
     @NotNull
     public JsonString toJson() {
@@ -177,12 +253,18 @@ public class AdventureComponent implements IComponent {
         return jsonString = new JsonString(GsonComponentSerializer.gson().serialize(component));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public String toLegacy() {
         return LegacyComponentSerializer.legacySection().serialize(component);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     @SuppressWarnings("unchecked")
@@ -201,36 +283,54 @@ public class AdventureComponent implements IComponent {
         return serializer.serialize(component);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent fromPlain(@NotNull String plainText) {
         return of(plainText);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent fromLegacy(@NotNull String legacy) {
         return ofLegacy(legacy);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent empty() {
         return EMPTY;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent space() {
         return SPACE;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public IComponent newLine() {
         return NEW_LINE;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void sendTo(@NotNull Player player) {
         Preconditions.checkNotNull(player, "Player is null.");

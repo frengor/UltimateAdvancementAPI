@@ -15,6 +15,9 @@ public final class TextUtil {
 
     public static final int MAX_DEPTH = 512;
 
+    /**
+     * @hidden
+     */
     @Internal
     public enum SearchResult {
         FOUND,

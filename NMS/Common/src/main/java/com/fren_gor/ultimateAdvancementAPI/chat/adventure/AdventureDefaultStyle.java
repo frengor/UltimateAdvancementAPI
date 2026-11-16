@@ -16,8 +16,17 @@ import java.awt.Color;
 import java.util.Locale;
 import java.util.Objects;
 
+/**
+ * Implementation of {@link IDefaultStyle} for Adventure chat components.
+ *
+ * @see Style
+ * @see AdventureComponent
+ */
 public class AdventureDefaultStyle implements IDefaultStyle {
 
+    /**
+     * An empty style.
+     */
     public static IDefaultStyle EMPTY = of(Style.empty());
 
     private static final boolean CHAT_COLOR_HAS_GET_COLOR = ReflectionUtil.hasMethod(ChatColor.class, "getColor");
@@ -32,28 +41,45 @@ public class AdventureDefaultStyle implements IDefaultStyle {
         this.style = Objects.requireNonNull(style, "Style is null.");
     }
 
+    /**
+     * Creates a new {@code AdventureDefaultStyle} with the provided color.
+     *
+     * @param color The color.
+     * @return A new {@code AdventureDefaultStyle} with the provided color.
+     */
     @NotNull
     public static IDefaultStyle of(@NotNull TextColor color) {
         return of(Style.style(color));
     }
 
+    /**
+     * Creates a new {@code AdventureDefaultStyle} with the provided style.
+     *
+     * @param style The style.
+     * @return A new {@code AdventureDefaultStyle} with the provided style.
+     */
     @NotNull
     public static IDefaultStyle of(@NotNull Style style) {
         return new AdventureDefaultStyle(style);
     }
 
-    @Override
-    @NotNull
-    public IDefaultStyle merge(@NotNull IDefaultStyle style) {
-        return new AdventureDefaultStyle(this.style.merge(style.toAdventureStyle()));
-    }
-
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote This method requires no conversion and simply returns the wrapped value.
+     */
     @Override
     @NotNull
     public Style toAdventureStyle() {
         return this.style;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote The returned value is <a href="https://en.wikipedia.org/wiki/Memoization">memoized</a>,
+     *     i.e. it is computed on the first call and cached for subsequent ones.
+     */
     @Override
     @NotNull
     public BungeeCordStyle toBungeeCordStyle() {
@@ -73,9 +99,21 @@ public class AdventureDefaultStyle implements IDefaultStyle {
             .obfuscated(style.hasDecoration(TextDecoration.OBFUSCATED));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isEmpty() {
         return style.isEmpty();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
+    public IDefaultStyle merge(@NotNull IDefaultStyle style) {
+        return new AdventureDefaultStyle(this.style.merge(style.toAdventureStyle()));
     }
 
     private ChatColor fromTextColor(@Nullable TextColor color) {
