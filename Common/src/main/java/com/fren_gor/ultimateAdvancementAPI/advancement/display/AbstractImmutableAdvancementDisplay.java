@@ -184,7 +184,7 @@ public abstract non-sealed class AbstractImmutableAdvancementDisplay extends Abs
         IComponent title = getTitle().applyDefaultStyle(getDefaultTitleStyle());
         List<IComponent> description = getDescription();
         IComponent descriptionComponent = description.isEmpty() ? BungeeCordComponent.EMPTY : title.empty()
-            .applyDefaultStyle(getDefaultDescriptionStyle())
+            .applyStyle(getDefaultDescriptionStyle())
             .setChildren(AdvancementUtils.intersperse(description, title.newLine()));
         return wrapper = PreparedAdvancementDisplayWrapper.craft(getIcon(), title.toJson(), descriptionComponent.toJson(), getFrame().getNMSWrapper(), getX(), getY());
     }

@@ -78,6 +78,15 @@ public interface IComponent {
     IComponent addHoverEvent(@NotNull IComponent hoverMsg);
 
     /**
+     * Applies the provided style to this component.
+     *
+     * @param style The style to apply.
+     * @return This component with the provided style applied.
+     */
+    @NotNull
+    IComponent applyStyle(@NotNull IStyle style);
+
+    /**
      * Applies the provided default style to this component.
      *
      * @param defaultStyle The default style to apply.

@@ -351,7 +351,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
         IComponent title = getTitle(player).applyDefaultStyle(getDefaultTitleStyle(player));
         List<IComponent> description = getDescription(player);
         IComponent descriptionComponent = description.isEmpty() ? BungeeCordComponent.EMPTY : title.empty()
-            .applyDefaultStyle(getDefaultDescriptionStyle(player))
+            .applyStyle(getDefaultDescriptionStyle(player))
             .setChildren(AdvancementUtils.intersperse(description, title.newLine()));
         return PreparedAdvancementDisplayWrapper.craft(getIcon(player), title.toJson(), descriptionComponent.toJson(), getFrame(player).getNMSWrapper(), getX(player), getY(player));
     }

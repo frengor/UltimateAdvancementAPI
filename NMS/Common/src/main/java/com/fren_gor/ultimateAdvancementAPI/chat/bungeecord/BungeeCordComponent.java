@@ -193,6 +193,18 @@ public class BungeeCordComponent implements IComponent {
      */
     @Override
     @NotNull
+    public IComponent applyStyle(@NotNull IStyle style) {
+        Preconditions.checkNotNull(style, "IStyle is null.");
+        BaseComponent component = this.component.duplicate();
+        style.toBungeeCordStyle().applyDefaultStyleTo(component);
+        return new BungeeCordComponent(component);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
     public IComponent applyDefaultStyle(@NotNull IStyle defaultStyle) {
         Preconditions.checkNotNull(defaultStyle, "IStyle is null.");
         if (defaultStyle.isEmpty()) {

@@ -188,6 +188,16 @@ public class AdventureComponent implements IComponent {
      */
     @Override
     @NotNull
+    public IComponent applyStyle(@NotNull IStyle style) {
+        Preconditions.checkNotNull(style, "IStyle is null.");
+        return new AdventureComponent(component.style(style.toAdventureStyle()));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @NotNull
     public IComponent applyDefaultStyle(@NotNull IStyle defaultStyle) {
         Preconditions.checkNotNull(defaultStyle, "IStyle is null.");
         if (defaultStyle.isEmpty()) {

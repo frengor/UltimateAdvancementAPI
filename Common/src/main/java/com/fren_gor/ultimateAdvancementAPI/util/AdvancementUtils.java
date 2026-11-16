@@ -65,7 +65,7 @@ public final class AdvancementUtils {
         NOTIFICATION_NAMESPACE = AdvancementKey.RESERVED_NAMESPACE_PREFIX + "notification-" + UUID.randomUUID();
 
         ADV_DESCRIPTION = BungeeCordComponent.of("A toast notification.\n\nClose and reopen advancements to hide.")
-            .applyDefaultStyle(BungeeCordStyle.of(ChatColor.GRAY))
+            .applyStyle(BungeeCordStyle.of(ChatColor.GRAY))
             .toJson();
 
         try {
@@ -396,9 +396,9 @@ public final class AdvancementUtils {
 
         IComponent hoverComponent = title.empty()
             .setChildren(List.of(
-                title.fromPlain("[").applyDefaultStyle(parenthesesStyle),
+                title.fromPlain("[").applyStyle(parenthesesStyle),
                 title,
-                title.fromPlain("]").applyDefaultStyle(parenthesesStyle)
+                title.fromPlain("]").applyStyle(parenthesesStyle)
             ))
             .addHoverEvent(title.empty().setChildren(hoverText));
 
@@ -407,7 +407,7 @@ public final class AdvancementUtils {
             title.fromLegacy(advancementCompleter.getDisplayName());
 
         IComponent msgComponent = title.empty()
-            .applyDefaultStyle(WHITE_DEFAULT_STYLE)
+            .applyStyle(WHITE_DEFAULT_STYLE)
             .setChildren(List.of(
                 playerName,
                 title.space(),

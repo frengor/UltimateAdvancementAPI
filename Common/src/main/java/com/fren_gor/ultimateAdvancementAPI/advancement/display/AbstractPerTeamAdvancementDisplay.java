@@ -184,7 +184,7 @@ public abstract non-sealed class AbstractPerTeamAdvancementDisplay extends Abstr
         IComponent title = getTitle(progression).applyDefaultStyle(getDefaultTitleStyle(progression));
         List<IComponent> description = getDescription(progression);
         IComponent descriptionComponent = description.isEmpty() ? BungeeCordComponent.EMPTY : title.empty()
-            .applyDefaultStyle(getDefaultDescriptionStyle(progression))
+            .applyStyle(getDefaultDescriptionStyle(progression))
             .setChildren(AdvancementUtils.intersperse(description, title.newLine()));
         return PreparedAdvancementDisplayWrapper.craft(getIcon(progression), title.toJson(), descriptionComponent.toJson(), getFrame(progression).getNMSWrapper(), getX(progression), getY(progression));
     }
