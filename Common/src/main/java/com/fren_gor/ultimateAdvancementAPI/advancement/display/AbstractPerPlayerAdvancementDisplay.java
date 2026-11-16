@@ -3,9 +3,9 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.announcementMessage.IAnnouncementMessage;
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
-import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.IStyle;
 import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponent;
-import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordStyle;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.util.AdvancementUtils;
@@ -132,7 +132,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      * @implSpec The default implementation calls {@link #getDefaultTitleStyle(OfflinePlayer)}.
      */
     @NotNull
-    public IDefaultStyle getDefaultTitleStyle(@NotNull Player player) {
+    public IStyle getDefaultTitleStyle(@NotNull Player player) {
         return getDefaultTitleStyle(((OfflinePlayer) player));
     }
 
@@ -142,11 +142,11 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      * @param player The player.
      * @return The default style of the title when displayed in the advancement GUI.
      *     An empty style can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link BungeeCordDefaultStyle#EMPTY}.
+     * @implSpec The default implementation returns {@link BungeeCordStyle#EMPTY}.
      */
     @NotNull
-    public IDefaultStyle getDefaultTitleStyle(@NotNull OfflinePlayer player) {
-        return BungeeCordDefaultStyle.EMPTY;
+    public IStyle getDefaultTitleStyle(@NotNull OfflinePlayer player) {
+        return BungeeCordStyle.EMPTY;
     }
 
     /**
@@ -160,7 +160,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull Player player) {
+    public IStyle getAnnouncementMessageDefaultTitleStyle(@NotNull Player player) {
         return getAnnouncementMessageDefaultTitleStyle((OfflinePlayer) player);
     }
 
@@ -170,13 +170,13 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      * @param player The player.
      * @return The default style of the title in the advancement's announcement message.
      *     An empty style can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link BungeeCordDefaultStyle#EMPTY}.
+     * @implSpec The default implementation returns {@link BungeeCordStyle#EMPTY}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player) {
-        return BungeeCordDefaultStyle.EMPTY;
+    public IStyle getAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player) {
+        return BungeeCordStyle.EMPTY;
     }
 
     /**
@@ -236,7 +236,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      * @implSpec The default implementation calls {@link #getDefaultDescriptionStyle(OfflinePlayer)}.
      */
     @NotNull
-    public IDefaultStyle getDefaultDescriptionStyle(@NotNull Player player) {
+    public IStyle getDefaultDescriptionStyle(@NotNull Player player) {
         return getDefaultDescriptionStyle((OfflinePlayer) player);
     }
 
@@ -246,11 +246,11 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      * @param player The player.
      * @return The default style of the description when displayed in the advancement GUI.
      *     An empty style can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link BungeeCordDefaultStyle#EMPTY}.
+     * @implSpec The default implementation returns {@link BungeeCordStyle#EMPTY}.
      */
     @NotNull
-    public IDefaultStyle getDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
-        return BungeeCordDefaultStyle.EMPTY;
+    public IStyle getDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
+        return BungeeCordStyle.EMPTY;
     }
 
     /**
@@ -264,7 +264,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player) {
+    public IStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player) {
         return getAnnouncementMessageDefaultDescriptionStyle((OfflinePlayer) player);
     }
 
@@ -274,13 +274,13 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      * @param player The player.
      * @return The default style of the description in the advancement's announcement message.
      *     An empty style can be returned if Minecraft's default style should be used.
-     * @implSpec The default implementation returns {@link BungeeCordDefaultStyle#EMPTY}.
+     * @implSpec The default implementation returns {@link BungeeCordStyle#EMPTY}.
      * @see IAnnouncementMessage
      * @see Advancement#getAnnouncementMessage(Player)
      */
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
-        return BungeeCordDefaultStyle.EMPTY;
+    public IStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
+        return BungeeCordStyle.EMPTY;
     }
 
     /**
@@ -447,7 +447,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      */
     @Override
     @NotNull
-    public final IDefaultStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public final IStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getDefaultTitleStyle(player);
     }
 
@@ -456,7 +456,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      */
     @Override
     @NotNull
-    public final IDefaultStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    public final IStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getDefaultTitleStyle(player);
     }
 
@@ -465,7 +465,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      */
     @Override
     @NotNull
-    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public final IStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getAnnouncementMessageDefaultTitleStyle(player);
     }
 
@@ -474,7 +474,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      */
     @Override
     @NotNull
-    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    public final IStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getAnnouncementMessageDefaultTitleStyle(player);
     }
 
@@ -523,7 +523,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      */
     @Override
     @NotNull
-    public final IDefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public final IStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getDefaultDescriptionStyle(player);
     }
 
@@ -532,7 +532,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      */
     @Override
     @NotNull
-    public final IDefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    public final IStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getDefaultDescriptionStyle(player);
     }
 
@@ -541,7 +541,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      */
     @Override
     @NotNull
-    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
+    public final IStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression) {
         return getAnnouncementMessageDefaultDescriptionStyle(player);
     }
 
@@ -550,7 +550,7 @@ public abstract non-sealed class AbstractPerPlayerAdvancementDisplay extends Abs
      */
     @Override
     @NotNull
-    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
+    public final IStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression) {
         return getAnnouncementMessageDefaultDescriptionStyle(player);
     }
 

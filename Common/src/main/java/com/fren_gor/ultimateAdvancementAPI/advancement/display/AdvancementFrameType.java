@@ -1,9 +1,9 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
-import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.IStyle;
 import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponent;
-import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordStyle;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import net.md_5.bungee.api.ChatColor;
 import org.jetbrains.annotations.NotNull;
@@ -19,15 +19,15 @@ public enum AdvancementFrameType {
     /**
      * A frame with squared shape. The default style has color {@link ChatColor#GREEN}.
      */
-    TASK(AdvancementFrameTypeWrapper.TASK, BungeeCordDefaultStyle.of(ChatColor.GREEN), "has made the advancement"),
+    TASK(AdvancementFrameTypeWrapper.TASK, BungeeCordStyle.of(ChatColor.GREEN), "has made the advancement"),
     /**
      * A frame with rounded top and bottom. The default style has color {@link ChatColor#GREEN}.
      */
-    GOAL(AdvancementFrameTypeWrapper.GOAL, BungeeCordDefaultStyle.of(ChatColor.GREEN), "has reached the goal"),
+    GOAL(AdvancementFrameTypeWrapper.GOAL, BungeeCordStyle.of(ChatColor.GREEN), "has reached the goal"),
     /**
      * A frame with thorns at the corners. The default style has color {@link ChatColor#DARK_PURPLE}.
      */
-    CHALLENGE(AdvancementFrameTypeWrapper.CHALLENGE, BungeeCordDefaultStyle.of(ChatColor.DARK_PURPLE), "has completed the challenge");
+    CHALLENGE(AdvancementFrameTypeWrapper.CHALLENGE, BungeeCordStyle.of(ChatColor.DARK_PURPLE), "has completed the challenge");
 
     /**
      * The {@code AdvancementFrameType} NMS wrapper.
@@ -37,7 +37,7 @@ public enum AdvancementFrameType {
     /**
      * The default title and description styles for announcement messages.
      */
-    private final IDefaultStyle style;
+    private final IStyle style;
 
     /**
      * The message that should be sent when the advancement is granted.
@@ -45,7 +45,7 @@ public enum AdvancementFrameType {
      */
     private final IComponent chatText;
 
-    AdvancementFrameType(@NotNull AdvancementFrameTypeWrapper wrapper, @NotNull IDefaultStyle style, @NotNull String chatText) {
+    AdvancementFrameType(@NotNull AdvancementFrameTypeWrapper wrapper, @NotNull IStyle style, @NotNull String chatText) {
         this.wrapper = Objects.requireNonNull(wrapper);
         this.style = Objects.requireNonNull(style);
         this.chatText = BungeeCordComponent.of(Objects.requireNonNull(chatText));
@@ -85,7 +85,7 @@ public enum AdvancementFrameType {
      * @return The default title and description styles for announcement messages.
      */
     @NotNull
-    public IDefaultStyle getStyle() {
+    public IStyle getStyle() {
         return style;
     }
 

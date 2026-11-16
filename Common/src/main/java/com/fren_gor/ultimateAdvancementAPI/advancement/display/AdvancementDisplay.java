@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
-import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.IStyle;
 import com.google.common.base.Preconditions;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -33,13 +33,13 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      * The default style of the title when displayed in the advancement GUI.
      */
     @NotNull
-    protected final IDefaultStyle defaultTitleStyle;
+    protected final IStyle defaultTitleStyle;
 
     /**
      * The default style of the title in the advancement's announcement message.
      */
     @NotNull
-    protected final IDefaultStyle announcementMessageDefaultTitleStyle;
+    protected final IStyle announcementMessageDefaultTitleStyle;
 
     /**
      * The description of the advancement.
@@ -51,13 +51,13 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      * The default style of the description when displayed in the advancement GUI.
      */
     @NotNull
-    protected final IDefaultStyle defaultDescriptionStyle;
+    protected final IStyle defaultDescriptionStyle;
 
     /**
      * The default style of the description in the advancement's announcement message.
      */
     @NotNull
-    protected final IDefaultStyle announcementMessageDefaultDescriptionStyle;
+    protected final IStyle announcementMessageDefaultDescriptionStyle;
 
     /**
      * The shape of the advancement frame in the advancement GUI.
@@ -104,7 +104,7 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      * @param amDefaultDescStyle The default style of the description in the advancement's announcement message.
      * @param description The description of the advancement.
      */
-    protected AdvancementDisplay(@NotNull ItemStack icon, @NotNull IComponent title, @NotNull List<IComponent> description, @NotNull IDefaultStyle defaultTitleStyle, @NotNull IDefaultStyle amDefaultTitleStyle, @NotNull IDefaultStyle defaultDescStyle, @NotNull IDefaultStyle amDefaultDescStyle, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y) {
+    protected AdvancementDisplay(@NotNull ItemStack icon, @NotNull IComponent title, @NotNull List<IComponent> description, @NotNull IStyle defaultTitleStyle, @NotNull IStyle amDefaultTitleStyle, @NotNull IStyle defaultDescStyle, @NotNull IStyle amDefaultDescStyle, @NotNull AdvancementFrameType frame, boolean showToast, boolean announceChat, float x, float y) {
         Preconditions.checkNotNull(icon, "Icon is null.");
         Preconditions.checkNotNull(title, "Title is null.");
         Preconditions.checkNotNull(frame, "Frame is null.");
@@ -171,7 +171,7 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      */
     @Override
     @NotNull
-    public IDefaultStyle getDefaultTitleStyle() {
+    public IStyle getDefaultTitleStyle() {
         return defaultTitleStyle;
     }
 
@@ -180,7 +180,7 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      */
     @Override
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle() {
+    public IStyle getAnnouncementMessageDefaultTitleStyle() {
         return announcementMessageDefaultTitleStyle;
     }
 
@@ -199,7 +199,7 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      */
     @Override
     @NotNull
-    public IDefaultStyle getDefaultDescriptionStyle() {
+    public IStyle getDefaultDescriptionStyle() {
         return defaultDescriptionStyle;
     }
 
@@ -208,7 +208,7 @@ public class AdvancementDisplay extends AbstractImmutableAdvancementDisplay {
      */
     @Override
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle() {
+    public IStyle getAnnouncementMessageDefaultDescriptionStyle() {
         return announcementMessageDefaultDescriptionStyle;
     }
 

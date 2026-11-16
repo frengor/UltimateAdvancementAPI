@@ -2,7 +2,7 @@ package com.fren_gor.ultimateAdvancementAPI.advancement.display;
 
 import com.fren_gor.ultimateAdvancementAPI.AdvancementTab;
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
-import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.IStyle;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
@@ -286,7 +286,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final IDefaultStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDefaultTitleStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -300,7 +300,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract IDefaultStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    public abstract IStyle dispatchGetDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getDefaultTitleStyle(...).
@@ -312,7 +312,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final IDefaultStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDefaultTitleStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -326,7 +326,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract IDefaultStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    public abstract IStyle dispatchGetDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getAnnouncementMessageDefaultTitleStyle(...).
@@ -338,7 +338,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetAnnouncementMessageDefaultTitleStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -352,7 +352,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract IDefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    public abstract IStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getAnnouncementMessageDefaultTitleStyle(...).
@@ -364,7 +364,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetAnnouncementMessageDefaultTitleStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -378,7 +378,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract IDefaultStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    public abstract IStyle dispatchGetAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getLegacyDescription(...).
@@ -494,7 +494,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final IDefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDefaultDescriptionStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -508,7 +508,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract IDefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    public abstract IStyle dispatchGetDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getDefaultDescriptionStyle(...).
@@ -520,7 +520,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final IDefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetDefaultDescriptionStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -534,7 +534,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract IDefaultStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    public abstract IStyle dispatchGetDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getAnnouncementMessageDefaultDescriptionStyle(...).
@@ -546,7 +546,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetAnnouncementMessageDefaultDescriptionStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -560,7 +560,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract IDefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
+    public abstract IStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getAnnouncementMessageDefaultDescriptionStyle(...).
@@ -572,7 +572,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public final IDefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
+    public final IStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull AdvancementTab advancementTab) throws UserNotLoadedException {
         return dispatchGetAnnouncementMessageDefaultDescriptionStyle(player, advancementTab.getDatabaseManager().getTeamProgression(player));
     }
 
@@ -586,7 +586,7 @@ public abstract sealed class AbstractAdvancementDisplay permits AbstractImmutabl
      * @see AbstractAdvancementDisplay
      */
     @NotNull
-    public abstract IDefaultStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
+    public abstract IStyle dispatchGetAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player, @NotNull TeamProgression teamProgression);
 
     /**
      * Dispatches the call to getFrame(...).

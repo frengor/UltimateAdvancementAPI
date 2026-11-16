@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.chat.bungeecord;
 
-import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.IStyle;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
 import net.kyori.adventure.text.format.Style;
 import net.md_5.bungee.api.ChatColor;
@@ -10,59 +10,59 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 /**
- * Implementation of {@link IDefaultStyle} for BungeeCord chat components.
+ * Implementation of {@link IStyle} for BungeeCord chat components.
  *
  * @see BungeeCordComponentStyle
  * @see ComponentStyle
  * @see BungeeCordComponent
  */
-public class BungeeCordDefaultStyle implements IDefaultStyle {
+public class BungeeCordStyle implements IStyle {
 
     /**
      * An empty style.
      */
-    public static IDefaultStyle EMPTY = of(new BungeeCordComponentStyle());
+    public static IStyle EMPTY = of(new BungeeCordComponentStyle());
 
     private final BungeeCordComponentStyle style;
 
     @LazyValue
     private Object adventureStyle; // Use Object to avoid loading issues on Spigot
 
-    private BungeeCordDefaultStyle(@NotNull BungeeCordComponentStyle style) {
+    private BungeeCordStyle(@NotNull BungeeCordComponentStyle style) {
         this.style = Objects.requireNonNull(style, "BungeeCordComponentStyle is null.");
     }
 
     /**
-     * Creates a new {@code BungeeCordDefaultStyle} with the provided color.
+     * Creates a new {@code BungeeCordStyle} with the provided color.
      *
      * @param color The color.
-     * @return A new {@code BungeeCordDefaultStyle} with the provided color.
+     * @return A new {@code BungeeCordStyle} with the provided color.
      */
     @NotNull
-    public static IDefaultStyle of(@NotNull ChatColor color) {
+    public static IStyle of(@NotNull ChatColor color) {
         return of(new BungeeCordComponentStyle(color));
     }
 
     /**
-     * Creates a new {@code BungeeCordDefaultStyle} with the provided {@link ComponentStyle}.
+     * Creates a new {@code BungeeCordStyle} with the provided {@link ComponentStyle}.
      *
      * @param style The style.
-     * @return A new {@code BungeeCordDefaultStyle} with the provided {@link ComponentStyle}.
+     * @return A new {@code BungeeCordStyle} with the provided {@link ComponentStyle}.
      */
     @NotNull
-    public static IDefaultStyle of(@NotNull ComponentStyle style) {
+    public static IStyle of(@NotNull ComponentStyle style) {
         return of(new BungeeCordComponentStyle(style));
     }
 
     /**
-     * Creates a new {@code BungeeCordDefaultStyle} with the provided {@link BungeeCordComponentStyle}.
+     * Creates a new {@code BungeeCordStyle} with the provided {@link BungeeCordComponentStyle}.
      *
      * @param style The style.
-     * @return A new {@code BungeeCordDefaultStyle} with the provided {@link BungeeCordComponentStyle}.
+     * @return A new {@code BungeeCordStyle} with the provided {@link BungeeCordComponentStyle}.
      */
     @NotNull
-    public static IDefaultStyle of(@NotNull BungeeCordComponentStyle style) {
-        return new BungeeCordDefaultStyle(style);
+    public static IStyle of(@NotNull BungeeCordComponentStyle style) {
+        return new BungeeCordStyle(style);
     }
 
     /**
@@ -104,15 +104,15 @@ public class BungeeCordDefaultStyle implements IDefaultStyle {
      */
     @Override
     @NotNull
-    public IDefaultStyle merge(@NotNull IDefaultStyle style) {
-        return new BungeeCordDefaultStyle(this.style.merge(style.toBungeeCordStyle()));
+    public IStyle merge(@NotNull IStyle style) {
+        return new BungeeCordStyle(this.style.merge(style.toBungeeCordStyle()));
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
 
-        BungeeCordDefaultStyle that = (BungeeCordDefaultStyle) o;
+        BungeeCordStyle that = (BungeeCordStyle) o;
         return Objects.equals(style, that.style);
     }
 
@@ -123,7 +123,7 @@ public class BungeeCordDefaultStyle implements IDefaultStyle {
 
     @Override
     public String toString() {
-        return "BungeeCordDefaultStyle{" +
+        return "BungeeCordStyle{" +
             "style=" + style +
             '}';
     }

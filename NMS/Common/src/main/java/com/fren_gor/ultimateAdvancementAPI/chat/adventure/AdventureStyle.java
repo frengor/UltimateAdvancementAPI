@@ -1,6 +1,6 @@
 package com.fren_gor.ultimateAdvancementAPI.chat.adventure;
 
-import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.IStyle;
 import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponentStyle;
 import com.fren_gor.ultimateAdvancementAPI.nms.util.ReflectionUtil;
 import com.fren_gor.ultimateAdvancementAPI.util.LazyValue;
@@ -17,17 +17,17 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Implementation of {@link IDefaultStyle} for Adventure chat components.
+ * Implementation of {@link IStyle} for Adventure chat components.
  *
  * @see Style
  * @see AdventureComponent
  */
-public class AdventureDefaultStyle implements IDefaultStyle {
+public class AdventureStyle implements IStyle {
 
     /**
      * An empty style.
      */
-    public static IDefaultStyle EMPTY = of(Style.empty());
+    public static IStyle EMPTY = of(Style.empty());
 
     private static final boolean CHAT_COLOR_HAS_GET_COLOR = ReflectionUtil.hasMethod(ChatColor.class, "getColor");
     private static final boolean STYLE_HAS_SHADOW_COLOR = ReflectionUtil.hasMethod(Style.class, "shadowColor");
@@ -37,30 +37,30 @@ public class AdventureDefaultStyle implements IDefaultStyle {
     @LazyValue
     private BungeeCordComponentStyle bungeeCordComponentStyle;
 
-    private AdventureDefaultStyle(@NotNull Style style) {
+    private AdventureStyle(@NotNull Style style) {
         this.style = Objects.requireNonNull(style, "Style is null.");
     }
 
     /**
-     * Creates a new {@code AdventureDefaultStyle} with the provided color.
+     * Creates a new {@code AdventureStyle} with the provided color.
      *
      * @param color The color.
-     * @return A new {@code AdventureDefaultStyle} with the provided color.
+     * @return A new {@code AdventureStyle} with the provided color.
      */
     @NotNull
-    public static IDefaultStyle of(@NotNull TextColor color) {
+    public static IStyle of(@NotNull TextColor color) {
         return of(Style.style(color));
     }
 
     /**
-     * Creates a new {@code AdventureDefaultStyle} with the provided style.
+     * Creates a new {@code AdventureStyle} with the provided style.
      *
      * @param style The style.
-     * @return A new {@code AdventureDefaultStyle} with the provided style.
+     * @return A new {@code AdventureStyle} with the provided style.
      */
     @NotNull
-    public static IDefaultStyle of(@NotNull Style style) {
-        return new AdventureDefaultStyle(style);
+    public static IStyle of(@NotNull Style style) {
+        return new AdventureStyle(style);
     }
 
     /**
@@ -112,8 +112,8 @@ public class AdventureDefaultStyle implements IDefaultStyle {
      */
     @Override
     @NotNull
-    public IDefaultStyle merge(@NotNull IDefaultStyle style) {
-        return new AdventureDefaultStyle(this.style.merge(style.toAdventureStyle()));
+    public IStyle merge(@NotNull IStyle style) {
+        return new AdventureStyle(this.style.merge(style.toAdventureStyle()));
     }
 
     private ChatColor fromTextColor(@Nullable TextColor color) {
@@ -131,7 +131,7 @@ public class AdventureDefaultStyle implements IDefaultStyle {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
 
-        AdventureDefaultStyle that = (AdventureDefaultStyle) o;
+        AdventureStyle that = (AdventureStyle) o;
         return Objects.equals(style, that.style);
     }
 
@@ -142,7 +142,7 @@ public class AdventureDefaultStyle implements IDefaultStyle {
 
     @Override
     public String toString() {
-        return "AdventureDefaultStyle{" +
+        return "AdventureStyle{" +
             "style=" + style +
             '}';
     }

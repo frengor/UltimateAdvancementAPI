@@ -7,9 +7,9 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.Advancement;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
-import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.IStyle;
 import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponent;
-import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordStyle;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.AsyncExecutionException;
 import com.fren_gor.ultimateAdvancementAPI.chat.JsonString;
@@ -58,14 +58,14 @@ public final class AdvancementUtils {
     private static final JsonString ADV_DESCRIPTION;
     private static final PreparedAdvancementWrapper PREPARED_ROOT;
     private static final AdvancementWrapper ROOT;
-    private static final IDefaultStyle WHITE_DEFAULT_STYLE = BungeeCordDefaultStyle.of(ChatColor.WHITE);
+    private static final IStyle WHITE_DEFAULT_STYLE = BungeeCordStyle.of(ChatColor.WHITE);
     private static final boolean PLAYER_HAS_ADVENTURE_DISPLAY_NAME = ReflectionUtil.hasMethod(Player.class, "displayName");
 
     static {
         NOTIFICATION_NAMESPACE = AdvancementKey.RESERVED_NAMESPACE_PREFIX + "notification-" + UUID.randomUUID();
 
         ADV_DESCRIPTION = BungeeCordComponent.of("A toast notification.\n\nClose and reopen advancements to hide.")
-            .applyDefaultStyle(BungeeCordDefaultStyle.of(ChatColor.GRAY))
+            .applyDefaultStyle(BungeeCordStyle.of(ChatColor.GRAY))
             .toJson();
 
         try {
@@ -356,10 +356,10 @@ public final class AdvancementUtils {
         AdvancementFrameType frame = display.dispatchGetFrame(advancementCompleter, progression);
         IComponent title = display.dispatchGetTitle(advancementCompleter, progression);
         List<IComponent> description = display.dispatchGetDescription(advancementCompleter, progression);
-        IDefaultStyle defaultAMTitleStyle = display.dispatchGetAnnouncementMessageDefaultTitleStyle(advancementCompleter, progression);
-        IDefaultStyle defaultAMDescriptionStyle = display.dispatchGetAnnouncementMessageDefaultDescriptionStyle(advancementCompleter, progression);
+        IStyle defaultAMTitleStyle = display.dispatchGetAnnouncementMessageDefaultTitleStyle(advancementCompleter, progression);
+        IStyle defaultAMDescriptionStyle = display.dispatchGetAnnouncementMessageDefaultDescriptionStyle(advancementCompleter, progression);
         IComponent chatText = frame.getChatText();
-        IDefaultStyle frameStyle = frame.getStyle();
+        IStyle frameStyle = frame.getStyle();
 
         Preconditions.checkNotNull(frame, "Display returned a null frame.");
         Preconditions.checkNotNull(title, "Display returned a null title.");
@@ -372,9 +372,9 @@ public final class AdvancementUtils {
         Preconditions.checkNotNull(chatText, "Frame returned a null chatText.");
         Preconditions.checkNotNull(frameStyle, "Frame returned a null style.");
 
-        IDefaultStyle titleStyle = frameStyle.merge(defaultAMTitleStyle);
-        IDefaultStyle parenthesesStyle = fancy ? titleStyle : frameStyle;
-        IDefaultStyle descriptionStyle = frameStyle.merge(defaultAMDescriptionStyle);
+        IStyle titleStyle = frameStyle.merge(defaultAMTitleStyle);
+        IStyle parenthesesStyle = fancy ? titleStyle : frameStyle;
+        IStyle descriptionStyle = frameStyle.merge(defaultAMDescriptionStyle);
 
         title = title.applyDefaultStyle(titleStyle);
 

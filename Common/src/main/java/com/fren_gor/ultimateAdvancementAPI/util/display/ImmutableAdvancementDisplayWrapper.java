@@ -3,7 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.util.display;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractImmutableAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
-import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.IStyle;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -80,7 +80,7 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public IDefaultStyle getDefaultTitleStyle() {
+    public IStyle getDefaultTitleStyle() {
         return wrapped.getDefaultTitleStyle();
     }
 
@@ -89,7 +89,7 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle() {
+    public IStyle getAnnouncementMessageDefaultTitleStyle() {
         return wrapped.getAnnouncementMessageDefaultTitleStyle();
     }
 
@@ -116,7 +116,7 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public IDefaultStyle getDefaultDescriptionStyle() {
+    public IStyle getDefaultDescriptionStyle() {
         return wrapped.getDefaultDescriptionStyle();
     }
 
@@ -125,7 +125,7 @@ public class ImmutableAdvancementDisplayWrapper extends AbstractImmutableAdvance
      */
     @Override
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle() {
+    public IStyle getAnnouncementMessageDefaultDescriptionStyle() {
         return wrapped.getAnnouncementMessageDefaultDescriptionStyle();
     }
 

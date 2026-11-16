@@ -3,7 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.util.display;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
-import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.IStyle;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import org.bukkit.inventory.ItemStack;
@@ -81,7 +81,7 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public IDefaultStyle getDefaultTitleStyle(@NotNull TeamProgression progression) {
+    public IStyle getDefaultTitleStyle(@NotNull TeamProgression progression) {
         return wrapped.getDefaultTitleStyle(progression);
     }
 
@@ -90,7 +90,7 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull TeamProgression progression) {
+    public IStyle getAnnouncementMessageDefaultTitleStyle(@NotNull TeamProgression progression) {
         return wrapped.getAnnouncementMessageDefaultTitleStyle(progression);
     }
 
@@ -117,7 +117,7 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public IDefaultStyle getDefaultDescriptionStyle(@NotNull TeamProgression progression) {
+    public IStyle getDefaultDescriptionStyle(@NotNull TeamProgression progression) {
         return wrapped.getDefaultDescriptionStyle(progression);
     }
 
@@ -126,7 +126,7 @@ public class PerTeamAdvancementDisplayWrapper extends AbstractPerTeamAdvancement
      */
     @Override
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull TeamProgression progression) {
+    public IStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull TeamProgression progression) {
         return wrapped.getAnnouncementMessageDefaultDescriptionStyle(progression);
     }
 

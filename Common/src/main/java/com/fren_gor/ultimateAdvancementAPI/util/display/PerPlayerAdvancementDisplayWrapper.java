@@ -3,7 +3,7 @@ package com.fren_gor.ultimateAdvancementAPI.util.display;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayerAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AdvancementFrameType;
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
-import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.IStyle;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -125,7 +125,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public IDefaultStyle getDefaultTitleStyle(@NotNull Player player) {
+    public IStyle getDefaultTitleStyle(@NotNull Player player) {
         return wrapped.getDefaultTitleStyle(player);
     }
 
@@ -134,7 +134,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public IDefaultStyle getDefaultTitleStyle(@NotNull OfflinePlayer player) {
+    public IStyle getDefaultTitleStyle(@NotNull OfflinePlayer player) {
         return wrapped.getDefaultTitleStyle(player);
     }
 
@@ -143,7 +143,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull Player player) {
+    public IStyle getAnnouncementMessageDefaultTitleStyle(@NotNull Player player) {
         return wrapped.getAnnouncementMessageDefaultTitleStyle(player);
     }
 
@@ -152,7 +152,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player) {
+    public IStyle getAnnouncementMessageDefaultTitleStyle(@NotNull OfflinePlayer player) {
         return wrapped.getAnnouncementMessageDefaultTitleStyle(player);
     }
 
@@ -197,7 +197,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public IDefaultStyle getDefaultDescriptionStyle(@NotNull Player player) {
+    public IStyle getDefaultDescriptionStyle(@NotNull Player player) {
         return wrapped.getDefaultDescriptionStyle(player);
     }
 
@@ -206,7 +206,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public IDefaultStyle getDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
+    public IStyle getDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
         return wrapped.getDefaultDescriptionStyle(player);
     }
 
@@ -215,7 +215,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player) {
+    public IStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull Player player) {
         return wrapped.getAnnouncementMessageDefaultDescriptionStyle(player);
     }
 
@@ -224,7 +224,7 @@ public class PerPlayerAdvancementDisplayWrapper extends AbstractPerPlayerAdvance
      */
     @Override
     @NotNull
-    public IDefaultStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
+    public IStyle getAnnouncementMessageDefaultDescriptionStyle(@NotNull OfflinePlayer player) {
         return wrapped.getAnnouncementMessageDefaultDescriptionStyle(player);
     }
 

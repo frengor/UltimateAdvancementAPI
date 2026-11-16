@@ -1,7 +1,7 @@
 package com.fren_gor.ultimateAdvancementAPI.chat.bungeecord;
 
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
-import com.fren_gor.ultimateAdvancementAPI.chat.IDefaultStyle;
+import com.fren_gor.ultimateAdvancementAPI.chat.IStyle;
 import com.fren_gor.ultimateAdvancementAPI.chat.TextUtil;
 import com.fren_gor.ultimateAdvancementAPI.chat.TextUtil.SearchResult;
 import com.fren_gor.ultimateAdvancementAPI.chat.JsonString;
@@ -24,7 +24,7 @@ import java.util.Objects;
  * Implementation of {@link IComponent} for BungeeCord chat components.
  *
  * @see BaseComponent
- * @see BungeeCordDefaultStyle
+ * @see BungeeCordStyle
  */
 public class BungeeCordComponent implements IComponent {
 
@@ -193,8 +193,8 @@ public class BungeeCordComponent implements IComponent {
      */
     @Override
     @NotNull
-    public IComponent applyDefaultStyle(@NotNull IDefaultStyle defaultStyle) {
-        Preconditions.checkNotNull(defaultStyle, "IDefaultStyle is null.");
+    public IComponent applyDefaultStyle(@NotNull IStyle defaultStyle) {
+        Preconditions.checkNotNull(defaultStyle, "IStyle is null.");
         if (defaultStyle.isEmpty()) {
             return this;
         }

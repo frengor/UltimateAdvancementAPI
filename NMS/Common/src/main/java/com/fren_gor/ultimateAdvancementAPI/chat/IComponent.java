@@ -84,7 +84,7 @@ public interface IComponent {
      * @return This component with the provided default style applied.
      */
     @NotNull
-    IComponent applyDefaultStyle(@NotNull IDefaultStyle defaultStyle);
+    IComponent applyDefaultStyle(@NotNull IStyle defaultStyle);
 
     /**
      * Returns whether this chat component, once rendered, would be empty or start with a new line character ({@code \n}).
