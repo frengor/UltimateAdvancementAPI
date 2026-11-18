@@ -141,6 +141,81 @@ public abstract class PreparedAdvancementDisplayWrapper {
     public abstract boolean isHidden();
 
     /**
+     * Returns a copy of this {@code PreparedAdvancementDisplayWrapper} with the provided icon.
+     *
+     * @param icon The icon of the advancement.
+     * @return A copy of this {@code PreparedAdvancementDisplayWrapper} with the provided icon.
+     */
+    @NotNull
+    public abstract PreparedAdvancementDisplayWrapper withIcon(@NotNull ItemStack icon);
+
+    /**
+     * Returns a copy of this {@code PreparedAdvancementDisplayWrapper} with the provided title.
+     *
+     * @param jsonTitle The title of the advancement as a JSON string.
+     * @return A copy of this {@code PreparedAdvancementDisplayWrapper} with the provided title.
+     * @throws JsonParseException If an invalid JSON string is provided.
+     */
+    @NotNull
+    public abstract PreparedAdvancementDisplayWrapper withTitle(@NotNull JsonString jsonTitle) throws JsonParseException;
+
+    /**
+     * Returns a copy of this {@code PreparedAdvancementDisplayWrapper} with the provided description.
+     *
+     * @param jsonDescription The description of the advancement as a JSON string.
+     * @return A copy of this {@code PreparedAdvancementDisplayWrapper} with the provided description.
+     * @throws JsonParseException If an invalid JSON string is provided.
+     */
+    @NotNull
+    public abstract PreparedAdvancementDisplayWrapper withDescription(@NotNull JsonString jsonDescription) throws JsonParseException;
+
+    /**
+     * Returns a copy of this {@code PreparedAdvancementDisplayWrapper} with the provided frame type.
+     *
+     * @param frameType The frame type of the advancement.
+     * @return A copy of this {@code PreparedAdvancementDisplayWrapper} with the provided frame type.
+     */
+    @NotNull
+    public abstract PreparedAdvancementDisplayWrapper withAdvancementFrameType(@NotNull AdvancementFrameTypeWrapper frameType);
+
+    /**
+     * Returns a copy of this {@code PreparedAdvancementDisplayWrapper} with the provided coordinates.
+     *
+     * @param x The x coordinate in the advancement GUI.
+     * @param y The y coordinate in the advancement GUI.
+     * @return A copy of this {@code PreparedAdvancementDisplayWrapper} with the provided coordinates.
+     */
+    @NotNull
+    public abstract PreparedAdvancementDisplayWrapper withCoords(float x, float y);
+
+    /**
+     * Returns a copy of this {@code PreparedAdvancementDisplayWrapper} with the provided show toast state.
+     *
+     * @param showToast Whether to show toast on grant.
+     * @return A copy of this {@code PreparedAdvancementDisplayWrapper} with the provided show toast state.
+     */
+    @NotNull
+    public abstract PreparedAdvancementDisplayWrapper withShowToast(boolean showToast);
+
+    /**
+     * Returns a copy of this {@code PreparedAdvancementDisplayWrapper} with the provided announce to chat state.
+     *
+     * @param announceChat Whether to announce grants to chat.
+     * @return A copy of this {@code PreparedAdvancementDisplayWrapper} with the provided announce to chat state.
+     */
+    @NotNull
+    public abstract PreparedAdvancementDisplayWrapper withAnnounceToChat(boolean announceChat);
+
+    /**
+     * Returns a copy of this {@code PreparedAdvancementDisplayWrapper} with the provided hidden state.
+     *
+     * @param hidden Whether the advancement shouldn't be visible in the advancement GUI. Connections to other advancements are always displayed.
+     * @return A copy of this {@code PreparedAdvancementDisplayWrapper} with the provided hidden state.
+     */
+    @NotNull
+    public abstract PreparedAdvancementDisplayWrapper withHidden(boolean hidden);
+
+    /**
      * Converts this {@code PreparedAdvancementDisplayWrapper} into an {@link AdvancementDisplayWrapper}.
      *
      * @return A new {@link AdvancementDisplayWrapper} derived from this {@code PreparedAdvancementDisplayWrapper}.

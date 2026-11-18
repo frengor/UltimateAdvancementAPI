@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.v1_21_R4.Util;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonParseException;
 import net.minecraft.network.chat.Component;
 import org.bukkit.craftbukkit.v1_21_R4.inventory.CraftItemStack;
@@ -25,6 +26,18 @@ public class PreparedAdvancementDisplayWrapper_v1_21_R4 extends PreparedAdvancem
         this.icon = CraftItemStack.asNMSCopy(icon);
         this.title = Util.fromJSON(jsonTitle);
         this.description = Util.fromJSON(jsonDescription);
+        this.frameType = frameType;
+        this.x = x;
+        this.y = y;
+        this.showToast = showToast;
+        this.announceChat = announceChat;
+        this.hidden = hidden;
+    }
+
+    protected PreparedAdvancementDisplayWrapper_v1_21_R4(@NotNull net.minecraft.world.item.ItemStack icon, @NotNull Component title, @NotNull Component description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) {
+        this.icon = icon;
+        this.title = title;
+        this.description = description;
         this.frameType = frameType;
         this.x = x;
         this.y = y;
@@ -80,6 +93,58 @@ public class PreparedAdvancementDisplayWrapper_v1_21_R4 extends PreparedAdvancem
     @Override
     public boolean isHidden() {
         return hidden;
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withIcon(@NotNull ItemStack icon) {
+        Preconditions.checkNotNull(icon, "ItemStack is null.");
+        return new PreparedAdvancementDisplayWrapper_v1_21_R4(CraftItemStack.asNMSCopy(icon), title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withTitle(@NotNull JsonString jsonTitle) throws JsonParseException {
+        Preconditions.checkNotNull(jsonTitle, "Title is null.");
+        return new PreparedAdvancementDisplayWrapper_v1_21_R4(icon, Util.fromJSON(jsonTitle), description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withDescription(@NotNull JsonString jsonDescription) throws JsonParseException {
+        Preconditions.checkNotNull(jsonDescription, "Description is null.");
+        return new PreparedAdvancementDisplayWrapper_v1_21_R4(icon, title, Util.fromJSON(jsonDescription), frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withAdvancementFrameType(@NotNull AdvancementFrameTypeWrapper frameType) {
+        Preconditions.checkNotNull(frameType, "Frame type is null.");
+        return new PreparedAdvancementDisplayWrapper_v1_21_R4(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withCoords(float x, float y) {
+        return new PreparedAdvancementDisplayWrapper_v1_21_R4(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withShowToast(boolean showToast) {
+        return new PreparedAdvancementDisplayWrapper_v1_21_R4(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withAnnounceToChat(boolean announceChat) {
+        return new PreparedAdvancementDisplayWrapper_v1_21_R4(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withHidden(boolean hidden) {
+        return new PreparedAdvancementDisplayWrapper_v1_21_R4(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
     }
 
     @Override

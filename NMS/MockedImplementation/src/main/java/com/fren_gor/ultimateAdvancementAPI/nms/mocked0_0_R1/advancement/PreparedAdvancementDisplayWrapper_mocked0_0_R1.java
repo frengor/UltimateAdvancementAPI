@@ -4,6 +4,7 @@ import com.fren_gor.ultimateAdvancementAPI.chat.JsonString;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import com.google.gson.JsonParseException;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +33,7 @@ public class PreparedAdvancementDisplayWrapper_mocked0_0_R1 extends PreparedAdva
     @Override
     @NotNull
     public ItemStack getIcon() {
-        return icon;
+        return icon.clone();
     }
 
     @Override
@@ -76,6 +77,54 @@ public class PreparedAdvancementDisplayWrapper_mocked0_0_R1 extends PreparedAdva
     @Override
     public boolean isHidden() {
         return hidden;
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withIcon(@NotNull ItemStack icon) {
+        return new PreparedAdvancementDisplayWrapper_mocked0_0_R1(Objects.requireNonNull(icon).clone(), title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withTitle(@NotNull JsonString jsonTitle) throws JsonParseException {
+        return new PreparedAdvancementDisplayWrapper_mocked0_0_R1(icon, Objects.requireNonNull(jsonTitle), description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withDescription(@NotNull JsonString jsonDescription) throws JsonParseException {
+        return new PreparedAdvancementDisplayWrapper_mocked0_0_R1(icon, title, Objects.requireNonNull(jsonDescription), frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withAdvancementFrameType(@NotNull AdvancementFrameTypeWrapper frameType) {
+        return new PreparedAdvancementDisplayWrapper_mocked0_0_R1(icon, title, description, Objects.requireNonNull(frameType), x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withCoords(float x, float y) {
+        return new PreparedAdvancementDisplayWrapper_mocked0_0_R1(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withShowToast(boolean showToast) {
+        return new PreparedAdvancementDisplayWrapper_mocked0_0_R1(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withAnnounceToChat(boolean announceChat) {
+        return new PreparedAdvancementDisplayWrapper_mocked0_0_R1(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withHidden(boolean hidden) {
+        return new PreparedAdvancementDisplayWrapper_mocked0_0_R1(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
     }
 
     @Override

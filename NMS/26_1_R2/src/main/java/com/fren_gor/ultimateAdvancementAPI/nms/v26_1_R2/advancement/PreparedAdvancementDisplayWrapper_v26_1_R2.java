@@ -5,6 +5,7 @@ import com.fren_gor.ultimateAdvancementAPI.nms.v26_1_R2.Util;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonParseException;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStackTemplate;
@@ -26,6 +27,18 @@ public class PreparedAdvancementDisplayWrapper_v26_1_R2 extends PreparedAdvancem
         this.icon = ItemStackTemplate.fromNonEmptyStack(CraftItemStack.asNMSCopy(icon));
         this.title = Util.fromJSON(jsonTitle);
         this.description = Util.fromJSON(jsonDescription);
+        this.frameType = frameType;
+        this.x = x;
+        this.y = y;
+        this.showToast = showToast;
+        this.announceChat = announceChat;
+        this.hidden = hidden;
+    }
+
+    protected PreparedAdvancementDisplayWrapper_v26_1_R2(@NotNull ItemStackTemplate icon, @NotNull Component title, @NotNull Component description, @NotNull AdvancementFrameTypeWrapper frameType, float x, float y, boolean showToast, boolean announceChat, boolean hidden) {
+        this.icon = icon;
+        this.title = title;
+        this.description = description;
         this.frameType = frameType;
         this.x = x;
         this.y = y;
@@ -81,6 +94,59 @@ public class PreparedAdvancementDisplayWrapper_v26_1_R2 extends PreparedAdvancem
     @Override
     public boolean isHidden() {
         return hidden;
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withIcon(@NotNull ItemStack icon) {
+        Preconditions.checkNotNull(icon, "ItemStack is null.");
+        ItemStackTemplate nmsIcon = ItemStackTemplate.fromNonEmptyStack(CraftItemStack.asNMSCopy(icon));
+        return new PreparedAdvancementDisplayWrapper_v26_1_R2(nmsIcon, title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withTitle(@NotNull JsonString jsonTitle) throws JsonParseException {
+        Preconditions.checkNotNull(jsonTitle, "Title is null.");
+        return new PreparedAdvancementDisplayWrapper_v26_1_R2(icon, Util.fromJSON(jsonTitle), description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withDescription(@NotNull JsonString jsonDescription) throws JsonParseException {
+        Preconditions.checkNotNull(jsonDescription, "Description is null.");
+        return new PreparedAdvancementDisplayWrapper_v26_1_R2(icon, title, Util.fromJSON(jsonDescription), frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withAdvancementFrameType(@NotNull AdvancementFrameTypeWrapper frameType) {
+        Preconditions.checkNotNull(frameType, "Frame type is null.");
+        return new PreparedAdvancementDisplayWrapper_v26_1_R2(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withCoords(float x, float y) {
+        return new PreparedAdvancementDisplayWrapper_v26_1_R2(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withShowToast(boolean showToast) {
+        return new PreparedAdvancementDisplayWrapper_v26_1_R2(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withAnnounceToChat(boolean announceChat) {
+        return new PreparedAdvancementDisplayWrapper_v26_1_R2(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
+    }
+
+    @Override
+    @NotNull
+    public PreparedAdvancementDisplayWrapper withHidden(boolean hidden) {
+        return new PreparedAdvancementDisplayWrapper_v26_1_R2(icon, title, description, frameType, x, y, showToast, announceChat, hidden);
     }
 
     @Override
