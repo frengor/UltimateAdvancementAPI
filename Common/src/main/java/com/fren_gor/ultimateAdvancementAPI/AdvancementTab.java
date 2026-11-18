@@ -8,7 +8,6 @@ import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractImmutable
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerPlayerAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.advancement.display.AbstractPerTeamAdvancementDisplay;
 import com.fren_gor.ultimateAdvancementAPI.chat.IComponent;
-import com.fren_gor.ultimateAdvancementAPI.chat.bungeecord.BungeeCordComponent;
 import com.fren_gor.ultimateAdvancementAPI.database.DatabaseManager;
 import com.fren_gor.ultimateAdvancementAPI.database.TeamProgression;
 import com.fren_gor.ultimateAdvancementAPI.events.PlayerLoadingCompletedEvent;
@@ -19,10 +18,8 @@ import com.fren_gor.ultimateAdvancementAPI.exceptions.DisposedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.DuplicatedException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.InvalidAdvancementException;
 import com.fren_gor.ultimateAdvancementAPI.exceptions.UserNotLoadedException;
-import com.fren_gor.ultimateAdvancementAPI.chat.JsonString;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.MinecraftKeyWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementDisplayWrapper;
-import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementFrameTypeWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.AdvancementWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementDisplayWrapper;
 import com.fren_gor.ultimateAdvancementAPI.nms.wrappers.advancement.PreparedAdvancementWrapper;
@@ -64,7 +61,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import static com.fren_gor.ultimateAdvancementAPI.util.AdvancementKey.checkNamespace;
@@ -1011,7 +1007,7 @@ public final class AdvancementTab {
             final AdvancementDisplayWrapper internalRootDisplay; // Null if the root display or displayData is per-player
             final boolean tabDisplayAndRootAreImmutableOrPerTeam = rootDisplay != null && displayData != null;
             if (tabDisplayAndRootAreImmutableOrPerTeam) {
-                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, rootDisplay::getTitle);
+                internalRootDisplay = displayData.toInternalRootDisplayWrapper(rootDisplay);
                 perTeamToSend.put(this.internalRoot.toAdvancementWrapper(internalRootDisplay), 0);
             } else {
                 internalRootDisplay = null;
@@ -1057,7 +1053,7 @@ public final class AdvancementTab {
             // Handle internal root display
             AdvancementDisplayWrapper internalRootDisplay = update.internalRootDisplay;
             if (internalRootDisplay == null) {
-                internalRootDisplay = displayData.toRootDisplayWrapper(rootDisplay.getX(), rootDisplay.getY(), rootDisplay::getIcon, rootDisplay::getTitle);
+                internalRootDisplay = displayData.toInternalRootDisplayWrapper(rootDisplay);
             }
 
             if (!update.internalRootAlreadyAddedToMap) {
@@ -1104,17 +1100,22 @@ public final class AdvancementTab {
             @NotNull Optional<IComponent> title
         ) {
             @NotNull
-            public AdvancementDisplayWrapper toRootDisplayWrapper(
-                float rootX,
-                float rootY,
-                Supplier<? extends ItemStack> rootIcon,
-                Supplier<? extends JsonString> rootTitle
-            ) throws ReflectiveOperationException {
-                ItemStack icon = this.icon.orElseGet(rootIcon);
-                JsonString title = this.title.map(IComponent::toJson).orElseGet(rootTitle);
-                return AdvancementDisplayWrapper.craft(
-                    icon, title, BungeeCordComponent.EMPTY.toJson(), AdvancementFrameTypeWrapper.TASK, rootX - 0.2f, rootY, false, false, true, this.backgroundTexture
-                );
+            public AdvancementDisplayWrapper toInternalRootDisplayWrapper(@NotNull PreparedAdvancementDisplayWrapper rootDisplay) {
+                if (this.icon.isPresent()) {
+                    rootDisplay = rootDisplay.withIcon(this.icon.get());
+                }
+                if (this.title.isPresent()) {
+                    rootDisplay = rootDisplay
+                        .withTitle(this.title.get().toJson());
+                }
+                float x = rootDisplay.getX();
+                float y = rootDisplay.getY();
+                return rootDisplay
+                    .withCoords(x - 0.2f, y)
+                    .withShowToast(false)
+                    .withAnnounceToChat(false)
+                    .withHidden(true)
+                    .toRootAdvancementDisplay(this.backgroundTexture);
             }
         }
 
